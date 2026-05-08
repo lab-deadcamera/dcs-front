@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import { NgIcon } from '@ng-icons/core'
-import { ThemeService } from '../theme.service'
+import { ThemeService } from '@core/theme/theme.service'
 
 @Component({
   selector: 'app-theme-picker',

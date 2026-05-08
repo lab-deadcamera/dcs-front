@@ -6,7 +6,7 @@ import { provideIcons } from '@ng-icons/core';
 import { heroSunMicro, heroMoonMicro, heroCheckMicro } from '@ng-icons/heroicons/micro';
 import Aura from '@primeuix/themes/aura';
 
-import { routes } from './app.routes';
+import { routes } from '@app/app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
