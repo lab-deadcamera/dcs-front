@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: var(--p-primary-50, #eff6ff);
+  --color-primary-100: var(--p-primary-100, #dbeafe);
+  --color-primary-200: var(--p-primary-200, #bfdbfe);
+  --color-primary-300: var(--p-primary-300, #93c5fd);
+  --color-primary-400: var(--p-primary-400, #60a5fa);
+  --color-primary-500: var(--p-primary-500, #3b82f6);
+  --color-primary-600: var(--p-primary-600, #2563eb);
+  --color-primary-700: var(--p-primary-700, #1d4ed8);
+  --color-primary-800: var(--p-primary-800, #1e40af);
+  --color-primary-900: var(--p-primary-900, #1e3a8a);
+  --color-primary-950: var(--p-primary-950, #172554);
+
+  --color-secondary-50: var(--p-secondary-50, #faf5ff);
+  --color-secondary-100: var(--p-secondary-100, #f3e8ff);
+  --color-secondary-200: var(--p-secondary-200, #e9d5ff);
+  --color-secondary-300: var(--p-secondary-300, #d8b4fe);
+  --color-secondary-400: var(--p-secondary-400, #c084fc);
+  --color-secondary-500: var(--p-secondary-500, #a855f7);
+  --color-secondary-600: var(--p-secondary-600, #9333ea);
+  --color-secondary-700: var(--p-secondary-700, #7e22ce);
+  --color-secondary-800: var(--p-secondary-800, #6b21a8);
+  --color-secondary-900: var(--p-secondary-900, #581c87);
+  --color-secondary-950: var(--p-secondary-950, #3b0764);
+
+  --color-accent-50: var(--p-accent-50, #fffbeb);
+  --color-accent-100: var(--p-accent-100, #fef3c7);
+  --color-accent-200: var(--p-accent-200, #fde68a);
+  --color-accent-300: var(--p-accent-300, #fcd34d);
+  --color-accent-400: var(--p-accent-400, #fbbf24);
+  --color-accent-500: var(--p-accent-500, #f59e0b);
+  --color-accent-600: var(--p-accent-600, #d97706);
+  --color-accent-700: var(--p-accent-700, #b45309);
+  --color-accent-800: var(--p-accent-800, #92400e);
+  --color-accent-900: var(--p-accent-900, #78350f);
+  --color-accent-950: var(--p-accent-950, #451a03);
+
+  --color-surface-0: var(--p-surface-0, #ffffff);
+  --color-surface-50: var(--p-surface-50, #f8fafc);
+  --color-surface-100: var(--p-surface-100, #f1f5f9);
+  --color-surface-200: var(--p-surface-200, #e2e8f0);
+  --color-surface-300: var(--p-surface-300, #cbd5e1);
+  --color-surface-400: var(--p-surface-400, #94a3b8);
+  --color-surface-500: var(--p-surface-500, #64748b);
+  --color-surface-600: var(--p-surface-600, #475569);
+  --color-surface-700: var(--p-surface-700, #334155);
+  --color-surface-800: var(--p-surface-800, #1e293b);
+  --color-surface-900: var(--p-surface-900, #0f172a);
+  --color-surface-950: var(--p-surface-950, #020617);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-surface-200);
+  }
+
+  .dark,
+  .dark * {
+    border-color: var(--color-surface-700);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-surface-0);
+    color: var(--color-surface-900);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  .dark body,
+  .dark,
+  body.dark {
+    background-color: var(--color-surface-950);
+    color: var(--color-surface-100);
+  }
+}
+
+@layer base {
+  :root {
+    --p-surface-0: #ffffff;
+    --p-surface-50: #f8fafc;
+    --p-surface-100: #f1f5f9;
+    --p-surface-200: #e2e8f0;
+    --p-surface-300: #cbd5e1;
+    --p-surface-400: #94a3b8;
+    --p-surface-500: #64748b;
+    --p-surface-600: #475569;
+    --p-surface-700: #334155;
+    --p-surface-800: #1e293b;
+    --p-surface-900: #0f172a;
+    --p-surface-950: #020617;
+
+    --p-primary-50: #eff6ff;
+    --p-primary-100: #dbeafe;
+    --p-primary-200: #bfdbfe;
+    --p-primary-300: #93c5fd;
+    --p-primary-400: #60a5fa;
+    --p-primary-500: #3b82f6;
+    --p-primary-600: #2563eb;
+    --p-primary-700: #1d4ed8;
+    --p-primary-800: #1e40af;
+    --p-primary-900: #1e3a8a;
+    --p-primary-950: #172554;
+
+    --p-secondary-50: #faf5ff;
+    --p-secondary-100: #f3e8ff;
+    --p-secondary-200: #e9d5ff;
+    --p-secondary-300: #d8b4fe;
+    --p-secondary-400: #c084fc;
+    --p-secondary-500: #a855f7;
+    --p-secondary-600: #9333ea;
+    --p-secondary-700: #7e22ce;
+    --p-secondary-800: #6b21a8;
+    --p-secondary-900: #581c87;
+    --p-secondary-950: #3b0764;
+
+    --p-accent-50: #fffbeb;
+    --p-accent-100: #fef3c7;
+    --p-accent-200: #fde68a;
+    --p-accent-300: #fcd34d;
+    --p-accent-400: #fbbf24;
+    --p-accent-500: #f59e0b;
+    --p-accent-600: #d97706;
+    --p-accent-700: #b45309;
+    --p-accent-800: #92400e;
+    --p-accent-900: #78350f;
+    --p-accent-950: #451a03;
+  }
+
+  .dark {
+    --p-surface-0: #020617;
+    --p-surface-50: #0f172a;
+    --p-surface-100: #1e293b;
+    --p-surface-200: #334155;
+    --p-surface-300: #475569;
+    --p-surface-400: #64748b;
+    --p-surface-500: #94a3b8;
+    --p-surface-600: #cbd5e1;
+    --p-surface-700: #e2e8f0;
+    --p-surface-800: #f1f5f9;
+    --p-surface-900: #f8fafc;
+    --p-surface-950: #ffffff;
+  }
+}
