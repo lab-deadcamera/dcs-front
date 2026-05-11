@@ -1,8 +1,10 @@
+version: '3.4'
+
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
+    restart: always
     ports:
-      - "4200:80"
-    restart: unless-stopped
+      - '127.0.0.1:4200:80'
