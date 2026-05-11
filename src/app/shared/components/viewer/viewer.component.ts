@@ -30,7 +30,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   template: `
     <section class="px-6 py-6">
       <ui-section-header
-        number="01"
+        number="05"
         labelKey="STUDIO.VIEWER.TITLE"
         hintKey="STUDIO.VIEWER.HINT"
       />

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
@@ -12,8 +13,12 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 /**
  * IndexStudio — composes the full Dead Camera / Seedance Studio shell.
  *
- * The header lives in PrivateLayout (shared across private routes),
- * so this page renders only hero + sections + reel + footer.
+ * Layout:
+ * - Mobile: single column, viewer on top, then settings, reel, footer.
+ * - Desktop (lg+): two columns — settings on the left, viewer (sticky)
+ *   on the right.
+ * - The GENERATE action lives in a sticky bottom bar so it stays in
+ *   reach regardless of scroll position.
  */
 @Component({
   selector: 'app-index-studio',
@@ -26,13 +31,14 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
     OutputFormatComponent,
     CharacterAssetsComponent,
     FooterComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
   styleUrl: './index-studio.css',
 })
 export class IndexStudio {
-  private readonly prompt = inject(PromptStateService);
+  protected readonly prompt = inject(PromptStateService);
 
   protected onGenerate(): void {
     const compiled = this.prompt.compiledPrompt();

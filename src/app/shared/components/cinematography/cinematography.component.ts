@@ -1,21 +1,24 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import {
-  CameraBody,
-  CameraMotion,
+  CameraBodyId,
+  CameraMotionId,
   ChipOption,
-  ColorGrading,
-  Genre,
-  Lens,
+  ColorGradingId,
+  GenreId,
+  LensId,
 } from '@core/interfaces/studio.models';
+import { PresetsService } from '@app/core/stores/presets.service';
 import { PromptStateService } from '@app/core/stores/prompt.state';
 
 /**
  * Section 03 — CINEMATOGRAPHY.
  *
- * Five independent single-select chip groups. All selections feed
- * the compiled prompt computed signal in PromptStateService.
+ * Five single-select chip groups. Options come from PresetsService
+ * (loaded from /assets/presets.json, the v0 catalog). Each selection
+ * patches PromptStateService.cinematography, which feeds the compiled
+ * prompt computed.
  */
 @Component({
   selector: 'app-cinematography',
@@ -23,40 +26,40 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
-      <ui-section-header number="03" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
+      <ui-section-header number="01" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
 
       <div class="mt-5 flex flex-col gap-5">
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.LENS"
-          [options]="lensOptions"
+          [options]="lensOptions()"
           [value]="prompt.cinematography().lens"
           (valueChange)="onLens($event)"
         />
 
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_BODY"
-          [options]="bodyOptions"
+          [options]="bodyOptions()"
           [value]="prompt.cinematography().cameraBody"
           (valueChange)="onBody($event)"
         />
 
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_MOTION"
-          [options]="motionOptions"
+          [options]="motionOptions()"
           [value]="prompt.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
         />
 
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.COLOR_GRADING"
-          [options]="gradingOptions"
+          [options]="gradingOptions()"
           [value]="prompt.cinematography().colorGrading"
           (valueChange)="onGrading($event)"
         />
 
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.GENRE"
-          [options]="genreOptions"
+          [options]="genreOptions()"
           [value]="prompt.cinematography().genre"
           (valueChange)="onGenre($event)"
         />
@@ -66,45 +69,52 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 })
 export class CinematographyComponent {
   protected readonly prompt = inject(PromptStateService);
+  private readonly presets = inject(PresetsService);
 
-  protected readonly lensOptions: ChipOption<Lens>[] = [
-    { value: '24mm-wide', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.24MM_WIDE' },
-    { value: '35mm-classic', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.35MM_CLASSIC' },
-    { value: '50mm-portrait', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.50MM_PORTRAIT' },
-    { value: '85mm-tele', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.85MM_TELE' },
-  ];
+  protected readonly lensOptions = computed<ChipOption<LensId>[]>(() =>
+    this.presets.lens().map((p) => ({
+      value: p.id as LensId,
+      labelKey: p.labelKey,
+    })),
+  );
+  protected readonly bodyOptions = computed<ChipOption<CameraBodyId>[]>(() =>
+    this.presets.camera().map((p) => ({
+      value: p.id as CameraBodyId,
+      labelKey: p.labelKey,
+    })),
+  );
+  protected readonly motionOptions = computed<ChipOption<CameraMotionId>[]>(() =>
+    this.presets.cameraMotion().map((p) => ({
+      value: p.id as CameraMotionId,
+      labelKey: p.labelKey,
+    })),
+  );
+  protected readonly gradingOptions = computed<ChipOption<ColorGradingId>[]>(() =>
+    this.presets.colorGrading().map((p) => ({
+      value: p.id as ColorGradingId,
+      labelKey: p.labelKey,
+    })),
+  );
+  protected readonly genreOptions = computed<ChipOption<GenreId>[]>(() =>
+    this.presets.genre().map((p) => ({
+      value: p.id as GenreId,
+      labelKey: p.labelKey,
+    })),
+  );
 
-  protected readonly bodyOptions: ChipOption<CameraBody>[] = [
-    { value: 'arri-alexa-65', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.ARRI_ALEXA_65' },
-    { value: 'red-komodo-6k', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.RED_KOMODO_6K' },
-    { value: 'sony-venice', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.SONY_VENICE' },
-    { value: '16mm-film', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.FILM_16MM' },
-  ];
-
-  protected readonly motionOptions: ChipOption<CameraMotion>[] = [
-    { value: 'static-lock-off', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.STATIC' },
-    { value: 'slow-dolly-in', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.DOLLY_IN' },
-    { value: 'orbit', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.ORBIT' },
-    { value: 'handheld', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.HANDHELD' },
-  ];
-
-  protected readonly gradingOptions: ChipOption<ColorGrading>[] = [
-    { value: 'blade-runner-2049', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.BLADE_RUNNER' },
-    { value: 'the-matrix', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.MATRIX' },
-    { value: 'gone-girl', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.GONE_GIRL' },
-    { value: 'interstellar', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.INTERSTELLAR' },
-  ];
-
-  protected readonly genreOptions: ChipOption<Genre>[] = [
-    { value: 'drama', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.DRAMA' },
-    { value: 'action', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.ACTION' },
-    { value: 'noir', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.NOIR' },
-    { value: 'horror', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.HORROR' },
-  ];
-
-  protected onLens(v: Lens | null) { this.prompt.patchCinematography({ lens: v }); }
-  protected onBody(v: CameraBody | null) { this.prompt.patchCinematography({ cameraBody: v }); }
-  protected onMotion(v: CameraMotion | null) { this.prompt.patchCinematography({ cameraMotion: v }); }
-  protected onGrading(v: ColorGrading | null) { this.prompt.patchCinematography({ colorGrading: v }); }
-  protected onGenre(v: Genre | null) { this.prompt.patchCinematography({ genre: v }); }
+  protected onLens(v: LensId | null) {
+    this.prompt.patchCinematography({ lens: v });
+  }
+  protected onBody(v: CameraBodyId | null) {
+    this.prompt.patchCinematography({ cameraBody: v });
+  }
+  protected onMotion(v: CameraMotionId | null) {
+    this.prompt.patchCinematography({ cameraMotion: v });
+  }
+  protected onGrading(v: ColorGradingId | null) {
+    this.prompt.patchCinematography({ colorGrading: v });
+  }
+  protected onGenre(v: GenreId | null) {
+    this.prompt.patchCinematography({ genre: v });
+  }
 }

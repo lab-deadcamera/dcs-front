@@ -96,7 +96,19 @@
     "API": {
       "ADD_KEY": "Add API Key",
       "NO_KEY": "no key",
-      "CONNECTED": "connected"
+      "CONNECTED": "connected",
+      "TITLE": "API Keys",
+      "NO_KEYS": "No keys yet — add one below to start.",
+      "NAME_PLACEHOLDER": "Name (optional)",
+      "VALUE_PLACEHOLDER": "Paste your API key here",
+      "AK_PLACEHOLDER": "Access Key (AK)",
+      "SK_PLACEHOLDER": "Secret Key (SK)",
+      "AK_SK_TOGGLE": "Advanced: AK / SK (Assets API)",
+      "AK_SK_HINT": "Add Access Key and Secret Key only if you'll use the Assets API (Private Portrait Library).",
+      "AK_SK_MISMATCH": "AK and SK must be provided together (or both empty).",
+      "ADD_BUTTON": "+ Add Key",
+      "DELETE": "Del",
+      "ACTIVATE_ARIA": "Activate this key"
     },
     "VIEWER": {
       "TITLE": "Viewer",

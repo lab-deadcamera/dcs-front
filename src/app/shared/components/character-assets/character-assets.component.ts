@@ -38,9 +38,13 @@ export class CharacterAssetsComponent {
 
   protected onFreeAssets(files: File[]) {
     for (const f of files) {
+      // TODO: SUBIR LAS IMAGENES A LA API
       this.assets.addFreeAsset(this.toReferenceAsset(f, 'free'));
     }
   }
+
+
+
 
   private toReferenceAsset(
     file: File,

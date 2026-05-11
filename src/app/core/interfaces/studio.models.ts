@@ -1,38 +1,76 @@
 /**
  * Domain types for Dead Camera / Seedance Studio.
  * Kept framework-free so they can be reused in state, services, and UI.
+ *
+ * Ids match the verbatim ids from `presets.json` (mirrored from dcs-v0)
+ * so the compiled prompt aligns byte-for-byte with the reference repo.
  */
 
 export type AspectRatio = '16:9' | '9:16' | '21:9' | '1:1';
 export type Resolution = '480p' | '720p' | '1080p';
 export type Engine = 'fast' | 'pro';
 
-export type Lens = '24mm-wide' | '35mm-classic' | '50mm-portrait' | '85mm-tele';
-export type CameraBody =
-  | 'arri-alexa-65'
-  | 'red-komodo-6k'
-  | 'sony-venice'
-  | '16mm-film';
-export type CameraMotion = 'static-lock-off' | 'slow-dolly-in' | 'orbit' | 'handheld';
-export type ColorGrading =
-  | 'blade-runner-2049'
-  | 'the-matrix'
-  | 'gone-girl'
+export type LensId = 'wide_24mm' | 'classic_35mm' | 'portrait_50mm' | 'tele_85mm';
+export type CameraBodyId =
+  | 'arri_alexa'
+  | 'red_komodo'
+  | 'sony_venice'
+  | 'film_16mm';
+export type CameraMotionId =
+  | 'static_lockoff'
+  | 'slow_dolly_in'
+  | 'orbit'
+  | 'handheld';
+export type ColorGradingId =
+  | 'blade_runner_2049'
+  | 'the_matrix'
+  | 'gone_girl'
   | 'interstellar';
-export type Genre = 'drama' | 'action' | 'noir' | 'horror';
+export type GenreId = 'drama' | 'action' | 'noir' | 'horror';
 
-/** A single option inside a ToggleGroup (chips list). `labelKey` is an i18n key. */
+/** A single option inside a ToggleGroup (chips list). */
 export interface ChipOption<V extends string = string> {
   value: V;
   labelKey: string;
 }
 
+/**
+ * Cinematographic preset. The `prompt` field is the verbatim English text
+ * injected into the final BytePlus prompt (not translated).
+ */
+export interface Preset {
+  id: string;
+  label: string;
+  prompt: string;
+  /** Resolved at runtime by PresetsService — i18n key for the chip label. */
+  labelKey: string;
+}
+
+/** Technical option (aspect ratio, resolution) — has a literal `value`. */
+export interface SpecOption {
+  id: string;
+  label: string;
+  value: string;
+  labelKey: string;
+}
+
+/** The raw presets.json schema as it lives on disk (no labelKey yet). */
+export interface PresetsFile {
+  lens: Array<{ id: string; label: string; prompt: string }>;
+  camera: Array<{ id: string; label: string; prompt: string }>;
+  cameraMotion: Array<{ id: string; label: string; prompt: string }>;
+  colorGrading: Array<{ id: string; label: string; prompt: string }>;
+  genre: Array<{ id: string; label: string; prompt: string }>;
+  aspectRatio: Array<{ id: string; label: string; value: string }>;
+  resolution: Array<{ id: string; label: string; value: string }>;
+}
+
 export interface CinematographyConfig {
-  lens: Lens | null;
-  cameraBody: CameraBody | null;
-  cameraMotion: CameraMotion | null;
-  colorGrading: ColorGrading | null;
-  genre: Genre | null;
+  lens: LensId | null;
+  cameraBody: CameraBodyId | null;
+  cameraMotion: CameraMotionId | null;
+  colorGrading: ColorGradingId | null;
+  genre: GenreId | null;
 }
 
 export interface OutputFormatConfig {

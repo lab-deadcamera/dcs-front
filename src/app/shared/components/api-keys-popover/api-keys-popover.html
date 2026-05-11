@@ -1,0 +1,169 @@
+<button
+  type="button"
+  class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+  (click)="popover.toggle($event)"
+  [attr.aria-label]="'HEADER.ACTIONS.ADD_API_KEY' | translate"
+>
+  <span
+    class="inline-block h-2 w-2 rounded-full"
+    [class.bg-brand-red]="!keys.hasActiveKey()"
+    [class.bg-brand-green]="keys.hasActiveKey()"
+  ></span>
+  @if (keys.activeKey(); as ak) {
+    <span class="font-mono normal-case text-fg-strong">{{ ak.name }}</span>
+  } @else {
+    {{ 'HEADER.ACTIONS.ADD_API_KEY' | translate }}
+  }
+  <span aria-hidden="true">▾</span>
+</button>
+
+<p-popover #popover [dismissable]="true" styleClass="api-keys-popover">
+  <div class="w-96 bg-ink-850 text-fg-strong">
+    <header
+      class="flex items-center justify-between border-b border-ink-600 px-4 py-3"
+    >
+      <h3 class="text-[12px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+        {{ 'STUDIO.API.TITLE' | translate }}
+      </h3>
+      @if (keys.activeKey(); as ak) {
+        <span
+          class="font-mono text-[10px] uppercase tracking-[0.12em]"
+          style="color: var(--color-brand-green);"
+        >
+          ● {{ ak.name }}
+        </span>
+      }
+    </header>
+
+    <div class="max-h-64 overflow-y-auto">
+      @if (keys.keys().length === 0) {
+        <p class="px-4 py-6 text-center text-[11px] italic text-fg-muted">
+          {{ 'STUDIO.API.NO_KEYS' | translate }}
+        </p>
+      } @else {
+        <ul>
+          @for (k of keys.keys(); track k.id) {
+            @let active = k.id === keys.activeId();
+            <li
+              class="flex items-center gap-3 border-b border-ink-700 px-4 py-3 transition-colors hover:bg-ink-800"
+            >
+              <button
+                type="button"
+                class="h-4 w-4 flex-shrink-0 rounded-full border-2 transition-colors"
+                [class.border-brand-red]="active"
+                [class.border-ink-500]="!active"
+                [class.bg-brand-red]="active"
+                (click)="onActivate(k.id)"
+                [attr.aria-label]="'STUDIO.API.ACTIVATE_ARIA' | translate"
+                [attr.aria-pressed]="active"
+              ></button>
+
+              <div class="min-w-0 flex-1">
+                <input
+                  type="text"
+                  class="-mx-1 block w-full rounded border-none bg-transparent px-1 text-[12px] font-semibold text-fg-strong outline-none focus:bg-ink-800"
+                  [value]="k.name"
+                  (blur)="onRename(k.id, $event)"
+                  (keydown.enter)="onRenameEnter($event)"
+                  spellcheck="false"
+                />
+                <p class="mt-0.5 font-mono text-[10px] text-fg-muted">
+                  {{ mask(k.value) }}
+                  <span class="mx-1 text-fg-faint">·</span>
+                  {{ endpointShort(k.endpoint) }}
+                  @if (k.ak) {
+                    <span class="mx-1 text-fg-faint">·</span>
+                    <span style="color: var(--color-brand-yellow);">AK/SK</span>
+                  }
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="text-[10px] font-bold uppercase tracking-[0.12em] text-fg-muted transition-colors hover:text-brand-red"
+                (click)="onDelete(k.id)"
+              >
+                {{ 'STUDIO.API.DELETE' | translate }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <form
+      class="flex flex-col gap-2 border-t border-ink-600 p-4"
+      (submit)="onAdd($event)"
+    >
+      <input
+        type="text"
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+        [placeholder]="'STUDIO.API.NAME_PLACEHOLDER' | translate"
+        [value]="nameDraft()"
+        (input)="onDraft($event, 'name')"
+        autocomplete="off"
+      />
+      <input
+        type="password"
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+        [placeholder]="'STUDIO.API.VALUE_PLACEHOLDER' | translate"
+        [value]="valueDraft()"
+        (input)="onDraft($event, 'value')"
+        autocomplete="off"
+        required
+      />
+      <select
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong focus:border-brand-red focus:outline-none"
+        [value]="endpointDraft()"
+        (change)="onDraft($event, 'endpoint')"
+      >
+        @for (ep of keys.endpoints; track ep.id) {
+          <option [value]="ep.id" class="bg-ink-900 text-fg-strong">
+            {{ ep.label }}
+          </option>
+        }
+      </select>
+
+      <details class="text-[11px]">
+        <summary
+          class="cursor-pointer text-fg-muted transition-colors hover:text-fg-strong"
+        >
+          {{ 'STUDIO.API.AK_SK_TOGGLE' | translate }}
+        </summary>
+        <div class="mt-2 flex flex-col gap-2">
+          <input
+            type="password"
+            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+            [placeholder]="'STUDIO.API.AK_PLACEHOLDER' | translate"
+            [value]="akDraft()"
+            (input)="onDraft($event, 'ak')"
+            autocomplete="off"
+          />
+          <input
+            type="password"
+            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+            [placeholder]="'STUDIO.API.SK_PLACEHOLDER' | translate"
+            [value]="skDraft()"
+            (input)="onDraft($event, 'sk')"
+            autocomplete="off"
+          />
+          <p class="italic text-fg-muted">
+            {{ 'STUDIO.API.AK_SK_HINT' | translate }}
+          </p>
+        </div>
+      </details>
+
+      @if (errorKey(); as e) {
+        <p class="text-[11px] text-brand-red">{{ e | translate }}</p>
+      }
+
+      <button
+        type="submit"
+        class="mt-1 w-full bg-brand-red py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
+        [disabled]="!valueDraft().trim()"
+      >
+        {{ 'STUDIO.API.ADD_BUTTON' | translate }}
+      </button>
+    </form>
+  </div>
+</p-popover>

@@ -26,7 +26,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   template: `
     <section class="px-6 py-6">
       <ui-section-header
-        number="02"
+        number="04"
         labelKey="STUDIO.PROMPT.TITLE"
         hintKey="STUDIO.PROMPT.HINT"
       />
@@ -67,15 +67,6 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
           </p>
         }
       </div>
-
-      <button
-        type="button"
-        class="mt-5 flex w-full items-center justify-center gap-3 bg-brand-red py-4 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
-        [disabled]="!prompt.compiledPrompt()"
-        (click)="generate.emit()"
-      >
-        {{ 'STUDIO.PROMPT.GENERATE' | translate }} <span aria-hidden="true">→</span>
-      </button>
     </section>
   `,
 })

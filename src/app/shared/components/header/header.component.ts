@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
 import { StudioStateService } from '@app/core/stores/studio.state';
 
 /**
  * Top navigation bar.
  *
- *  [logo] DEAD CAMERA / SEEDANCE STUDIO    • ADD API KEY → [jander] [SR·20] [EXPORT 0] [API no key]
+ *  [logo] DEAD CAMERA / SEEDANCE STUDIO    • [API KEYS popover] [jander] [SR·20] [EXPORT 0] [API status]
  *         STUDIOS / AI RESEARCH LAB
  */
 @Component({
   selector: 'app-header',
-  imports: [IconButtonComponent, ThemePicker, TranslatePipe],
+  imports: [IconButtonComponent, ApiKeysPopoverComponent, ThemePicker, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
@@ -50,13 +51,7 @@ import { StudioStateService } from '@app/core/stores/studio.state';
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong"
-        >
-          <span class="inline-block h-2 w-2 rounded-full bg-brand-red"></span>
-          {{ 'HEADER.ACTIONS.ADD_API_KEY' | translate }} <span aria-hidden="true">→</span>
-        </button>
+        <app-api-keys-popover />
 
         <ui-icon-button
           icon="👤"
