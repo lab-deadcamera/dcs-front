@@ -16,7 +16,6 @@ import {
  */
 @Component({
   selector: 'ui-drop-zone',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <label

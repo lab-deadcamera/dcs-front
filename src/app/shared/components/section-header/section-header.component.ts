@@ -14,7 +14,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  */
 @Component({
   selector: 'ui-section-header',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="flex items-end justify-between gap-4 border-b border-ink-600 pb-3">

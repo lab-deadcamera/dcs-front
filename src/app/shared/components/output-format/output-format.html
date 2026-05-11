@@ -1,0 +1,64 @@
+    <section class="border-t border-ink-600 px-6 py-6">
+      <ui-section-header number="04" label="OUTPUT FORMAT" />
+
+      <div class="mt-5 flex flex-col gap-5">
+        <ui-toggle-group
+          label="ASPECT RATIO"
+          variant="accent"
+          [options]="aspectOptions"
+          [value]="prompt.output().aspectRatio"
+          (valueChange)="onAspect($event)"
+        />
+
+        <ui-toggle-group
+          label="RESOLUTION"
+          variant="accent"
+          [options]="resolutionOptions"
+          [value]="prompt.output().resolution"
+          (valueChange)="onResolution($event)"
+        />
+
+        <div>
+          <p class="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+            DURATION
+            <span class="font-mono text-fg-muted">{{ prompt.output().durationSeconds }}s</span>
+          </p>
+          <ui-range-slider
+            ariaLabel="Duration in seconds"
+            [min]="4"
+            [max]="15"
+            [step]="1"
+            unit="s"
+            [ticks]="[4, 8, 12, 15]"
+            [value]="prompt.output().durationSeconds"
+            (valueChange)="onDuration($event)"
+          />
+        </div>
+
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+            SOUND
+          </p>
+          <ui-pill-toggle
+            leftLabel="OFF"
+            rightLabel="ON"
+            accentSide="left"
+            [value]="prompt.output().sound ? 'right' : 'left'"
+            (valueChange)="onSound($event)"
+          />
+        </div>
+
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+            ENGINE
+          </p>
+          <ui-pill-toggle
+            leftLabel="FAST"
+            rightLabel="PRO"
+            accentSide="left"
+            [value]="prompt.output().engine === 'fast' ? 'left' : 'right'"
+            (valueChange)="onEngine($event)"
+          />
+        </div>
+      </div>
+    </section>

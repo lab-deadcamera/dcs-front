@@ -5,7 +5,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { ChipOption } from '../../../core/models/studio.models';
+import { ChipOption } from '@core/interfaces/studio.models';
 
 /**
  * Generic chip / pill selector.
@@ -25,7 +25,6 @@ import { ChipOption } from '../../../core/models/studio.models';
  */
 @Component({
   selector: 'ui-toggle-group',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (label(); as l) {

@@ -10,7 +10,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  */
 @Component({
   selector: 'ui-corner-frame',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <svg

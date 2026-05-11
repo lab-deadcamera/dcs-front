@@ -19,7 +19,6 @@ import {
  */
 @Component({
   selector: 'ui-pill-toggle',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div

@@ -20,7 +20,6 @@ import {
  */
 @Component({
   selector: 'ui-range-slider',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative w-full pt-2 pb-6">

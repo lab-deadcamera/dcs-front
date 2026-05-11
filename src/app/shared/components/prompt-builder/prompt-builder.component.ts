@@ -5,8 +5,8 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { SectionHeaderComponent } from '../../shared/ui/section-header/section-header.component';
-import { PromptStateService } from '../../state/prompt.state';
+import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
+import { PromptStateService } from '@app/core/stores/prompt.state';
 
 /**
  * Section 02 — PROMPT BUILDER.
@@ -18,7 +18,6 @@ import { PromptStateService } from '../../state/prompt.state';
  */
 @Component({
   selector: 'app-prompt-builder',
-  standalone: true,
   imports: [SectionHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

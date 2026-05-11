@@ -63,6 +63,21 @@
     "SIZE": "Size",
     "FORMAT": "Format"
   },
+  "HEADER": {
+    "BRAND": {
+      "DEAD_CAMERA": "DEAD CAMERA",
+      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+    },
+    "SUBTITLE": {
+      "STUDIOS": "STUDIOS",
+      "AI_LAB": "AI RESEARCH LAB"
+    },
+    "ACTIONS": {
+      "ADD_API_KEY": "ADD API KEY",
+      "EXPORT": "EXPORT",
+      "API": "API"
+    }
+  },
   "TOAST": {
     "SUCCESS": "Success",
     "ERROR": "Error",

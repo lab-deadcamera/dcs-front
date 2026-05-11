@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CornerFrameComponent } from '../../shared/ui/corner-frame/corner-frame.component';
-import { SectionHeaderComponent } from '../../shared/ui/section-header/section-header.component';
-import { PromptStateService } from '../../state/prompt.state';
+import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
+import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
+import { PromptStateService } from '@app/core/stores/prompt.state';
 
 /**
  * Section 01 — VIEWER.
@@ -11,7 +11,6 @@ import { PromptStateService } from '../../state/prompt.state';
  */
 @Component({
   selector: 'app-viewer',
-  standalone: true,
   imports: [SectionHeaderComponent, CornerFrameComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

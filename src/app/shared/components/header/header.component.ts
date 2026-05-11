@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
 import { StudioStateService } from '@app/core/stores/studio.state';
@@ -12,7 +13,7 @@ import { StudioStateService } from '@app/core/stores/studio.state';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [IconButtonComponent, ThemePicker],
+  imports: [IconButtonComponent, ThemePicker, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
@@ -39,14 +40,14 @@ import { StudioStateService } from '@app/core/stores/studio.state';
 
         <div class="leading-tight">
           <p class="text-[13px] font-bold uppercase tracking-[0.08em] text-fg-strong">
-            DEAD CAMERA
+            {{ 'HEADER.BRAND.DEAD_CAMERA' | translate }}
             <span class="mx-1 text-brand-red">//</span>
-            SEEDANCE STUDIO
+            {{ 'HEADER.BRAND.SEEDANCE_STUDIO' | translate }}
           </p>
           <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-fg-muted">
-            STUDIOS
+            {{ 'HEADER.SUBTITLE.STUDIOS' | translate }}
             <span class="mx-1 text-brand-red">//</span>
-            AI RESEARCH LAB
+            {{ 'HEADER.SUBTITLE.AI_LAB' | translate }}
           </p>
         </div>
       </div>
@@ -58,7 +59,7 @@ import { StudioStateService } from '@app/core/stores/studio.state';
           class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong"
         >
           <span class="inline-block h-2 w-2 rounded-full bg-brand-red"></span>
-          ADD API KEY <span aria-hidden="true">→</span>
+          {{ 'HEADER.ACTIONS.ADD_API_KEY' | translate }} <span aria-hidden="true">→</span>
         </button>
 
         <ui-icon-button
@@ -75,14 +76,14 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         />
         <ui-icon-button
           icon="📦"
-          label="EXPORT"
+          [label]="'HEADER.ACTIONS.EXPORT' | translate"
           [badge]="state.exportCount().toString()"
           iconColor="green"
           badgeColor="green"
         />
         <ui-icon-button
           icon="🖥"
-          label="API"
+          [label]="'HEADER.ACTIONS.API' | translate"
           [badge]="state.apiBadge()"
           badgeColor="red"
         />

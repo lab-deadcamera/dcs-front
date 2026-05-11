@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { PromptStateService } from '../../state/prompt.state';
+import { PromptStateService } from '@app/core/stores/prompt.state';
 
 /**
  * "SESSION REEL" — horizontal strip of generated clip thumbnails.
@@ -7,7 +7,6 @@ import { PromptStateService } from '../../state/prompt.state';
  */
 @Component({
   selector: 'app-session-reel',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-5">

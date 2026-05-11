@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { SectionHeaderComponent } from '../../shared/ui/section-header/section-header.component';
-import { ToggleGroupComponent } from '../../shared/ui/toggle-group/toggle-group.component';
+import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
+import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import {
   CameraBody,
   CameraMotion,
@@ -8,8 +8,8 @@ import {
   ColorGrading,
   Genre,
   Lens,
-} from '../../core/models/studio.models';
-import { PromptStateService } from '../../state/prompt.state';
+} from '@core/interfaces/studio.models';
+import { PromptStateService } from '@app/core/stores/prompt.state';
 
 /**
  * Section 03 — CINEMATOGRAPHY.
@@ -19,7 +19,6 @@ import { PromptStateService } from '../../state/prompt.state';
  */
 @Component({
   selector: 'app-cinematography',
-  standalone: true,
   imports: [SectionHeaderComponent, ToggleGroupComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
