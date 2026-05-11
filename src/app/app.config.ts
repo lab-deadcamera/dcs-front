@@ -5,6 +5,8 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { providePrimeNG } from 'primeng/config';
 import { provideIcons } from '@ng-icons/core';
 import { heroSunMicro, heroMoonMicro, heroCheckMicro } from '@ng-icons/heroicons/micro';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { provideTranslateService } from '@ngx-translate/core';
 import Aura from '@primeuix/themes/aura';
 
 import { routes } from '@app/app.routes';
@@ -26,5 +28,10 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     provideIcons({ heroSunMicro, heroMoonMicro, heroCheckMicro }),
+    provideTranslateHttpLoader({
+      prefix: 'assets/i18n/',
+      suffix: '.json',
+    }),
+    provideTranslateService(),
   ],
 };
