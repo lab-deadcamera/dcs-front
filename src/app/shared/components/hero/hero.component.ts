@@ -17,7 +17,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     <section class="px-6 pt-10 pb-12">
       <h1
         class="font-display text-fg-strong leading-[0.9] uppercase italic"
-        style="font-size: clamp(2.5rem, 6vw, 5.5rem);"
+        style="font-size: clamp(1.25rem, 3vw, 2.75rem);"
       >
         <span class="hero-strike">{{ 'STUDIO.HERO.STRIKE_1' | translate }}</span>
         <span class="hero-strike ml-2">{{ 'STUDIO.HERO.STRIKE_2' | translate }}</span>

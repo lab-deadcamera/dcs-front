@@ -95,7 +95,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
             </div>
-            <p class="font-script text-3xl text-fg-strong">
+            <p class="text-2xl font-light italic text-fg-strong">
               {{ 'STUDIO.VIEWER.EMPTY_TITLE' | translate }}
             </p>
             <p class="text-[11px] uppercase tracking-[0.18em] text-fg-muted">

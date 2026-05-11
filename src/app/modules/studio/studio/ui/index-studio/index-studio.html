@@ -10,9 +10,9 @@
       05 Viewer + Session Reel  (RIGHT on lg+, sticky preview)
 
     · Mobile / tablet (< lg): single column, sections stacked 01 → 05.
-    · Desktop (lg+): two columns. Settings on the left (~60%), viewer on
-      the right at min 30% — exact 40% via `lg:flex-[0_0_40%]`. Below
-      1024px the layout collapses to col so the viewer keeps a usable size.
+    · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`. Below
+      1024px the layout collapses to col so each column keeps a usable
+      width.
     · The viewer column sticks to the top of the viewport while the
       user scrolls the longer settings column.
   -->
@@ -27,7 +27,7 @@
 
     <!-- Step 05 — Viewer (RIGHT on lg+, sticky preview) -->
     <aside
-      class="flex flex-col lg:flex-[0_0_40%] lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
+      class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
     >
       <app-viewer />
       <app-session-reel />

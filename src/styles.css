@@ -73,7 +73,7 @@
   body {
     background-color: var(--color-surface-0);
     color: var(--color-surface-900);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Helvetica', system-ui, -apple-system, sans-serif;
   }
 
   .dark body,
@@ -152,6 +152,62 @@
   }
 }
 
+/* Local font faces — served from public/fonts/ */
+@font-face {
+  font-family: 'Akira Expanded';
+  src: url('/fonts/Akira_Expanded_Demo.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/Helvetica.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/Helvetica-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/Helvetica-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/Helvetica-Oblique.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica Compressed';
+  src: url('/fonts/Helvetica-Compressed.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Reserved exclusively for the hero "Vision" word. */
+@font-face {
+  font-family: 'Thunderstorm';
+  src:
+    url('/fonts/Thunderstorm.otf') format('opentype'),
+    url('/fonts/Thunderstorm.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-ink-950: #0a0d10;
   --color-ink-900: #0d1014;
@@ -171,9 +227,12 @@
   --color-fg-muted:  #6c7682;
   --color-fg-faint:  #444b55;
 
-  --font-display: 'Impact', 'Oswald', system-ui, sans-serif;
-  --font-script:  'Caveat', 'Permanent Marker', cursive;
-  --font-ui:      ui-sans-serif, system-ui, sans-serif;
+  /* Display font for titles and step numbers. */
+  --font-display: 'Akira Expanded', 'Impact', system-ui, sans-serif;
+  /* Reserved for the hero "Vision" tag — Thunderstorm only. */
+  --font-script:  'Thunderstorm', cursive;
+  /* Body font. */
+  --font-ui:      'Helvetica', system-ui, sans-serif;
   --font-mono:    ui-monospace, 'JetBrains Mono', monospace;
 }
 
