@@ -35,6 +35,5 @@ export const appConfig: ApplicationConfig = {
       },
       fallbackLang: 'es',
     }),
-    provideTranslateService(),
   ],
 };
