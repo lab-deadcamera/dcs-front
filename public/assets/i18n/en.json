@@ -12,6 +12,15 @@
     "CONTACT": "Contact"
   },
   "GLOBAL": {
+    "SETTINGS": {
+      "THEME": "Theme",
+      "DARK_MODE": "Dark Mode"
+    },
+    "COLORS": {
+      "PRIMARY": "Primary",
+      "SECONDARY": "Secondary",
+      "ACCENT": "Accent"
+    },
     "ACTIONS": {
       "SAVE": "Save",
       "CANCEL": "Cancel",
