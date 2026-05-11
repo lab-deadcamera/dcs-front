@@ -78,6 +78,128 @@
       "API": "API"
     }
   },
+  "STUDIO": {
+    "BRAND": {
+      "PRIMARY": "Dead Camera",
+      "SECONDARY": "Seedance Studio",
+      "TAGLINE_TOP": "Estudios",
+      "TAGLINE_BOTTOM": "Laboratorio de IA"
+    },
+    "HERO": {
+      "STRIKE_1": "Luces,",
+      "STRIKE_2": "Cámara,",
+      "SCRIPT": "Visión",
+      "LIVE": "Acción",
+      "SUBTITLE_TOP": "Cine Reinventado.",
+      "SUBTITLE_BOTTOM": "Control Creativo Absoluto."
+    },
+    "API": {
+      "ADD_KEY": "Agregar API Key",
+      "NO_KEY": "sin clave",
+      "CONNECTED": "conectado"
+    },
+    "VIEWER": {
+      "TITLE": "Visor",
+      "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",
+      "EMPTY_TITLE": "Sin Clip Cargado",
+      "EMPTY_HINT": "La salida generada aparece aquí",
+      "FULLSCREEN_ENTER": "Pantalla completa",
+      "FULLSCREEN_EXIT": "Salir de pantalla completa"
+    },
+    "PROMPT": {
+      "TITLE": "Constructor de Prompt",
+      "HINT": "Describe la escena · el estilo cinematográfico se inyecta automáticamente",
+      "PLACEHOLDER": "Describe la escena. Sé específico: sujeto, acción, setting, atmósfera. El lenguaje cinematográfico se inyecta automáticamente desde tus selecciones.",
+      "COMPILED": "Prompt Compilado",
+      "CHARS": "{{n}} caracteres",
+      "EMPTY_PREVIEW": "_",
+      "GENERATE": "Generar"
+    },
+    "SESSION_REEL": {
+      "TITLE": "Carrete de Sesión",
+      "EMPTY": "Tus clips generados se apilarán aquí"
+    },
+    "CINEMATOGRAPHY": {
+      "TITLE": "Cinematografía",
+      "LENS": "Lente",
+      "CAMERA_BODY": "Cuerpo de Cámara",
+      "CAMERA_MOTION": "Movimiento de Cámara",
+      "COLOR_GRADING": "Corrección de Color",
+      "GENRE": "Género",
+      "LENSES": {
+        "24MM_WIDE": "24mm Gran Angular",
+        "35MM_CLASSIC": "35mm Clásico",
+        "50MM_PORTRAIT": "50mm Retrato",
+        "85MM_TELE": "85mm Teleobjetivo"
+      },
+      "BODIES": {
+        "ARRI_ALEXA_65": "ARRI Alexa 65",
+        "RED_KOMODO_6K": "RED Komodo 6K",
+        "SONY_VENICE": "Sony Venice",
+        "FILM_16MM": "Film 16mm"
+      },
+      "MOTIONS": {
+        "STATIC": "Estática",
+        "DOLLY_IN": "Dolly-In Lento",
+        "ORBIT": "Órbita",
+        "HANDHELD": "Cámara en Mano"
+      },
+      "GRADES": {
+        "BLADE_RUNNER": "Blade Runner 2049",
+        "MATRIX": "The Matrix",
+        "GONE_GIRL": "Gone Girl",
+        "INTERSTELLAR": "Interstellar"
+      },
+      "GENRES": {
+        "DRAMA": "Drama",
+        "ACTION": "Acción",
+        "NOIR": "Noir",
+        "HORROR": "Terror"
+      }
+    },
+    "OUTPUT": {
+      "TITLE": "Formato de Salida",
+      "ASPECT_RATIO": "Relación de Aspecto",
+      "RESOLUTION": "Resolución",
+      "DURATION": "Duración",
+      "SOUND": "Sonido",
+      "ENGINE": "Motor",
+      "ON": "On",
+      "OFF": "Off",
+      "FAST": "Rápido",
+      "PRO": "Pro",
+      "ARIA_DURATION": "Duración en segundos",
+      "ASPECT_16_9": "16:9",
+      "ASPECT_9_16": "9:16",
+      "ASPECT_21_9": "21:9",
+      "ASPECT_1_1": "1:1",
+      "RES_480P": "480p",
+      "RES_720P": "720p",
+      "RES_1080P": "1080p"
+    },
+    "ASSETS": {
+      "TITLE": "Personajes y Assets",
+      "CHARACTER_STUDIO": "Character Studio",
+      "CHARACTER_STUDIO_HINT": "Genera imágenes de referencia confiables · powered by Seedream",
+      "MY_ASSETS": "Mis Assets",
+      "MY_ASSETS_HINT": "Biblioteca privada confiable · BytePlus",
+      "REFERENCE": "Assets de Referencia",
+      "COUNT": "{{n}} assets",
+      "FIRST_FRAME": "Primer Frame",
+      "LAST_FRAME": "Último Frame",
+      "DROP_OR_CLICK": "Suelta o haz clic",
+      "REFERENCE_HINT_LEAD": "Referénciales en tu prompt como",
+      "REFERENCE_HINT_TAIL": "… Haz clic en cualquier tag debajo de una miniatura para insertarlo en el prompt.",
+      "EXPAND": "Expandir",
+      "REMOVE": "Eliminar asset"
+    },
+    "FOOTER": {
+      "VERSION": "v1.0",
+      "LIBRARY": "Biblioteca de Assets",
+      "TAGLINE": "La Mente Eléctrica",
+      "STUDIO": "Somos Dead Camera Studios"
+    }
+  },
   "TOAST": {
     "SUCCESS": "Éxito",
     "ERROR": "Error",

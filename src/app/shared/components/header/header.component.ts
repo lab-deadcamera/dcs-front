@@ -12,16 +12,13 @@ import { StudioStateService } from '@app/core/stores/studio.state';
  */
 @Component({
   selector: 'app-header',
-  standalone: true,
   imports: [IconButtonComponent, ThemePicker, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
       class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4"
     >
-      <!-- Brand block -->
       <div class="flex items-center gap-3">
-        <!-- Logo glyph: square frame w/ inner ring -->
         <svg viewBox="0 0 32 32" class="h-9 w-9" aria-hidden="true">
           <rect
             x="1.5" y="1.5" width="29" height="29" rx="2"
@@ -52,7 +49,6 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         </div>
       </div>
 
-      <!-- Right cluster -->
       <div class="flex items-center gap-3">
         <button
           type="button"
@@ -84,7 +80,7 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         <ui-icon-button
           icon="🖥"
           [label]="'HEADER.ACTIONS.API' | translate"
-          [badge]="state.apiBadge()"
+          [badge]="state.apiBadge() | translate"
           badgeColor="red"
         />
 

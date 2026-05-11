@@ -23,39 +23,39 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
-      <ui-section-header number="03" label="CINEMATOGRAPHY" />
+      <ui-section-header number="03" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
 
       <div class="mt-5 flex flex-col gap-5">
         <ui-toggle-group
-          label="LENS"
+          labelKey="STUDIO.CINEMATOGRAPHY.LENS"
           [options]="lensOptions"
           [value]="prompt.cinematography().lens"
           (valueChange)="onLens($event)"
         />
 
         <ui-toggle-group
-          label="CAMERA BODY"
+          labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_BODY"
           [options]="bodyOptions"
           [value]="prompt.cinematography().cameraBody"
           (valueChange)="onBody($event)"
         />
 
         <ui-toggle-group
-          label="CAMERA MOTION"
+          labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_MOTION"
           [options]="motionOptions"
           [value]="prompt.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
         />
 
         <ui-toggle-group
-          label="COLOR GRADING"
+          labelKey="STUDIO.CINEMATOGRAPHY.COLOR_GRADING"
           [options]="gradingOptions"
           [value]="prompt.cinematography().colorGrading"
           (valueChange)="onGrading($event)"
         />
 
         <ui-toggle-group
-          label="GENRE"
+          labelKey="STUDIO.CINEMATOGRAPHY.GENRE"
           [options]="genreOptions"
           [value]="prompt.cinematography().genre"
           (valueChange)="onGenre($event)"
@@ -68,38 +68,38 @@ export class CinematographyComponent {
   protected readonly prompt = inject(PromptStateService);
 
   protected readonly lensOptions: ChipOption<Lens>[] = [
-    { value: '24mm-wide', label: '24mm Wide' },
-    { value: '35mm-classic', label: '35mm Classic' },
-    { value: '50mm-portrait', label: '50mm Portrait' },
-    { value: '85mm-tele', label: '85mm Tele' },
+    { value: '24mm-wide', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.24MM_WIDE' },
+    { value: '35mm-classic', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.35MM_CLASSIC' },
+    { value: '50mm-portrait', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.50MM_PORTRAIT' },
+    { value: '85mm-tele', labelKey: 'STUDIO.CINEMATOGRAPHY.LENSES.85MM_TELE' },
   ];
 
   protected readonly bodyOptions: ChipOption<CameraBody>[] = [
-    { value: 'arri-alexa-65', label: 'ARRI Alexa 65' },
-    { value: 'red-komodo-6k', label: 'RED Komodo 6K' },
-    { value: 'sony-venice', label: 'Sony Venice' },
-    { value: '16mm-film', label: '16mm Film' },
+    { value: 'arri-alexa-65', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.ARRI_ALEXA_65' },
+    { value: 'red-komodo-6k', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.RED_KOMODO_6K' },
+    { value: 'sony-venice', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.SONY_VENICE' },
+    { value: '16mm-film', labelKey: 'STUDIO.CINEMATOGRAPHY.BODIES.FILM_16MM' },
   ];
 
   protected readonly motionOptions: ChipOption<CameraMotion>[] = [
-    { value: 'static-lock-off', label: 'Static Lock-Off' },
-    { value: 'slow-dolly-in', label: 'Slow Dolly-In' },
-    { value: 'orbit', label: 'Orbit' },
-    { value: 'handheld', label: 'Handheld' },
+    { value: 'static-lock-off', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.STATIC' },
+    { value: 'slow-dolly-in', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.DOLLY_IN' },
+    { value: 'orbit', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.ORBIT' },
+    { value: 'handheld', labelKey: 'STUDIO.CINEMATOGRAPHY.MOTIONS.HANDHELD' },
   ];
 
   protected readonly gradingOptions: ChipOption<ColorGrading>[] = [
-    { value: 'blade-runner-2049', label: 'Blade Runner 2049' },
-    { value: 'the-matrix', label: 'The Matrix' },
-    { value: 'gone-girl', label: 'Gone Girl' },
-    { value: 'interstellar', label: 'Interstellar' },
+    { value: 'blade-runner-2049', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.BLADE_RUNNER' },
+    { value: 'the-matrix', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.MATRIX' },
+    { value: 'gone-girl', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.GONE_GIRL' },
+    { value: 'interstellar', labelKey: 'STUDIO.CINEMATOGRAPHY.GRADES.INTERSTELLAR' },
   ];
 
   protected readonly genreOptions: ChipOption<Genre>[] = [
-    { value: 'drama', label: 'Drama' },
-    { value: 'action', label: 'Action' },
-    { value: 'noir', label: 'Noir' },
-    { value: 'horror', label: 'Horror' },
+    { value: 'drama', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.DRAMA' },
+    { value: 'action', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.ACTION' },
+    { value: 'noir', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.NOIR' },
+    { value: 'horror', labelKey: 'STUDIO.CINEMATOGRAPHY.GENRES.HORROR' },
   ];
 
   protected onLens(v: Lens | null) { this.prompt.patchCinematography({ lens: v }); }

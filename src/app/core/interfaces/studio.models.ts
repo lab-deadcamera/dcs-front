@@ -21,10 +21,10 @@ export type ColorGrading =
   | 'interstellar';
 export type Genre = 'drama' | 'action' | 'noir' | 'horror';
 
-/** A single option inside a ToggleGroup (chips list). */
+/** A single option inside a ToggleGroup (chips list). `labelKey` is an i18n key. */
 export interface ChipOption<V extends string = string> {
   value: V;
-  label: string;
+  labelKey: string;
 }
 
 export interface CinematographyConfig {
@@ -38,7 +38,7 @@ export interface CinematographyConfig {
 export interface OutputFormatConfig {
   aspectRatio: AspectRatio;
   resolution: Resolution;
-  durationSeconds: number;   // 4 – 15
+  durationSeconds: number;
   sound: boolean;
   engine: Engine;
 }
@@ -63,7 +63,7 @@ export interface GeneratedClip {
   resolution: Resolution;
 }
 
-export interface User {
+export interface StudioUser {
   handle: string;
   initial: string;
 }

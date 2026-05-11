@@ -5,17 +5,22 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * Drag-and-drop file zone with optional corner label.
  * Used for FIRST FRAME, LAST FRAME, and the generic "+" asset slot.
  *
- *   <ui-drop-zone label="FIRST FRAME" (filesDropped)="onFile($event)" />
+ *   <ui-drop-zone
+ *     labelKey="STUDIO.ASSETS.FIRST_FRAME"
+ *     placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
+ *     (filesDropped)="onFile($event)" />
  *
  * Emits the raw File[] — parent decides what to do (preview, upload, tag).
  */
 @Component({
   selector: 'ui-drop-zone',
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <label
@@ -24,19 +29,21 @@ import {
       (dragleave)="onDragLeave()"
       (drop)="onDrop($event)"
     >
-      @if (label(); as l) {
+      @if (labelKey(); as l) {
         <span
           class="absolute top-0 left-0 bg-brand-red px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
         >
-          {{ l }}
+          {{ l | translate }}
         </span>
       }
 
       <div class="flex flex-col items-center gap-2 text-fg-muted">
         <span class="text-2xl leading-none">+</span>
-        <span class="text-[11px] uppercase tracking-[0.18em]">
-          {{ placeholder() }}
-        </span>
+        @if (placeholderKey(); as p) {
+          <span class="text-[11px] uppercase tracking-[0.18em]">
+            {{ p | translate }}
+          </span>
+        }
       </div>
 
       <input
@@ -50,8 +57,8 @@ import {
   `,
 })
 export class DropZoneComponent {
-  readonly label = input<string | null>(null);
-  readonly placeholder = input<string>('drop or click');
+  readonly labelKey = input<string | null>(null);
+  readonly placeholderKey = input<string | null>(null);
   readonly accept = input<string>('image/*,video/*');
   readonly multiple = input<boolean>(false);
   /** Compact variant for the "+" tile in the asset grid. */

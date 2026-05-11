@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * The recurring "01 VIEWER" / "02 PROMPT BUILDER" header pattern.
@@ -6,14 +7,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * Big red numeral + white uppercase label on the left,
  * muted italic helper text on the right.
  *
- * Usage:
  *   <ui-section-header
  *     number="01"
- *     label="VIEWER"
- *     hint="Final clip · evaluate quality, lip sync, sound, color" />
+ *     labelKey="STUDIO.VIEWER.TITLE"
+ *     hintKey="STUDIO.VIEWER.HINT" />
  */
 @Component({
   selector: 'ui-section-header',
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="flex items-end justify-between gap-4 border-b border-ink-600 pb-3">
@@ -25,18 +26,18 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           {{ number() }}
         </span>
         <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-fg-strong">
-          {{ label() }}
+          {{ labelKey() | translate }}
         </h2>
       </div>
 
-      @if (hint(); as h) {
-        <p class="text-[13px] italic text-fg-muted">{{ h }}</p>
+      @if (hintKey(); as h) {
+        <p class="text-[13px] italic text-fg-muted">{{ h | translate }}</p>
       }
     </header>
   `,
 })
 export class SectionHeaderComponent {
   readonly number = input.required<string>();
-  readonly label = input.required<string>();
-  readonly hint = input<string | null>(null);
+  readonly labelKey = input.required<string>();
+  readonly hintKey = input<string | null>(null);
 }

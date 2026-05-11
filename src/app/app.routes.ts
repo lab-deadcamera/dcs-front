@@ -11,6 +11,10 @@ export const routes: Routes = [
         path: '',
         loadChildren: () => import('@modules/home/home.routes').then(m => m.HOME_ROUTES),
       },
+      {
+        path: 'studio',
+        loadChildren: () => import('@modules/studio/studio.routes').then(m => m.STUDIO_ROUTES),
+      },
     ],
   },
   {

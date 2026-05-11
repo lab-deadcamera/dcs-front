@@ -1,24 +1,23 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   input,
   output,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * Two-state pill toggle used for SOUND (OFF | ON) and ENGINE (FAST | PRO).
  *
- * Both labels are visible; the selected half is highlighted in brand red.
- *
  *   <ui-pill-toggle
- *     leftLabel="OFF"
- *     rightLabel="ON"
+ *     leftLabelKey="STUDIO.OUTPUT.OFF"
+ *     rightLabelKey="STUDIO.OUTPUT.ON"
  *     [value]="output().sound ? 'right' : 'left'"
  *     (valueChange)="toggleSound($event)" />
  */
 @Component({
   selector: 'ui-pill-toggle',
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -31,7 +30,7 @@ import {
         (click)="select('left')"
         [attr.aria-pressed]="value() === 'left'"
       >
-        {{ leftLabel() }}
+        {{ leftLabelKey() | translate }}
       </button>
       <button
         type="button"
@@ -39,14 +38,14 @@ import {
         (click)="select('right')"
         [attr.aria-pressed]="value() === 'right'"
       >
-        {{ rightLabel() }}
+        {{ rightLabelKey() | translate }}
       </button>
     </div>
   `,
 })
 export class PillToggleComponent {
-  readonly leftLabel = input.required<string>();
-  readonly rightLabel = input.required<string>();
+  readonly leftLabelKey = input.required<string>();
+  readonly rightLabelKey = input.required<string>();
   readonly value = input<'left' | 'right'>('left');
   /** Which side is "active accent" red. Default = the selected side. */
   readonly accentSide = input<'left' | 'right' | 'selected'>('selected');
@@ -59,9 +58,8 @@ export class PillToggleComponent {
 
   protected halfClasses(side: 'left' | 'right') {
     const selected = this.value() === side;
-    const accent = this.accentSide() === 'selected'
-      ? selected
-      : this.accentSide() === side;
+    const accent =
+      this.accentSide() === 'selected' ? selected : this.accentSide() === side;
 
     const base = 'px-3 py-1.5 font-bold uppercase transition-colors';
 

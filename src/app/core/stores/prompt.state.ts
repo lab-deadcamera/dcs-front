@@ -1,22 +1,33 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import {
   CinematographyConfig,
   GeneratedClip,
   OutputFormatConfig,
-  ReferenceAsset,
 } from '../interfaces/studio.models';
+import { StudioStorageService } from './studio-storage.service';
+
+interface PromptSnapshot {
+  rawDescription: string;
+  cinematography: CinematographyConfig;
+  output: OutputFormatConfig;
+  sessionClips: GeneratedClip[];
+  activeClipId: string | null;
+}
 
 /**
  * Holds the prompt builder state plus the compiled prompt that
  * gets sent to BytePlus / Seedance. The compiled output is a
  * pure `computed()` — no manual sync needed.
+ *
+ * Persisted in IndexedDB via StudioStorageService.
  */
 @Injectable({ providedIn: 'root' })
 export class PromptStateService {
-  // ── Raw user input ─────────────────────────────────────────────
+  private readonly storage = inject(StudioStorageService);
+  private hydrated = false;
+
   private readonly _rawDescription = signal<string>('');
 
-  // ── Cinematography selections (Section 03) ─────────────────────
   private readonly _cinematography = signal<CinematographyConfig>({
     lens: null,
     cameraBody: null,
@@ -25,7 +36,6 @@ export class PromptStateService {
     genre: null,
   });
 
-  // ── Output format (Section 04) ─────────────────────────────────
   private readonly _output = signal<OutputFormatConfig>({
     aspectRatio: '16:9',
     resolution: '480p',
@@ -34,11 +44,9 @@ export class PromptStateService {
     engine: 'fast',
   });
 
-  // ── Session reel ───────────────────────────────────────────────
   private readonly _sessionClips = signal<GeneratedClip[]>([]);
   private readonly _activeClipId = signal<string | null>(null);
 
-  // ── Public read-only views ─────────────────────────────────────
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly cinematography = this._cinematography.asReadonly();
   readonly output = this._output.asReadonly();
@@ -49,11 +57,6 @@ export class PromptStateService {
     this._sessionClips().find((c) => c.id === this._activeClipId()) ?? null,
   );
 
-  /**
-   * Compiled prompt: raw description + injected cinematic language.
-   * This is what gets posted to the API and shown in the
-   * "COMPILED PROMPT" preview block.
-   */
   readonly compiledPrompt = computed(() => {
     const raw = this._rawDescription().trim();
     if (!raw) return '';
@@ -79,7 +82,38 @@ export class PromptStateService {
 
   readonly compiledLength = computed(() => this.compiledPrompt().length);
 
-  // ── Mutations ──────────────────────────────────────────────────
+  constructor() {
+    this.hydrate();
+
+    effect(() => {
+      const snap: PromptSnapshot = {
+        rawDescription: this._rawDescription(),
+        cinematography: this._cinematography(),
+        output: this._output(),
+        sessionClips: this._sessionClips(),
+        activeClipId: this._activeClipId(),
+      };
+      if (this.hydrated) {
+        void this.storage.set('prompt', snap);
+      }
+    });
+  }
+
+  private async hydrate() {
+    try {
+      const snap = await this.storage.get<PromptSnapshot>('prompt');
+      if (snap) {
+        this._rawDescription.set(snap.rawDescription);
+        this._cinematography.set(snap.cinematography);
+        this._output.set(snap.output);
+        this._sessionClips.set(snap.sessionClips);
+        this._activeClipId.set(snap.activeClipId);
+      }
+    } finally {
+      this.hydrated = true;
+    }
+  }
+
   setRawDescription(text: string) {
     this._rawDescription.set(text);
   }
@@ -101,7 +135,6 @@ export class PromptStateService {
     this._activeClipId.set(id);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────
   private labelize(value: string) {
     return value.replace(/-/g, ' ');
   }

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
 import { AssetsStateService } from '@app/core/stores/assets.state';
@@ -13,12 +14,10 @@ import { ReferenceAsset } from '@core/interfaces/studio.models';
  *   ─── REFERENCE ASSETS ────────────────────────────  N assets
  *   [FIRST FRAME drop zone]      [LAST FRAME drop zone]
  *   [+]   (extra free asset slot, generates Image N / Video N tags)
- *
- *   Reference them in your prompt as [Image 1] [Video 1] [Audio 1] …
  */
 @Component({
   selector: 'app-character-assets',
-  imports: [SectionHeaderComponent, DropZoneComponent],
+  imports: [SectionHeaderComponent, DropZoneComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
 })
@@ -57,7 +56,7 @@ export class CharacterAssetsComponent {
       kind,
       filename: file.name,
       thumbnailUrl: URL.createObjectURL(file),
-      tag: '',          // overwritten by addFreeAsset
+      tag: '',
       slot,
     };
   }

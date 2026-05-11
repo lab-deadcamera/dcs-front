@@ -2,20 +2,21 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Custom range slider with optional tick labels.
  * Used for DURATION (4s – 15s).
  *
- * Track is dark, thumb is brand red. Tick labels render below.
- *
  *   <ui-range-slider
  *     [min]="4" [max]="15" [step]="1"
  *     [value]="output().durationSeconds"
  *     [ticks]="[4, 8, 12, 15]"
+ *     ariaLabelKey="STUDIO.OUTPUT.ARIA_DURATION"
  *     (valueChange)="onDurationChange($event)" />
  */
 @Component({
@@ -23,7 +24,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative w-full pt-2 pb-6">
-      <!-- Native range, fully styled below in :host CSS -->
       <input
         type="range"
         class="dcs-range w-full"
@@ -86,15 +86,22 @@ import {
   ],
 })
 export class RangeSliderComponent {
+  private readonly i18n = inject(TranslateService);
+
   readonly min = input<number>(0);
   readonly max = input<number>(100);
   readonly step = input<number>(1);
   readonly value = input.required<number>();
   readonly ticks = input<number[]>([]);
   readonly unit = input<string>('');
-  readonly ariaLabel = input<string>('Range');
+  readonly ariaLabelKey = input<string | null>(null);
 
   readonly valueChange = output<number>();
+
+  protected readonly ariaLabel = computed(() => {
+    const k = this.ariaLabelKey();
+    return k ? this.i18n.instant(k) : null;
+  });
 
   protected onInput(e: Event) {
     const v = Number((e.target as HTMLInputElement).value);

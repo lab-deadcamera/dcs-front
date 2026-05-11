@@ -1,13 +1,24 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { User } from '../interfaces/studio.models';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { StudioUser } from '../interfaces/studio.models';
+import { StudioStorageService } from './studio-storage.service';
+
+interface StudioSnapshot {
+  user: StudioUser;
+  apiKey: string | null;
+  projectCode: string;
+  exportCount: number;
+}
 
 /**
  * Global meta-state: identity, API connection, project counter.
- * Everything is exposed read-only; mutations go through methods.
+ * Persisted in IndexedDB via StudioStorageService.
  */
 @Injectable({ providedIn: 'root' })
 export class StudioStateService {
-  private readonly _user = signal<User>({ handle: 'jander', initial: 'J' });
+  private readonly storage = inject(StudioStorageService);
+  private hydrated = false;
+
+  private readonly _user = signal<StudioUser>({ handle: 'jander', initial: 'J' });
   private readonly _apiKey = signal<string | null>(null);
   private readonly _projectCode = signal<string>('SR · 20');
   private readonly _exportCount = signal<number>(0);
@@ -18,7 +29,40 @@ export class StudioStateService {
   readonly exportCount = this._exportCount.asReadonly();
 
   readonly hasApiKey = computed(() => this._apiKey() !== null);
-  readonly apiBadge = computed(() => (this._apiKey() ? 'connected' : 'no key'));
+  /** i18n key — translate in the template. */
+  readonly apiBadge = computed(() =>
+    this._apiKey() ? 'STUDIO.API.CONNECTED' : 'STUDIO.API.NO_KEY',
+  );
+
+  constructor() {
+    this.hydrate();
+
+    effect(() => {
+      const snap: StudioSnapshot = {
+        user: this._user(),
+        apiKey: this._apiKey(),
+        projectCode: this._projectCode(),
+        exportCount: this._exportCount(),
+      };
+      if (this.hydrated) {
+        void this.storage.set('studio', snap);
+      }
+    });
+  }
+
+  private async hydrate() {
+    try {
+      const snap = await this.storage.get<StudioSnapshot>('studio');
+      if (snap) {
+        this._user.set(snap.user);
+        this._apiKey.set(snap.apiKey);
+        this._projectCode.set(snap.projectCode);
+        this._exportCount.set(snap.exportCount);
+      }
+    } finally {
+      this.hydrated = true;
+    }
+  }
 
   setApiKey(key: string | null) {
     this._apiKey.set(key && key.trim() ? key : null);

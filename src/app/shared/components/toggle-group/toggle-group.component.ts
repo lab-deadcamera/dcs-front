@@ -5,6 +5,8 @@ import {
   input,
   output,
 } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { inject } from '@angular/core';
 import { ChipOption } from '@core/interfaces/studio.models';
 
 /**
@@ -18,25 +20,26 @@ import { ChipOption } from '@core/interfaces/studio.models';
  * Pass `null` value to clear selection from the outside.
  *
  *   <ui-toggle-group
- *     label="LENS"
+ *     labelKey="STUDIO.CINEMATOGRAPHY.LENS"
  *     [options]="lensOptions"
  *     [value]="cine().lens"
  *     (valueChange)="onLensChange($event)" />
  */
 @Component({
   selector: 'ui-toggle-group',
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (label(); as l) {
+    @if (labelKey(); as l) {
       <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
-        {{ l }}
+        {{ l | translate }}
       </p>
     }
 
     <div
       class="flex flex-wrap gap-2"
       role="radiogroup"
-      [attr.aria-label]="label()"
+      [attr.aria-label]="ariaLabel()"
     >
       @for (opt of options(); track opt.value) {
         @let selected = isSelected(opt.value);
@@ -52,14 +55,16 @@ import { ChipOption } from '@core/interfaces/studio.models';
               class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-fg-strong align-middle"
             ></span>
           }
-          <span>{{ opt.label }}</span>
+          <span>{{ opt.labelKey | translate }}</span>
         </button>
       }
     </div>
   `,
 })
 export class ToggleGroupComponent<V extends string = string> {
-  readonly label = input<string | null>(null);
+  private readonly i18n = inject(TranslateService);
+
+  readonly labelKey = input<string | null>(null);
   readonly options = input.required<ChipOption<V>[]>();
   readonly value = input<V | null>(null);
   /** Visual variant — 'accent' fills selected chip with brand red. */
@@ -67,15 +72,17 @@ export class ToggleGroupComponent<V extends string = string> {
 
   readonly valueChange = output<V | null>();
 
-  private readonly currentValue = computed(() => this.value());
+  protected readonly ariaLabel = computed(() => {
+    const k = this.labelKey();
+    return k ? this.i18n.instant(k) : null;
+  });
 
   protected isSelected(v: V) {
-    return this.currentValue() === v;
+    return this.value() === v;
   }
 
   protected onPick(v: V) {
-    // Toggle off if user clicks the same chip again
-    this.valueChange.emit(this.currentValue() === v ? null : v);
+    this.valueChange.emit(this.value() === v ? null : v);
   }
 
   protected chipClasses(selected: boolean): string {
@@ -85,10 +92,7 @@ export class ToggleGroupComponent<V extends string = string> {
       'transition-colors duration-150';
 
     if (this.variant() === 'accent' && selected) {
-      return (
-        base +
-        ' border-brand-red bg-brand-red text-fg-strong'
-      );
+      return base + ' border-brand-red bg-brand-red text-fg-strong';
     }
 
     return selected

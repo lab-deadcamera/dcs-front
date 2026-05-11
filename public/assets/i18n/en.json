@@ -78,6 +78,128 @@
       "API": "API"
     }
   },
+  "STUDIO": {
+    "BRAND": {
+      "PRIMARY": "Dead Camera",
+      "SECONDARY": "Seedance Studio",
+      "TAGLINE_TOP": "Studios",
+      "TAGLINE_BOTTOM": "AI Research Lab"
+    },
+    "HERO": {
+      "STRIKE_1": "Lights,",
+      "STRIKE_2": "Camera,",
+      "SCRIPT": "Vision",
+      "LIVE": "Action",
+      "SUBTITLE_TOP": "Reinvented Cinema.",
+      "SUBTITLE_BOTTOM": "Absolute Creative Control."
+    },
+    "API": {
+      "ADD_KEY": "Add API Key",
+      "NO_KEY": "no key",
+      "CONNECTED": "connected"
+    },
+    "VIEWER": {
+      "TITLE": "Viewer",
+      "HINT": "Final clip · evaluate quality, lip sync, sound, color",
+      "EMPTY_TITLE": "No Clip Loaded",
+      "EMPTY_HINT": "Generated output appears here",
+      "FULLSCREEN_ENTER": "Enter fullscreen",
+      "FULLSCREEN_EXIT": "Exit fullscreen"
+    },
+    "PROMPT": {
+      "TITLE": "Prompt Builder",
+      "HINT": "Describe the scene · the cinematographic style is injected automatically",
+      "PLACEHOLDER": "Describe the scene. Be specific: subject, action, setting, atmosphere. The cinematographic language is injected automatically from your selections.",
+      "COMPILED": "Compiled Prompt",
+      "CHARS": "{{n}} chars",
+      "EMPTY_PREVIEW": "_",
+      "GENERATE": "Generate"
+    },
+    "SESSION_REEL": {
+      "TITLE": "Session Reel",
+      "EMPTY": "Your generated clips will stack here"
+    },
+    "CINEMATOGRAPHY": {
+      "TITLE": "Cinematography",
+      "LENS": "Lens",
+      "CAMERA_BODY": "Camera Body",
+      "CAMERA_MOTION": "Camera Motion",
+      "COLOR_GRADING": "Color Grading",
+      "GENRE": "Genre",
+      "LENSES": {
+        "24MM_WIDE": "24mm Wide",
+        "35MM_CLASSIC": "35mm Classic",
+        "50MM_PORTRAIT": "50mm Portrait",
+        "85MM_TELE": "85mm Tele"
+      },
+      "BODIES": {
+        "ARRI_ALEXA_65": "ARRI Alexa 65",
+        "RED_KOMODO_6K": "RED Komodo 6K",
+        "SONY_VENICE": "Sony Venice",
+        "FILM_16MM": "16mm Film"
+      },
+      "MOTIONS": {
+        "STATIC": "Static Lock-Off",
+        "DOLLY_IN": "Slow Dolly-In",
+        "ORBIT": "Orbit",
+        "HANDHELD": "Handheld"
+      },
+      "GRADES": {
+        "BLADE_RUNNER": "Blade Runner 2049",
+        "MATRIX": "The Matrix",
+        "GONE_GIRL": "Gone Girl",
+        "INTERSTELLAR": "Interstellar"
+      },
+      "GENRES": {
+        "DRAMA": "Drama",
+        "ACTION": "Action",
+        "NOIR": "Noir",
+        "HORROR": "Horror"
+      }
+    },
+    "OUTPUT": {
+      "TITLE": "Output Format",
+      "ASPECT_RATIO": "Aspect Ratio",
+      "RESOLUTION": "Resolution",
+      "DURATION": "Duration",
+      "SOUND": "Sound",
+      "ENGINE": "Engine",
+      "ON": "On",
+      "OFF": "Off",
+      "FAST": "Fast",
+      "PRO": "Pro",
+      "ARIA_DURATION": "Duration in seconds",
+      "ASPECT_16_9": "16:9",
+      "ASPECT_9_16": "9:16",
+      "ASPECT_21_9": "21:9",
+      "ASPECT_1_1": "1:1",
+      "RES_480P": "480p",
+      "RES_720P": "720p",
+      "RES_1080P": "1080p"
+    },
+    "ASSETS": {
+      "TITLE": "Character & Assets",
+      "CHARACTER_STUDIO": "Character Studio",
+      "CHARACTER_STUDIO_HINT": "Generate trusted reference images · powered by Seedream",
+      "MY_ASSETS": "My Assets",
+      "MY_ASSETS_HINT": "Private trusted library · BytePlus",
+      "REFERENCE": "Reference Assets",
+      "COUNT": "{{n}} assets",
+      "FIRST_FRAME": "First Frame",
+      "LAST_FRAME": "Last Frame",
+      "DROP_OR_CLICK": "Drop or click",
+      "REFERENCE_HINT_LEAD": "Reference them in your prompt as",
+      "REFERENCE_HINT_TAIL": "… Click any tag below a thumbnail to insert it into the prompt.",
+      "EXPAND": "Expand",
+      "REMOVE": "Remove asset"
+    },
+    "FOOTER": {
+      "VERSION": "v1.0",
+      "LIBRARY": "Assets Library",
+      "TAGLINE": "The Electric Mind",
+      "STUDIO": "We are Dead Camera Studios"
+    }
+  },
   "TOAST": {
     "SUCCESS": "Success",
     "ERROR": "Error",

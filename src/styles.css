@@ -151,3 +151,40 @@
     --p-surface-950: #ffffff;
   }
 }
+
+@theme {
+  --color-ink-950: #0a0d10;
+  --color-ink-900: #0d1014;
+  --color-ink-850: #11151a;
+  --color-ink-800: #161b21;
+  --color-ink-700: #1d242c;
+  --color-ink-600: #262e38;
+  --color-ink-500: #3a4452;
+
+  --color-brand-red:    #ef2b3a;
+  --color-brand-green:  #b9ff3c;
+  --color-brand-yellow: #f4c20d;
+  --color-brand-purple: #9b6bff;
+
+  --color-fg-strong: #f5f6f8;
+  --color-fg:        #c9ced6;
+  --color-fg-muted:  #6c7682;
+  --color-fg-faint:  #444b55;
+
+  --font-display: 'Impact', 'Oswald', system-ui, sans-serif;
+  --font-script:  'Caveat', 'Permanent Marker', cursive;
+  --font-ui:      ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    ui-monospace, 'JetBrains Mono', monospace;
+}
+
+.hero-strike { position: relative; display: inline-block; }
+.hero-strike::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  top: 50%;
+  height: 0.18em;
+  background: var(--color-fg-strong);
+  transform: rotate(-1.5deg) translateY(-50%);
+}

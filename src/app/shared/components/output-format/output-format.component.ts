@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import { PillToggleComponent } from '@shared/components/pill-toggle/pill-toggle.component';
@@ -27,6 +28,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
     ToggleGroupComponent,
     PillToggleComponent,
     RangeSliderComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './output-format.html',
@@ -35,16 +37,16 @@ export class OutputFormatComponent {
   protected readonly prompt = inject(PromptStateService);
 
   protected readonly aspectOptions: ChipOption<AspectRatio>[] = [
-    { value: '16:9', label: '16:9' },
-    { value: '9:16', label: '9:16' },
-    { value: '21:9', label: '21:9' },
-    { value: '1:1', label: '1:1' },
+    { value: '16:9', labelKey: 'STUDIO.OUTPUT.ASPECT_16_9' },
+    { value: '9:16', labelKey: 'STUDIO.OUTPUT.ASPECT_9_16' },
+    { value: '21:9', labelKey: 'STUDIO.OUTPUT.ASPECT_21_9' },
+    { value: '1:1', labelKey: 'STUDIO.OUTPUT.ASPECT_1_1' },
   ];
 
   protected readonly resolutionOptions: ChipOption<Resolution>[] = [
-    { value: '480p', label: '480p' },
-    { value: '720p', label: '720p' },
-    { value: '1080p', label: '1080p' },
+    { value: '480p', labelKey: 'STUDIO.OUTPUT.RES_480P' },
+    { value: '720p', labelKey: 'STUDIO.OUTPUT.RES_720P' },
+    { value: '1080p', labelKey: 'STUDIO.OUTPUT.RES_1080P' },
   ];
 
   protected onAspect(v: AspectRatio | null) {

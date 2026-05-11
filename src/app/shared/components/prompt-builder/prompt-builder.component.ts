@@ -1,10 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   output,
   signal,
 } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { PromptStateService } from '@app/core/stores/prompt.state';
 
@@ -18,28 +21,26 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
  */
 @Component({
   selector: 'app-prompt-builder',
-  imports: [SectionHeaderComponent],
+  imports: [SectionHeaderComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="px-6 py-6">
       <ui-section-header
         number="02"
-        label="PROMPT BUILDER"
-        hint="Describe the scene · the cinematographic style is injected automatically"
+        labelKey="STUDIO.PROMPT.TITLE"
+        hintKey="STUDIO.PROMPT.HINT"
       />
 
-      <!-- Raw input -->
       <div class="mt-4">
         <textarea
           class="block w-full resize-none border border-ink-500 bg-ink-850 px-4 py-3 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
           rows="5"
           [value]="prompt.rawDescription()"
           (input)="onInput($event)"
-          [placeholder]="placeholder"
+          [placeholder]="placeholder()"
         ></textarea>
       </div>
 
-      <!-- Compiled prompt preview -->
       <div class="mt-4 border-l-2 border-brand-red bg-ink-850 px-4 py-3">
         <button
           type="button"
@@ -51,10 +52,10 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
               class="inline-block transition-transform"
               [class.rotate-180]="!expanded()"
             >▼</span>
-            COMPILED PROMPT
+            {{ 'STUDIO.PROMPT.COMPILED' | translate }}
           </span>
           <span class="font-mono text-fg-muted normal-case tracking-normal">
-            {{ prompt.compiledLength() }} chars
+            {{ 'STUDIO.PROMPT.CHARS' | translate: { n: prompt.compiledLength() } }}
           </span>
         </button>
 
@@ -62,33 +63,39 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
           <p
             class="mt-3 min-h-[1.5em] font-mono text-[12px] leading-relaxed text-fg whitespace-pre-wrap"
           >
-            {{ prompt.compiledPrompt() || '_' }}
+            {{ prompt.compiledPrompt() || ('STUDIO.PROMPT.EMPTY_PREVIEW' | translate) }}
           </p>
         }
       </div>
 
-      <!-- Generate -->
       <button
         type="button"
         class="mt-5 flex w-full items-center justify-center gap-3 bg-brand-red py-4 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
         [disabled]="!prompt.compiledPrompt()"
         (click)="generate.emit()"
       >
-        GENERATE <span aria-hidden="true">→</span>
+        {{ 'STUDIO.PROMPT.GENERATE' | translate }} <span aria-hidden="true">→</span>
       </button>
     </section>
   `,
 })
 export class PromptBuilderComponent {
   protected readonly prompt = inject(PromptStateService);
+  private readonly i18n = inject(TranslateService);
+
   protected readonly expanded = signal(true);
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
 
-  protected readonly placeholder =
-    'Describe la escena. Sé específico: sujeto, acción, setting, atmósfera. ' +
-    'El lenguaje cinematográfico se inyecta automáticamente desde tus selecciones.';
+  /** Re-resolve placeholder when the language changes. */
+  private readonly lang = toSignal(this.i18n.onLangChange, { initialValue: null });
+
+  protected readonly placeholder = computed(() => {
+    // Track lang signal so the value updates on language switches.
+    this.lang();
+    return this.i18n.instant('STUDIO.PROMPT.PLACEHOLDER');
+  });
 
   protected onInput(e: Event) {
     this.prompt.setRawDescription((e.target as HTMLTextAreaElement).value);
