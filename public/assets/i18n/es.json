@@ -1,1 +1,63 @@
-{\n  \"app\": { \"title\": \"dcs-videos\" },\n  \"login\": { \"title\": \"Iniciar sesi髇\", \"subtitle\": \"Accede a tu cuenta\" },\n  \"register\": { \"title\": \"Registrarse\", \"subtitle\": \"Crear una cuenta nueva\" },\n  \"logout\": { \"title\": \"Cerrar sesi髇\", \"message\": \"Has cerrado sesi髇\" },\n  \"home\": { \"welcome\": \"Bienvenido\", \"subtitle\": \"Selecciona un video para empezar\" },\n  \"theme\": { \"label\": \"Tema\", \"light\": \"Claro\", \"dark\": \"Oscuro\" },\n  \"language\": { \"label\": \"Idioma\", \"en\": \"English\", \"es\": \"Espa駉l\" }\n}
+{
+  "APP": {
+    "TITLE": "DCS Videos",
+    "LOADING": "Cargando...",
+    "ERROR": "Ocurri贸 un error",
+    "LANGUAGE": "Idioma"
+  },
+  "NAV": {
+    "HOME": "Inicio",
+    "VIDEOS": "Videos",
+    "ABOUT": "Acerca de",
+    "CONTACT": "Contacto"
+  },
+  "GLOBAL": {
+    "ACTIONS": {
+      "SAVE": "Guardar",
+      "CANCEL": "Cancelar",
+      "DELETE": "Eliminar",
+      "EDIT": "Editar",
+      "ADD": "Agregar",
+      "SEARCH": "Buscar",
+      "FILTER": "Filtrar",
+      "REFRESH": "Actualizar",
+      "BACK": "Volver",
+      "CONFIRM": "Confirmar",
+      "CLOSE": "Cerrar"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "PENDING": "Pendiente",
+      "COMPLETED": "Completado"
+    },
+    "YES_NO": {
+      "YES": "S铆",
+      "NO": "No"
+    }
+  },
+  "TABLE": {
+    "ID": "ID",
+    "NAME": "Nombre",
+    "DESCRIPTION": "Descripci贸n",
+    "STATUS": "Estado",
+    "ACTIONS": "Acciones",
+    "CREATED_AT": "Creado el",
+    "UPDATED_AT": "Actualizado el",
+    "EMPTY": "No se encontraron registros"
+  },
+  "VIDEOS": {
+    "TITLE": "Videos",
+    "UPLOAD": "Subir Video",
+    "PROCESSING": "Procesando...",
+    "DURATION": "Duraci贸n",
+    "SIZE": "Tama帽o",
+    "FORMAT": "Formato"
+  },
+  "TOAST": {
+    "SUCCESS": "脡xito",
+    "ERROR": "Error",
+    "WARNING": "Advertencia",
+    "INFO": "Informaci贸n"
+  }
+}

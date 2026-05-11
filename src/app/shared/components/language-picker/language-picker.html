@@ -1,0 +1,18 @@
+<div class="flex items-center justify-between mb-4">
+  <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-200 uppercase tracking-wider">{{ 'APP.LANGUAGE' | translate }}</h3>
+  <div class="flex rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700">
+    @for (lang of i18n.availableLanguages; track lang) {
+      <button
+        type="button"
+        (click)="i18n.setLanguage(lang)"
+        class="px-3 py-1 text-xs font-medium uppercase transition-colors duration-150"
+        [class]="i18n.currentLanguage() === lang
+          ? 'bg-primary-600 text-white'
+          : 'bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'"
+        [attr.aria-label]="'Switch to ' + lang"
+      >
+        {{ lang }}
+      </button>
+    }
+  </div>
+</div>

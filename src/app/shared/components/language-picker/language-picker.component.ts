@@ -1,20 +1,13 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
+import { TranslatePipe } from '@ngx-translate/core'
+import { TranslationService } from '@services/translation.service'
 
 @Component({
   selector: 'app-language-picker',
-  template: `
-    <div class="flex items-center gap-1">
-      @for (lang of languages; track lang.code) {
-        <button class="px-2 py-1 text-xs font-medium rounded transition-colors"></button>
-      }
-    </div>
-  `,
+  imports: [TranslatePipe],
+  templateUrl: './language-picker.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguagePicker {
-
-  protected readonly languages: { code: string; label: string }[] = [
-    { code: 'en', label: 'EN' },
-    { code: 'es', label: 'ES' },
-  ];
+  protected readonly i18n = inject(TranslationService)
 }

@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.gitignore
+.github
+.angular
+.cache
+.editorconfig
+.prettierrc
+.postcssrc.json
+*.md
+.vscode
+.cursor
+.claude
+.gemini
+.windsurf
