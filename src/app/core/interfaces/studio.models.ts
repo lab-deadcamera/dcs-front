@@ -21,11 +21,7 @@ export type CameraMotionId =
   | 'slow_dolly_in'
   | 'orbit'
   | 'handheld';
-export type ColorGradingId =
-  | 'blade_runner_2049'
-  | 'the_matrix'
-  | 'gone_girl'
-  | 'interstellar';
+export type ColorGradingId = 'tokio' | 'colombia' | 'ohio' | 'bank';
 export type GenreId = 'drama' | 'action' | 'noir' | 'horror';
 
 /** A single option inside a ToggleGroup (chips list). */
@@ -101,6 +97,20 @@ export interface GeneratedClip {
   resolution: Resolution;
   /** User-set success rating 1-5, undefined = unrated. */
   rating?: number;
+  /**
+   * Snapshot of the inputs that produced this clip — enables the
+   * "reuse prompt" affordance in the viewer to repopulate the editor.
+   */
+  source?: {
+    rawDescription: string;
+    cinematography: CinematographyConfig;
+    output: OutputFormatConfig;
+    assets?: {
+      firstFrame: ReferenceAsset | null;
+      lastFrame: ReferenceAsset | null;
+      free: ReferenceAsset[];
+    };
+  };
 }
 
 export interface StudioUser {

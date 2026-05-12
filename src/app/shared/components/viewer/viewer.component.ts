@@ -46,9 +46,33 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         <ui-corner-frame position="bottom-left" />
         <ui-corner-frame position="bottom-right" />
 
+        <!-- Reuse-prompt icon — repopulates the editor from the active clip. -->
         <button
           type="button"
-          class="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-brand-red hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red"
+          class="absolute top-3 right-12 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-brand-green hover:text-brand-green focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+          [disabled]="!prompt.activeClip()"
+          (click)="onReuse()"
+          [attr.aria-label]="'STUDIO.VIEWER.REUSE_PROMPT' | translate"
+          [attr.title]="'STUDIO.VIEWER.REUSE_PROMPT' | translate"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            class="h-3.5 w-3.5"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M14 8a6 6 0 1 1-1.76-4.24" />
+            <path d="M14 2v4h-4" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-brand-red hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red"
           (click)="toggleFullscreen()"
           [attr.aria-label]="
             (isFullscreen()
@@ -181,6 +205,12 @@ export class ViewerComponent implements OnDestroy {
   protected readonly isHd = computed(
     () => this.prompt.output().resolution === '1080p',
   );
+
+  protected onReuse(): void {
+    const clip = this.prompt.activeClip();
+    if (!clip) return;
+    this.prompt.reuseClip(clip.id);
+  }
 
   protected async toggleFullscreen(): Promise<void> {
     const el = this.box()?.nativeElement;

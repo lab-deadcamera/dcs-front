@@ -6,7 +6,15 @@ import { HeaderComponent } from '@shared/components/header/header.component';
   selector: 'app-private-layout',
   imports: [RouterOutlet, HeaderComponent],
   template: `
-    <div class="min-h-dvh flex flex-col bg-surface-0 dark:bg-surface-950 text-surface-900 dark:text-surface-100">
+    <!--
+      Lateral chrome: the app body is condensed by ~200px on each side
+      on xl, with progressively smaller gutters on md/lg. The whole shell
+      uses the same true-black ink-950 so the gutter and the content
+      blend into a single seamless surface.
+    -->
+    <div
+      class="min-h-dvh flex flex-col bg-ink-950 text-fg md:px-8 lg:px-16 xl:px-[200px]"
+    >
       <app-header />
 
       <main class="flex-1 flex flex-col">

@@ -84,6 +84,8 @@ export class DropZoneComponent {
   readonly multiple = input<boolean>(false);
   /** Compact variant for the "+" tile in the asset grid. */
   readonly compact = input<boolean>(false);
+  /** Small variant — roughly half the default height (first/last frame slots). */
+  readonly small = input<boolean>(false);
   /** Optional thumbnail URL — when set, the zone renders the preview. */
   readonly preview = input<string | null | undefined>(null);
   /** Alt text used for the preview image (filename or label). */
@@ -98,7 +100,11 @@ export class DropZoneComponent {
     const base =
       'relative flex cursor-pointer items-center justify-center ' +
       'border border-dashed transition-colors';
-    const size = this.compact() ? ' h-20 w-20' : ' h-44 w-full';
+    const size = this.compact()
+      ? ' h-20 w-20'
+      : this.small()
+        ? ' h-[5.5rem] w-full'
+        : ' h-44 w-full';
     const hover = this.hovering()
       ? ' border-brand-red bg-ink-700'
       : ' border-ink-500 bg-ink-850 hover:border-fg-muted';

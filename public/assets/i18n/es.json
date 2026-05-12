@@ -119,7 +119,8 @@
       "FULLSCREEN_EXIT": "Salir de pantalla completa",
       "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
       "HD_ARIA_PENDING": "Haz clic de nuevo para confirmar 1080p HD",
-      "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p"
+      "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p",
+      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor"
     },
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
@@ -168,10 +169,12 @@
         "HANDHELD": "Cámara en Mano"
       },
       "GRADES": {
-        "BLADE_RUNNER": "Blade Runner 2049",
-        "MATRIX": "The Matrix",
-        "GONE_GIRL": "Gone Girl",
-        "INTERSTELLAR": "Interstellar"
+        "TOKIO": "Tokio",
+        "COLOMBIA": "Colombia",
+        "OHIO": "Ohio",
+        "BANK": "Bank",
+        "VARIANT_TITLE": "Variantes de mood",
+        "VARIANT_HINT": "Elige un mood — aplica el grade {{name}} con este matiz."
       },
       "GENRES": {
         "DRAMA": "Drama",

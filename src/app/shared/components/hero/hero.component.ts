@@ -16,45 +16,41 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="px-6 pt-12 pb-14">
+    <section class="px-6 pt-10 pb-10 text-center">
       <h1
-        class="font-display text-fg-strong uppercase italic leading-[0.82] tracking-[-0.01em]"
-        style="font-size: clamp(1rem, 3vw, 2.5rem);"
+        class="font-display text-fg-strong uppercase italic leading-none tracking-[-0.01em] whitespace-nowrap"
+        style="font-size: clamp(1.275rem, 3.3vw, 2.625rem);"
       >
-        <span class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-          <span class="hero-strike text-fg-muted">
-            {{ 'STUDIO.HERO.STRIKE_1' | translate }}
-          </span>
-          <span class="hero-strike text-fg-muted">
-            {{ 'STUDIO.HERO.STRIKE_2' | translate }}
-          </span>
-          <span
-            class="font-script inline-block -translate-y-2 rotate-[-6deg] text-brand-red normal-case not-italic"
-            style="font-size: 1.1em; line-height: 1;"
-          >
-            {{ 'STUDIO.HERO.SCRIPT' | translate }}
-          </span>
+        <span class="hero-strike text-fg-muted">
+          {{ 'STUDIO.HERO.STRIKE_1' | translate }}
+        </span>
+        <span class="hero-strike ml-3 text-fg-muted">
+          {{ 'STUDIO.HERO.STRIKE_2' | translate }}
         </span>
         <span
-          class="mt-2 block text-fg-strong"
-          style="font-size: 1.45em; letter-spacing: -0.02em;"
+          class="font-script ml-3 inline-block -translate-y-1 rotate-[-6deg] text-brand-red normal-case not-italic"
+          style="font-size: 1.15em; line-height: 1;"
         >
+          {{ 'STUDIO.HERO.SCRIPT' | translate }}
+        </span>
+        <span class="ml-3">
           {{ 'STUDIO.HERO.LIVE' | translate }}
         </span>
       </h1>
 
-      <div class="mt-6 flex items-center gap-3">
-        <span aria-hidden="true" class="h-px w-12 bg-brand-red"></span>
-        <p class="text-[12px] font-bold uppercase tracking-[0.22em] text-fg italic">
+      <div class="mt-5 flex items-center justify-center gap-3">
+        <span aria-hidden="true" class="h-px w-10 bg-brand-red"></span>
+        <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-fg italic">
           {{ 'STUDIO.HERO.SUBTITLE_TOP' | translate }}
         </p>
+        <span aria-hidden="true" class="text-fg-faint">·</span>
+        <p
+          class="text-[11px] font-bold uppercase tracking-[0.22em]"
+          style="color: var(--color-brand-green);"
+        >
+          {{ 'STUDIO.HERO.SUBTITLE_BOTTOM' | translate }}
+        </p>
       </div>
-      <p
-        class="ml-15 text-[12px] font-bold uppercase tracking-[0.22em]"
-        style="color: var(--color-brand-green); margin-left: 3.75rem;"
-      >
-        {{ 'STUDIO.HERO.SUBTITLE_BOTTOM' | translate }}
-      </p>
     </section>
   `,
 })

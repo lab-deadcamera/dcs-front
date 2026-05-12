@@ -40,7 +40,6 @@ export class OutputFormatComponent {
     { value: '16:9', labelKey: 'STUDIO.OUTPUT.ASPECT_16_9' },
     { value: '9:16', labelKey: 'STUDIO.OUTPUT.ASPECT_9_16' },
     { value: '21:9', labelKey: 'STUDIO.OUTPUT.ASPECT_21_9' },
-    { value: '1:1', labelKey: 'STUDIO.OUTPUT.ASPECT_1_1' },
   ];
 
   /**

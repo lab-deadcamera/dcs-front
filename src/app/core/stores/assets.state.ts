@@ -92,6 +92,12 @@ export class AssetsStateService implements OnDestroy {
     });
   }
 
+  /** Wholesale replace the free-assets list — used by clip reuse. */
+  replaceFreeAssets(next: ReferenceAsset[]) {
+    this._freeAssets().forEach((a) => this.revoke(a));
+    this._freeAssets.set(next);
+  }
+
   clearAll() {
     this.revoke(this._firstFrame());
     this.revoke(this._lastFrame());

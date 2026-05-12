@@ -69,21 +69,18 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
       </div>
 
       <!--
-        Generate action lives right under the prompt — semantically the
-        "submit" for this section. Compact size, right-aligned, with a
-        clear disabled state when the prompt is empty.
+        Generate action — spans the full Prompt Builder column width
+        (matches the viewer width above) for a confident submit affordance.
       -->
-      <div class="mt-5 flex justify-end">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 bg-brand-red px-5 py-2 text-xs font-bold uppercase tracking-[0.22em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          [disabled]="!prompt.canGenerate()"
-          (click)="onGenerate()"
-        >
-          {{ 'STUDIO.PROMPT.GENERATE' | translate }}
-          <span aria-hidden="true">→</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="mt-5 flex w-full items-center justify-center gap-3 bg-brand-red py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!prompt.canGenerate()"
+        (click)="onGenerate()"
+      >
+        {{ 'STUDIO.PROMPT.GENERATE' | translate }}
+        <span aria-hidden="true">→</span>
+      </button>
     </section>
   `,
 })

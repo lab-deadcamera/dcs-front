@@ -46,24 +46,24 @@
   ],
   "colorGrading": [
     {
-      "id": "blade_runner_2049",
-      "label": "Blade Runner 2049",
-      "prompt": "Blade Runner 2049 grade, tungsten-amber smog atmosphere, neon-soaked pollution haze, deep orange-to-black gradient skies, crushed blacks with detail retained in shadows, high micro-contrast, volumetric god-rays cutting through dust, Deakins-inspired dystopian futurism, muted cyan accents in metal and glass, saturated amber dominant highlights"
+      "id": "tokio",
+      "label": "Tokio",
+      "prompt": "Tokio grade, neon-soaked rain-slick streets, magenta and cyan signage reflections, deep blacks with chromatic bleed, Lost-in-Translation softness colliding with Blade-Runner-2049 saturation, wet asphalt highlights pushed to electric pink, midtones cooled toward indigo, halation around every practical light"
     },
     {
-      "id": "the_matrix",
-      "label": "The Matrix",
-      "prompt": "The Matrix grade, green-phosphor CRT wash over entire frame, monochromatic digital-rain cast, sickly fluorescent green midtones, crushed blacks with no warm tones, desaturated skin tones pushed toward algae-green, cold sterile digital-world palette, slight chromatic fringing, contrasty simulation aesthetic, every highlight tinted emerald-lime"
+      "id": "colombia",
+      "label": "Colombia",
+      "prompt": "Colombia grade, humid tropical greens pushed lush and oversaturated, golden-amber Andean highlights, terra-cotta shadow lift, warm 70s-cinema patina, sun-baked midtones glowing toward marigold, slight halation, organic film grain, painterly Narcos-noon dust haze"
     },
     {
-      "id": "gone_girl",
-      "label": "Gone Girl",
-      "prompt": "Gone Girl grade, Fincher teal-green underexposure, clinical desaturated palette, muted skin tones pulled cold, shadows crushed to near-black with subtle cyan lift, yellow-green cast in highlights, surgical flat contrast, Jeff Cronenweth-inspired restraint, ugly-beautiful suburban menace, low-saturation controlled color space"
+      "id": "ohio",
+      "label": "Ohio",
+      "prompt": "Ohio grade, overcast suburban naturalism, desaturated steel-gray skies, muted brick reds and dishwater blues, crushed blacks but soft contrast, Fincher-flat midtones, melancholic Midwestern winter wash, skin tones pulled slightly cyan, fluorescent kitchen light bleeding cold"
     },
     {
-      "id": "interstellar",
-      "label": "Interstellar",
-      "prompt": "Interstellar grade, Hoyte van Hoytema naturalism, cold blue deep-space void contrasted with warm amber practical lights, corn-field golden-hour warmth, IMAX 65mm texture, crushed blacks with filmic grain, skin tones honest and slightly warm, awe-inducing negative space, halation around light sources, reverent cosmic atmosphere"
+      "id": "bank",
+      "label": "Bank",
+      "prompt": "Bank grade, sterile fluorescent overhead glow, institutional teal-and-amber dichotomy stripped to its bones, security-camera flatness, clinical low saturation, harsh practical highlights, deep tungsten lobby pools against pale concrete, heist-film tension, cold modern surveillance palette"
     }
   ],
   "cameraMotion": [
