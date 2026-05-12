@@ -64,7 +64,7 @@ export class PillToggleComponent {
     const base = 'px-3 py-1.5 font-bold uppercase transition-colors';
 
     if (selected && accent) {
-      return base + ' bg-brand-red text-fg-strong';
+      return base + ' bg-primary-500 text-fg-strong';
     }
     if (selected) {
       return base + ' bg-ink-700 text-fg-strong';

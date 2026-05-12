@@ -13,7 +13,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   template: `
     <section class="border-t border-ink-600 px-6 py-5">
       <div class="flex items-center gap-2">
-        <span class="inline-block h-2 w-2 rounded-full bg-brand-red"></span>
+        <span class="inline-block h-2 w-2 rounded-full bg-primary-500"></span>
         <h3 class="text-[12px] font-bold uppercase tracking-[0.22em] text-fg-strong">
           {{ 'STUDIO.SESSION_REEL.TITLE' | translate }}
         </h3>
@@ -30,7 +30,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
               <button
                 type="button"
                 class="relative h-20 w-32 flex-none overflow-hidden border transition-colors"
-                [class.border-brand-red]="clip.id === prompt.activeClipId()"
+                [class.border-primary-500]="clip.id === prompt.activeClipId()"
                 [class.border-ink-500]="clip.id !== prompt.activeClipId()"
                 (click)="prompt.selectClip(clip.id)"
               >

@@ -154,6 +154,283 @@
   }
 }
 
+/* ============================================================================
+   Semantic theme tokens — single source of truth for theming
+   ============================================================================
+   Three palettes are exposed app-wide so any component can adapt automatically
+   without per-element styling:
+
+     --primary-*      → ThemeService.primaryPalette   (CTAs, links, focus rings)
+     --secondary-*    → ThemeService.secondaryPalette (chips, hints, accents)
+     --contrast-*     → ThemeService.accentPalette    ("contrast"/highlight role)
+
+   The 11-shade ramps below alias the `--p-*-{shade}` variables that the
+   ThemeService writes onto `document.documentElement`, so swapping the palette
+   in code instantly retints everything — including PrimeNG components, the
+   custom utility classes in this file, and Tailwind `bg-primary-500`-style
+   utilities defined in the top `@theme` block.
+   ============================================================================ */
+
+@layer base {
+  :root {
+    /* Palette aliases — read these instead of --p-* in feature code. */
+    --primary-50:  var(--p-primary-50);
+    --primary-100: var(--p-primary-100);
+    --primary-200: var(--p-primary-200);
+    --primary-300: var(--p-primary-300);
+    --primary-400: var(--p-primary-400);
+    --primary-500: var(--p-primary-500);
+    --primary-600: var(--p-primary-600);
+    --primary-700: var(--p-primary-700);
+    --primary-800: var(--p-primary-800);
+    --primary-900: var(--p-primary-900);
+    --primary-950: var(--p-primary-950);
+
+    --secondary-50:  var(--p-secondary-50);
+    --secondary-100: var(--p-secondary-100);
+    --secondary-200: var(--p-secondary-200);
+    --secondary-300: var(--p-secondary-300);
+    --secondary-400: var(--p-secondary-400);
+    --secondary-500: var(--p-secondary-500);
+    --secondary-600: var(--p-secondary-600);
+    --secondary-700: var(--p-secondary-700);
+    --secondary-800: var(--p-secondary-800);
+    --secondary-900: var(--p-secondary-900);
+    --secondary-950: var(--p-secondary-950);
+
+    --contrast-50:  var(--p-accent-50);
+    --contrast-100: var(--p-accent-100);
+    --contrast-200: var(--p-accent-200);
+    --contrast-300: var(--p-accent-300);
+    --contrast-400: var(--p-accent-400);
+    --contrast-500: var(--p-accent-500);
+    --contrast-600: var(--p-accent-600);
+    --contrast-700: var(--p-accent-700);
+    --contrast-800: var(--p-accent-800);
+    --contrast-900: var(--p-accent-900);
+    --contrast-950: var(--p-accent-950);
+
+    /* Layout / typography tokens — light mode. */
+    --content-bg:        var(--p-surface-0);
+    --surface-bg:        var(--p-surface-50);
+    --sidebar-bg:        var(--p-surface-50);
+    --sidebar-hover:     var(--p-surface-100);
+    --sidebar-active:    var(--primary-50);
+    --header-bg:         var(--p-surface-0);
+    --header-border:     var(--p-surface-200);
+    --border-color:      var(--p-surface-200);
+    --text-primary:      var(--p-surface-900);
+    --text-secondary:    var(--p-surface-600);
+    --text-muted:        var(--p-surface-400);
+    --text-on-primary:   #ffffff;
+  }
+
+  .dark {
+    --content-bg:        var(--color-ink-950);
+    --surface-bg:        var(--color-ink-900);
+    --sidebar-bg:        var(--color-ink-900);
+    --sidebar-hover:     var(--color-ink-800);
+    --sidebar-active:    var(--primary-900);
+    --header-bg:         var(--color-ink-950);
+    --header-border:     var(--color-ink-600);
+    --border-color:      var(--color-ink-600);
+    --text-primary:      var(--color-fg-strong);
+    --text-secondary:    var(--color-fg);
+    --text-muted:        var(--color-fg-muted);
+    --text-on-primary:   #ffffff;
+  }
+
+  /*
+    PrimeNG variable overrides — patched onto <body> so they override the
+    component-internal defaults. Each maps a PrimeNG slot to one of the
+    semantic palettes; the ThemeService swap automatically retints all
+    PrimeNG components without touching component code.
+  */
+  body {
+    /* Buttons — primary */
+    --p-button-primary-background:         var(--primary-500);
+    --p-button-primary-border-color:       var(--primary-500);
+    --p-button-primary-color:              var(--text-on-primary);
+    --p-button-primary-hover-background:   var(--primary-600);
+    --p-button-primary-hover-border-color: var(--primary-600);
+    --p-button-primary-active-background:  var(--primary-700);
+    --p-button-primary-active-border-color: var(--primary-700);
+
+    --p-button-text-primary-color:          var(--primary-500);
+    --p-button-text-primary-hover-color:    var(--primary-600);
+    --p-button-text-primary-hover-background: var(--primary-50);
+    --p-button-text-primary-active-color:   var(--primary-700);
+    --p-button-text-primary-active-background: var(--primary-100);
+
+    --p-button-outlined-primary-color:       var(--primary-500);
+    --p-button-outlined-primary-border-color: var(--primary-200);
+    --p-button-outlined-primary-hover-background: var(--primary-50);
+    --p-button-outlined-primary-active-background: var(--primary-100);
+
+    /* Buttons — secondary */
+    --p-button-secondary-background:         var(--secondary-500);
+    --p-button-secondary-border-color:       var(--secondary-500);
+    --p-button-secondary-hover-background:   var(--secondary-600);
+    --p-button-secondary-hover-border-color: var(--secondary-600);
+    --p-button-secondary-active-background:  var(--secondary-700);
+
+    /* Buttons — contrast (uses the "accent" palette slot) */
+    --p-button-contrast-background:         var(--contrast-500);
+    --p-button-contrast-border-color:       var(--contrast-500);
+    --p-button-contrast-hover-background:   var(--contrast-600);
+    --p-button-contrast-hover-border-color: var(--contrast-600);
+
+    /* Forms */
+    --p-inputtext-focus-border-color: var(--primary-500);
+    --p-select-focus-border-color:    var(--primary-500);
+    --p-select-focus-ring-color:      var(--primary-500);
+    --p-checkbox-checked-background:        var(--primary-600);
+    --p-checkbox-checked-border-color:      var(--primary-600);
+    --p-checkbox-checked-color:             var(--primary-600);
+    --p-checkbox-checked-icon-color:        #ffffff;
+    --p-checkbox-checked-hover-background:  var(--primary-500);
+    --p-checkbox-checked-hover-border-color: var(--primary-500);
+    --p-radiobutton-checked-background:     var(--primary-600);
+    --p-radiobutton-checked-border-color:   var(--primary-600);
+    --p-radiobutton-checked-icon-color:     #ffffff;
+    --p-radiobutton-checked-hover-background: var(--primary-500);
+    --p-radiobutton-checked-hover-border-color: var(--primary-500);
+    --p-toggleswitch-checked-background:    var(--primary-500);
+    --p-toggleswitch-checked-hover-background: var(--primary-600);
+
+    /* Data / overlays */
+    --p-datatable-header-cell-background: var(--primary-500);
+    --p-datatable-header-cell-color:      var(--text-on-primary);
+    --p-datepicker-date-selected-background: var(--primary-600);
+    --p-datepicker-dropdown-background:   var(--primary-500);
+    --p-datepicker-dropdown-color:        var(--text-on-primary);
+    --p-chip-background:                  var(--secondary-500);
+    --p-chip-color:                       var(--text-on-primary);
+    --p-tag-primary-background:           var(--primary-500);
+    --p-tag-primary-color:                var(--text-on-primary);
+    --p-progressbar-value-background:     var(--primary-500);
+    --p-progressbar-label-color:          var(--text-on-primary);
+    --p-breadcrumb-item-color:            var(--primary-500);
+    --p-breadcrumb-item-icon-color:       var(--primary-500);
+    --p-text-hover-color:                 var(--primary-500);
+  }
+}
+
+/* ============================================================================
+   Utility component classes — opt-in semantic shortcuts
+   ============================================================================
+   Use these instead of restating colors on every button / card / input:
+
+     <button class="btn-primary">    → CTA, fills with --primary-500
+     <button class="btn-secondary">  → secondary action, fills with --secondary-500
+     <button class="btn-contrast">   → highlight, fills with --contrast-500
+     <input  class="input-field">    → themed text input
+     <div    class="card">           → themed card surface
+     <a      class="active">         → currently-active nav item
+   ============================================================================ */
+
+@layer components {
+  .btn-primary,
+  .btn-secondary,
+  .btn-contrast {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    color: var(--text-on-primary);
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      transform 0.05s ease;
+  }
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-contrast:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-primary    { background-color: var(--primary-500); }
+  .btn-primary:hover:not(:disabled)  { background-color: var(--primary-600); }
+  .btn-primary:active:not(:disabled) { background-color: var(--primary-700); }
+
+  .btn-secondary  { background-color: var(--secondary-500); }
+  .btn-secondary:hover:not(:disabled)  { background-color: var(--secondary-600); }
+  .btn-secondary:active:not(:disabled) { background-color: var(--secondary-700); }
+
+  .btn-contrast   { background-color: var(--contrast-500); }
+  .btn-contrast:hover:not(:disabled)   { background-color: var(--contrast-600); }
+  .btn-contrast:active:not(:disabled)  { background-color: var(--contrast-700); }
+
+  .input-field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+  }
+  .dark .input-field:focus {
+    box-shadow: 0 0 0 3px var(--primary-900);
+  }
+
+  .card {
+    background-color: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  .active {
+    background-color: var(--primary-600);
+    color: var(--text-on-primary);
+  }
+}
+
+/* ============================================================================
+   Base element styling — picks up semantic tokens
+   ============================================================================ */
+
+@layer base {
+  body {
+    background-color: var(--content-bg);
+    color: var(--text-primary);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+  }
+
+  a {
+    color: var(--primary-600);
+  }
+  a:hover {
+    color: var(--primary-700);
+  }
+
+  table tbody tr:hover {
+    background-color: var(--primary-50);
+  }
+  .dark table tbody tr:hover {
+    background-color: var(--primary-900);
+    color: var(--text-on-primary);
+  }
+}
+
+/* Scrollbar — themed via primary palette. */
+::-webkit-scrollbar         { width: 8px; height: 8px; }
+::-webkit-scrollbar-track   { background: var(--surface-bg); }
+::-webkit-scrollbar-thumb   { background: var(--primary-300); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-500); }
+
 /* Local font faces — served from public/fonts/ */
 @font-face {
   font-family: 'Akira Expanded';
@@ -256,7 +533,7 @@
 
 /* Global focus-visible ring — accessibility (WCAG 2.4.7). */
 :where(button, a, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-brand-red);
+  outline: 2px solid var(--primary-500);
   outline-offset: 2px;
 }
 

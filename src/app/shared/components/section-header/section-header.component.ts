@@ -20,7 +20,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     <header class="flex items-end justify-between gap-4 border-b border-ink-600 pb-3">
       <div class="flex items-baseline gap-3">
         <span
-          class="font-display text-3xl leading-none text-brand-red"
+          class="font-display text-3xl leading-none text-primary-500"
           [style.font-style]="'italic'"
         >
           {{ number() }}

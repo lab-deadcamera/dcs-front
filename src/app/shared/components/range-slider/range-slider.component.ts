@@ -69,16 +69,16 @@ import { TranslateService } from '@ngx-translate/core';
         height: 14px;
         margin-top: -6px;
         border-radius: 50%;
-        background: var(--color-brand-red);
+        background: var(--primary-500);
         border: 2px solid var(--color-ink-950);
         cursor: pointer;
-        box-shadow: 0 0 0 1px var(--color-brand-red);
+        box-shadow: 0 0 0 1px var(--primary-500);
       }
       .dcs-range::-moz-range-thumb {
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: var(--color-brand-red);
+        background: var(--primary-500);
         border: 2px solid var(--color-ink-950);
         cursor: pointer;
       }

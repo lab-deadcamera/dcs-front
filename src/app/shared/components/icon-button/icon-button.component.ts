@@ -53,9 +53,9 @@ export class IconButtonComponent {
     const map: Record<string, string> = {
       default: 'text-fg',
       purple: 'text-[color:var(--color-brand-purple)]',
-      red: 'text-brand-red',
-      green: 'text-[color:var(--color-brand-green)]',
-      yellow: 'text-[color:var(--color-brand-yellow)]',
+      red: 'text-primary-500',
+      green: 'text-secondary-500',
+      yellow: 'text-accent-500',
     };
     return 'text-sm ' + map[this.iconColor()];
   }
@@ -63,9 +63,9 @@ export class IconButtonComponent {
   protected labelClasses() {
     const map: Record<string, string> = {
       default: 'text-fg-strong',
-      green: 'text-[color:var(--color-brand-green)]',
-      red: 'text-brand-red',
-      yellow: 'text-[color:var(--color-brand-yellow)]',
+      green: 'text-secondary-500',
+      red: 'text-primary-500',
+      yellow: 'text-accent-500',
     };
     return map[this.labelColor()];
   }
@@ -73,9 +73,9 @@ export class IconButtonComponent {
   protected badgeClasses() {
     const map: Record<string, string> = {
       default: 'text-fg-muted',
-      red: 'text-brand-red italic',
-      green: 'text-[color:var(--color-brand-green)]',
-      yellow: 'text-[color:var(--color-brand-yellow)]',
+      red: 'text-primary-500 italic',
+      green: 'text-secondary-500',
+      yellow: 'text-accent-500',
     };
     return 'ml-1 font-normal normal-case tracking-normal ' + map[this.badgeColor()];
   }

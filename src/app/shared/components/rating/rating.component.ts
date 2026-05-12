@@ -34,10 +34,10 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
             [disabled]="!hasClip()"
             class="flex h-5 w-5 items-center justify-center text-xs leading-none transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
             [class.text-fg-faint]="!lit"
+            [class.text-accent-500]="lit"
             (click)="set(n)"
             (mouseenter)="hover.set(n)"
             (mouseleave)="hover.set(0)"
-            [style.color]="lit ? 'var(--color-brand-yellow)' : null"
           >
             ★
           </button>
@@ -46,7 +46,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         @if (rating() > 0 && hasClip()) {
           <button
             type="button"
-            class="ml-2 text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-brand-red"
+            class="ml-2 text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-primary-500"
             (click)="set(0)"
           >
             {{ 'STUDIO.RATING.CLEAR' | translate }}

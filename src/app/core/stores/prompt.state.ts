@@ -53,6 +53,8 @@ interface PromptSnapshot {
   output: OutputFormatConfig;
   sessionClips: GeneratedClip[];
   activeClipId: string | null;
+  /** Optional manual override applied on top of the computed compiled text. */
+  compiledOverride?: string | null;
 }
 
 /**
@@ -103,6 +105,17 @@ export class PromptStateService {
    */
   private readonly _lastInjections = signal<Record<string, string>>({});
 
+  /**
+   * Manual override on the compiled prompt. When non-null, this exact
+   * string is what gets sent to BytePlus — preset / raw / hint changes
+   * still happen in the background but the final text is the user's edit.
+   */
+  private readonly _compiledOverride = signal<string | null>(null);
+  readonly compiledOverride = this._compiledOverride.asReadonly();
+  readonly hasCompiledOverride = computed(
+    () => this._compiledOverride() !== null,
+  );
+
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly cinematography = this._cinematography.asReadonly();
   readonly output = this._output.asReadonly();
@@ -121,16 +134,13 @@ export class PromptStateService {
   );
 
   /**
-   * The exact text block that will be sent to BytePlus as the final
-   * `content[type:text]` entry. Pure computed.
-   *
-   * Lens, camera motion, color grading and genre are already woven into
-   * the raw textarea (via `syncPromptInjections` when the user picks a
-   * preset), so they are NOT re-appended here. Only the camera body —
-   * the one cinematography slot that has no section target — is still
-   * appended at compile time.
+   * The text block that would be sent to BytePlus *if* the user has not
+   * applied a manual override. This is the pure derivation: raw textarea
+   * + camera body + frame hints. The other cinematography presets are
+   * already woven into `_rawDescription` via `syncPromptInjections`, so
+   * they are not re-appended here.
    */
-  readonly compiledPrompt = computed(() => {
+  readonly baseCompiledPrompt = computed(() => {
     const raw = this._rawDescription().trim();
     const cine = this._cinematography();
     const camera = this.presets.findPreset(cine.cameraBody);
@@ -157,6 +167,14 @@ export class PromptStateService {
     return text;
   });
 
+  /**
+   * The exact text block that will be sent to BytePlus. Equals the
+   * manual override if one is active, otherwise the derived base.
+   */
+  readonly compiledPrompt = computed(
+    () => this._compiledOverride() ?? this.baseCompiledPrompt(),
+  );
+
   readonly compiledLength = computed(() => this.compiledPrompt().length);
 
   /** True when a generation can be submitted (matches v0 guard). */
@@ -173,6 +191,7 @@ export class PromptStateService {
         output: this._output(),
         sessionClips: this._sessionClips(),
         activeClipId: this._activeClipId(),
+        compiledOverride: this._compiledOverride(),
       };
       if (this.hydrated) {
         void this.storage.set('prompt', snap);
@@ -190,6 +209,7 @@ export class PromptStateService {
         this._output.set(snap.output);
         this._sessionClips.set(snap.sessionClips);
         this._activeClipId.set(snap.activeClipId);
+        this._compiledOverride.set(snap.compiledOverride ?? null);
       }
     } finally {
       this.hydrated = true;
@@ -201,6 +221,16 @@ export class PromptStateService {
 
   setRawDescription(text: string) {
     this._rawDescription.set(text);
+  }
+
+  /** Set a manual override on the compiled prompt. Pass `null` to clear. */
+  setCompiledOverride(text: string | null) {
+    this._compiledOverride.set(text);
+  }
+
+  /** Drop the override and fall back to the auto-built compiled text. */
+  clearCompiledOverride() {
+    this._compiledOverride.set(null);
   }
 
   patchCinematography(patch: Partial<CinematographyConfig>) {
@@ -247,6 +277,9 @@ export class PromptStateService {
       this.assets.replaceFreeAssets(assetSnap.free);
     }
 
+    // Drop any prior manual override so the reuse starts from the
+    // freshly-rebuilt base; the user can re-edit after the fact.
+    this._compiledOverride.set(null);
     // The restored raw text already contains the preset prompts — record
     // what's there so the next preset swap knows what to replace.
     this._lastInjections.set(this.buildInjectionsMap());

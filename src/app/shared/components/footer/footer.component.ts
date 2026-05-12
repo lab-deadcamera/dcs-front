@@ -15,7 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     >
       <p>
         {{ 'HEADER.BRAND.SEEDANCE_STUDIO' | translate }}
-        <span class="mx-1 text-brand-red">//</span>
+        <span class="mx-1 text-primary-500">//</span>
         {{ 'STUDIO.FOOTER.VERSION' | translate }}
         <span class="mx-1 text-fg-faint">·</span>
         {{ 'STUDIO.FOOTER.LIBRARY' | translate }}

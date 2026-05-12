@@ -100,7 +100,7 @@ interface GradeVariant {
                 >
                   @if (active) {
                     <span
-                      class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-brand-green align-middle"
+                      class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
                     ></span>
                   }
                   <span>{{ grade.labelKey | translate }}</span>
@@ -109,7 +109,7 @@ interface GradeVariant {
 
                 @if (active && selectedVariant()) {
                   <span
-                    class="mt-1 self-start font-mono text-[10px] uppercase tracking-[0.18em] text-brand-green"
+                    class="mt-1 self-start font-mono text-[10px] uppercase tracking-[0.18em] text-secondary-500"
                   >
                     · {{ selectedVariant() }}
                   </span>
@@ -118,7 +118,7 @@ interface GradeVariant {
                 <p-popover #pop [dismissable]="true" appendTo="body">
                   <div class="min-w-[200px] bg-ink-900 p-3 text-fg">
                     <p
-                      class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-brand-red"
+                      class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-primary-500"
                     >
                       {{ 'STUDIO.CINEMATOGRAPHY.GRADES.VARIANT_TITLE' | translate }}
                       <span class="ml-1 text-fg-muted">
@@ -129,14 +129,14 @@ interface GradeVariant {
                       @for (v of variantsFor(grade.id); track v.id) {
                         <button
                           type="button"
-                          class="flex w-full items-center justify-between border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg transition-colors hover:border-brand-green hover:text-fg-strong"
-                          [class.border-brand-green]="active && selectedVariant() === v.name"
+                          class="flex w-full items-center justify-between border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg transition-colors hover:border-secondary-500 hover:text-fg-strong"
+                          [class.border-secondary-500]="active && selectedVariant() === v.name"
                           [class.text-fg-strong]="active && selectedVariant() === v.name"
                           (click)="onPickVariant(grade.id, v, pop)"
                         >
                           <span>{{ v.name }}</span>
                           @if (active && selectedVariant() === v.name) {
-                            <span aria-hidden="true" class="text-brand-green">●</span>
+                            <span aria-hidden="true" class="text-secondary-500">●</span>
                           }
                         </button>
                       }
@@ -244,7 +244,7 @@ export class CinematographyComponent {
       'text-[11px] font-semibold uppercase tracking-[0.12em] ' +
       'transition-colors duration-150 focus:outline-none';
     return active
-      ? base + ' border-brand-green bg-ink-700 text-fg-strong'
+      ? base + ' border-secondary-500 bg-ink-700 text-fg-strong'
       : base +
           ' border-ink-500 bg-ink-800 text-fg hover:border-fg-muted hover:text-fg-strong';
   }

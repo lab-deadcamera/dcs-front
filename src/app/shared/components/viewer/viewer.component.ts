@@ -49,7 +49,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         <!-- Reuse-prompt icon — repopulates the editor from the active clip. -->
         <button
           type="button"
-          class="absolute top-3 right-12 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-brand-green hover:text-brand-green focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+          class="absolute top-3 right-12 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-secondary-500 hover:text-secondary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
           [disabled]="!prompt.activeClip()"
           (click)="onReuse()"
           [attr.aria-label]="'STUDIO.VIEWER.REUSE_PROMPT' | translate"
@@ -72,7 +72,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 
         <button
           type="button"
-          class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-brand-red hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red"
+          class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-primary-500 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
           (click)="toggleFullscreen()"
           [attr.aria-label]="
             (isFullscreen()
@@ -116,7 +116,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
             class="absolute inset-0 flex flex-col items-center justify-center gap-3"
           >
             <div class="flex items-center gap-1.5">
-              <span class="h-1.5 w-1.5 rounded-full bg-brand-red"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
@@ -138,14 +138,14 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         <button
           type="button"
           class="absolute bottom-3 right-3 z-10 inline-flex items-center gap-2 rounded-sm border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] backdrop-blur-sm transition-colors focus:outline-none"
-          [class.border-brand-red]="isHd()"
-          [class.bg-brand-red/90]="isHd()"
+          [class.border-primary-500]="isHd()"
+          [class.bg-primary-500/90]="isHd()"
           [class.text-fg-strong]="isHd()"
-          [class.border-brand-yellow]="hdPending() && !isHd()"
+          [class.border-accent-500]="hdPending() && !isHd()"
           [class.bg-ink-900/80]="!isHd()"
           [class.border-ink-500]="!isHd() && !hdPending()"
           [class.text-fg]="!isHd() && !hdPending()"
-          [class.text-brand-yellow]="hdPending() && !isHd()"
+          [class.text-accent-500]="hdPending() && !isHd()"
           [attr.aria-pressed]="isHd()"
           [attr.aria-label]="ariaHdLabel()"
           (click)="onHdClick()"

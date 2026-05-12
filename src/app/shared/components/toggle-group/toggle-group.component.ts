@@ -53,7 +53,7 @@ import { ChipOption } from '@core/interfaces/studio.models';
           @if (selected) {
             <span
               class="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle"
-              [class.bg-brand-green]="variant() === 'default'"
+              [class.bg-secondary-500]="variant() === 'default'"
               [class.bg-fg-strong]="variant() === 'accent'"
             ></span>
           }
@@ -94,13 +94,13 @@ export class ToggleGroupComponent<V extends string = string> {
       'transition-colors duration-150';
 
     if (this.variant() === 'accent' && selected) {
-      return base + ' border-brand-red bg-brand-red text-fg-strong';
+      return base + ' border-primary-500 bg-primary-500 text-fg-strong';
     }
 
     // Selected presets show a green border so the user can scan at a glance
     // which options feed into the compiled prompt.
     return selected
-      ? base + ' border-brand-green bg-ink-700 text-fg-strong'
+      ? base + ' border-secondary-500 bg-ink-700 text-fg-strong'
       : base +
           ' border-ink-500 bg-ink-800 text-fg hover:border-fg-muted hover:text-fg-strong';
   }

@@ -129,7 +129,12 @@
       "COMPILED": "Prompt Compilado",
       "CHARS": "{{n}} caracteres",
       "EMPTY_PREVIEW": "_",
-      "GENERATE": "Generar"
+      "GENERATE": "Generar",
+      "EDIT_COMPILED": "Editar prompt compilado",
+      "EDITED_BADGE": "editado",
+      "RESET_COMPILED": "Restablecer",
+      "SAVE_EDIT": "Guardar",
+      "CANCEL_EDIT": "Cancelar"
     },
     "SESSION_REEL": {
       "TITLE": "Carrete de Sesión",

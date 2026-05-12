@@ -28,7 +28,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           {{ 'STUDIO.HERO.STRIKE_2' | translate }}
         </span>
         <span
-          class="font-script ml-3 inline-block -translate-y-1 rotate-[-6deg] text-brand-red normal-case not-italic"
+          class="font-script ml-3 inline-block -translate-y-1 rotate-[-6deg] text-primary-500 normal-case not-italic"
           style="font-size: 1.15em; line-height: 1;"
         >
           {{ 'STUDIO.HERO.SCRIPT' | translate }}
@@ -39,14 +39,13 @@ import { TranslatePipe } from '@ngx-translate/core';
       </h1>
 
       <div class="mt-5 flex items-center justify-center gap-3">
-        <span aria-hidden="true" class="h-px w-10 bg-brand-red"></span>
+        <span aria-hidden="true" class="h-px w-10 bg-primary-500"></span>
         <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-fg italic">
           {{ 'STUDIO.HERO.SUBTITLE_TOP' | translate }}
         </p>
         <span aria-hidden="true" class="text-fg-faint">·</span>
         <p
-          class="text-[11px] font-bold uppercase tracking-[0.22em]"
-          style="color: var(--color-brand-green);"
+          class="text-[11px] font-bold uppercase tracking-[0.22em] text-secondary-500"
         >
           {{ 'STUDIO.HERO.SUBTITLE_BOTTOM' | translate }}
         </p>

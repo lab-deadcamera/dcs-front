@@ -43,7 +43,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
       @if (labelKey(); as l) {
         <span
-          class="absolute top-0 left-0 z-10 bg-brand-red px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
+          class="absolute top-0 left-0 z-10 bg-primary-500 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
         >
           {{ l | translate }}
         </span>
@@ -52,7 +52,7 @@ import { TranslatePipe } from '@ngx-translate/core';
       @if (preview()) {
         <button
           type="button"
-          class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-brand-red hover:text-brand-red"
+          class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-primary-500 hover:text-primary-500"
           [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
           (click)="onClear($event)"
         >×</button>
@@ -106,7 +106,7 @@ export class DropZoneComponent {
         ? ' h-[5.5rem] w-full'
         : ' h-44 w-full';
     const hover = this.hovering()
-      ? ' border-brand-red bg-ink-700'
+      ? ' border-primary-500 bg-ink-700'
       : ' border-ink-500 bg-ink-850 hover:border-fg-muted';
     return base + size + hover;
   }

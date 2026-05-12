@@ -39,12 +39,12 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         <div class="leading-tight">
           <p class="text-[13px] font-bold uppercase tracking-[0.08em] text-fg-strong">
             {{ 'HEADER.BRAND.DEAD_CAMERA' | translate }}
-            <span class="mx-1 text-brand-red">//</span>
+            <span class="mx-1 text-primary-500">//</span>
             {{ 'HEADER.BRAND.SEEDANCE_STUDIO' | translate }}
           </p>
           <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-fg-muted">
             {{ 'HEADER.SUBTITLE.STUDIOS' | translate }}
-            <span class="mx-1 text-brand-red">//</span>
+            <span class="mx-1 text-primary-500">//</span>
             {{ 'HEADER.SUBTITLE.AI_LAB' | translate }}
           </p>
         </div>

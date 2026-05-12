@@ -1,13 +1,13 @@
 <button
   type="button"
-  class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+  class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
   (click)="popover.toggle($event)"
   [attr.aria-label]="'HEADER.ACTIONS.ADD_API_KEY' | translate"
 >
   <span
     class="inline-block h-2 w-2 rounded-full"
-    [class.bg-brand-red]="!keys.hasActiveKey()"
-    [class.bg-brand-green]="keys.hasActiveKey()"
+    [class.bg-primary-500]="!keys.hasActiveKey()"
+    [class.bg-secondary-500]="keys.hasActiveKey()"
   ></span>
   @if (keys.activeKey(); as ak) {
     <span class="font-mono normal-case text-fg-strong">{{ ak.name }}</span>
@@ -27,8 +27,7 @@
       </h3>
       @if (keys.activeKey(); as ak) {
         <span
-          class="font-mono text-[10px] uppercase tracking-[0.12em]"
-          style="color: var(--color-brand-green);"
+          class="font-mono text-[10px] uppercase tracking-[0.12em] text-secondary-500"
         >
           ● {{ ak.name }}
         </span>
@@ -50,9 +49,9 @@
               <button
                 type="button"
                 class="h-4 w-4 flex-shrink-0 rounded-full border-2 transition-colors"
-                [class.border-brand-red]="active"
+                [class.border-primary-500]="active"
                 [class.border-ink-500]="!active"
-                [class.bg-brand-red]="active"
+                [class.bg-primary-500]="active"
                 (click)="onActivate(k.id)"
                 [attr.aria-label]="'STUDIO.API.ACTIVATE_ARIA' | translate"
                 [attr.aria-pressed]="active"
@@ -73,14 +72,14 @@
                   {{ endpointShort(k.endpoint) }}
                   @if (k.ak) {
                     <span class="mx-1 text-fg-faint">·</span>
-                    <span style="color: var(--color-brand-yellow);">AK/SK</span>
+                    <span class="text-accent-500">AK/SK</span>
                   }
                 </p>
               </div>
 
               <button
                 type="button"
-                class="text-[10px] font-bold uppercase tracking-[0.12em] text-fg-muted transition-colors hover:text-brand-red"
+                class="text-[10px] font-bold uppercase tracking-[0.12em] text-fg-muted transition-colors hover:text-primary-500"
                 (click)="onDelete(k.id)"
               >
                 {{ 'STUDIO.API.DELETE' | translate }}
@@ -97,7 +96,7 @@
     >
       <input
         type="text"
-        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
         [placeholder]="'STUDIO.API.NAME_PLACEHOLDER' | translate"
         [value]="nameDraft()"
         (input)="onDraft($event, 'name')"
@@ -105,7 +104,7 @@
       />
       <input
         type="password"
-        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
         [placeholder]="'STUDIO.API.VALUE_PLACEHOLDER' | translate"
         [value]="valueDraft()"
         (input)="onDraft($event, 'value')"
@@ -113,7 +112,7 @@
         required
       />
       <select
-        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong focus:border-brand-red focus:outline-none"
+        class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 text-[12px] text-fg-strong focus:border-primary-500 focus:outline-none"
         [value]="endpointDraft()"
         (change)="onDraft($event, 'endpoint')"
       >
@@ -133,7 +132,7 @@
         <div class="mt-2 flex flex-col gap-2">
           <input
             type="password"
-            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
             [placeholder]="'STUDIO.API.AK_PLACEHOLDER' | translate"
             [value]="akDraft()"
             (input)="onDraft($event, 'ak')"
@@ -141,7 +140,7 @@
           />
           <input
             type="password"
-            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-brand-red focus:outline-none"
+            class="block w-full border border-ink-500 bg-ink-900 px-3 py-2 font-mono text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
             [placeholder]="'STUDIO.API.SK_PLACEHOLDER' | translate"
             [value]="skDraft()"
             (input)="onDraft($event, 'sk')"
@@ -154,12 +153,12 @@
       </details>
 
       @if (errorKey(); as e) {
-        <p class="text-[11px] text-brand-red">{{ e | translate }}</p>
+        <p class="text-[11px] text-primary-500">{{ e | translate }}</p>
       }
 
       <button
         type="submit"
-        class="mt-1 w-full bg-brand-red py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
+        class="mt-1 w-full bg-primary-500 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
         [disabled]="!valueDraft().trim()"
       >
         {{ 'STUDIO.API.ADD_BUTTON' | translate }}

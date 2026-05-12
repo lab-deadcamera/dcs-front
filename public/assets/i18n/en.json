@@ -129,7 +129,12 @@
       "COMPILED": "Compiled Prompt",
       "CHARS": "{{n}} chars",
       "EMPTY_PREVIEW": "_",
-      "GENERATE": "Generate"
+      "GENERATE": "Generate",
+      "EDIT_COMPILED": "Edit compiled prompt",
+      "EDITED_BADGE": "edited",
+      "RESET_COMPILED": "Reset",
+      "SAVE_EDIT": "Save",
+      "CANCEL_EDIT": "Cancel"
     },
     "SESSION_REEL": {
       "TITLE": "Session Reel",

@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  *
  * Usage:
  *   <ui-corner-frame position="top-left" />
- *   <ui-corner-frame position="bottom-right" color="var(--color-brand-red)" />
+ *   <ui-corner-frame position="bottom-right" color="var(--primary-500)" />
  */
 @Component({
   selector: 'ui-corner-frame',
@@ -32,7 +32,7 @@ export class CornerFrameComponent {
     'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   >('top-left');
 
-  readonly color = input<string>('var(--color-brand-red)');
+  readonly color = input<string>('var(--primary-500)');
 
   protected containerClasses() {
     const base = 'pointer-events-none absolute h-6 w-6';
