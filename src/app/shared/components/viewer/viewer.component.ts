@@ -2,11 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
+  computed,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { PromptStateService } from '@app/core/stores/prompt.state';
@@ -30,7 +32,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   template: `
     <section class="px-6 py-6">
       <ui-section-header
-        number="05"
+        number="04"
         labelKey="STUDIO.VIEWER.TITLE"
         hintKey="STUDIO.VIEWER.HINT"
       />
@@ -103,6 +105,39 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
             </p>
           </div>
         }
+
+        <!--
+          HD (1080p) toggle anchored to the bottom-right corner of the
+          viewer. Lives here (instead of in Output Format) so it sits next
+          to the preview and uses a two-click confirm to prevent accidents.
+        -->
+        <button
+          type="button"
+          class="absolute bottom-3 right-3 z-10 inline-flex items-center gap-2 rounded-sm border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] backdrop-blur-sm transition-colors focus:outline-none"
+          [class.border-brand-red]="isHd()"
+          [class.bg-brand-red/90]="isHd()"
+          [class.text-fg-strong]="isHd()"
+          [class.border-brand-yellow]="hdPending() && !isHd()"
+          [class.bg-ink-900/80]="!isHd()"
+          [class.border-ink-500]="!isHd() && !hdPending()"
+          [class.text-fg]="!isHd() && !hdPending()"
+          [class.text-brand-yellow]="hdPending() && !isHd()"
+          [attr.aria-pressed]="isHd()"
+          [attr.aria-label]="ariaHdLabel()"
+          (click)="onHdClick()"
+        >
+          @if (isHd()) {
+            <span aria-hidden="true">●</span>
+          } @else {
+            <span aria-hidden="true">★</span>
+          }
+          <span>1080p</span>
+          @if (hdPending() && !isHd()) {
+            <span class="font-mono normal-case tracking-normal italic">
+              {{ 'STUDIO.OUTPUT.HD_CONFIRM' | translate }}
+            </span>
+          }
+        </button>
       </div>
     </section>
   `,
@@ -135,10 +170,17 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
     `,
   ],
 })
-export class ViewerComponent {
+export class ViewerComponent implements OnDestroy {
   protected readonly prompt = inject(PromptStateService);
+  private readonly i18n = inject(TranslateService);
   protected readonly isFullscreen = signal(false);
+  protected readonly hdPending = signal(false);
+  private hdTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
+
+  protected readonly isHd = computed(
+    () => this.prompt.output().resolution === '1080p',
+  );
 
   protected async toggleFullscreen(): Promise<void> {
     const el = this.box()?.nativeElement;
@@ -152,5 +194,43 @@ export class ViewerComponent {
 
   protected syncFullscreen(): void {
     this.isFullscreen.set(document.fullscreenElement === this.box()?.nativeElement);
+  }
+
+  /** Two-click confirm to flip 1080p on; a single click drops it back to 720p. */
+  protected onHdClick(): void {
+    if (this.isHd()) {
+      this.cancelHdPending();
+      this.prompt.patchOutput({ resolution: '720p' });
+      return;
+    }
+    if (this.hdPending()) {
+      this.cancelHdPending();
+      this.prompt.patchOutput({ resolution: '1080p' });
+      return;
+    }
+    this.hdPending.set(true);
+    if (this.hdTimer) clearTimeout(this.hdTimer);
+    this.hdTimer = setTimeout(() => this.hdPending.set(false), 3000);
+  }
+
+  protected ariaHdLabel(): string {
+    const key = this.isHd()
+      ? 'STUDIO.VIEWER.HD_ARIA_ON'
+      : this.hdPending()
+        ? 'STUDIO.VIEWER.HD_ARIA_PENDING'
+        : 'STUDIO.VIEWER.HD_ARIA_OFF';
+    return this.i18n.instant(key);
+  }
+
+  private cancelHdPending(): void {
+    this.hdPending.set(false);
+    if (this.hdTimer) {
+      clearTimeout(this.hdTimer);
+      this.hdTimer = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.hdTimer) clearTimeout(this.hdTimer);
   }
 }

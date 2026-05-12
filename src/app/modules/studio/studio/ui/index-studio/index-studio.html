@@ -2,52 +2,42 @@
   <app-hero />
 
   <!--
-    Layout follows the numbered workflow 01 → 05:
-      01 Cinematography  ┐
-      02 Output Format   │  Settings column (LEFT on lg+)
-      03 Character & Assets │
-      04 Prompt Builder  ┘
-      05 Viewer + Session Reel  (RIGHT on lg+, sticky preview)
+    Layout follows the numbered workflow 01 → 06:
+      LEFT (settings, lg+):
+        01 Character & Assets
+        02 Cinematography
+        03 Output Format
+      RIGHT (preview + critique + prompt, sticky on lg+):
+        04 Viewer
+        05 Rating
+        06 Prompt Builder
+        · Session Reel (history)
 
-    · Mobile / tablet (< lg): single column, sections stacked 01 → 05.
-    · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`. Below
-      1024px the layout collapses to col so each column keeps a usable
-      width.
-    · The viewer column sticks to the top of the viewport while the
+    · Mobile / tablet (< lg): single column, sections stacked 01 → 06.
+    · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`.
+    · The right column sticks to the top of the viewport while the
       user scrolls the longer settings column.
+    · Output Format (with the 1080p chip) lives in the LEFT column so
+      it can't be misclicked while interacting with the viewer.
   -->
   <div class="flex flex-1 flex-col lg:flex-row lg:items-start">
-    <!-- Steps 01 → 04 — Settings (LEFT on lg+) -->
+    <!-- Steps 01 → 03 — Inputs (LEFT on lg+) -->
     <section class="flex flex-col lg:flex-1 lg:min-w-0">
+      <app-character-assets />
       <app-cinematography />
       <app-output-format />
-      <app-character-assets />
-      <app-prompt-builder />
     </section>
 
-    <!-- Step 05 — Viewer (RIGHT on lg+, sticky preview) -->
+    <!-- Steps 04 → 06 — Preview, Rating, Prompt (RIGHT on lg+, sticky) -->
     <aside
       class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
     >
       <app-viewer />
+      <app-rating />
+      <app-prompt-builder (generate)="onGenerate()" />
       <app-session-reel />
     </aside>
   </div>
 
   <app-footer />
-
-  <!-- Sticky generate action — always reachable -->
-  <div
-    class="sticky bottom-0 z-20 border-t border-ink-600 bg-ink-950/95 px-6 py-3 backdrop-blur-sm"
-  >
-    <button
-      type="button"
-      class="flex w-full items-center justify-center gap-3 bg-brand-red py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:opacity-40"
-      [disabled]="!prompt.canGenerate()"
-      (click)="onGenerate()"
-    >
-      {{ 'STUDIO.PROMPT.GENERATE' | translate }}
-      <span aria-hidden="true">→</span>
-    </button>
-  </div>
 </div>

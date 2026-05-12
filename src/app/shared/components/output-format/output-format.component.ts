@@ -43,18 +43,25 @@ export class OutputFormatComponent {
     { value: '1:1', labelKey: 'STUDIO.OUTPUT.ASPECT_1_1' },
   ];
 
-  protected readonly resolutionOptions: ChipOption<Resolution>[] = [
+  /**
+   * Resolution chips intentionally exclude 1080p — it has been moved to a
+   * dedicated, two-click-confirm toggle in the viewer's bottom-right
+   * corner to prevent accidental high-cost selections.
+   */
+  protected readonly resolutionOptions: ChipOption<Exclude<Resolution, '1080p'>>[] = [
     { value: '480p', labelKey: 'STUDIO.OUTPUT.RES_480P' },
     { value: '720p', labelKey: 'STUDIO.OUTPUT.RES_720P' },
-    { value: '1080p', labelKey: 'STUDIO.OUTPUT.RES_1080P' },
   ];
 
   protected onAspect(v: AspectRatio | null) {
     if (v) this.prompt.patchOutput({ aspectRatio: v });
   }
+
   protected onResolution(v: Resolution | null) {
-    if (v) this.prompt.patchOutput({ resolution: v });
+    if (!v || v === '1080p') return;
+    this.prompt.patchOutput({ resolution: v });
   }
+
   protected onDuration(v: number) {
     this.prompt.patchOutput({ durationSeconds: v });
   }

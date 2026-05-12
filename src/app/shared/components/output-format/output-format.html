@@ -1,5 +1,5 @@
 <section class="border-t border-ink-600 px-6 py-6">
-  <ui-section-header number="02" labelKey="STUDIO.OUTPUT.TITLE" />
+  <ui-section-header number="03" labelKey="STUDIO.OUTPUT.TITLE" />
 
   <div class="mt-5 flex flex-col gap-5">
     <ui-toggle-group
@@ -14,9 +14,12 @@
       labelKey="STUDIO.OUTPUT.RESOLUTION"
       variant="accent"
       [options]="resolutionOptions"
-      [value]="prompt.output().resolution"
+      [value]="prompt.output().resolution === '1080p' ? null : prompt.output().resolution"
       (valueChange)="onResolution($event)"
     />
+    <p class="-mt-3 text-[10px] italic text-fg-muted">
+      {{ 'STUDIO.OUTPUT.HD_HINT' | translate }}
+    </p>
 
     <div>
       <p class="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">

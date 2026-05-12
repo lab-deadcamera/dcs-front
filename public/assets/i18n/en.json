@@ -116,7 +116,10 @@
       "EMPTY_TITLE": "No Clip Loaded",
       "EMPTY_HINT": "Generated output appears here",
       "FULLSCREEN_ENTER": "Enter fullscreen",
-      "FULLSCREEN_EXIT": "Exit fullscreen"
+      "FULLSCREEN_EXIT": "Exit fullscreen",
+      "HD_ARIA_OFF": "1080p HD off — click twice to enable",
+      "HD_ARIA_PENDING": "Click again to confirm 1080p HD",
+      "HD_ARIA_ON": "1080p HD on — click to drop back to 720p"
     },
     "PROMPT": {
       "TITLE": "Prompt Builder",
@@ -130,6 +133,14 @@
     "SESSION_REEL": {
       "TITLE": "Session Reel",
       "EMPTY": "Your generated clips will stack here"
+    },
+    "RATING": {
+      "TITLE": "Rating",
+      "HINT": "Rate the success of the generated clip",
+      "EMPTY": "Generate a clip to rate it",
+      "ARIA_GROUP": "Rate the clip from 1 to 5 stars",
+      "ARIA_STAR": "Rate {{n}} out of 5",
+      "CLEAR": "Clear"
     },
     "CINEMATOGRAPHY": {
       "TITLE": "Cinematography",
@@ -187,7 +198,9 @@
       "ASPECT_1_1": "1:1",
       "RES_480P": "480p",
       "RES_720P": "720p",
-      "RES_1080P": "1080p"
+      "RES_1080P": "1080p HD",
+      "HD_CONFIRM": "click again to confirm",
+      "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable."
     },
     "ASSETS": {
       "TITLE": "Character & Assets",

@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
@@ -7,6 +6,7 @@ import { SessionReelComponent } from '@shared/components/session-reel/session-re
 import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
 import { OutputFormatComponent } from '@shared/components/output-format/output-format.component';
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
+import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { PromptStateService } from '@app/core/stores/prompt.state';
 
@@ -14,11 +14,11 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
  * IndexStudio — composes the full Dead Camera / Seedance Studio shell.
  *
  * Layout:
- * - Mobile: single column, viewer on top, then settings, reel, footer.
- * - Desktop (lg+): two columns — settings on the left, viewer (sticky)
- *   on the right.
- * - The GENERATE action lives in a sticky bottom bar so it stays in
- *   reach regardless of scroll position.
+ * - Mobile: single column.
+ * - Desktop (lg+): two columns — inputs (assets / cinematography / output)
+ *   on the left; preview / rating / prompt / generate on the right
+ *   (sticky preview).
+ * - The GENERATE action lives at the foot of the Prompt Builder section.
  */
 @Component({
   selector: 'app-index-studio',
@@ -30,8 +30,8 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
     CinematographyComponent,
     OutputFormatComponent,
     CharacterAssetsComponent,
+    RatingComponent,
     FooterComponent,
-    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',

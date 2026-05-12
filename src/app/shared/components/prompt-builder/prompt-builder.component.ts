@@ -24,9 +24,9 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   imports: [SectionHeaderComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="px-6 py-6">
+    <section class="border-t border-ink-600 px-6 py-6">
       <ui-section-header
-        number="04"
+        number="06"
         labelKey="STUDIO.PROMPT.TITLE"
         hintKey="STUDIO.PROMPT.HINT"
       />
@@ -67,6 +67,23 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
           </p>
         }
       </div>
+
+      <!--
+        Generate action lives right under the prompt — semantically the
+        "submit" for this section. Compact size, right-aligned, with a
+        clear disabled state when the prompt is empty.
+      -->
+      <div class="mt-5 flex justify-end">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 bg-brand-red px-5 py-2 text-xs font-bold uppercase tracking-[0.22em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!prompt.canGenerate()"
+          (click)="onGenerate()"
+        >
+          {{ 'STUDIO.PROMPT.GENERATE' | translate }}
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
     </section>
   `,
 })
@@ -94,5 +111,10 @@ export class PromptBuilderComponent {
 
   protected toggleExpanded() {
     this.expanded.update((v) => !v);
+  }
+
+  protected onGenerate(): void {
+    if (!this.prompt.canGenerate()) return;
+    this.generate.emit();
   }
 }

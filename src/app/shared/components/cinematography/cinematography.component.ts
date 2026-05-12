@@ -26,7 +26,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
-      <ui-section-header number="01" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
+      <ui-section-header number="02" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
 
       <div class="mt-5 flex flex-col gap-5">
         <ui-toggle-group

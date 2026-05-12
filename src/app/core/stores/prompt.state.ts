@@ -176,4 +176,11 @@ export class PromptStateService {
   selectClip(id: string | null) {
     this._activeClipId.set(id);
   }
+
+  setClipRating(id: string, rating: number) {
+    const clamped = Math.max(0, Math.min(5, Math.round(rating)));
+    this._sessionClips.update((list) =>
+      list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
+    );
+  }
 }

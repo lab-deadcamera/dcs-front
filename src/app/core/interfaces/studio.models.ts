@@ -99,6 +99,8 @@ export interface GeneratedClip {
   createdAt: number;
   durationSeconds: number;
   resolution: Resolution;
+  /** User-set success rating 1-5, undefined = unrated. */
+  rating?: number;
 }
 
 export interface StudioUser {

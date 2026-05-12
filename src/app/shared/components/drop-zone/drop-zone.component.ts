@@ -29,22 +29,43 @@ import { TranslatePipe } from '@ngx-translate/core';
       (dragleave)="onDragLeave()"
       (drop)="onDrop($event)"
     >
+      @if (preview(); as src) {
+        <img
+          [src]="src"
+          [alt]="previewAlt()"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <span
+          aria-hidden="true"
+          class="absolute inset-0 bg-ink-950/30 transition-colors group-hover:bg-ink-950/10"
+        ></span>
+      }
+
       @if (labelKey(); as l) {
         <span
-          class="absolute top-0 left-0 bg-brand-red px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
+          class="absolute top-0 left-0 z-10 bg-brand-red px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
         >
           {{ l | translate }}
         </span>
       }
 
-      <div class="flex flex-col items-center gap-2 text-fg-muted">
-        <span class="text-2xl leading-none">+</span>
-        @if (placeholderKey(); as p) {
-          <span class="text-[11px] uppercase tracking-[0.18em]">
-            {{ p | translate }}
-          </span>
-        }
-      </div>
+      @if (preview()) {
+        <button
+          type="button"
+          class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-brand-red hover:text-brand-red"
+          [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
+          (click)="onClear($event)"
+        >×</button>
+      } @else {
+        <div class="flex flex-col items-center gap-2 text-fg-muted">
+          <span class="text-2xl leading-none">+</span>
+          @if (placeholderKey(); as p) {
+            <span class="text-[11px] uppercase tracking-[0.18em]">
+              {{ p | translate }}
+            </span>
+          }
+        </div>
+      }
 
       <input
         type="file"
@@ -63,8 +84,13 @@ export class DropZoneComponent {
   readonly multiple = input<boolean>(false);
   /** Compact variant for the "+" tile in the asset grid. */
   readonly compact = input<boolean>(false);
+  /** Optional thumbnail URL — when set, the zone renders the preview. */
+  readonly preview = input<string | null | undefined>(null);
+  /** Alt text used for the preview image (filename or label). */
+  readonly previewAlt = input<string>('');
 
   readonly filesDropped = output<File[]>();
+  readonly cleared = output<void>();
 
   protected readonly hovering = signal(false);
 
@@ -101,5 +127,12 @@ export class DropZoneComponent {
       this.filesDropped.emit(Array.from(input.files));
       input.value = '';
     }
+  }
+
+  protected onClear(e: MouseEvent) {
+    // Stop the surrounding <label> from re-opening the file picker.
+    e.preventDefault();
+    e.stopPropagation();
+    this.cleared.emit();
   }
 }

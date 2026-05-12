@@ -116,7 +116,10 @@
       "EMPTY_TITLE": "Sin Clip Cargado",
       "EMPTY_HINT": "La salida generada aparece aquí",
       "FULLSCREEN_ENTER": "Pantalla completa",
-      "FULLSCREEN_EXIT": "Salir de pantalla completa"
+      "FULLSCREEN_EXIT": "Salir de pantalla completa",
+      "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
+      "HD_ARIA_PENDING": "Haz clic de nuevo para confirmar 1080p HD",
+      "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p"
     },
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
@@ -130,6 +133,14 @@
     "SESSION_REEL": {
       "TITLE": "Carrete de Sesión",
       "EMPTY": "Tus clips generados se apilarán aquí"
+    },
+    "RATING": {
+      "TITLE": "Calificación",
+      "HINT": "Califica el éxito del clip generado",
+      "EMPTY": "Genera un clip para calificarlo",
+      "ARIA_GROUP": "Califica el clip de 1 a 5 estrellas",
+      "ARIA_STAR": "Calificar {{n}} de 5",
+      "CLEAR": "Limpiar"
     },
     "CINEMATOGRAPHY": {
       "TITLE": "Cinematografía",
@@ -187,7 +198,9 @@
       "ASPECT_1_1": "1:1",
       "RES_480P": "480p",
       "RES_720P": "720p",
-      "RES_1080P": "1080p"
+      "RES_1080P": "1080p HD",
+      "HD_CONFIRM": "haz clic de nuevo para confirmar",
+      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse."
     },
     "ASSETS": {
       "TITLE": "Personajes y Assets",

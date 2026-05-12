@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
@@ -13,28 +14,27 @@ import { StudioStateService } from '@app/core/stores/studio.state';
  */
 @Component({
   selector: 'app-header',
-  imports: [IconButtonComponent, ApiKeysPopoverComponent, ThemePicker, TranslatePipe],
+  imports: [
+    IconButtonComponent,
+    ApiKeysPopoverComponent,
+    ThemePicker,
+    TranslatePipe,
+    NgOptimizedImage,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
       class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4"
     >
       <div class="flex items-center gap-3">
-        <svg viewBox="0 0 32 32" class="h-9 w-9" aria-hidden="true">
-          <rect
-            x="1.5" y="1.5" width="29" height="29" rx="2"
-            fill="none"
-            stroke="var(--color-fg-strong)"
-            stroke-width="1.5"
-          />
-          <circle
-            cx="16" cy="16" r="6"
-            fill="none"
-            stroke="var(--color-fg-strong)"
-            stroke-width="1.5"
-          />
-          <circle cx="16" cy="16" r="2" fill="var(--color-fg-strong)" />
-        </svg>
+        <img
+          ngSrc="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg"
+          width="36"
+          height="36"
+          alt="Dead Camera Studios"
+          class="rounded-sm object-cover"
+          priority
+        />
 
         <div class="leading-tight">
           <p class="text-[13px] font-bold uppercase tracking-[0.08em] text-fg-strong">

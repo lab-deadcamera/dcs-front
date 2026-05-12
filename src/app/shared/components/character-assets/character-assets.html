@@ -1,5 +1,5 @@
-<section class="border-t border-ink-600 px-6 py-6">
-  <ui-section-header number="03" labelKey="STUDIO.ASSETS.TITLE" />
+<section class="px-6 py-6">
+  <ui-section-header number="01" labelKey="STUDIO.ASSETS.TITLE" />
 
   <div
     class="mt-5 flex items-center justify-between border-l-2 bg-ink-850 px-4 py-3"
@@ -65,12 +65,18 @@
       <ui-drop-zone
         labelKey="STUDIO.ASSETS.FIRST_FRAME"
         placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
+        [preview]="assets.firstFrame()?.thumbnailUrl ?? null"
+        [previewAlt]="assets.firstFrame()?.filename ?? ''"
         (filesDropped)="onFirstFrame($event)"
+        (cleared)="assets.setFirstFrame(null)"
       />
       <ui-drop-zone
         labelKey="STUDIO.ASSETS.LAST_FRAME"
         placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
-        (filesDropped)="onLastFrame($event)"  
+        [preview]="assets.lastFrame()?.thumbnailUrl ?? null"
+        [previewAlt]="assets.lastFrame()?.filename ?? ''"
+        (filesDropped)="onLastFrame($event)"
+        (cleared)="assets.setLastFrame(null)"
       />
     </div>
 
@@ -83,24 +89,57 @@
     </div>
 
     @if (assets.freeAssets().length) {
-      <ul class="mt-3 flex flex-wrap gap-2">
+      <ul class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
         @for (a of assets.freeAssets(); track a.id) {
           <li
-            class="inline-flex items-center gap-2 border border-ink-500 bg-ink-800 px-2 py-1 text-[11px] text-fg-strong"
+            class="group relative flex flex-col overflow-hidden border border-ink-500 bg-ink-800"
           >
-            <span
-              class="font-mono text-[10px]"
-              style="color: var(--color-brand-green);"
-            >
-              {{ a.tag }}
-            </span>
-            <span class="text-fg-muted">{{ a.filename }}</span>
-            <button
-              type="button"
-              class="text-fg-muted hover:text-brand-red"
-              (click)="assets.removeFreeAsset(a.id)"
-              [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
-            >×</button>
+            <div class="relative aspect-square bg-ink-900">
+              @if (a.kind === 'image' && a.thumbnailUrl) {
+                <img
+                  [src]="a.thumbnailUrl"
+                  [alt]="a.filename"
+                  class="h-full w-full object-cover"
+                />
+              } @else if (a.kind === 'video' && a.thumbnailUrl) {
+                <video
+                  [src]="a.thumbnailUrl"
+                  class="h-full w-full object-cover"
+                  muted
+                  playsinline
+                ></video>
+                <span
+                  aria-hidden="true"
+                  class="absolute inset-0 flex items-center justify-center text-2xl text-fg-strong/80"
+                >▶</span>
+              } @else {
+                <span
+                  aria-hidden="true"
+                  class="absolute inset-0 flex items-center justify-center text-2xl text-fg-muted"
+                >
+                  @switch (a.kind) {
+                    @case ('audio') { ♪ }
+                    @case ('video') { ▶ }
+                    @default { ◇ }
+                  }
+                </span>
+              }
+              <button
+                type="button"
+                class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-brand-red hover:text-brand-red"
+                (click)="assets.removeFreeAsset(a.id)"
+                [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
+              >×</button>
+            </div>
+            <div class="flex items-center justify-between gap-1 px-2 py-1">
+              <span
+                class="truncate font-mono text-[10px]"
+                style="color: var(--color-brand-green);"
+              >{{ a.tag }}</span>
+              <span class="truncate text-[10px] text-fg-muted" [title]="a.filename">
+                {{ a.filename }}
+              </span>
+            </div>
           </li>
         }
       </ul>
