@@ -1,0 +1,114 @@
+<section class="px-6 py-6">
+  <header class="mb-5 flex items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
+        {{ 'CHARACTERS.TITLE' | translate }}
+      </h1>
+      <p class="mt-1 text-[12px] italic text-[color:var(--text-secondary)]">
+        {{ 'CHARACTERS.HINT' | translate }}
+      </p>
+    </div>
+
+    <p-button
+      icon="pi pi-plus"
+      [label]="'CHARACTERS.ACTIONS.NEW' | translate"
+      data-testid="characters-new-button"
+      (onClick)="openCreate()"
+    />
+  </header>
+
+  <div class="card p-0 overflow-hidden">
+    <p-table
+      [value]="characters.items()"
+      [loading]="characters.loading()"
+      [rowHover]="true"
+      [paginator]="characters.count() > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      dataKey="id"
+      data-testid="characters-table"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="text-left">{{ 'CHARACTERS.COLUMNS.NAME' | translate }}</th>
+          <th class="text-left">{{ 'CHARACTERS.COLUMNS.DESCRIPTION' | translate }}</th>
+          <th class="text-left">{{ 'CHARACTERS.COLUMNS.METADATA' | translate }}</th>
+          <th class="text-left">{{ 'CHARACTERS.COLUMNS.CREATED_AT' | translate }}</th>
+          <th class="w-32 text-right">{{ 'CHARACTERS.COLUMNS.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-character>
+        <tr [attr.data-testid]="'characters-row-' + character.id">
+          <td class="font-semibold">{{ character.name }}</td>
+          <td class="max-w-md truncate" [title]="character.description">
+            {{ character.description }}
+          </td>
+          <td class="font-mono text-[12px] text-[color:var(--text-secondary)]">
+            {{ metadataPreview(character) }}
+          </td>
+          <td class="font-mono text-[12px] text-[color:var(--text-muted)]">
+            {{ character.createdAt | date: 'short' }}
+          </td>
+          <td class="text-right">
+            <div class="inline-flex gap-1">
+              <p-button
+                icon="pi pi-folder"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'characters-files-' + character.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
+                (onClick)="openFiles(character)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'characters-edit-' + character.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
+                (onClick)="openEdit(character)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'characters-delete-' + character.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
+                (onClick)="confirmDelete(character)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="py-8 text-center text-[color:var(--text-muted)] italic">
+            {{ 'CHARACTERS.EMPTY' | translate }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <app-character-form-dialog
+    [visible]="dialogVisible()"
+    [character]="dialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="dialogVisible.set($event)"
+    (create)="onCreate($event)"
+    (update)="onUpdate($event)"
+  />
+
+  <app-character-files-dialog
+    [visible]="filesDialogVisible()"
+    [character]="filesDialogTarget()"
+    (visibleChange)="filesDialogVisible.set($event)"
+  />
+
+  <p-confirmDialog />
+  <p-toast position="bottom-right" />
+</section>

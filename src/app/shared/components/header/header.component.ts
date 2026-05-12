@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
@@ -20,6 +21,8 @@ import { StudioStateService } from '@app/core/stores/studio.state';
     ThemePicker,
     TranslatePipe,
     NgOptimizedImage,
+    RouterLink,
+    RouterLinkActive,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -82,6 +85,41 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         <app-theme-picker />
       </div>
     </header>
+
+    <!--
+      Route navigator — switch between the Studio and the Characters
+      library. Active tab is underlined and tinted with the primary
+      palette so it follows the global theme.
+    -->
+    <nav
+      class="flex items-center gap-1 border-b border-ink-600 px-6"
+      aria-label="Primary"
+    >
+      <a
+        routerLink="/studio"
+        routerLinkActive="!text-fg-strong !border-primary-500"
+        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        data-testid="nav-studio"
+      >
+        {{ 'NAV.STUDIO' | translate }}
+      </a>
+      <a
+        routerLink="/characters"
+        routerLinkActive="!text-fg-strong !border-primary-500"
+        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        data-testid="nav-characters"
+      >
+        {{ 'NAV.CHARACTERS' | translate }}
+      </a>
+      <a
+        routerLink="/files"
+        routerLinkActive="!text-fg-strong !border-primary-500"
+        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        data-testid="nav-files"
+      >
+        {{ 'NAV.FILES' | translate }}
+      </a>
+    </nav>
   `,
 })
 export class HeaderComponent {

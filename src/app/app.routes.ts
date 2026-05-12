@@ -15,6 +15,18 @@ export const routes: Routes = [
         path: 'studio',
         loadChildren: () => import('@modules/studio/studio.routes').then(m => m.STUDIO_ROUTES),
       },
+      {
+        path: 'characters',
+        loadChildren: () =>
+          import('@modules/characters/characters.routes').then(
+            (m) => m.CHARACTERS_ROUTES,
+          ),
+      },
+      {
+        path: 'files',
+        loadChildren: () =>
+          import('@modules/files/files.routes').then((m) => m.FILES_ROUTES),
+      },
     ],
   },
   {

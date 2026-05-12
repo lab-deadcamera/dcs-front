@@ -9,7 +9,10 @@
     "HOME": "Home",
     "VIDEOS": "Videos",
     "ABOUT": "About",
-    "CONTACT": "Contact"
+    "CONTACT": "Contact",
+    "STUDIO": "Studio",
+    "CHARACTERS": "Characters",
+    "FILES": "Files"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -238,5 +241,94 @@
     "ERROR": "Error",
     "WARNING": "Warning",
     "INFO": "Info"
+  },
+  "COMMON": {
+    "CANCEL": "Cancel",
+    "CLOSE": "Close",
+    "SAVE": "Save",
+    "CREATE": "Create",
+    "DELETE": "Delete",
+    "EDIT": "Edit",
+    "LOADING": "Loading…"
+  },
+  "VALIDATION": {
+    "REQUIRED": "{{label}} is required.",
+    "EMAIL": "{{label}} must be a valid email.",
+    "MIN_LENGTH": "{{label}} must be at least {{n}} characters.",
+    "MAX_LENGTH": "{{label}} must be at most {{n}} characters.",
+    "PATTERN": "{{label}} has an invalid format.",
+    "MIN": "{{label}} must be at least {{n}}.",
+    "MAX": "{{label}} must be at most {{n}}.",
+    "INVALID": "{{label}} is invalid."
+  },
+  "CHARACTERS": {
+    "TITLE": "Characters",
+    "HINT": "Trusted character library — name, description, metadata.",
+    "EMPTY": "No characters yet. Create your first one.",
+    "ACTIONS": {
+      "NEW": "New character",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "FILES": "Manage files"
+    },
+    "FILES": {
+      "DIALOG_TITLE": "Files",
+      "LINKED": "Linked files",
+      "EMPTY": "No files linked yet.",
+      "UPLOAD": "Upload + link",
+      "UPLOAD_BUTTON": "Upload & link",
+      "ROLE": "Role",
+      "ROLE_PLACEHOLDER": "reference / portrait / asset / …",
+      "UNLINK": "Remove link"
+    },
+    "COLUMNS": {
+      "NAME": "Name",
+      "DESCRIPTION": "Description",
+      "METADATA": "Metadata",
+      "CREATED_AT": "Created",
+      "ACTIONS": "Actions"
+    },
+    "FIELDS": {
+      "NAME": "Name",
+      "NAME_PLACEHOLDER": "Neon Samurai",
+      "DESCRIPTION": "Description",
+      "DESCRIPTION_PLACEHOLDER": "Cyberpunk protagonist with katana",
+      "METADATA": "Metadata",
+      "AGE": "Age",
+      "STYLE": "Style",
+      "STYLE_PLACEHOLDER": "cyberpunk",
+      "GENDER": "Gender",
+      "GENDER_PLACEHOLDER": "Select"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Create character",
+      "EDIT_TITLE": "Edit character"
+    }
+  },
+  "FILES": {
+    "TITLE": "Files",
+    "HINT": "Upload, organize, and link assets to your characters.",
+    "EMPTY": "No files in this category yet.",
+    "UPLOAD": "Upload",
+    "COUNT_SUFFIX": "items",
+    "TABS": {
+      "IMAGES": "Images",
+      "VIDEOS": "Videos",
+      "AUDIO": "Audio",
+      "TEMP": "Temp",
+      "TRASH": "Trash"
+    },
+    "ACTIONS": {
+      "LINK": "Link to character",
+      "DELETE": "Move to trash",
+      "RESTORE": "Restore",
+      "HARD_DELETE": "Delete forever"
+    },
+    "LINK": {
+      "DIALOG_TITLE": "Link file to character",
+      "CHARACTER": "Character",
+      "CHARACTER_PLACEHOLDER": "Pick a character",
+      "SUBMIT": "Link"
+    }
   }
 }

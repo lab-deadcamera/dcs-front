@@ -9,7 +9,10 @@
     "HOME": "Inicio",
     "VIDEOS": "Videos",
     "ABOUT": "Acerca de",
-    "CONTACT": "Contacto"
+    "CONTACT": "Contacto",
+    "STUDIO": "Estudio",
+    "CHARACTERS": "Personajes",
+    "FILES": "Archivos"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -231,6 +234,95 @@
       "LIBRARY": "Biblioteca de Assets",
       "TAGLINE": "La Mente Eléctrica",
       "STUDIO": "Somos Dead Camera Studios"
+    }
+  },
+  "COMMON": {
+    "CANCEL": "Cancelar",
+    "CLOSE": "Cerrar",
+    "SAVE": "Guardar",
+    "CREATE": "Crear",
+    "DELETE": "Eliminar",
+    "EDIT": "Editar",
+    "LOADING": "Cargando…"
+  },
+  "VALIDATION": {
+    "REQUIRED": "{{label}} es obligatorio.",
+    "EMAIL": "{{label}} debe ser un email válido.",
+    "MIN_LENGTH": "{{label}} debe tener al menos {{n}} caracteres.",
+    "MAX_LENGTH": "{{label}} debe tener máximo {{n}} caracteres.",
+    "PATTERN": "{{label}} tiene un formato inválido.",
+    "MIN": "{{label}} debe ser al menos {{n}}.",
+    "MAX": "{{label}} debe ser como máximo {{n}}.",
+    "INVALID": "{{label}} no es válido."
+  },
+  "CHARACTERS": {
+    "TITLE": "Personajes",
+    "HINT": "Biblioteca de personajes confiables — nombre, descripción, metadata.",
+    "EMPTY": "Aún no hay personajes. Crea el primero.",
+    "ACTIONS": {
+      "NEW": "Nuevo personaje",
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "FILES": "Gestionar archivos"
+    },
+    "FILES": {
+      "DIALOG_TITLE": "Archivos",
+      "LINKED": "Archivos vinculados",
+      "EMPTY": "Aún no hay archivos vinculados.",
+      "UPLOAD": "Subir + vincular",
+      "UPLOAD_BUTTON": "Subir y vincular",
+      "ROLE": "Rol",
+      "ROLE_PLACEHOLDER": "reference / portrait / asset / …",
+      "UNLINK": "Quitar vínculo"
+    },
+    "COLUMNS": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "METADATA": "Metadata",
+      "CREATED_AT": "Creado",
+      "ACTIONS": "Acciones"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Neon Samurai",
+      "DESCRIPTION": "Descripción",
+      "DESCRIPTION_PLACEHOLDER": "Protagonista cyberpunk con katana",
+      "METADATA": "Metadata",
+      "AGE": "Edad",
+      "STYLE": "Estilo",
+      "STYLE_PLACEHOLDER": "cyberpunk",
+      "GENDER": "Género",
+      "GENDER_PLACEHOLDER": "Seleccionar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Crear personaje",
+      "EDIT_TITLE": "Editar personaje"
+    }
+  },
+  "FILES": {
+    "TITLE": "Archivos",
+    "HINT": "Sube, organiza y vincula assets a tus personajes.",
+    "EMPTY": "Aún no hay archivos en esta categoría.",
+    "UPLOAD": "Subir",
+    "COUNT_SUFFIX": "items",
+    "TABS": {
+      "IMAGES": "Imágenes",
+      "VIDEOS": "Videos",
+      "AUDIO": "Audio",
+      "TEMP": "Temporales",
+      "TRASH": "Papelera"
+    },
+    "ACTIONS": {
+      "LINK": "Vincular a personaje",
+      "DELETE": "Mover a papelera",
+      "RESTORE": "Restaurar",
+      "HARD_DELETE": "Eliminar para siempre"
+    },
+    "LINK": {
+      "DIALOG_TITLE": "Vincular archivo a personaje",
+      "CHARACTER": "Personaje",
+      "CHARACTER_PLACEHOLDER": "Elige un personaje",
+      "SUBMIT": "Vincular"
     }
   },
   "TOAST": {
