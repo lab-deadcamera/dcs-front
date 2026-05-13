@@ -305,6 +305,28 @@
     "DIALOG": {
       "CREATE_TITLE": "Create character",
       "EDIT_TITLE": "Edit character"
+    },
+    "TABS": {
+      "CHARACTER": "Character",
+      "LOCATION": "Location",
+      "PROP": "Props"
+    },
+    "ASSETS": {
+      "EMPTY": "No assets in this category yet. Pick a “New …” button above to create one.",
+      "NEW_CHARACTER": "New character",
+      "NEW_LOCATION": "New location",
+      "NEW_PROP": "New prop",
+      "TITLE_CHARACTER": "New character",
+      "TITLE_LOCATION": "New location",
+      "TITLE_PROP": "New prop",
+      "SUBMIT_CHARACTER": "Create character",
+      "SUBMIT_LOCATION": "Create location",
+      "SUBMIT_PROP": "Create prop",
+      "NAME_PH_LOCATION": "Tokyo rooftop",
+      "NAME_PH_PROP": "Neon katana",
+      "FILES_LABEL": "Reference images",
+      "FILES_COUNT": "file(s) ready",
+      "DROP_HINT": "Drop images or click to pick"
     }
   },
   "FILES": {

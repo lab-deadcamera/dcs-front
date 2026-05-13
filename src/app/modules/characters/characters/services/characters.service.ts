@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { CharactersApiService } from './characters-api.service';
 import {
+  AssetType,
   Character,
   CharacterFile,
   CharacterFileLinkView,
@@ -25,6 +26,34 @@ export class CharactersService {
   readonly items = this._items.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly count = computed(() => this._items().length);
+
+  /** Items bucketed by asset type. Untyped rows fall into `character`. */
+  readonly itemsByType = computed<Record<AssetType, Character[]>>(() => {
+    const buckets: Record<AssetType, Character[]> = {
+      character: [],
+      location: [],
+      prop: [],
+    };
+    for (const item of this._items()) {
+      const t = (item.metadata?.['assetType'] as AssetType) || 'character';
+      if (buckets[t]) {
+        buckets[t].push(item);
+      } else {
+        buckets.character.push(item);
+      }
+    }
+    return buckets;
+  });
+
+  /** Quick counts per bucket — drives the tab badges. */
+  readonly countByType = computed<Record<AssetType, number>>(() => {
+    const b = this.itemsByType();
+    return {
+      character: b.character.length,
+      location: b.location.length,
+      prop: b.prop.length,
+    };
+  });
 
   /** Refresh the in-memory cache from the backend. */
   load(): Observable<{ error: boolean; msg: string; data?: Character[] }> {

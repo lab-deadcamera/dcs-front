@@ -1,108 +1,184 @@
 <section class="px-6 py-6">
-  <header class="mb-5 flex items-end justify-between gap-4">
+  <header class="mb-5 flex flex-col gap-4">
     <div>
       <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
         {{ 'CHARACTERS.TITLE' | translate }}
       </h1>
-      <p class="mt-1 text-[12px] italic text-[color:var(--text-secondary)]">
+      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary);">
         {{ 'CHARACTERS.HINT' | translate }}
       </p>
     </div>
 
-    <p-button
-      icon="pi pi-plus"
-      [label]="'CHARACTERS.ACTIONS.NEW' | translate"
-      data-testid="characters-new-button"
-      (onClick)="openCreate()"
-    />
+    <!-- Typed create actions — one button per asset type. -->
+    <div class="flex flex-wrap gap-2">
+      <p-button
+        icon="pi pi-user-plus"
+        [label]="'CHARACTERS.ASSETS.NEW_CHARACTER' | translate"
+        data-testid="assets-new-character"
+        (onClick)="openCreate('character')"
+      />
+      <p-button
+        icon="pi pi-map-marker"
+        [label]="'CHARACTERS.ASSETS.NEW_LOCATION' | translate"
+        severity="secondary"
+        data-testid="assets-new-location"
+        (onClick)="openCreate('location')"
+      />
+      <p-button
+        icon="pi pi-box"
+        [label]="'CHARACTERS.ASSETS.NEW_PROP' | translate"
+        severity="secondary"
+        data-testid="assets-new-prop"
+        (onClick)="openCreate('prop')"
+      />
+    </div>
   </header>
 
-  <div class="card p-0 overflow-hidden">
-    <p-table
-      [value]="characters.items()"
-      [loading]="characters.loading()"
-      [rowHover]="true"
-      [paginator]="characters.count() > 10"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      dataKey="id"
-      data-testid="characters-table"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th class="text-left">{{ 'CHARACTERS.COLUMNS.NAME' | translate }}</th>
-          <th class="text-left">{{ 'CHARACTERS.COLUMNS.DESCRIPTION' | translate }}</th>
-          <th class="text-left">{{ 'CHARACTERS.COLUMNS.METADATA' | translate }}</th>
-          <th class="text-left">{{ 'CHARACTERS.COLUMNS.CREATED_AT' | translate }}</th>
-          <th class="w-32 text-right">{{ 'CHARACTERS.COLUMNS.ACTIONS' | translate }}</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-character>
-        <tr [attr.data-testid]="'characters-row-' + character.id">
-          <td class="font-semibold">{{ character.name }}</td>
-          <td class="max-w-md truncate" [title]="character.description">
-            {{ character.description }}
-          </td>
-          <td class="font-mono text-[12px] text-[color:var(--text-secondary)]">
-            {{ metadataPreview(character) }}
-          </td>
-          <td class="font-mono text-[12px] text-[color:var(--text-muted)]">
-            {{ character.createdAt | date: 'short' }}
-          </td>
-          <td class="text-right">
-            <div class="inline-flex gap-1">
-              <p-button
-                icon="pi pi-folder"
-                severity="secondary"
-                [text]="true"
-                [rounded]="true"
-                [attr.data-testid]="'characters-files-' + character.id"
-                [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
-                (onClick)="openFiles(character)"
-              />
-              <p-button
-                icon="pi pi-pencil"
-                severity="secondary"
-                [text]="true"
-                [rounded]="true"
-                [attr.data-testid]="'characters-edit-' + character.id"
-                [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
-                (onClick)="openEdit(character)"
-              />
-              <p-button
-                icon="pi pi-trash"
-                severity="danger"
-                [text]="true"
-                [rounded]="true"
-                [attr.data-testid]="'characters-delete-' + character.id"
-                [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
-                (onClick)="confirmDelete(character)"
-              />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="py-8 text-center text-[color:var(--text-muted)] italic">
-            {{ 'CHARACTERS.EMPTY' | translate }}
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+  <!-- Type tabs -->
+  <div
+    class="mb-4 flex flex-wrap gap-1 border-b"
+    style="border-color: var(--border-color);"
+    role="tablist"
+  >
+    @for (t of tabs; track t.id) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeType() === t.id"
+        [class.border-primary-500]="activeType() === t.id"
+        [class.text-primary-500]="activeType() === t.id"
+        [class.border-transparent]="activeType() !== t.id"
+        class="-mb-px border-b-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:text-primary-500"
+        [attr.data-testid]="'assets-tab-' + t.id"
+        (click)="setActiveType(t.id)"
+      >
+        <i class="pi {{ t.icon }} mr-1"></i>
+        {{ t.labelKey | translate }}
+        <span class="ml-1 font-mono text-[10px]" style="color: var(--text-muted);">
+          ({{ characters.countByType()[t.id] }})
+        </span>
+      </button>
+    }
   </div>
 
+  <!-- Assets grid for the active type -->
+  @if (characters.loading()) {
+    <p class="py-8 text-center italic" style="color: var(--text-muted);">
+      {{ 'COMMON.LOADING' | translate }}
+    </p>
+  } @else if (visibleAssets().length === 0) {
+    <p class="py-12 text-center italic" style="color: var(--text-muted);">
+      {{ 'CHARACTERS.ASSETS.EMPTY' | translate }}
+    </p>
+  } @else {
+    <ul
+      class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      data-testid="assets-grid"
+    >
+      @for (a of visibleAssets(); track a.id) {
+        <li
+          class="flex flex-col border"
+          style="border-color: var(--border-color); background: var(--surface-bg);"
+          [attr.data-testid]="'assets-card-' + a.id"
+        >
+          <div
+            class="flex aspect-square w-full items-center justify-center"
+            style="background: var(--content-bg);"
+          >
+            <i
+              class="pi text-4xl"
+              [class.pi-user]="activeType() === 'character'"
+              [class.pi-map]="activeType() === 'location'"
+              [class.pi-box]="activeType() === 'prop'"
+              style="color: var(--text-muted);"
+            ></i>
+          </div>
+
+          <div class="flex-1 px-3 py-2">
+            <p
+              class="truncate text-[13px] font-semibold"
+              [title]="a.name"
+              style="color: var(--text-primary);"
+            >
+              {{ a.name }}
+            </p>
+            <p
+              class="line-clamp-2 text-[11px]"
+              [title]="a.description"
+              style="color: var(--text-secondary);"
+            >
+              {{ a.description }}
+            </p>
+            <p
+              class="mt-1 font-mono text-[10px]"
+              style="color: var(--text-muted);"
+            >
+              {{ a.createdAt | date: 'short' }}
+            </p>
+            <p
+              class="font-mono text-[10px]"
+              style="color: var(--text-muted);"
+            >
+              {{ metadataPreview(a) }}
+            </p>
+          </div>
+
+          <div
+            class="flex items-center justify-end gap-1 border-t px-1 py-1"
+            style="border-color: var(--border-color);"
+          >
+            <p-button
+              icon="pi pi-folder"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              [attr.data-testid]="'assets-files-' + a.id"
+              [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
+              (onClick)="openFiles(a)"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              [attr.data-testid]="'assets-edit-' + a.id"
+              [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
+              (onClick)="openEdit(a)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              [rounded]="true"
+              [attr.data-testid]="'assets-delete-' + a.id"
+              [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
+              (onClick)="confirmDelete(a)"
+            />
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Create wizard — drag & drop multi-file upload + auto-link -->
+  <app-asset-create-dialog
+    [visible]="createDialogVisible()"
+    [type]="createDialogType()"
+    (visibleChange)="createDialogVisible.set($event)"
+    (created)="onAssetCreated($event)"
+  />
+
+  <!-- Edit (name + description) — reuses existing form dialog -->
   <app-character-form-dialog
-    [visible]="dialogVisible()"
-    [character]="dialogTarget()"
+    [visible]="editDialogVisible()"
+    [character]="editDialogTarget()"
     [submitting]="submitting()"
-    (visibleChange)="dialogVisible.set($event)"
-    (create)="onCreate($event)"
+    (visibleChange)="editDialogVisible.set($event)"
+    (create)="onCreateLegacy($event)"
     (update)="onUpdate($event)"
   />
 
+  <!-- File manager for an existing asset -->
   <app-character-files-dialog
     [visible]="filesDialogVisible()"
     [character]="filesDialogTarget()"

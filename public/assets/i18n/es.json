@@ -299,6 +299,28 @@
     "DIALOG": {
       "CREATE_TITLE": "Crear personaje",
       "EDIT_TITLE": "Editar personaje"
+    },
+    "TABS": {
+      "CHARACTER": "Personaje",
+      "LOCATION": "Locación",
+      "PROP": "Props"
+    },
+    "ASSETS": {
+      "EMPTY": "Aún no hay assets en esta categoría. Usa un botón \"Nuevo …\" arriba para crear uno.",
+      "NEW_CHARACTER": "Nuevo personaje",
+      "NEW_LOCATION": "Nueva locación",
+      "NEW_PROP": "Nuevo prop",
+      "TITLE_CHARACTER": "Nuevo personaje",
+      "TITLE_LOCATION": "Nueva locación",
+      "TITLE_PROP": "Nuevo prop",
+      "SUBMIT_CHARACTER": "Crear personaje",
+      "SUBMIT_LOCATION": "Crear locación",
+      "SUBMIT_PROP": "Crear prop",
+      "NAME_PH_LOCATION": "Azotea Tokyo",
+      "NAME_PH_PROP": "Katana de neón",
+      "FILES_LABEL": "Imágenes de referencia",
+      "FILES_COUNT": "archivo(s) listos",
+      "DROP_HINT": "Suelta imágenes o haz clic para elegir"
     }
   },
   "FILES": {

@@ -16,7 +16,16 @@
  * deals with `CharacterMetadata` objects.
  */
 
+/**
+ * The library is split into three buckets by `metadata.assetType`. The
+ * backend stores everything in the same `characters` table — the type
+ * lives in the JSONB metadata column, so no schema migration is needed.
+ */
+export type AssetType = 'character' | 'location' | 'prop';
+
 export interface CharacterMetadata {
+  /** Bucket the asset lives in. Defaults to `character` for legacy rows. */
+  assetType?: AssetType;
   age?: number;
   style?: string;
   gender?: 'male' | 'female' | 'other' | string;
