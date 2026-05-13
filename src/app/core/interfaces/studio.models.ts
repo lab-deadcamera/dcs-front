@@ -10,24 +10,36 @@ export type AspectRatio = '16:9' | '9:16' | '21:9' | '1:1';
 export type Resolution = '480p' | '720p' | '1080p';
 export type Engine = 'fast' | 'pro';
 
-export type LensId = 'wide_24mm' | 'classic_35mm' | 'portrait_50mm' | 'tele_85mm';
-export type CameraBodyId =
-  | 'arri_alexa'
-  | 'red_komodo'
-  | 'sony_venice'
-  | 'film_16mm';
-export type CameraMotionId =
-  | 'static_lockoff'
-  | 'slow_dolly_in'
-  | 'orbit'
-  | 'handheld';
-export type ColorGradingId = 'tokio' | 'colombia' | 'ohio' | 'bank';
-export type GenreId = 'drama' | 'action' | 'noir' | 'horror';
+/**
+ * Preset ids are typed as `string` — opaque keys whose only contract is
+ * "matches a row in presets.json OR a row added at runtime". The narrow
+ * unions were tightened to enable autocomplete on the baseline catalog,
+ * but admin-added customs break the closed set, so we relax to string.
+ * Lookup invariants are enforced by `PresetsService.findPreset(id)`.
+ */
+export type LensId = string;
+export type CameraBodyId = string;
+export type CameraMotionId = string;
+export type ColorGradingId = string;
+export type GenreId = string;
+
+/** Cinematography categories that accept user-added custom presets. */
+export type PresetCategory =
+  | 'lens'
+  | 'camera'
+  | 'cameraMotion'
+  | 'colorGrading'
+  | 'genre';
 
 /** A single option inside a ToggleGroup (chips list). */
 export interface ChipOption<V extends string = string> {
   value: V;
+  /** i18n key used by `labelKey | translate` when `label` is absent. */
   labelKey: string;
+  /** Raw label that overrides translation — used by user-added presets. */
+  label?: string;
+  /** When true, the chip renders a small × that emits `(remove)`. */
+  removable?: boolean;
 }
 
 /**
@@ -40,6 +52,8 @@ export interface Preset {
   prompt: string;
   /** Resolved at runtime by PresetsService — i18n key for the chip label. */
   labelKey: string;
+  /** Set on rows added by the admin at runtime (vs the curated presets.json). */
+  isCustom?: boolean;
 }
 
 /** Technical option (aspect ratio, resolution) — has a literal `value`. */

@@ -6,9 +6,11 @@ import {
   signal,
 } from '@angular/core';
 import { Popover } from 'primeng/popover';
+import { ButtonModule } from 'primeng/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
+import { CustomPresetDialogComponent } from '@shared/components/cinematography/custom-preset-dialog.component';
 import {
   CameraBodyId,
   CameraMotionId,
@@ -17,6 +19,7 @@ import {
   GenreId,
   LensId,
   Preset,
+  PresetCategory,
 } from '@core/interfaces/studio.models';
 import { PresetsService } from '@app/core/stores/presets.service';
 import { PromptStateService } from '@app/core/stores/prompt.state';
@@ -51,7 +54,14 @@ interface GradeVariant {
  */
 @Component({
   selector: 'app-cinematography',
-  imports: [SectionHeaderComponent, ToggleGroupComponent, Popover, TranslatePipe],
+  imports: [
+    SectionHeaderComponent,
+    ToggleGroupComponent,
+    Popover,
+    TranslatePipe,
+    ButtonModule,
+    CustomPresetDialogComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
@@ -65,11 +75,28 @@ interface GradeVariant {
 
       @if (expanded()) {
       <div class="mt-5 flex flex-col gap-5">
+        <!--
+          Admin-only action: open the custom-preset wizard. Permission
+          gating will hide this button for non-admin users in a follow-up.
+        -->
+        <div class="flex justify-end">
+          <p-button
+            icon="pi pi-plus"
+            severity="secondary"
+            [text]="true"
+            size="small"
+            [label]="'STUDIO.CINEMATOGRAPHY.CUSTOM.NEW_BUTTON' | translate"
+            data-testid="cinematography-new-preset"
+            (onClick)="openCustomDialog()"
+          />
+        </div>
+
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.LENS"
           [options]="lensOptions()"
           [value]="prompt.cinematography().lens"
           (valueChange)="onLens($event)"
+          (remove)="onRemoveCustom('lens', $event)"
         />
 
         <ui-toggle-group
@@ -77,6 +104,7 @@ interface GradeVariant {
           [options]="bodyOptions()"
           [value]="prompt.cinematography().cameraBody"
           (valueChange)="onBody($event)"
+          (remove)="onRemoveCustom('camera', $event)"
         />
 
         <ui-toggle-group
@@ -84,6 +112,7 @@ interface GradeVariant {
           [options]="motionOptions()"
           [value]="prompt.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
+          (remove)="onRemoveCustom('cameraMotion', $event)"
         />
 
         <!--
@@ -97,66 +126,98 @@ interface GradeVariant {
           <div class="flex flex-wrap gap-2">
             @for (grade of gradeOptions(); track grade.id) {
               @let active = prompt.cinematography().colorGrading === grade.id;
-              <div class="flex flex-col">
+
+              @if (grade.isCustom) {
+                <!--
+                  Admin-added grades render as plain chips — no popover,
+                  no variants. Click selects directly; the × on hover
+                  removes the preset from the catalog.
+                -->
                 <button
                   type="button"
                   [class]="chipClasses(active)"
-                  [attr.aria-haspopup]="'menu'"
-                  [attr.aria-expanded]="false"
-                  (click)="pop.toggle($event)"
+                  (click)="onPickCustomGrade(grade.id)"
                 >
                   @if (active) {
                     <span
                       class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
                     ></span>
                   }
-                  <span>{{ grade.labelKey | translate }}</span>
-                  <span aria-hidden="true" class="ml-1.5 text-fg-muted">▾</span>
-                </button>
-
-                @if (active && selectedVariant()) {
+                  <span class="whitespace-nowrap">{{ grade.label }}</span>
                   <span
-                    class="mt-1 self-start font-mono text-[10px] uppercase tracking-[0.18em] text-secondary-500"
+                    role="button"
+                    tabindex="-1"
+                    class="ml-2 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+                    [attr.aria-label]="'COMMON.DELETE' | translate"
+                    (click)="onRemoveGrade($event, grade.id)"
+                  >×</span>
+                </button>
+              } @else {
+                <!--
+                  Curated grades (TOKIO/COLOMBIA/OHIO/BANK) keep their
+                  Popover with 4 random mood variants — same UX as before.
+                -->
+                <div class="flex flex-col">
+                  <button
+                    type="button"
+                    [class]="chipClasses(active)"
+                    [attr.aria-haspopup]="'menu'"
+                    [attr.aria-expanded]="false"
+                    (click)="pop.toggle($event)"
                   >
-                    · {{ selectedVariant() }}
-                  </span>
-                }
+                    @if (active) {
+                      <span
+                        class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
+                      ></span>
+                    }
+                    <span class="whitespace-nowrap">{{ grade.labelKey | translate }}</span>
+                    <span aria-hidden="true" class="ml-1.5 text-fg-muted">▾</span>
+                  </button>
 
-                <p-popover #pop [dismissable]="true" appendTo="body">
-                  <div class="min-w-[200px] bg-ink-900 p-3 text-fg">
-                    <p
-                      class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-primary-500"
+                  @if (active && selectedVariant()) {
+                    <span
+                      class="mt-1 self-start font-mono text-[10px] uppercase tracking-[0.18em] text-secondary-500"
                     >
-                      {{ 'STUDIO.CINEMATOGRAPHY.GRADES.VARIANT_TITLE' | translate }}
-                      <span class="ml-1 text-fg-muted">
-                        · {{ grade.labelKey | translate }}
-                      </span>
-                    </p>
-                    <div class="flex flex-col gap-1">
-                      @for (v of variantsFor(grade.id); track v.id) {
-                        <button
-                          type="button"
-                          class="flex w-full items-center justify-between border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg transition-colors hover:border-secondary-500 hover:text-fg-strong"
-                          [class.border-secondary-500]="active && selectedVariant() === v.name"
-                          [class.text-fg-strong]="active && selectedVariant() === v.name"
-                          (click)="onPickVariant(grade.id, v, pop)"
-                        >
-                          <span>{{ v.name }}</span>
-                          @if (active && selectedVariant() === v.name) {
-                            <span aria-hidden="true" class="text-secondary-500">●</span>
-                          }
-                        </button>
-                      }
+                      · {{ selectedVariant() }}
+                    </span>
+                  }
+
+                  <p-popover #pop [dismissable]="true" appendTo="body">
+                    <div class="min-w-[200px] bg-ink-900 p-3 text-fg">
+                      <p
+                        class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-primary-500"
+                      >
+                        {{ 'STUDIO.CINEMATOGRAPHY.GRADES.VARIANT_TITLE' | translate }}
+                        <span class="ml-1 text-fg-muted">
+                          · {{ grade.labelKey | translate }}
+                        </span>
+                      </p>
+                      <div class="flex flex-col gap-1">
+                        @for (v of variantsFor(grade.id); track v.id) {
+                          <button
+                            type="button"
+                            class="flex w-full items-center justify-between border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg transition-colors hover:border-secondary-500 hover:text-fg-strong"
+                            [class.border-secondary-500]="active && selectedVariant() === v.name"
+                            [class.text-fg-strong]="active && selectedVariant() === v.name"
+                            (click)="onPickVariant(grade.id, v, pop)"
+                          >
+                            <span>{{ v.name }}</span>
+                            @if (active && selectedVariant() === v.name) {
+                              <span aria-hidden="true" class="text-secondary-500">●</span>
+                            }
+                          </button>
+                        }
+                      </div>
+                      <p class="mt-2 text-[10px] italic text-fg-muted">
+                        {{
+                          'STUDIO.CINEMATOGRAPHY.GRADES.VARIANT_HINT'
+                            | translate: { name: grade.labelKey | translate }
+                        }}
+                      </p>
                     </div>
-                    <p class="mt-2 text-[10px] italic text-fg-muted">
-                      {{
-                        'STUDIO.CINEMATOGRAPHY.GRADES.VARIANT_HINT'
-                          | translate: { name: grade.labelKey | translate }
-                      }}
-                    </p>
-                  </div>
-                </p-popover>
-              </div>
+                  </p-popover>
+                </div>
+              }
             }
           </div>
         </div>
@@ -166,8 +227,16 @@ interface GradeVariant {
           [options]="genreOptions()"
           [value]="prompt.cinematography().genre"
           (valueChange)="onGenre($event)"
+          (remove)="onRemoveCustom('genre', $event)"
         />
       </div>
+      }
+
+      @if (customDialogVisible()) {
+        <app-custom-preset-dialog
+          [visible]="customDialogVisible()"
+          (visibleChange)="customDialogVisible.set($event)"
+        />
       }
     </section>
   `,
@@ -176,8 +245,13 @@ export class CinematographyComponent {
   protected readonly prompt = inject(PromptStateService);
   private readonly presets = inject(PresetsService);
 
-  /** Variants per parent grade, generated once and frozen for the session. */
-  private readonly _variants: Record<ColorGradingId, GradeVariant[]>;
+  /**
+   * Variants per parent grade, generated once and frozen for the session.
+   * Map (vs Record) because admin-added custom grades have arbitrary ids
+   * outside the original closed union — but only the curated 4 actually
+   * use variants; customs render as plain chips with no popover.
+   */
+  private readonly _variants = new Map<string, GradeVariant[]>();
 
   /** Mood label currently selected for the active grade (or null). */
   protected readonly selectedVariant = signal<string | null>(null);
@@ -185,35 +259,46 @@ export class CinematographyComponent {
   /** Disclosure state — section body is hidden until the user expands it. */
   protected readonly expanded = signal(false);
 
+  /** Visibility of the admin custom-preset wizard. */
+  protected readonly customDialogVisible = signal(false);
+
   protected toggleExpanded(): void {
     this.expanded.update((v) => !v);
   }
 
+  protected openCustomDialog(): void {
+    this.customDialogVisible.set(true);
+  }
+
   constructor() {
-    this._variants = {
-      tokio: this.pickVariants('tokio', 4),
-      colombia: this.pickVariants('colombia', 4),
-      ohio: this.pickVariants('ohio', 4),
-      bank: this.pickVariants('bank', 4),
-    };
+    this._variants.set('tokio',    this.pickVariants('tokio', 4));
+    this._variants.set('colombia', this.pickVariants('colombia', 4));
+    this._variants.set('ohio',     this.pickVariants('ohio', 4));
+    this._variants.set('bank',     this.pickVariants('bank', 4));
   }
 
   protected readonly lensOptions = computed<ChipOption<LensId>[]>(() =>
     this.presets.lens().map((p) => ({
       value: p.id as LensId,
       labelKey: p.labelKey,
+      label: p.isCustom ? p.label : undefined,
+      removable: p.isCustom,
     })),
   );
   protected readonly bodyOptions = computed<ChipOption<CameraBodyId>[]>(() =>
     this.presets.camera().map((p) => ({
       value: p.id as CameraBodyId,
       labelKey: p.labelKey,
+      label: p.isCustom ? p.label : undefined,
+      removable: p.isCustom,
     })),
   );
   protected readonly motionOptions = computed<ChipOption<CameraMotionId>[]>(() =>
     this.presets.cameraMotion().map((p) => ({
       value: p.id as CameraMotionId,
       labelKey: p.labelKey,
+      label: p.isCustom ? p.label : undefined,
+      removable: p.isCustom,
     })),
   );
   protected readonly gradeOptions = computed<Preset[]>(() =>
@@ -223,11 +308,13 @@ export class CinematographyComponent {
     this.presets.genre().map((p) => ({
       value: p.id as GenreId,
       labelKey: p.labelKey,
+      label: p.isCustom ? p.label : undefined,
+      removable: p.isCustom,
     })),
   );
 
   protected variantsFor(parentId: string): GradeVariant[] {
-    return this._variants[parentId as ColorGradingId] ?? [];
+    return this._variants.get(parentId) ?? [];
   }
 
   protected onLens(v: LensId | null) {
@@ -251,6 +338,58 @@ export class CinematographyComponent {
     this.prompt.patchCinematography({ colorGrading: parentId as ColorGradingId });
     this.selectedVariant.set(variant.name);
     pop.hide();
+  }
+
+  /**
+   * Toggle a custom (admin-added) color grade. Mirrors the standard
+   * select-or-deselect contract of the other toggle-groups since custom
+   * grades have no popover variants to drive the selection.
+   */
+  protected onPickCustomGrade(id: string): void {
+    const cur = this.prompt.cinematography().colorGrading;
+    this.prompt.patchCinematography({
+      colorGrading: cur === id ? null : (id as ColorGradingId),
+    });
+    // No variant for custom grades.
+    if (cur === id) this.selectedVariant.set(null);
+  }
+
+  /** Remove a custom color grade from the catalog (× on the chip). */
+  protected onRemoveGrade(e: MouseEvent, id: string): void {
+    e.stopPropagation();
+    e.preventDefault();
+    if (this.prompt.cinematography().colorGrading === id) {
+      this.prompt.patchCinematography({ colorGrading: null });
+      this.selectedVariant.set(null);
+    }
+    this.presets.removeCustomPreset('colorGrading', id);
+  }
+
+  /**
+   * Generic remove handler shared by every non-grade toggle-group.
+   * If the removed preset was the currently-selected value for that
+   * slot, we also clear the selection so the prompt doesn't keep a
+   * dangling id around.
+   */
+  protected onRemoveCustom(category: PresetCategory, id: string): void {
+    const cine = this.prompt.cinematography();
+    switch (category) {
+      case 'lens':
+        if (cine.lens === id) this.prompt.patchCinematography({ lens: null });
+        break;
+      case 'camera':
+        if (cine.cameraBody === id)
+          this.prompt.patchCinematography({ cameraBody: null });
+        break;
+      case 'cameraMotion':
+        if (cine.cameraMotion === id)
+          this.prompt.patchCinematography({ cameraMotion: null });
+        break;
+      case 'genre':
+        if (cine.genre === id) this.prompt.patchCinematography({ genre: null });
+        break;
+    }
+    this.presets.removeCustomPreset(category, id);
   }
 
   protected chipClasses(active: boolean): string {

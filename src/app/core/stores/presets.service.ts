@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   Preset,
+  PresetCategory,
   PresetsFile,
   SpecOption,
 } from '../interfaces/studio.models';
@@ -53,6 +54,46 @@ function keyOf(id: string): string {
   return LABEL_KEYS[id] ?? id;
 }
 
+/** localStorage slot for admin-added custom presets — survives reloads. */
+const CUSTOM_STORAGE_KEY = 'dcs-custom-presets';
+
+type CustomPresetMap = Record<PresetCategory, Preset[]>;
+
+function emptyCustomMap(): CustomPresetMap {
+  return {
+    lens: [],
+    camera: [],
+    cameraMotion: [],
+    colorGrading: [],
+    genre: [],
+  };
+}
+
+function loadCustomPresets(): CustomPresetMap {
+  try {
+    const raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (!raw) return emptyCustomMap();
+    const parsed = JSON.parse(raw) as Partial<CustomPresetMap>;
+    return {
+      lens: parsed.lens ?? [],
+      camera: parsed.camera ?? [],
+      cameraMotion: parsed.cameraMotion ?? [],
+      colorGrading: parsed.colorGrading ?? [],
+      genre: parsed.genre ?? [],
+    };
+  } catch {
+    return emptyCustomMap();
+  }
+}
+
+function saveCustomPresets(map: CustomPresetMap): void {
+  try {
+    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    /* quota / disabled storage — ignore, customs just won't persist */
+  }
+}
+
 /**
  * Loads `public/assets/presets.json` (1:1 mirror of dcs-v0 presets) and
  * exposes the catalog as signals enriched with i18n keys. Components read
@@ -63,17 +104,37 @@ export class PresetsService {
   private readonly http = inject(HttpClient);
 
   private readonly _data = signal<PresetsFile | null>(null);
+
+  /**
+   * Admin-added presets, keyed by category. Hydrated from localStorage on
+   * boot and persisted on every mutation. Merged into the per-category
+   * computed signals below so the rest of the app never has to know if
+   * a preset comes from `presets.json` or from the runtime store.
+   */
+  private readonly _custom = signal<CustomPresetMap>(loadCustomPresets());
+
   readonly loaded = computed(() => this._data() !== null);
 
-  readonly lens = computed<Preset[]>(() => mapPresets(this._data()?.lens));
-  readonly camera = computed<Preset[]>(() => mapPresets(this._data()?.camera));
-  readonly cameraMotion = computed<Preset[]>(() =>
-    mapPresets(this._data()?.cameraMotion),
-  );
-  readonly colorGrading = computed<Preset[]>(() =>
-    mapPresets(this._data()?.colorGrading),
-  );
-  readonly genre = computed<Preset[]>(() => mapPresets(this._data()?.genre));
+  readonly lens = computed<Preset[]>(() => [
+    ...mapPresets(this._data()?.lens),
+    ...this._custom().lens,
+  ]);
+  readonly camera = computed<Preset[]>(() => [
+    ...mapPresets(this._data()?.camera),
+    ...this._custom().camera,
+  ]);
+  readonly cameraMotion = computed<Preset[]>(() => [
+    ...mapPresets(this._data()?.cameraMotion),
+    ...this._custom().cameraMotion,
+  ]);
+  readonly colorGrading = computed<Preset[]>(() => [
+    ...mapPresets(this._data()?.colorGrading),
+    ...this._custom().colorGrading,
+  ]);
+  readonly genre = computed<Preset[]>(() => [
+    ...mapPresets(this._data()?.genre),
+    ...this._custom().genre,
+  ]);
   readonly aspectRatio = computed<SpecOption[]>(() =>
     mapSpecs(this._data()?.aspectRatio),
   );
@@ -107,6 +168,54 @@ export class PresetsService {
       ...this.genre(),
     ];
     return all.find((p) => p.id === id) ?? null;
+  }
+
+  /**
+   * Append a user-authored preset to the chosen category. The id is
+   * generated client-side (`custom_<ts>_<rand>`) so customs never collide
+   * with baseline ids. `labelKey` is set to the user's label so it
+   * renders through the i18n pipe transparently (unknown keys fall
+   * through to their literal text).
+   */
+  addCustomPreset(
+    category: PresetCategory,
+    input: { label: string; prompt: string },
+  ): Preset {
+    const id =
+      'custom_' +
+      Date.now().toString(36) +
+      '_' +
+      Math.random().toString(36).slice(2, 7);
+
+    const preset: Preset = {
+      id,
+      label: input.label.trim(),
+      prompt: input.prompt.trim(),
+      labelKey: input.label.trim(),
+      isCustom: true,
+    };
+
+    this._custom.update((map) => {
+      const next: CustomPresetMap = {
+        ...map,
+        [category]: [...map[category], preset],
+      };
+      saveCustomPresets(next);
+      return next;
+    });
+    return preset;
+  }
+
+  /** Drop a user-added preset by category + id. No-op for baseline ids. */
+  removeCustomPreset(category: PresetCategory, id: string): void {
+    this._custom.update((map) => {
+      const next: CustomPresetMap = {
+        ...map,
+        [category]: map[category].filter((p) => p.id !== id),
+      };
+      saveCustomPresets(next);
+      return next;
+    });
   }
 }
 

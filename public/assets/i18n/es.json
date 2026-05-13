@@ -185,6 +185,19 @@
         "VARIANT_TITLE": "Variantes de mood",
         "VARIANT_HINT": "Elige un mood — aplica el grade {{name}} con este matiz."
       },
+      "CUSTOM": {
+        "NEW_BUTTON": "Nuevo preset",
+        "DIALOG_TITLE": "Crear preset de cinematografía",
+        "CATEGORY": "Categoría",
+        "CATEGORY_PLACEHOLDER": "Elige una fila de presets",
+        "LABEL": "Nombre",
+        "LABEL_PLACEHOLDER": "ej. Cyberpunk Neon",
+        "PROMPT": "Prompt",
+        "PROMPT_PLACEHOLDER": "Instrucción literal que se inyecta en el prompt compilado final — ej. \"cyberpunk neon grade, dicotomía magenta-cyan, …\"",
+        "PROMPT_HINT": "Escrito en inglés. Este es el texto exacto que recibe Seedance — no se traduce.",
+        "SUBMIT": "Agregar preset",
+        "CREATED": "Preset \"{{label}}\" agregado"
+      },
       "GENRES": {
         "DRAMA": "Drama",
         "ACTION": "Acción",

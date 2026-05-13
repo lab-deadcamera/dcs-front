@@ -57,7 +57,18 @@ import { ChipOption } from '@core/interfaces/studio.models';
               [class.bg-fg-strong]="variant() === 'accent'"
             ></span>
           }
-          <span>{{ opt.labelKey | translate }}</span>
+          <span class="whitespace-nowrap">
+            {{ opt.label ?? (opt.labelKey | translate) }}
+          </span>
+          @if (opt.removable) {
+            <span
+              role="button"
+              tabindex="-1"
+              class="ml-2 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+              [attr.aria-label]="'COMMON.DELETE' | translate"
+              (click)="onRemove($event, opt.value)"
+            >×</span>
+          }
         </button>
       }
     </div>
@@ -73,6 +84,8 @@ export class ToggleGroupComponent<V extends string = string> {
   readonly variant = input<'default' | 'accent'>('default');
 
   readonly valueChange = output<V | null>();
+  /** Emitted when the user clicks the × on a `removable` chip. */
+  readonly remove = output<V>();
 
   protected readonly ariaLabel = computed(() => {
     const k = this.labelKey();
@@ -85,6 +98,13 @@ export class ToggleGroupComponent<V extends string = string> {
 
   protected onPick(v: V) {
     this.valueChange.emit(this.value() === v ? null : v);
+  }
+
+  protected onRemove(e: MouseEvent, v: V): void {
+    // Don't let the click bubble up and fire the chip's own select handler.
+    e.stopPropagation();
+    e.preventDefault();
+    this.remove.emit(v);
   }
 
   protected chipClasses(selected: boolean): string {
