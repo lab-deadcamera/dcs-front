@@ -227,7 +227,9 @@
       "REFERENCE_HINT_LEAD": "Referénciales en tu prompt como",
       "REFERENCE_HINT_TAIL": "… Haz clic en cualquier tag debajo de una miniatura para insertarlo en el prompt.",
       "EXPAND": "Expandir",
-      "REMOVE": "Eliminar asset"
+      "REMOVE": "Eliminar asset",
+      "CREATE_ASSETS": "Crear assets",
+      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes"
     },
     "FOOTER": {
       "VERSION": "v1.0",

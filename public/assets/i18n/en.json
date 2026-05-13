@@ -227,7 +227,9 @@
       "REFERENCE_HINT_LEAD": "Reference them in your prompt as",
       "REFERENCE_HINT_TAIL": "… Click any tag below a thumbnail to insert it into the prompt.",
       "EXPAND": "Expand",
-      "REMOVE": "Remove asset"
+      "REMOVE": "Remove asset",
+      "CREATE_ASSETS": "Create assets",
+      "CHARACTERS_DIALOG_TITLE": "Characters library"
     },
     "FOOTER": {
       "VERSION": "v1.0",

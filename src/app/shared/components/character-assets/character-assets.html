@@ -64,13 +64,22 @@
         id="my-assets-panel"
         class="border border-t-0 border-ink-600 bg-ink-900 p-4"
       >
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-3 flex items-center justify-between gap-3">
           <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
             ▸ {{ 'STUDIO.ASSETS.REFERENCE' | translate }}
           </p>
-          <p class="font-mono text-[11px] text-fg-muted">
-            {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
-          </p>
+          <div class="flex items-center gap-3">
+            <p class="font-mono text-[11px] text-fg-muted">
+              {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
+            </p>
+            <p-button
+              [label]="'STUDIO.ASSETS.CREATE_ASSETS' | translate"
+              icon="pi pi-plus"
+              size="small"
+              data-testid="my-assets-create-button"
+              (onClick)="openCharactersLibrary()"
+            />
+          </div>
         </div>
 
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -170,4 +179,26 @@
       </div>
     }
   </div>
+
+  <!--
+    Characters library — full CRUD launched inline as a near-fullscreen
+    dialog. Lives here (instead of as a /characters route) so the user
+    can author trusted assets without leaving the studio.
+  -->
+  <p-dialog
+    [visible]="charactersDialogVisible()"
+    (visibleChange)="onCharactersDialogVisibility($event)"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [maximizable]="true"
+    [dismissableMask]="true"
+    [style]="{ width: '92vw', height: '88vh' }"
+    [header]="'STUDIO.ASSETS.CHARACTERS_DIALOG_TITLE' | translate"
+    styleClass="characters-library-dialog"
+  >
+    @if (charactersDialogVisible()) {
+      <app-index-characters />
+    }
+  </p-dialog>
 </section>

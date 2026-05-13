@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
 import { AssetsStateService } from '@app/core/stores/assets.state';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
+import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
 
 /**
  * Section 05 — CHARACTER & ASSETS.
@@ -17,7 +20,14 @@ import { ReferenceAsset } from '@core/interfaces/studio.models';
  */
 @Component({
   selector: 'app-character-assets',
-  imports: [SectionHeaderComponent, DropZoneComponent, TranslatePipe],
+  imports: [
+    SectionHeaderComponent,
+    DropZoneComponent,
+    TranslatePipe,
+    ButtonModule,
+    DialogModule,
+    IndexCharacters,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
 })
@@ -32,8 +42,23 @@ export class CharacterAssetsComponent {
    */
   protected readonly myAssetsExpanded = signal(true);
 
+  /**
+   * Whether the embedded Characters library dialog is open. Launched from
+   * the "CREATE ASSETS" button inside the My Assets panel — provides the
+   * full character CRUD inline so the user never has to leave the studio.
+   */
+  protected readonly charactersDialogVisible = signal(false);
+
   protected toggleMyAssets(): void {
     this.myAssetsExpanded.update((v) => !v);
+  }
+
+  protected openCharactersLibrary(): void {
+    this.charactersDialogVisible.set(true);
+  }
+
+  protected onCharactersDialogVisibility(v: boolean): void {
+    this.charactersDialogVisible.set(v);
   }
 
   protected onFirstFrame(files: File[]) {
