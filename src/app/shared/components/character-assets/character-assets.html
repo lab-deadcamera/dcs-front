@@ -24,132 +24,150 @@
     >▾</button>
   </div>
 
-  <div
-    class="mt-3 flex items-center justify-between border-l-2 border-accent-500 bg-ink-850 px-4 py-3"
-  >
-    <div class="flex items-center gap-3">
-      <span class="text-accent-500">◆</span>
-      <div>
-        <p
-          class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500"
-        >
-          {{ 'STUDIO.ASSETS.MY_ASSETS' | translate }}
-        </p>
-        <p class="text-[11px] italic text-fg-muted">
-          {{ 'STUDIO.ASSETS.MY_ASSETS_HINT' | translate }}
-        </p>
-      </div>
-    </div>
+  <!--
+    My Assets is now a disclosure: the band acts as the trigger and the
+    Reference Assets block (first/last frame + free assets grid + hint)
+    is the collapsible body, nested visually right under the band so the
+    two read as a single grouped surface.
+  -->
+  <div class="mt-3">
     <button
       type="button"
-      class="text-fg-muted"
-      [attr.aria-label]="'STUDIO.ASSETS.EXPAND' | translate"
-    >▾</button>
-  </div>
-
-  <div class="mt-5 border border-ink-600 bg-ink-900 p-4">
-    <div class="mb-3 flex items-center justify-between">
-      <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
-        ▸ {{ 'STUDIO.ASSETS.REFERENCE' | translate }}
-      </p>
-      <p class="font-mono text-[11px] text-fg-muted">
-        {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <ui-drop-zone
-        labelKey="STUDIO.ASSETS.FIRST_FRAME"
-        placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
-        [small]="true"
-        [preview]="assets.firstFrame()?.thumbnailUrl ?? null"
-        [previewAlt]="assets.firstFrame()?.filename ?? ''"
-        (filesDropped)="onFirstFrame($event)"
-        (cleared)="assets.setFirstFrame(null)"
-      />
-      <ui-drop-zone
-        labelKey="STUDIO.ASSETS.LAST_FRAME"
-        placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
-        [small]="true"
-        [preview]="assets.lastFrame()?.thumbnailUrl ?? null"
-        [previewAlt]="assets.lastFrame()?.filename ?? ''"
-        (filesDropped)="onLastFrame($event)"
-        (cleared)="assets.setLastFrame(null)"
-      />
-    </div>
-
-    <div class="mt-3">
-      <ui-drop-zone
-        [compact]="true"
-        [multiple]="true"
-        (filesDropped)="onFreeAssets($event)"
-      />
-    </div>
-
-    @if (assets.freeAssets().length) {
-      <ul class="mt-3 flex flex-wrap gap-1.5">
-        @for (a of assets.freeAssets(); track a.id) {
-          <li
-            class="group relative flex h-14 w-14 flex-col overflow-hidden border border-ink-500 bg-ink-800"
-            [title]="a.tag + ' · ' + a.filename"
+      class="flex w-full items-center justify-between border-l-2 border-accent-500 bg-ink-850 px-4 py-3 text-left transition-colors hover:bg-ink-800 focus:outline-none"
+      (click)="toggleMyAssets()"
+      [attr.aria-expanded]="myAssetsExpanded()"
+      aria-controls="my-assets-panel"
+      data-testid="my-assets-toggle"
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-accent-500">◆</span>
+        <div>
+          <p
+            class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500"
           >
-            <div class="relative h-full w-full bg-ink-900">
-              @if (a.kind === 'image' && a.thumbnailUrl) {
-                <img
-                  [src]="a.thumbnailUrl"
-                  [alt]="a.filename"
-                  class="h-full w-full object-cover"
-                />
-              } @else if (a.kind === 'video' && a.thumbnailUrl) {
-                <video
-                  [src]="a.thumbnailUrl"
-                  class="h-full w-full object-cover"
-                  muted
-                  playsinline
-                ></video>
-                <span
-                  aria-hidden="true"
-                  class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
-                >▶</span>
-              } @else {
-                <span
-                  aria-hidden="true"
-                  class="absolute inset-0 flex items-center justify-center text-sm text-fg-muted"
-                >
-                  @switch (a.kind) {
-                    @case ('audio') { ♪ }
-                    @case ('video') { ▶ }
-                    @default { ◇ }
-                  }
-                </span>
-              }
-              <span
-                class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
-              >{{ a.tag }}</span>
-              <button
-                type="button"
-                class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
-                (click)="assets.removeFreeAsset(a.id)"
-                [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
-              >×</button>
-            </div>
-          </li>
-        }
-      </ul>
-    }
+            {{ 'STUDIO.ASSETS.MY_ASSETS' | translate }}
+          </p>
+          <p class="text-[11px] italic text-fg-muted">
+            {{ 'STUDIO.ASSETS.MY_ASSETS_HINT' | translate }}
+          </p>
+        </div>
+      </div>
+      <span
+        aria-hidden="true"
+        class="inline-block text-fg-muted transition-transform duration-150"
+        [class.rotate-180]="myAssetsExpanded()"
+      >▾</span>
+    </button>
 
-    <p class="mt-3 text-[11px] italic text-fg-muted">
-      {{ 'STUDIO.ASSETS.REFERENCE_HINT_LEAD' | translate }}
-      <span
-        class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-      >Image 1</span>,
-      <span
-        class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-      >Video 1</span>,
-      <span
-        class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-      >Audio 1</span>
-      {{ 'STUDIO.ASSETS.REFERENCE_HINT_TAIL' | translate }}
-    </p>
+    @if (myAssetsExpanded()) {
+      <div
+        id="my-assets-panel"
+        class="border border-t-0 border-ink-600 bg-ink-900 p-4"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
+            ▸ {{ 'STUDIO.ASSETS.REFERENCE' | translate }}
+          </p>
+          <p class="font-mono text-[11px] text-fg-muted">
+            {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <ui-drop-zone
+            labelKey="STUDIO.ASSETS.FIRST_FRAME"
+            placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
+            [small]="true"
+            [preview]="assets.firstFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="assets.firstFrame()?.filename ?? ''"
+            (filesDropped)="onFirstFrame($event)"
+            (cleared)="assets.setFirstFrame(null)"
+          />
+          <ui-drop-zone
+            labelKey="STUDIO.ASSETS.LAST_FRAME"
+            placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
+            [small]="true"
+            [preview]="assets.lastFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="assets.lastFrame()?.filename ?? ''"
+            (filesDropped)="onLastFrame($event)"
+            (cleared)="assets.setLastFrame(null)"
+          />
+        </div>
+
+        <div class="mt-3">
+          <ui-drop-zone
+            [compact]="true"
+            [multiple]="true"
+            (filesDropped)="onFreeAssets($event)"
+          />
+        </div>
+
+        @if (assets.freeAssets().length) {
+          <ul class="mt-3 flex flex-wrap gap-1.5">
+            @for (a of assets.freeAssets(); track a.id) {
+              <li
+                class="group relative flex h-14 w-14 flex-col overflow-hidden border border-ink-500 bg-ink-800"
+                [title]="a.tag + ' · ' + a.filename"
+              >
+                <div class="relative h-full w-full bg-ink-900">
+                  @if (a.kind === 'image' && a.thumbnailUrl) {
+                    <img
+                      [src]="a.thumbnailUrl"
+                      [alt]="a.filename"
+                      class="h-full w-full object-cover"
+                    />
+                  } @else if (a.kind === 'video' && a.thumbnailUrl) {
+                    <video
+                      [src]="a.thumbnailUrl"
+                      class="h-full w-full object-cover"
+                      muted
+                      playsinline
+                    ></video>
+                    <span
+                      aria-hidden="true"
+                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
+                    >▶</span>
+                  } @else {
+                    <span
+                      aria-hidden="true"
+                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-muted"
+                    >
+                      @switch (a.kind) {
+                        @case ('audio') { ♪ }
+                        @case ('video') { ▶ }
+                        @default { ◇ }
+                      }
+                    </span>
+                  }
+                  <span
+                    class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
+                  >{{ a.tag }}</span>
+                  <button
+                    type="button"
+                    class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
+                    (click)="assets.removeFreeAsset(a.id)"
+                    [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
+                  >×</button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <p class="mt-3 text-[11px] italic text-fg-muted">
+          {{ 'STUDIO.ASSETS.REFERENCE_HINT_LEAD' | translate }}
+          <span
+            class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
+          >Image 1</span>,
+          <span
+            class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
+          >Video 1</span>,
+          <span
+            class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
+          >Audio 1</span>
+          {{ 'STUDIO.ASSETS.REFERENCE_HINT_TAIL' | translate }}
+        </p>
+      </div>
+    }
   </div>
 </section>

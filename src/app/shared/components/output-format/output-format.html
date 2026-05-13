@@ -1,6 +1,13 @@
 <section class="border-t border-ink-600 px-6 py-6">
-  <ui-section-header number="03" labelKey="STUDIO.OUTPUT.TITLE" />
+  <ui-section-header
+    number="03"
+    labelKey="STUDIO.OUTPUT.TITLE"
+    [collapsible]="true"
+    [expanded]="expanded()"
+    (toggle)="toggleExpanded()"
+  />
 
+  @if (expanded()) {
   <div class="mt-5 flex flex-col gap-5">
     <ui-toggle-group
       labelKey="STUDIO.OUTPUT.ASPECT_RATIO"
@@ -64,4 +71,5 @@
       />
     </div>
   </div>
+  }
 </section>

@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
@@ -35,6 +40,13 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 })
 export class OutputFormatComponent {
   protected readonly prompt = inject(PromptStateService);
+
+  /** Disclosure state — section body is hidden until the user expands it. */
+  protected readonly expanded = signal(false);
+
+  protected toggleExpanded(): void {
+    this.expanded.update((v) => !v);
+  }
 
   protected readonly aspectOptions: ChipOption<AspectRatio>[] = [
     { value: '16:9', labelKey: 'STUDIO.OUTPUT.ASPECT_16_9' },

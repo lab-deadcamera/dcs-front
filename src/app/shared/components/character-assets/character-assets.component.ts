@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
@@ -23,6 +23,18 @@ import { ReferenceAsset } from '@core/interfaces/studio.models';
 })
 export class CharacterAssetsComponent {
   protected readonly assets = inject(AssetsStateService);
+
+  /**
+   * Whether the "My Assets" band acts as an open disclosure — its body
+   * (the Reference Assets panel: First/Last frame + free assets grid) is
+   * mounted only when expanded. Defaults to open so first-time visitors
+   * still see the asset drop-zones without an extra click.
+   */
+  protected readonly myAssetsExpanded = signal(true);
+
+  protected toggleMyAssets(): void {
+    this.myAssetsExpanded.update((v) => !v);
+  }
 
   protected onFirstFrame(files: File[]) {
     const f = files[0];

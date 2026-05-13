@@ -55,8 +55,15 @@ interface GradeVariant {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
-      <ui-section-header number="02" labelKey="STUDIO.CINEMATOGRAPHY.TITLE" />
+      <ui-section-header
+        number="02"
+        labelKey="STUDIO.CINEMATOGRAPHY.TITLE"
+        [collapsible]="true"
+        [expanded]="expanded()"
+        (toggle)="toggleExpanded()"
+      />
 
+      @if (expanded()) {
       <div class="mt-5 flex flex-col gap-5">
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.LENS"
@@ -161,6 +168,7 @@ interface GradeVariant {
           (valueChange)="onGenre($event)"
         />
       </div>
+      }
     </section>
   `,
 })
@@ -173,6 +181,13 @@ export class CinematographyComponent {
 
   /** Mood label currently selected for the active grade (or null). */
   protected readonly selectedVariant = signal<string | null>(null);
+
+  /** Disclosure state — section body is hidden until the user expands it. */
+  protected readonly expanded = signal(false);
+
+  protected toggleExpanded(): void {
+    this.expanded.update((v) => !v);
+  }
 
   constructor() {
     this._variants = {
