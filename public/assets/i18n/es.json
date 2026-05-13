@@ -9,7 +9,10 @@
     "HOME": "Inicio",
     "VIDEOS": "Videos",
     "ABOUT": "Acerca de",
-    "CONTACT": "Contacto"
+    "CONTACT": "Contacto",
+    "STUDIO": "Estudio",
+    "CHARACTERS": "Personajes",
+    "FILES": "Archivos"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -62,6 +65,306 @@
     "DURATION": "Duración",
     "SIZE": "Tamaño",
     "FORMAT": "Formato"
+  },
+  "HEADER": {
+    "BRAND": {
+      "DEAD_CAMERA": "DEAD CAMERA",
+      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+    },
+    "SUBTITLE": {
+      "STUDIOS": "ESTUDIOS",
+      "AI_LAB": "LABORATORIO DE IA"
+    },
+    "ACTIONS": {
+      "ADD_API_KEY": "AGREGAR API KEY",
+      "EXPORT": "EXPORTAR",
+      "API": "API"
+    }
+  },
+  "STUDIO": {
+    "BRAND": {
+      "PRIMARY": "Dead Camera",
+      "SECONDARY": "Seedance Studio",
+      "TAGLINE_TOP": "Estudios",
+      "TAGLINE_BOTTOM": "Laboratorio de IA"
+    },
+    "HERO": {
+      "STRIKE_1": "Luces,",
+      "STRIKE_2": "Cámara,",
+      "SCRIPT": "Visión",
+      "LIVE": "Acción",
+      "SUBTITLE_TOP": "Cine Reinventado.",
+      "SUBTITLE_BOTTOM": "Control Creativo Absoluto."
+    },
+    "API": {
+      "ADD_KEY": "Agregar API Key",
+      "NO_KEY": "sin clave",
+      "CONNECTED": "conectado",
+      "TITLE": "API Keys",
+      "NO_KEYS": "Aún no hay claves — agregá una abajo para empezar.",
+      "NAME_PLACEHOLDER": "Nombre (opcional)",
+      "VALUE_PLACEHOLDER": "Pegá tu API key aquí",
+      "AK_PLACEHOLDER": "Access Key (AK)",
+      "SK_PLACEHOLDER": "Secret Key (SK)",
+      "AK_SK_TOGGLE": "Avanzado: AK / SK (Assets API)",
+      "AK_SK_HINT": "Agregá Access Key y Secret Key solo si vas a usar la Assets API (Private Portrait Library).",
+      "AK_SK_MISMATCH": "AK y SK deben proveerse juntos (o ambos vacíos).",
+      "ADD_BUTTON": "+ Agregar Key",
+      "DELETE": "Del",
+      "ACTIVATE_ARIA": "Activar esta clave"
+    },
+    "VIEWER": {
+      "TITLE": "Visor",
+      "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",
+      "EMPTY_TITLE": "Sin Clip Cargado",
+      "EMPTY_HINT": "La salida generada aparece aquí",
+      "FULLSCREEN_ENTER": "Pantalla completa",
+      "FULLSCREEN_EXIT": "Salir de pantalla completa",
+      "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
+      "HD_ARIA_PENDING": "Haz clic de nuevo para confirmar 1080p HD",
+      "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p",
+      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor"
+    },
+    "PROMPT": {
+      "TITLE": "Constructor de Prompt",
+      "HINT": "Describe la escena · el estilo cinematográfico se inyecta automáticamente",
+      "PLACEHOLDER": "Describe la escena. Sé específico: sujeto, acción, setting, atmósfera. El lenguaje cinematográfico se inyecta automáticamente desde tus selecciones.",
+      "COMPILED": "Prompt Compilado",
+      "CHARS": "{{n}} caracteres",
+      "EMPTY_PREVIEW": "_",
+      "GENERATE": "Generar",
+      "REFERENCES": "Referencias",
+      "EDIT_COMPILED": "Editar prompt compilado",
+      "EDITED_BADGE": "editado",
+      "RESET_COMPILED": "Restablecer",
+      "SAVE_EDIT": "Guardar",
+      "CANCEL_EDIT": "Cancelar"
+    },
+    "SESSION_REEL": {
+      "TITLE": "Carrete de Sesión",
+      "EMPTY": "Tus clips generados se apilarán aquí"
+    },
+    "RATING": {
+      "TITLE": "Calificación",
+      "HINT": "Califica el éxito del clip generado",
+      "EMPTY": "Genera un clip para calificarlo",
+      "ARIA_GROUP": "Califica el clip de 1 a 5 estrellas",
+      "ARIA_STAR": "Calificar {{n}} de 5",
+      "CLEAR": "Limpiar"
+    },
+    "CINEMATOGRAPHY": {
+      "TITLE": "Cinematografía",
+      "LENS": "Lente",
+      "CAMERA_BODY": "Cuerpo de Cámara",
+      "CAMERA_MOTION": "Movimiento de Cámara",
+      "COLOR_GRADING": "Corrección de Color",
+      "GENRE": "Género",
+      "LENSES": {
+        "24MM_WIDE": "24mm Gran Angular",
+        "35MM_CLASSIC": "35mm Clásico",
+        "50MM_PORTRAIT": "50mm Retrato",
+        "85MM_TELE": "85mm Teleobjetivo"
+      },
+      "BODIES": {
+        "ARRI_ALEXA_65": "ARRI Alexa 65",
+        "RED_KOMODO_6K": "RED Komodo 6K",
+        "SONY_VENICE": "Sony Venice",
+        "FILM_16MM": "Film 16mm"
+      },
+      "MOTIONS": {
+        "STATIC": "Estática",
+        "DOLLY_IN": "Dolly-In Lento",
+        "ORBIT": "Órbita",
+        "HANDHELD": "Cámara en Mano"
+      },
+      "GRADES": {
+        "TOKIO": "Tokio",
+        "COLOMBIA": "Colombia",
+        "OHIO": "Ohio",
+        "BANK": "Bank",
+        "VARIANT_TITLE": "Variantes de mood",
+        "VARIANT_HINT": "Elige un mood — aplica el grade {{name}} con este matiz."
+      },
+      "CUSTOM": {
+        "NEW_BUTTON": "Nuevo preset",
+        "DIALOG_TITLE": "Crear preset de cinematografía",
+        "EDIT_TITLE": "Editar preset de cinematografía",
+        "CATEGORY": "Categoría",
+        "CATEGORY_PLACEHOLDER": "Elige una fila de presets",
+        "LABEL": "Nombre",
+        "LABEL_PLACEHOLDER": "ej. Cyberpunk Neon",
+        "PROMPT": "Prompt",
+        "PROMPT_PLACEHOLDER": "Instrucción literal que se inyecta en el prompt compilado final — ej. \"cyberpunk neon grade, dicotomía magenta-cyan, …\"",
+        "PROMPT_HINT": "Escrito en inglés. Este es el texto exacto que recibe Seedance — no se traduce.",
+        "SUBMIT": "Agregar preset",
+        "CREATED": "Preset \"{{label}}\" agregado",
+        "UPDATED": "Preset \"{{label}}\" actualizado"
+      },
+      "GENRES": {
+        "DRAMA": "Drama",
+        "ACTION": "Acción",
+        "NOIR": "Noir",
+        "HORROR": "Terror"
+      }
+    },
+    "OUTPUT": {
+      "TITLE": "Formato de Salida",
+      "ASPECT_RATIO": "Relación de Aspecto",
+      "RESOLUTION": "Resolución",
+      "DURATION": "Duración",
+      "SOUND": "Sonido",
+      "ENGINE": "Motor",
+      "ON": "On",
+      "OFF": "Off",
+      "FAST": "Rápido",
+      "PRO": "Pro",
+      "ARIA_DURATION": "Duración en segundos",
+      "ASPECT_16_9": "16:9",
+      "ASPECT_9_16": "9:16",
+      "ASPECT_21_9": "21:9",
+      "ASPECT_1_1": "1:1",
+      "RES_480P": "480p",
+      "RES_720P": "720p",
+      "RES_1080P": "1080p HD",
+      "HD_CONFIRM": "haz clic de nuevo para confirmar",
+      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse."
+    },
+    "ASSETS": {
+      "TITLE": "Personajes y Assets",
+      "CHARACTER_STUDIO": "Character Studio",
+      "CHARACTER_STUDIO_HINT": "Genera imágenes de referencia confiables · powered by Seedream",
+      "MY_ASSETS": "Mis Assets",
+      "MY_ASSETS_HINT": "Biblioteca privada confiable · BytePlus",
+      "REFERENCE": "Assets de Referencia",
+      "COUNT": "{{n}} assets",
+      "FIRST_FRAME": "Primer Frame",
+      "LAST_FRAME": "Último Frame",
+      "DROP_OR_CLICK": "Suelta o haz clic",
+      "REFERENCE_HINT_LEAD": "Referénciales en tu prompt como",
+      "REFERENCE_HINT_TAIL": "… Haz clic en cualquier tag debajo de una miniatura para insertarlo en el prompt.",
+      "EXPAND": "Expandir",
+      "REMOVE": "Eliminar asset",
+      "CREATE_ASSETS": "Crear assets",
+      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes"
+    },
+    "FOOTER": {
+      "VERSION": "v1.0",
+      "LIBRARY": "Biblioteca de Assets",
+      "TAGLINE": "La Mente Eléctrica",
+      "STUDIO": "Somos Dead Camera Studios"
+    }
+  },
+  "COMMON": {
+    "CANCEL": "Cancelar",
+    "CLOSE": "Cerrar",
+    "SAVE": "Guardar",
+    "CREATE": "Crear",
+    "DELETE": "Eliminar",
+    "EDIT": "Editar",
+    "LOADING": "Cargando…"
+  },
+  "VALIDATION": {
+    "REQUIRED": "{{label}} es obligatorio.",
+    "EMAIL": "{{label}} debe ser un email válido.",
+    "MIN_LENGTH": "{{label}} debe tener al menos {{n}} caracteres.",
+    "MAX_LENGTH": "{{label}} debe tener máximo {{n}} caracteres.",
+    "PATTERN": "{{label}} tiene un formato inválido.",
+    "MIN": "{{label}} debe ser al menos {{n}}.",
+    "MAX": "{{label}} debe ser como máximo {{n}}.",
+    "INVALID": "{{label}} no es válido."
+  },
+  "CHARACTERS": {
+    "TITLE": "Personajes",
+    "HINT": "Biblioteca de personajes confiables — nombre, descripción, metadata.",
+    "EMPTY": "Aún no hay personajes. Crea el primero.",
+    "ACTIONS": {
+      "NEW": "Nuevo personaje",
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "FILES": "Gestionar archivos",
+      "USE": "Usar"
+    },
+    "FILES": {
+      "DIALOG_TITLE": "Archivos",
+      "LINKED": "Archivos vinculados",
+      "EMPTY": "Aún no hay archivos vinculados.",
+      "UPLOAD": "Subir + vincular",
+      "UPLOAD_BUTTON": "Subir y vincular",
+      "ROLE": "Rol",
+      "ROLE_PLACEHOLDER": "reference / portrait / asset / …",
+      "UNLINK": "Quitar vínculo"
+    },
+    "COLUMNS": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "METADATA": "Metadata",
+      "CREATED_AT": "Creado",
+      "ACTIONS": "Acciones"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Neon Samurai",
+      "DESCRIPTION": "Descripción",
+      "DESCRIPTION_PLACEHOLDER": "Protagonista cyberpunk con katana",
+      "METADATA": "Metadata",
+      "AGE": "Edad",
+      "STYLE": "Estilo",
+      "STYLE_PLACEHOLDER": "cyberpunk",
+      "GENDER": "Género",
+      "GENDER_PLACEHOLDER": "Seleccionar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Crear personaje",
+      "EDIT_TITLE": "Editar personaje"
+    },
+    "TABS": {
+      "CHARACTER": "Personaje",
+      "LOCATION": "Locación",
+      "PROP": "Props"
+    },
+    "ASSETS": {
+      "EMPTY": "Aún no hay assets en esta categoría. Usa un botón \"Nuevo …\" arriba para crear uno.",
+      "NEW_CHARACTER": "Nuevo personaje",
+      "NEW_LOCATION": "Nueva locación",
+      "NEW_PROP": "Nuevo prop",
+      "TITLE_CHARACTER": "Nuevo personaje",
+      "TITLE_LOCATION": "Nueva locación",
+      "TITLE_PROP": "Nuevo prop",
+      "SUBMIT_CHARACTER": "Crear personaje",
+      "SUBMIT_LOCATION": "Crear locación",
+      "SUBMIT_PROP": "Crear prop",
+      "NAME_PH_LOCATION": "Azotea Tokyo",
+      "NAME_PH_PROP": "Katana de neón",
+      "FILES_LABEL": "Imágenes de referencia",
+      "FILES_COUNT": "archivo(s) listos",
+      "DROP_HINT": "Suelta imágenes o haz clic para elegir"
+    }
+  },
+  "FILES": {
+    "TITLE": "Archivos",
+    "HINT": "Sube, organiza y vincula assets a tus personajes.",
+    "EMPTY": "Aún no hay archivos en esta categoría.",
+    "UPLOAD": "Subir",
+    "COUNT_SUFFIX": "items",
+    "TABS": {
+      "IMAGES": "Imágenes",
+      "VIDEOS": "Videos",
+      "AUDIO": "Audio",
+      "TEMP": "Temporales",
+      "TRASH": "Papelera"
+    },
+    "ACTIONS": {
+      "LINK": "Vincular a personaje",
+      "DELETE": "Mover a papelera",
+      "RESTORE": "Restaurar",
+      "HARD_DELETE": "Eliminar para siempre"
+    },
+    "LINK": {
+      "DIALOG_TITLE": "Vincular archivo a personaje",
+      "CHARACTER": "Personaje",
+      "CHARACTER_PLACEHOLDER": "Elige un personaje",
+      "SUBMIT": "Vincular"
+    }
   },
   "TOAST": {
     "SUCCESS": "Éxito",

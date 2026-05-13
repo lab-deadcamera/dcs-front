@@ -1,0 +1,187 @@
+<section class="px-6 py-6">
+  <header class="mb-5 flex items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
+        {{ 'FILES.TITLE' | translate }}
+      </h1>
+      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary);">
+        {{ 'FILES.HINT' | translate }}
+      </p>
+    </div>
+  </header>
+
+  <!-- Category tabs -->
+  <div
+    class="mb-4 flex flex-wrap gap-1 border-b"
+    style="border-color: var(--border-color);"
+    role="tablist"
+  >
+    @for (t of tabs; track t.id) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="active() === t.id"
+        [class.border-primary-500]="active() === t.id"
+        [class.text-primary-500]="active() === t.id"
+        [class.border-transparent]="active() !== t.id"
+        class="-mb-px border-b-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:text-primary-500"
+        [attr.data-testid]="'files-tab-' + t.id"
+        (click)="onTabChange(t.id)"
+      >
+        <i class="pi {{ t.icon }} mr-1"></i>
+        {{ t.labelKey | translate }}
+      </button>
+    }
+  </div>
+
+  <!-- Upload bar (hidden in trash) -->
+  @if (!isTrash()) {
+    <div
+      class="mb-4 flex items-center gap-3 border p-3"
+      style="border-color: var(--border-color); background: var(--surface-bg);"
+    >
+      <input
+        type="file"
+        data-testid="files-upload-input"
+        (change)="onFilePick($event)"
+        class="text-[12px]"
+        style="color: var(--text-secondary);"
+      />
+      <p-button
+        [label]="'FILES.UPLOAD' | translate"
+        icon="pi pi-upload"
+        [disabled]="!selectedFile() || uploading()"
+        [loading]="uploading()"
+        data-testid="files-upload-submit"
+        (onClick)="onUpload()"
+      />
+      <span class="ml-auto font-mono text-[11px]" style="color: var(--text-muted);">
+        {{ files.count() }} {{ 'FILES.COUNT_SUFFIX' | translate }}
+      </span>
+    </div>
+  }
+
+  <!-- Files grid -->
+  @if (files.loading()) {
+    <p class="py-8 text-center italic" style="color: var(--text-muted);">
+      {{ 'COMMON.LOADING' | translate }}
+    </p>
+  } @else if (files.items().length === 0) {
+    <p class="py-12 text-center italic" style="color: var(--text-muted);">
+      {{ 'FILES.EMPTY' | translate }}
+    </p>
+  } @else {
+    <ul
+      class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      data-testid="files-grid"
+    >
+      @for (f of files.items(); track f.id) {
+        <li
+          class="flex flex-col border"
+          style="border-color: var(--border-color); background: var(--surface-bg);"
+          [attr.data-testid]="'files-card-' + f.id"
+        >
+          <!-- Thumbnail -->
+          <div
+            class="relative aspect-square w-full overflow-hidden"
+            style="background: var(--content-bg);"
+          >
+            @if (isImage(f)) {
+              <img
+                [src]="f.url"
+                [alt]="f.filename"
+                class="h-full w-full object-cover"
+                onerror="this.style.display='none'"
+              />
+            } @else {
+              <span
+                aria-hidden="true"
+                class="absolute inset-0 flex items-center justify-center text-3xl"
+                style="color: var(--text-muted);"
+              >
+                @switch (f.category) {
+                  @case ('videos') { <i class="pi pi-video"></i> }
+                  @case ('audio')  { <i class="pi pi-volume-up"></i> }
+                  @case ('temp')   { <i class="pi pi-clock"></i> }
+                  @default         { <i class="pi pi-file"></i> }
+                }
+              </span>
+            }
+          </div>
+
+          <!-- Meta -->
+          <div class="flex-1 px-2 py-2">
+            <p
+              class="truncate font-mono text-[11px]"
+              [title]="f.filename"
+              style="color: var(--text-primary);"
+            >
+              {{ f.filename }}
+            </p>
+            <p
+              class="font-mono text-[10px]"
+              style="color: var(--text-muted);"
+            >
+              {{ f.mimeType }} · {{ formatSize(f.size) }}
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div
+            class="flex items-center justify-end gap-1 border-t px-1 py-1"
+            style="border-color: var(--border-color);"
+          >
+            @if (!isTrash()) {
+              <p-button
+                icon="pi pi-user-plus"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'files-link-' + f.id"
+                [attr.aria-label]="'FILES.ACTIONS.LINK' | translate"
+                (onClick)="openLink(f)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'files-delete-' + f.id"
+                [attr.aria-label]="'FILES.ACTIONS.DELETE' | translate"
+                (onClick)="confirmDelete(f)"
+              />
+            } @else {
+              <p-button
+                icon="pi pi-undo"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'files-restore-' + f.id"
+                [attr.aria-label]="'FILES.ACTIONS.RESTORE' | translate"
+                (onClick)="onRestore(f)"
+              />
+              <p-button
+                icon="pi pi-times-circle"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                [attr.data-testid]="'files-hard-delete-' + f.id"
+                [attr.aria-label]="'FILES.ACTIONS.HARD_DELETE' | translate"
+                (onClick)="confirmHardDelete(f)"
+              />
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <app-file-link-dialog
+    [visible]="linkDialogVisible()"
+    [file]="linkDialogTarget()"
+    (visibleChange)="linkDialogVisible.set($event)"
+  />
+
+  <p-confirmDialog />
+  <p-toast position="bottom-right" />
+</section>
