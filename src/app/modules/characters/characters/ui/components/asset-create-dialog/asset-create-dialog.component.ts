@@ -27,7 +27,7 @@ import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.compon
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
 import { FilesApiService } from '@modules/files/files/services';
 import { FileEntity } from '@modules/files/files/interfaces';
-import { AssetType } from '../../../interfaces';
+import { AssetFileKind, AssetType } from '../../../interfaces';
 import { CharactersService } from '../../../services';
 
 interface StagedFile {
@@ -35,6 +35,8 @@ interface StagedFile {
   key: string;
   file: File;
   previewUrl: string;
+  kind: AssetFileKind;
+  isImage: boolean;
 }
 
 /**
@@ -133,21 +135,35 @@ interface StagedFile {
           />
 
           @if (staged().length > 0) {
-            <ul class="mt-2 flex flex-wrap gap-2">
+            <ul class="mt-2 flex flex-wrap gap-1">
               @for (s of staged(); track s.key) {
                 <li
-                  class="group relative h-16 w-16 overflow-hidden border"
+                  class="group relative h-6 w-6 overflow-hidden border"
                   style="border-color: var(--border-color);"
                   [title]="s.file.name"
                 >
-                  <img
-                    [src]="s.previewUrl"
-                    [alt]="s.file.name"
-                    class="h-full w-full object-cover"
-                  />
+                  @if (s.isImage) {
+                    <img
+                      [src]="s.previewUrl"
+                      [alt]="s.file.name"
+                      class="h-full w-full object-cover"
+                    />
+                  } @else {
+                    <span
+                      aria-hidden="true"
+                      class="flex h-full w-full items-center justify-center text-[9px]"
+                      style="color: var(--text-muted); background: var(--surface-bg);"
+                    >
+                      @switch (s.kind) {
+                        @case ('video') { <i class="pi pi-video"></i> }
+                        @case ('audio') { <i class="pi pi-volume-up"></i> }
+                        @default        { <i class="pi pi-file"></i> }
+                      }
+                    </span>
+                  }
                   <button
                     type="button"
-                    class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
+                    class="absolute top-0 right-0 z-10 flex h-3 w-3 items-center justify-center bg-ink-950/80 text-[8px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
                     [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
                     (click)="removeStaged(s.key)"
                   >×</button>
@@ -251,18 +267,25 @@ export class AssetCreateDialogComponent implements OnDestroy {
   });
 
   protected onFilesDropped(files: File[]): void {
-    const next: StagedFile[] = files.map((f) => ({
-      key: `${f.name}_${f.size}_${f.lastModified}_${Math.random().toString(36).slice(2, 7)}`,
-      file: f,
-      previewUrl: URL.createObjectURL(f),
-    }));
+    const next: StagedFile[] = files.map((f) => {
+      const kind = inferKind(f);
+      return {
+        key: `${f.name}_${f.size}_${f.lastModified}_${Math.random().toString(36).slice(2, 7)}`,
+        file: f,
+        // Only generate a blob URL for images — video/audio render as
+        // type icons inside the (now tiny) thumb tiles.
+        previewUrl: kind === 'image' ? URL.createObjectURL(f) : '',
+        kind,
+        isImage: kind === 'image',
+      };
+    });
     this.staged.update((cur) => [...cur, ...next]);
   }
 
   protected removeStaged(key: string): void {
     this.staged.update((cur) => {
       const victim = cur.find((s) => s.key === key);
-      if (victim) URL.revokeObjectURL(victim.previewUrl);
+      if (victim?.previewUrl) URL.revokeObjectURL(victim.previewUrl);
       return cur.filter((s) => s.key !== key);
     });
   }
@@ -287,13 +310,14 @@ export class AssetCreateDialogComponent implements OnDestroy {
       description: string;
     };
     const type = this.type();
+    const fileKind = deriveFileKind(this.staged().map((s) => s.kind));
 
     this.submitting.set(true);
     this.characters
       .create({
         name,
         description: description ?? '',
-        metadata: { assetType: type },
+        metadata: { assetType: type, fileKind },
       })
       .subscribe((res) => {
         if (res.error || !res.data) {
@@ -384,7 +408,9 @@ export class AssetCreateDialogComponent implements OnDestroy {
    * separately so the cleanup can run from inside an `untracked` effect.
    */
   private disposeStaged(): void {
-    for (const s of this.staged()) URL.revokeObjectURL(s.previewUrl);
+    for (const s of this.staged()) {
+      if (s.previewUrl) URL.revokeObjectURL(s.previewUrl);
+    }
   }
 
   ngOnDestroy(): void {
@@ -397,4 +423,19 @@ function inferCategory(file: File): 'images' | 'videos' | 'audio' | 'temp' {
   if (file.type.startsWith('video/')) return 'videos';
   if (file.type.startsWith('audio/')) return 'audio';
   return 'temp';
+}
+
+function inferKind(file: File): AssetFileKind {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'mixed';
+}
+
+/** Collapse a per-file kind list into a single aggregate. */
+function deriveFileKind(kinds: AssetFileKind[]): AssetFileKind | undefined {
+  if (kinds.length === 0) return undefined;
+  const set = new Set(kinds);
+  if (set.size === 1) return [...set][0];
+  return 'mixed';
 }

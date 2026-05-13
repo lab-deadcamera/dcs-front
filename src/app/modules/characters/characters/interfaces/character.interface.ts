@@ -23,9 +23,18 @@
  */
 export type AssetType = 'character' | 'location' | 'prop';
 
+/**
+ * Aggregated file type of the asset's linked files — drives the icon
+ * shown in the prompt's reference chips. Resolved at creation time
+ * from the staged uploads and stored in `metadata.fileKind`.
+ */
+export type AssetFileKind = 'image' | 'video' | 'audio' | 'mixed';
+
 export interface CharacterMetadata {
   /** Bucket the asset lives in. Defaults to `character` for legacy rows. */
   assetType?: AssetType;
+  /** Type of the files attached to this asset (image / video / audio / mixed). */
+  fileKind?: AssetFileKind;
   age?: number;
   style?: string;
   gender?: 'male' | 'female' | 'other' | string;

@@ -9,7 +9,19 @@ import { PresetsService } from './presets.service';
 import { StudioStorageService } from './studio-storage.service';
 
 /** Bump when the persisted shape changes; older snapshots are discarded. */
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
+
+/** Kind of file an external asset is built from — drives the chip icon. */
+export type UsedAssetKind = 'image' | 'video' | 'audio' | 'mixed';
+
+export interface UsedAsset {
+  /** Character id from the Characters library this came from. */
+  id: string;
+  /** Display name — used to build the `@token` and label. */
+  name: string;
+  /** Aggregated file type — drives the icon in the prompt chip. */
+  kind: UsedAssetKind;
+}
 
 /**
  * Maps each cinematography preset slot to the section header in the prompt
@@ -55,6 +67,8 @@ interface PromptSnapshot {
   activeClipId: string | null;
   /** Optional manual override applied on top of the computed compiled text. */
   compiledOverride?: string | null;
+  /** External assets pulled in from the Characters library. */
+  usedAssets?: UsedAsset[];
 }
 
 /**
@@ -104,6 +118,14 @@ export class PromptStateService {
    * stays in sync without duplicating preset text.
    */
   private readonly _lastInjections = signal<Record<string, string>>({});
+
+  /**
+   * External assets the user has marked as references from the Characters
+   * library. Rendered as chips in the Prompt Builder and woven into the
+   * compiled prompt as `@asset_name` tokens.
+   */
+  private readonly _usedAssets = signal<UsedAsset[]>([]);
+  readonly usedAssets = this._usedAssets.asReadonly();
 
   /**
    * Manual override on the compiled prompt. When non-null, this exact
@@ -164,6 +186,15 @@ export class PromptStateService {
       text = frameHints.join(' ') + ' ' + text;
     }
 
+    // Append @asset_name tokens for every used external reference.
+    const tokens = this._usedAssets()
+      .map((a) => '@' + a.name.trim().replace(/\s+/g, '_'))
+      .filter((t) => t.length > 1);
+    if (tokens.length) {
+      const sep = text ? (text.endsWith('.') ? ' ' : '. ') : '';
+      text = text + sep + tokens.join(' ');
+    }
+
     return text;
   });
 
@@ -192,6 +223,7 @@ export class PromptStateService {
         sessionClips: this._sessionClips(),
         activeClipId: this._activeClipId(),
         compiledOverride: this._compiledOverride(),
+        usedAssets: this._usedAssets(),
       };
       if (this.hydrated) {
         void this.storage.set('prompt', snap);
@@ -210,6 +242,7 @@ export class PromptStateService {
         this._sessionClips.set(snap.sessionClips);
         this._activeClipId.set(snap.activeClipId);
         this._compiledOverride.set(snap.compiledOverride ?? null);
+        this._usedAssets.set(snap.usedAssets ?? []);
       }
     } finally {
       this.hydrated = true;
@@ -231,6 +264,23 @@ export class PromptStateService {
   /** Drop the override and fall back to the auto-built compiled text. */
   clearCompiledOverride() {
     this._compiledOverride.set(null);
+  }
+
+  /**
+   * Add an external asset to the prompt's reference list. Idempotent —
+   * duplicates by `id` are ignored so the user can click "use" multiple
+   * times without seeing the same `@token` repeat.
+   */
+  useAsset(asset: UsedAsset) {
+    this._usedAssets.update((list) => {
+      if (list.some((a) => a.id === asset.id)) return list;
+      return [...list, asset];
+    });
+  }
+
+  /** Remove an external asset from the reference list. */
+  unuseAsset(id: string) {
+    this._usedAssets.update((list) => list.filter((a) => a.id !== id));
   }
 
   patchCinematography(patch: Partial<CinematographyConfig>) {

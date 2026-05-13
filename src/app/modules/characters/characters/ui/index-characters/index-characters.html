@@ -72,88 +72,122 @@
     </p>
   } @else {
     <ul
-      class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"
       data-testid="assets-grid"
     >
       @for (a of visibleAssets(); track a.id) {
         <li
-          class="flex flex-col border"
+          class="group flex flex-col border"
           style="border-color: var(--border-color); background: var(--surface-bg);"
           [attr.data-testid]="'assets-card-' + a.id"
         >
+          <!--
+            Preview area — layered:
+              1. Fallback icon is always rendered as the background; if
+                 the asset has no files, the wrong kind for an <img>,
+                 or its image 404/CORS-fails, this layer shows through.
+              2. <img> overlays only when shouldRenderImage(a) is true
+                 (skips pure video / audio kinds) and we have a file id.
+              3. "+N" badge surfaces additional files even when the
+                 image fails to load.
+          -->
           <div
-            class="flex aspect-square w-full items-center justify-center"
+            class="relative aspect-square w-full overflow-hidden"
             style="background: var(--content-bg);"
           >
-            <i
-              class="pi text-4xl"
-              [class.pi-user]="activeType() === 'character'"
-              [class.pi-map]="activeType() === 'location'"
-              [class.pi-box]="activeType() === 'prop'"
-              style="color: var(--text-muted);"
-            ></i>
+            <span
+              aria-hidden="true"
+              class="absolute inset-0 flex items-center justify-center"
+            >
+              <i
+                class="pi text-2xl"
+                [class]="fallbackIcon(a)"
+                style="color: var(--text-muted);"
+              ></i>
+            </span>
+
+            @let preview = previewMap()[a.id];
+
+            @if (preview && shouldRenderImage(a) && !preview.imageBroken) {
+              <img
+                [src]="serveUrl(preview.fileId)"
+                [alt]="a.name"
+                class="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                (error)="onPreviewError(a.id)"
+              />
+            }
+
+            @if (preview && preview.count > 1) {
+              <span
+                aria-hidden="true"
+                class="absolute top-1 right-1 z-10 bg-ink-950/70 px-1 py-0 font-mono text-[9px] leading-tight text-fg-strong"
+              >
+                +{{ preview.count - 1 }}
+              </span>
+            }
           </div>
 
-          <div class="flex-1 px-3 py-2">
+          <div class="px-2 py-1.5">
             <p
-              class="truncate text-[13px] font-semibold"
+              class="truncate text-[11px] font-semibold"
               [title]="a.name"
               style="color: var(--text-primary);"
             >
               {{ a.name }}
             </p>
             <p
-              class="line-clamp-2 text-[11px]"
+              class="truncate text-[10px]"
               [title]="a.description"
               style="color: var(--text-secondary);"
             >
               {{ a.description }}
             </p>
-            <p
-              class="mt-1 font-mono text-[10px]"
-              style="color: var(--text-muted);"
-            >
-              {{ a.createdAt | date: 'short' }}
-            </p>
-            <p
-              class="font-mono text-[10px]"
-              style="color: var(--text-muted);"
-            >
-              {{ metadataPreview(a) }}
-            </p>
           </div>
 
           <div
-            class="flex items-center justify-end gap-1 border-t px-1 py-1"
+            class="flex flex-col gap-1 border-t px-1.5 py-1.5"
             style="border-color: var(--border-color);"
           >
             <p-button
-              icon="pi pi-folder"
-              severity="secondary"
-              [text]="true"
-              [rounded]="true"
-              [attr.data-testid]="'assets-files-' + a.id"
-              [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
-              (onClick)="openFiles(a)"
+              [label]="'CHARACTERS.ACTIONS.USE' | translate"
+              icon="pi pi-arrow-right"
+              size="small"
+              [attr.data-testid]="'assets-use-' + a.id"
+              (onClick)="useAsset(a)"
             />
-            <p-button
-              icon="pi pi-pencil"
-              severity="secondary"
-              [text]="true"
-              [rounded]="true"
-              [attr.data-testid]="'assets-edit-' + a.id"
-              [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
-              (onClick)="openEdit(a)"
-            />
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [rounded]="true"
-              [attr.data-testid]="'assets-delete-' + a.id"
-              [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
-              (onClick)="confirmDelete(a)"
-            />
+            <div class="flex items-center justify-end gap-0">
+              <p-button
+                icon="pi pi-folder"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-files-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
+                (onClick)="openFiles(a)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-edit-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
+                (onClick)="openEdit(a)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-delete-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
+                (onClick)="confirmDelete(a)"
+              />
+            </div>
           </div>
         </li>
       }

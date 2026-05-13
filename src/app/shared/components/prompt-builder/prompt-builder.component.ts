@@ -31,6 +31,40 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         hintKey="STUDIO.PROMPT.HINT"
       />
 
+      <!--
+        Reference chips — assets pulled in from the Characters library.
+        Each chip shows a type icon (image / video / audio / mixed) plus
+        the @asset_name token and a × to remove. The token is woven into
+        the compiled prompt automatically by PromptStateService.
+      -->
+      @if (prompt.usedAssets().length > 0) {
+        <div
+          class="mt-4 flex flex-wrap items-center gap-2 border border-ink-500 bg-ink-900 px-3 py-2"
+        >
+          <span
+            class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted"
+          >
+            {{ 'STUDIO.PROMPT.REFERENCES' | translate }}
+          </span>
+          @for (a of prompt.usedAssets(); track a.id) {
+            <span
+              class="inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+              [attr.data-testid]="'used-asset-' + a.id"
+              [title]="a.kind"
+            >
+              <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
+              <span>&#64;{{ tokenize(a.name) }}</span>
+              <button
+                type="button"
+                class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
+                [attr.aria-label]="'COMMON.DELETE' | translate"
+                (click)="prompt.unuseAsset(a.id)"
+              >×</button>
+            </span>
+          }
+        </div>
+      }
+
       <div class="mt-4">
         <textarea
           class="block w-full resize-none border border-ink-500 bg-ink-850 px-4 py-3 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
@@ -217,5 +251,20 @@ export class PromptBuilderComponent {
 
   protected onResetCompiled(): void {
     this.prompt.clearCompiledOverride();
+  }
+
+  /** PrimeIcons class for the chip representing each asset kind. */
+  protected iconForKind(kind: 'image' | 'video' | 'audio' | 'mixed'): string {
+    switch (kind) {
+      case 'video': return 'pi-video';
+      case 'audio': return 'pi-volume-up';
+      case 'mixed': return 'pi-folder';
+      default:      return 'pi-image';
+    }
+  }
+
+  /** Sanitize an asset name so it produces a clean `@token`. */
+  protected tokenize(name: string): string {
+    return name.trim().replace(/\s+/g, '_');
   }
 }

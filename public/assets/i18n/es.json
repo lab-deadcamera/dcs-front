@@ -133,6 +133,7 @@
       "CHARS": "{{n}} caracteres",
       "EMPTY_PREVIEW": "_",
       "GENERATE": "Generar",
+      "REFERENCES": "Referencias",
       "EDIT_COMPILED": "Editar prompt compilado",
       "EDITED_BADGE": "editado",
       "RESET_COMPILED": "Restablecer",
@@ -265,7 +266,8 @@
       "NEW": "Nuevo personaje",
       "EDIT": "Editar",
       "DELETE": "Eliminar",
-      "FILES": "Gestionar archivos"
+      "FILES": "Gestionar archivos",
+      "USE": "Usar"
     },
     "FILES": {
       "DIALOG_TITLE": "Archivos",

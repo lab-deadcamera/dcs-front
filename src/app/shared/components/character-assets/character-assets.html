@@ -198,7 +198,7 @@
     styleClass="characters-library-dialog"
   >
     @if (charactersDialogVisible()) {
-      <app-index-characters />
+      <app-index-characters (assetUsed)="onCharactersDialogVisibility(false)" />
     }
   </p-dialog>
 </section>
