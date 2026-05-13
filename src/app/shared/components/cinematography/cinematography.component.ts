@@ -82,12 +82,10 @@ interface GradeVariant {
         <div class="flex justify-end">
           <p-button
             icon="pi pi-plus"
-            severity="secondary"
-            [text]="true"
             size="small"
             [label]="'STUDIO.CINEMATOGRAPHY.CUSTOM.NEW_BUTTON' | translate"
             data-testid="cinematography-new-preset"
-            (onClick)="openCustomDialog()"
+            (onClick)="openCreateDialog()"
           />
         </div>
 
@@ -96,7 +94,8 @@ interface GradeVariant {
           [options]="lensOptions()"
           [value]="prompt.cinematography().lens"
           (valueChange)="onLens($event)"
-          (remove)="onRemoveCustom('lens', $event)"
+          (edit)="onEditPreset('lens', $event)"
+          (remove)="onRemovePreset('lens', $event)"
         />
 
         <ui-toggle-group
@@ -104,7 +103,8 @@ interface GradeVariant {
           [options]="bodyOptions()"
           [value]="prompt.cinematography().cameraBody"
           (valueChange)="onBody($event)"
-          (remove)="onRemoveCustom('camera', $event)"
+          (edit)="onEditPreset('camera', $event)"
+          (remove)="onRemovePreset('camera', $event)"
         />
 
         <ui-toggle-group
@@ -112,7 +112,8 @@ interface GradeVariant {
           [options]="motionOptions()"
           [value]="prompt.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
-          (remove)="onRemoveCustom('cameraMotion', $event)"
+          (edit)="onEditPreset('cameraMotion', $event)"
+          (remove)="onRemovePreset('cameraMotion', $event)"
         />
 
         <!--
@@ -130,8 +131,7 @@ interface GradeVariant {
               @if (grade.isCustom) {
                 <!--
                   Admin-added grades render as plain chips — no popover,
-                  no variants. Click selects directly; the × on hover
-                  removes the preset from the catalog.
+                  no variants. Click selects directly; ✎ edits, × deletes.
                 -->
                 <button
                   type="button"
@@ -147,15 +147,23 @@ interface GradeVariant {
                   <span
                     role="button"
                     tabindex="-1"
-                    class="ml-2 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+                    class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+                    [attr.aria-label]="'COMMON.EDIT' | translate"
+                    (click)="onEditPresetEvent($event, 'colorGrading', grade.id)"
+                  >✎</span>
+                  <span
+                    role="button"
+                    tabindex="-1"
+                    class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
                     [attr.aria-label]="'COMMON.DELETE' | translate"
-                    (click)="onRemoveGrade($event, grade.id)"
+                    (click)="onRemovePresetEvent($event, 'colorGrading', grade.id)"
                   >×</span>
                 </button>
               } @else {
                 <!--
                   Curated grades (TOKIO/COLOMBIA/OHIO/BANK) keep their
-                  Popover with 4 random mood variants — same UX as before.
+                  Popover with 4 random mood variants. ✎ and × on the chip
+                  also let the admin rewrite or hide the curated entry.
                 -->
                 <div class="flex flex-col">
                   <button
@@ -170,8 +178,26 @@ interface GradeVariant {
                         class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
                       ></span>
                     }
-                    <span class="whitespace-nowrap">{{ grade.labelKey | translate }}</span>
+                    <span class="whitespace-nowrap">
+                      {{ grade.isOverridden
+                          ? grade.label
+                          : (grade.labelKey | translate) }}
+                    </span>
                     <span aria-hidden="true" class="ml-1.5 text-fg-muted">▾</span>
+                    <span
+                      role="button"
+                      tabindex="-1"
+                      class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+                      [attr.aria-label]="'COMMON.EDIT' | translate"
+                      (click)="onEditPresetEvent($event, 'colorGrading', grade.id)"
+                    >✎</span>
+                    <span
+                      role="button"
+                      tabindex="-1"
+                      class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+                      [attr.aria-label]="'COMMON.DELETE' | translate"
+                      (click)="onRemovePresetEvent($event, 'colorGrading', grade.id)"
+                    >×</span>
                   </button>
 
                   @if (active && selectedVariant()) {
@@ -227,7 +253,8 @@ interface GradeVariant {
           [options]="genreOptions()"
           [value]="prompt.cinematography().genre"
           (valueChange)="onGenre($event)"
-          (remove)="onRemoveCustom('genre', $event)"
+          (edit)="onEditPreset('genre', $event)"
+          (remove)="onRemovePreset('genre', $event)"
         />
       </div>
       }
@@ -235,7 +262,8 @@ interface GradeVariant {
       @if (customDialogVisible()) {
         <app-custom-preset-dialog
           [visible]="customDialogVisible()"
-          (visibleChange)="customDialogVisible.set($event)"
+          [editTarget]="editTarget()"
+          (visibleChange)="onDialogVisibility($event)"
         />
       }
     </section>
@@ -262,12 +290,29 @@ export class CinematographyComponent {
   /** Visibility of the admin custom-preset wizard. */
   protected readonly customDialogVisible = signal(false);
 
+  /**
+   * When non-null the wizard is in edit mode (pre-filled + category
+   * locked). Set by `onEditPreset`, cleared on dialog close.
+   */
+  protected readonly editTarget = signal<{
+    category: PresetCategory;
+    id: string;
+    label: string;
+    prompt: string;
+  } | null>(null);
+
   protected toggleExpanded(): void {
     this.expanded.update((v) => !v);
   }
 
-  protected openCustomDialog(): void {
+  protected openCreateDialog(): void {
+    this.editTarget.set(null);
     this.customDialogVisible.set(true);
+  }
+
+  protected onDialogVisibility(v: boolean): void {
+    this.customDialogVisible.set(v);
+    if (!v) this.editTarget.set(null);
   }
 
   constructor() {
@@ -281,24 +326,27 @@ export class CinematographyComponent {
     this.presets.lens().map((p) => ({
       value: p.id as LensId,
       labelKey: p.labelKey,
-      label: p.isCustom ? p.label : undefined,
-      removable: p.isCustom,
+      label: p.isCustom || p.isOverridden ? p.label : undefined,
+      removable: true,
+      editable: true,
     })),
   );
   protected readonly bodyOptions = computed<ChipOption<CameraBodyId>[]>(() =>
     this.presets.camera().map((p) => ({
       value: p.id as CameraBodyId,
       labelKey: p.labelKey,
-      label: p.isCustom ? p.label : undefined,
-      removable: p.isCustom,
+      label: p.isCustom || p.isOverridden ? p.label : undefined,
+      removable: true,
+      editable: true,
     })),
   );
   protected readonly motionOptions = computed<ChipOption<CameraMotionId>[]>(() =>
     this.presets.cameraMotion().map((p) => ({
       value: p.id as CameraMotionId,
       labelKey: p.labelKey,
-      label: p.isCustom ? p.label : undefined,
-      removable: p.isCustom,
+      label: p.isCustom || p.isOverridden ? p.label : undefined,
+      removable: true,
+      editable: true,
     })),
   );
   protected readonly gradeOptions = computed<Preset[]>(() =>
@@ -308,8 +356,9 @@ export class CinematographyComponent {
     this.presets.genre().map((p) => ({
       value: p.id as GenreId,
       labelKey: p.labelKey,
-      label: p.isCustom ? p.label : undefined,
-      removable: p.isCustom,
+      label: p.isCustom || p.isOverridden ? p.label : undefined,
+      removable: true,
+      editable: true,
     })),
   );
 
@@ -350,28 +399,33 @@ export class CinematographyComponent {
     this.prompt.patchCinematography({
       colorGrading: cur === id ? null : (id as ColorGradingId),
     });
-    // No variant for custom grades.
     if (cur === id) this.selectedVariant.set(null);
   }
 
-  /** Remove a custom color grade from the catalog (× on the chip). */
-  protected onRemoveGrade(e: MouseEvent, id: string): void {
-    e.stopPropagation();
-    e.preventDefault();
-    if (this.prompt.cinematography().colorGrading === id) {
-      this.prompt.patchCinematography({ colorGrading: null });
-      this.selectedVariant.set(null);
-    }
-    this.presets.removeCustomPreset('colorGrading', id);
+  /**
+   * Open the wizard in edit mode pre-filled with this preset's current
+   * label and prompt. The category is locked once the dialog opens —
+   * moving a preset to a different row is treated as delete-then-create.
+   */
+  protected onEditPreset(category: PresetCategory, id: string): void {
+    const preset = this.presets.findPreset(id);
+    if (!preset) return;
+    this.editTarget.set({
+      category,
+      id,
+      label: preset.label,
+      prompt: preset.prompt,
+    });
+    this.customDialogVisible.set(true);
   }
 
   /**
-   * Generic remove handler shared by every non-grade toggle-group.
-   * If the removed preset was the currently-selected value for that
-   * slot, we also clear the selection so the prompt doesn't keep a
-   * dangling id around.
+   * Delete a preset of either origin. For customs the row is dropped
+   * outright; for baseline rows the id is added to the deletion list so
+   * it stays hidden across reloads. Clears any active selection that
+   * was pointing at the removed preset.
    */
-  protected onRemoveCustom(category: PresetCategory, id: string): void {
+  protected onRemovePreset(category: PresetCategory, id: string): void {
     const cine = this.prompt.cinematography();
     switch (category) {
       case 'lens':
@@ -385,11 +439,42 @@ export class CinematographyComponent {
         if (cine.cameraMotion === id)
           this.prompt.patchCinematography({ cameraMotion: null });
         break;
+      case 'colorGrading':
+        if (cine.colorGrading === id) {
+          this.prompt.patchCinematography({ colorGrading: null });
+          this.selectedVariant.set(null);
+        }
+        break;
       case 'genre':
         if (cine.genre === id) this.prompt.patchCinematography({ genre: null });
         break;
     }
-    this.presets.removeCustomPreset(category, id);
+    this.presets.removePreset(category, id);
+  }
+
+  /**
+   * Click-handler wrappers for the color grading chips — the ✎ and ×
+   * live inside a parent <button>, so we stop propagation before
+   * dispatching to the canonical handlers.
+   */
+  protected onEditPresetEvent(
+    e: MouseEvent,
+    category: PresetCategory,
+    id: string,
+  ): void {
+    e.stopPropagation();
+    e.preventDefault();
+    this.onEditPreset(category, id);
+  }
+
+  protected onRemovePresetEvent(
+    e: MouseEvent,
+    category: PresetCategory,
+    id: string,
+  ): void {
+    e.stopPropagation();
+    e.preventDefault();
+    this.onRemovePreset(category, id);
   }
 
   protected chipClasses(active: boolean): string {

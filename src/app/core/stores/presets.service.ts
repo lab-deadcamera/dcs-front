@@ -54,10 +54,35 @@ function keyOf(id: string): string {
   return LABEL_KEYS[id] ?? id;
 }
 
-/** localStorage slot for admin-added custom presets — survives reloads. */
-const CUSTOM_STORAGE_KEY = 'dcs-custom-presets';
+/** localStorage slot for the admin preset mutations — survives reloads. */
+const STORAGE_KEY = 'dcs-custom-presets';
 
 type CustomPresetMap = Record<PresetCategory, Preset[]>;
+type OverridesMap = Record<PresetCategory, Record<string, PresetOverride>>;
+type DeletionsMap = Record<PresetCategory, string[]>;
+
+interface PresetOverride {
+  label?: string;
+  prompt?: string;
+}
+
+/**
+ * Combined admin mutation state.
+ *
+ *   custom     — net-new presets added by the admin (no baseline counterpart).
+ *   overrides  — per-baseline label/prompt edits keyed by category + id.
+ *   deletions  — ids of baseline presets the admin has marked deleted.
+ *
+ * The browser cannot mutate `presets.json` on disk, so this state acts as
+ * the source of truth for "after admin changes" and is merged into every
+ * per-category computed signal. A future `PATCH /api/v1/presets` endpoint
+ * could push this back to the file, but for now everything is local.
+ */
+interface PresetsState {
+  custom: CustomPresetMap;
+  overrides: OverridesMap;
+  deletions: DeletionsMap;
+}
 
 function emptyCustomMap(): CustomPresetMap {
   return {
@@ -69,29 +94,90 @@ function emptyCustomMap(): CustomPresetMap {
   };
 }
 
-function loadCustomPresets(): CustomPresetMap {
+function emptyOverrides(): OverridesMap {
+  return { lens: {}, camera: {}, cameraMotion: {}, colorGrading: {}, genre: {} };
+}
+
+function emptyDeletions(): DeletionsMap {
+  return { lens: [], camera: [], cameraMotion: [], colorGrading: [], genre: [] };
+}
+
+function emptyState(): PresetsState {
+  return {
+    custom: emptyCustomMap(),
+    overrides: emptyOverrides(),
+    deletions: emptyDeletions(),
+  };
+}
+
+function loadState(): PresetsState {
   try {
-    const raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
-    if (!raw) return emptyCustomMap();
-    const parsed = JSON.parse(raw) as Partial<CustomPresetMap>;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return emptyState();
+    const parsed = JSON.parse(raw);
+
+    // Backwards-compat migration: prior versions wrote the custom map
+    // flat at the root (no `custom`/`overrides`/`deletions` envelope).
+    if (parsed.lens !== undefined && !parsed.custom) {
+      return {
+        custom: {
+          lens: parsed.lens ?? [],
+          camera: parsed.camera ?? [],
+          cameraMotion: parsed.cameraMotion ?? [],
+          colorGrading: parsed.colorGrading ?? [],
+          genre: parsed.genre ?? [],
+        },
+        overrides: emptyOverrides(),
+        deletions: emptyDeletions(),
+      };
+    }
+
     return {
-      lens: parsed.lens ?? [],
-      camera: parsed.camera ?? [],
-      cameraMotion: parsed.cameraMotion ?? [],
-      colorGrading: parsed.colorGrading ?? [],
-      genre: parsed.genre ?? [],
+      custom: { ...emptyCustomMap(), ...(parsed.custom ?? {}) },
+      overrides: { ...emptyOverrides(), ...(parsed.overrides ?? {}) },
+      deletions: { ...emptyDeletions(), ...(parsed.deletions ?? {}) },
     };
   } catch {
-    return emptyCustomMap();
+    return emptyState();
   }
 }
 
-function saveCustomPresets(map: CustomPresetMap): void {
+function saveState(state: PresetsState): void {
   try {
-    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(map));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    /* quota / disabled storage — ignore, customs just won't persist */
+    /* quota / disabled storage — ignore */
   }
+}
+
+/**
+ * Merge a baseline category list with the admin mutations:
+ *   1. drop ids in `deletions`
+ *   2. apply override label/prompt for surviving baseline rows
+ *   3. append custom (admin-added) rows at the end
+ */
+function mergeCategory(
+  baseline: Array<{ id: string; label: string; prompt: string }> | undefined,
+  state: PresetsState,
+  cat: PresetCategory,
+): Preset[] {
+  const deletions = new Set(state.deletions[cat]);
+  const overrides = state.overrides[cat];
+
+  const baselineMapped = mapPresets(baseline)
+    .filter((p) => !deletions.has(p.id))
+    .map((p) => {
+      const ov = overrides[p.id];
+      if (!ov) return p;
+      return {
+        ...p,
+        label: ov.label ?? p.label,
+        prompt: ov.prompt ?? p.prompt,
+        isOverridden: true,
+      } as Preset;
+    });
+
+  return [...baselineMapped, ...state.custom[cat]];
 }
 
 /**
@@ -106,35 +192,31 @@ export class PresetsService {
   private readonly _data = signal<PresetsFile | null>(null);
 
   /**
-   * Admin-added presets, keyed by category. Hydrated from localStorage on
-   * boot and persisted on every mutation. Merged into the per-category
-   * computed signals below so the rest of the app never has to know if
-   * a preset comes from `presets.json` or from the runtime store.
+   * Admin mutation state — adds, edits and deletes applied on top of
+   * `presets.json`. Hydrated from localStorage on boot and persisted on
+   * every mutation. Merged into the per-category computed signals below
+   * so the rest of the app never has to know which rows came from the
+   * file and which from the admin.
    */
-  private readonly _custom = signal<CustomPresetMap>(loadCustomPresets());
+  private readonly _state = signal<PresetsState>(loadState());
 
   readonly loaded = computed(() => this._data() !== null);
 
-  readonly lens = computed<Preset[]>(() => [
-    ...mapPresets(this._data()?.lens),
-    ...this._custom().lens,
-  ]);
-  readonly camera = computed<Preset[]>(() => [
-    ...mapPresets(this._data()?.camera),
-    ...this._custom().camera,
-  ]);
-  readonly cameraMotion = computed<Preset[]>(() => [
-    ...mapPresets(this._data()?.cameraMotion),
-    ...this._custom().cameraMotion,
-  ]);
-  readonly colorGrading = computed<Preset[]>(() => [
-    ...mapPresets(this._data()?.colorGrading),
-    ...this._custom().colorGrading,
-  ]);
-  readonly genre = computed<Preset[]>(() => [
-    ...mapPresets(this._data()?.genre),
-    ...this._custom().genre,
-  ]);
+  readonly lens = computed<Preset[]>(() =>
+    mergeCategory(this._data()?.lens, this._state(), 'lens'),
+  );
+  readonly camera = computed<Preset[]>(() =>
+    mergeCategory(this._data()?.camera, this._state(), 'camera'),
+  );
+  readonly cameraMotion = computed<Preset[]>(() =>
+    mergeCategory(this._data()?.cameraMotion, this._state(), 'cameraMotion'),
+  );
+  readonly colorGrading = computed<Preset[]>(() =>
+    mergeCategory(this._data()?.colorGrading, this._state(), 'colorGrading'),
+  );
+  readonly genre = computed<Preset[]>(() =>
+    mergeCategory(this._data()?.genre, this._state(), 'genre'),
+  );
   readonly aspectRatio = computed<SpecOption[]>(() =>
     mapSpecs(this._data()?.aspectRatio),
   );
@@ -173,9 +255,7 @@ export class PresetsService {
   /**
    * Append a user-authored preset to the chosen category. The id is
    * generated client-side (`custom_<ts>_<rand>`) so customs never collide
-   * with baseline ids. `labelKey` is set to the user's label so it
-   * renders through the i18n pipe transparently (unknown keys fall
-   * through to their literal text).
+   * with baseline ids.
    */
   addCustomPreset(
     category: PresetCategory,
@@ -195,27 +275,113 @@ export class PresetsService {
       isCustom: true,
     };
 
-    this._custom.update((map) => {
-      const next: CustomPresetMap = {
-        ...map,
-        [category]: [...map[category], preset],
+    this._state.update((s) => {
+      const next: PresetsState = {
+        ...s,
+        custom: {
+          ...s.custom,
+          [category]: [...s.custom[category], preset],
+        },
       };
-      saveCustomPresets(next);
+      saveState(next);
       return next;
     });
     return preset;
   }
 
-  /** Drop a user-added preset by category + id. No-op for baseline ids. */
-  removeCustomPreset(category: PresetCategory, id: string): void {
-    this._custom.update((map) => {
-      const next: CustomPresetMap = {
-        ...map,
-        [category]: map[category].filter((p) => p.id !== id),
-      };
-      saveCustomPresets(next);
+  /**
+   * Patch a preset's label and/or prompt. Routes the write to the right
+   * slot depending on origin: customs are mutated in place inside the
+   * `custom` map; baseline rows get a record in `overrides[category][id]`
+   * so re-loads still see the change without touching `presets.json`.
+   */
+  updatePreset(
+    category: PresetCategory,
+    id: string,
+    patch: { label?: string; prompt?: string },
+  ): void {
+    this._state.update((s) => {
+      const customRow = s.custom[category].find((p) => p.id === id);
+
+      let next: PresetsState;
+      if (customRow) {
+        next = {
+          ...s,
+          custom: {
+            ...s.custom,
+            [category]: s.custom[category].map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    label: patch.label?.trim() ?? p.label,
+                    labelKey: patch.label?.trim() ?? p.labelKey,
+                    prompt: patch.prompt?.trim() ?? p.prompt,
+                  }
+                : p,
+            ),
+          },
+        };
+      } else {
+        next = {
+          ...s,
+          overrides: {
+            ...s.overrides,
+            [category]: {
+              ...s.overrides[category],
+              [id]: {
+                ...s.overrides[category][id],
+                ...(patch.label !== undefined
+                  ? { label: patch.label.trim() }
+                  : {}),
+                ...(patch.prompt !== undefined
+                  ? { prompt: patch.prompt.trim() }
+                  : {}),
+              },
+            },
+          },
+        };
+      }
+      saveState(next);
       return next;
     });
+  }
+
+  /**
+   * Delete a preset regardless of origin. Customs are dropped from the
+   * `custom` map; baseline rows are added to `deletions[category]` so they
+   * stay hidden after reload until the admin restores via `restoreBaseline`.
+   */
+  removePreset(category: PresetCategory, id: string): void {
+    this._state.update((s) => {
+      const isCustom = s.custom[category].some((p) => p.id === id);
+      let next: PresetsState;
+      if (isCustom) {
+        next = {
+          ...s,
+          custom: {
+            ...s.custom,
+            [category]: s.custom[category].filter((p) => p.id !== id),
+          },
+        };
+      } else {
+        next = {
+          ...s,
+          deletions: {
+            ...s.deletions,
+            [category]: s.deletions[category].includes(id)
+              ? s.deletions[category]
+              : [...s.deletions[category], id],
+          },
+        };
+      }
+      saveState(next);
+      return next;
+    });
+  }
+
+  /** Convenience alias kept for backwards-compat with prior call sites. */
+  removeCustomPreset(category: PresetCategory, id: string): void {
+    this.removePreset(category, id);
   }
 }
 

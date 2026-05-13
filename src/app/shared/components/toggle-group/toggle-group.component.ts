@@ -60,11 +60,20 @@ import { ChipOption } from '@core/interfaces/studio.models';
           <span class="whitespace-nowrap">
             {{ opt.label ?? (opt.labelKey | translate) }}
           </span>
+          @if (opt.editable) {
+            <span
+              role="button"
+              tabindex="-1"
+              class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+              [attr.aria-label]="'COMMON.EDIT' | translate"
+              (click)="onEdit($event, opt.value)"
+            >✎</span>
+          }
           @if (opt.removable) {
             <span
               role="button"
               tabindex="-1"
-              class="ml-2 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+              class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
               [attr.aria-label]="'COMMON.DELETE' | translate"
               (click)="onRemove($event, opt.value)"
             >×</span>
@@ -86,6 +95,8 @@ export class ToggleGroupComponent<V extends string = string> {
   readonly valueChange = output<V | null>();
   /** Emitted when the user clicks the × on a `removable` chip. */
   readonly remove = output<V>();
+  /** Emitted when the user clicks the ✎ on an `editable` chip. */
+  readonly edit = output<V>();
 
   protected readonly ariaLabel = computed(() => {
     const k = this.labelKey();
@@ -105,6 +116,12 @@ export class ToggleGroupComponent<V extends string = string> {
     e.stopPropagation();
     e.preventDefault();
     this.remove.emit(v);
+  }
+
+  protected onEdit(e: MouseEvent, v: V): void {
+    e.stopPropagation();
+    e.preventDefault();
+    this.edit.emit(v);
   }
 
   protected chipClasses(selected: boolean): string {

@@ -69,7 +69,11 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '34rem' }"
-      [header]="'STUDIO.CINEMATOGRAPHY.CUSTOM.DIALOG_TITLE' | translate"
+      [header]="
+        (editTarget()
+          ? 'STUDIO.CINEMATOGRAPHY.CUSTOM.EDIT_TITLE'
+          : 'STUDIO.CINEMATOGRAPHY.CUSTOM.DIALOG_TITLE') | translate
+      "
     >
       <form
         [formGroup]="form"
@@ -163,8 +167,12 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
             (onClick)="close()"
           />
           <p-button
-            icon="pi pi-plus"
-            [label]="'STUDIO.CINEMATOGRAPHY.CUSTOM.SUBMIT' | translate"
+            [icon]="editTarget() ? 'pi pi-check' : 'pi pi-plus'"
+            [label]="
+              (editTarget()
+                ? 'COMMON.SAVE'
+                : 'STUDIO.CINEMATOGRAPHY.CUSTOM.SUBMIT') | translate
+            "
             [disabled]="form.invalid"
             data-testid="custom-preset-submit"
             (onClick)="onSubmit()"
@@ -184,8 +192,19 @@ export class CustomPresetDialogComponent {
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
-  /** Default category to preselect when the dialog opens. */
+  /** Default category to preselect when the dialog opens in create mode. */
   readonly defaultCategory = input<PresetCategory>('lens');
+  /**
+   * When set, the dialog switches to edit mode: form is pre-filled, the
+   * category field is locked (you can't move a preset between rows), and
+   * submit calls `updatePreset` instead of `addCustomPreset`.
+   */
+  readonly editTarget = input<{
+    category: PresetCategory;
+    id: string;
+    label: string;
+    prompt: string;
+  } | null>(null);
 
   protected readonly form: FormGroup = this.fb.group({
     category: ['lens' as PresetCategory, Validators.required],
@@ -201,14 +220,29 @@ export class CustomPresetDialogComponent {
     { value: 'genre',        label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.GENRE') },
   ]);
 
-  /** Wipe the form whenever the dialog opens so prior state never leaks. */
+  /**
+   * Wipe / pre-fill the form whenever the dialog opens so prior state
+   * never leaks. Edit mode pre-fills and locks the category control;
+   * create mode starts blank with the parent-provided default.
+   */
   private readonly resetOnOpen = effect(() => {
     if (!this.visible()) return;
-    this.form.reset({
-      category: this.defaultCategory(),
-      label: '',
-      prompt: '',
-    });
+    const target = this.editTarget();
+    if (target) {
+      this.form.reset({
+        category: target.category,
+        label: target.label,
+        prompt: target.prompt,
+      });
+      this.form.get('category')?.disable();
+    } else {
+      this.form.get('category')?.enable();
+      this.form.reset({
+        category: this.defaultCategory(),
+        label: '',
+        prompt: '',
+      });
+    }
   });
 
   protected onVisibleChange(v: boolean): void {
@@ -225,20 +259,34 @@ export class CustomPresetDialogComponent {
       return;
     }
 
-    const { category, label, prompt } = this.form.value as {
+    // Use getRawValue so the (disabled in edit mode) category is included.
+    const { category, label, prompt } = this.form.getRawValue() as {
       category: PresetCategory;
       label: string;
       prompt: string;
     };
 
-    const created = this.presets.addCustomPreset(category, { label, prompt });
-    this.toast.add({
-      severity: 'success',
-      summary: 'OK',
-      detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.CREATED', {
-        label: created.label,
-      }),
-    });
+    const target = this.editTarget();
+    if (target) {
+      this.presets.updatePreset(target.category, target.id, { label, prompt });
+      this.toast.add({
+        severity: 'success',
+        summary: 'OK',
+        detail: this.i18n.instant(
+          'STUDIO.CINEMATOGRAPHY.CUSTOM.UPDATED',
+          { label },
+        ),
+      });
+    } else {
+      const created = this.presets.addCustomPreset(category, { label, prompt });
+      this.toast.add({
+        severity: 'success',
+        summary: 'OK',
+        detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.CREATED', {
+          label: created.label,
+        }),
+      });
+    }
     this.visibleChange.emit(false);
   }
 }

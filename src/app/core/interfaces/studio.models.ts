@@ -40,6 +40,8 @@ export interface ChipOption<V extends string = string> {
   label?: string;
   /** When true, the chip renders a small × that emits `(remove)`. */
   removable?: boolean;
+  /** When true, the chip renders a small ✎ that emits `(edit)`. */
+  editable?: boolean;
 }
 
 /**
@@ -54,6 +56,8 @@ export interface Preset {
   labelKey: string;
   /** Set on rows added by the admin at runtime (vs the curated presets.json). */
   isCustom?: boolean;
+  /** Set on baseline rows whose label/prompt the admin has rewritten. */
+  isOverridden?: boolean;
 }
 
 /** Technical option (aspect ratio, resolution) — has a literal `value`. */

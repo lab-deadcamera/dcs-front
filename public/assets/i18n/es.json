@@ -188,6 +188,7 @@
       "CUSTOM": {
         "NEW_BUTTON": "Nuevo preset",
         "DIALOG_TITLE": "Crear preset de cinematografía",
+        "EDIT_TITLE": "Editar preset de cinematografía",
         "CATEGORY": "Categoría",
         "CATEGORY_PLACEHOLDER": "Elige una fila de presets",
         "LABEL": "Nombre",
@@ -196,7 +197,8 @@
         "PROMPT_PLACEHOLDER": "Instrucción literal que se inyecta en el prompt compilado final — ej. \"cyberpunk neon grade, dicotomía magenta-cyan, …\"",
         "PROMPT_HINT": "Escrito en inglés. Este es el texto exacto que recibe Seedance — no se traduce.",
         "SUBMIT": "Agregar preset",
-        "CREATED": "Preset \"{{label}}\" agregado"
+        "CREATED": "Preset \"{{label}}\" agregado",
+        "UPDATED": "Preset \"{{label}}\" actualizado"
       },
       "GENRES": {
         "DRAMA": "Drama",
