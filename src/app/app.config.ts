@@ -4,7 +4,14 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { provideIcons } from '@ng-icons/core';
-import { heroSunMicro, heroMoonMicro, heroCheckMicro, heroChevronDownMicro, heroXMarkMicro, heroAdjustmentsHorizontalMicro } from '@ng-icons/heroicons/micro';
+import {
+  heroSunMicro,
+  heroMoonMicro,
+  heroCheckMicro,
+  heroChevronDownMicro,
+  heroXMarkMicro,
+  heroAdjustmentsHorizontalMicro,
+} from '@ng-icons/heroicons/micro';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import Aura from '@primeuix/themes/aura';
 
@@ -27,13 +34,20 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    provideIcons({ heroSunMicro, heroMoonMicro, heroCheckMicro, heroChevronDownMicro, heroXMarkMicro, heroAdjustmentsHorizontalMicro }),
+    provideIcons({
+      heroSunMicro,
+      heroMoonMicro,
+      heroCheckMicro,
+      heroChevronDownMicro,
+      heroXMarkMicro,
+      heroAdjustmentsHorizontalMicro,
+    }),
     provideTranslateService({
       loader: {
         provide: TranslateLoader,
         useClass: CustomTranslateLoader,
       },
-      fallbackLang: 'es',
+      fallbackLang: 'en',
     }),
   ],
 };

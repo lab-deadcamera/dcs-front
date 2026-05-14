@@ -1,0 +1,221 @@
+<section class="px-6 py-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Providers &amp; Models</h1>
+      <p class="mt-1 text-[12px] text-fg-muted">
+        Manage AI providers and their model configurations
+      </p>
+    </div>
+    <p-button
+      [label]="'PROVIDERS.NEW_PROVIDER' | translate"
+      icon="pi pi-plus"
+      data-testid="new-provider-btn"
+      (onClick)="openCreateProvider()"
+    />
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'COMMON.LOADING' | translate }}
+    </p>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && providers().length === 0) {
+    <div class="flex flex-col items-center gap-4 py-16">
+      <i class="pi pi-database text-4xl text-fg-muted"></i>
+      <p class="text-[13px] text-fg-muted">
+        No providers yet. Create your first provider to get started.
+      </p>
+    </div>
+  }
+
+  <!-- Provider list -->
+  @if (providers().length > 0) {
+    <div class="flex flex-col gap-3">
+      @for (item of providers(); track item.provider.id) {
+        <div
+          class="border"
+          style="border-color: var(--border-color);"
+        >
+          <!-- Provider header row -->
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                class="flex h-6 w-6 items-center justify-center rounded text-[11px] transition-colors hover:bg-ink-800"
+                (click)="toggleExpand(item.provider.id)"
+                [attr.aria-expanded]="expandedIds()[item.provider.id]"
+              >
+                {{ expandedIds()[item.provider.id] ? '▾' : '▸' }}
+              </button>
+              <span class="truncate text-[14px] font-semibold">
+                {{ item.provider.name }}
+              </span>
+              <span
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                [class.bg-green-900/40]="item.provider.active"
+                [class.text-green-400]="item.provider.active"
+                [class.bg-ink-700]="!item.provider.active"
+                [class.text-fg-muted]="!item.provider.active"
+              >
+                {{ item.provider.active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="font-mono text-[11px] text-fg-muted">
+                {{ item.models.length }} model{{ item.models.length !== 1 ? 's' : '' }}
+              </span>
+
+              <p-button
+                icon="pi pi-plus"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Add model"
+                (onClick)="openCreateModel(item.provider.id)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Edit provider"
+                (onClick)="openEditProvider(item.provider)"
+              />
+              <p-button
+                icon="pi pi-power-off"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [pTooltip]="item.provider.active ? 'Deactivate' : 'Activate'"
+                (onClick)="toggleActive(item.provider)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Delete provider"
+                (onClick)="confirmDeleteProvider(item.provider)"
+              />
+            </div>
+          </div>
+
+          <!-- Models section (expandable) -->
+          @if (expandedIds()[item.provider.id] && item.models.length > 0) {
+            <div class="border-t" style="border-color: var(--border-color);">
+              <table class="w-full text-[12px]">
+                <thead>
+                  <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                    <th class="px-4 py-2 font-medium">Model</th>
+                    <th class="px-4 py-2 font-medium">Status</th>
+                    <th class="px-4 py-2 font-medium">Endpoint</th>
+                    <th class="px-4 py-2 font-medium">URL</th>
+                    <th class="w-12 px-4 py-2"></th>
+                    <th class="px-4 py-2 font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (m of item.models; track m.id) {
+                    <tr class="border-t" style="border-color: var(--border-color);">
+                      <td class="px-4 py-2 font-mono text-[13px]">{{ m.name }}</td>
+                      <td class="px-4 py-2">
+                        <span
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                          [class.bg-green-900/40]="m.active"
+                          [class.text-green-400]="m.active"
+                          [class.bg-ink-700]="!m.active"
+                          [class.text-fg-muted]="!m.active"
+                        >
+                          {{ m.active ? 'Active' : 'Inactive' }}
+                        </span>
+                      </td>
+                      <td class="max-w-[200px] truncate px-4 py-2 font-mono text-fg-muted">
+                        {{ m.endpoint }}
+                      </td>
+                      <td class="max-w-[200px] truncate px-4 py-2 font-mono text-fg-muted">
+                        {{ m.url }}
+                      </td>
+                      <td class="w-12 px-4 py-2 text-center">
+                        <button
+                          type="button"
+                          class="text-[16px] transition-colors hover:scale-110"
+                          [class.text-yellow-400]="m.favorite"
+                          [class.text-ink-500]="!m.favorite"
+                          [pTooltip]="m.favorite ? 'Remove favorite' : 'Set as favorite'"
+                          (click)="onToggleFavorite(m)"
+                        >
+                          {{ m.favorite ? '★' : '☆' }}
+                        </button>
+                      </td>
+                      <td class="px-4 py-2">
+                        <div class="flex items-center gap-1">
+                          <p-button
+                            icon="pi pi-pencil"
+                            severity="secondary"
+                            [text]="true"
+                            [rounded]="true"
+                            pTooltip="Edit model"
+                            (onClick)="openEditModel(m)"
+                          />
+                          <p-button
+                            icon="pi pi-power-off"
+                            severity="secondary"
+                            [text]="true"
+                            [rounded]="true"
+                            [pTooltip]="m.active ? 'Deactivate' : 'Activate'"
+                            (onClick)="toggleModelActive(m, item.provider.id)"
+                          />
+                          <p-button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            [text]="true"
+                            [rounded]="true"
+                            pTooltip="Delete model"
+                            (onClick)="confirmDeleteModel(m, item.provider.id)"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Empty models state -->
+          @if (expandedIds()[item.provider.id] && item.models.length === 0) {
+            <div class="border-t px-4 py-4 text-center text-[12px] text-fg-muted" style="border-color: var(--border-color);">
+              No models yet.
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Dialogs -->
+  <app-provider-form-dialog
+    [visible]="providerDialogVisible()"
+    [provider]="providerDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="providerDialogVisible.set($event)"
+    (create)="onCreateProvider($event)"
+    (update)="onUpdateProvider($event)"
+  />
+
+  <app-model-form-dialog
+    [visible]="modelDialogVisible()"
+    [model]="modelDialogTarget()"
+    [providers]="allProviders()"
+    [preSelectedProviderId]="modelPreSelectedProviderId()"
+    [submitting]="submitting()"
+    (visibleChange)="modelDialogVisible.set($event)"
+    (create)="onCreateModel($event)"
+    (update)="onUpdateModel($event)"
+  />
+</section>

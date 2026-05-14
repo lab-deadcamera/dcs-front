@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -6,13 +6,8 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
 import { StudioStateService } from '@app/core/stores/studio.state';
+import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
 
-/**
- * Top navigation bar.
- *
- *  [logo] DEAD CAMERA / SEEDANCE STUDIO    • [API KEYS popover] [jander] [SR·20] [EXPORT 0] [API status]
- *         STUDIOS / AI RESEARCH LAB
- */
 @Component({
   selector: 'app-header',
   imports: [
@@ -23,12 +18,11 @@ import { StudioStateService } from '@app/core/stores/studio.state';
     NgOptimizedImage,
     RouterLink,
     RouterLinkActive,
+    ModelSelectDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header
-      class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4"
-    >
+    <header class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4">
       <div class="flex items-center gap-3">
         <img
           ngSrc="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg"
@@ -54,8 +48,6 @@ import { StudioStateService } from '@app/core/stores/studio.state';
       </div>
 
       <div class="flex items-center gap-3">
-        <app-api-keys-popover />
-
         <ui-icon-button
           icon="👤"
           [label]="state.user().handle"
@@ -64,37 +56,16 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         />
         <ui-icon-button
           icon="🎬"
-          [label]="state.projectCode()"
+          [label]="state.modelCode()?.name || ('HEADER.SELECT_MODEL' | translate)"
           iconColor="red"
           labelColor="red"
+          (click)="onChangeModel()"
         />
-        <ui-icon-button
-          icon="📦"
-          [label]="'HEADER.ACTIONS.EXPORT' | translate"
-          [badge]="state.exportCount().toString()"
-          iconColor="green"
-          badgeColor="green"
-        />
-        <ui-icon-button
-          icon="🖥"
-          [label]="'HEADER.ACTIONS.API' | translate"
-          [badge]="state.apiBadge() | translate"
-          badgeColor="red"
-        />
-
         <app-theme-picker />
       </div>
     </header>
 
-    <!--
-      Route navigator — switch between the Studio and the Characters
-      library. Active tab is underlined and tinted with the primary
-      palette so it follows the global theme.
-    -->
-    <nav
-      class="flex items-center gap-1 border-b border-ink-600 px-6"
-      aria-label="Primary"
-    >
+    <nav class="flex items-center gap-1 border-b border-ink-600 px-6" aria-label="Primary">
       <a
         routerLink="/studio"
         routerLinkActive="!text-fg-strong !border-primary-500"
@@ -111,9 +82,28 @@ import { StudioStateService } from '@app/core/stores/studio.state';
       >
         {{ 'NAV.FILES' | translate }}
       </a>
+      <a
+        routerLink="/providers"
+        routerLinkActive="!text-fg-strong !border-primary-500"
+        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        data-testid="nav-providers"
+      >
+        {{ 'NAV.PROVIDERS' | translate }}
+      </a>
     </nav>
+
+    <app-model-select-dialog
+      [visible]="modelDialogVisible()"
+      (visibleChange)="modelDialogVisible.set($event)"
+    />
   `,
 })
 export class HeaderComponent {
   protected readonly state = inject(StudioStateService);
+
+  protected readonly modelDialogVisible = signal(false);
+
+  protected onChangeModel(): void {
+    this.modelDialogVisible.set(true);
+  }
 }

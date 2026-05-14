@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
@@ -9,17 +9,9 @@ import { CharacterAssetsComponent } from '@shared/components/character-assets/ch
 import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStateService } from '@app/core/stores/studio.state';
+import { ModelService } from '@app/services';
 
-/**
- * IndexStudio — composes the full Dead Camera / Seedance Studio shell.
- *
- * Layout:
- * - Mobile: single column.
- * - Desktop (lg+): two columns — inputs (assets / cinematography / output)
- *   on the left; preview / rating / prompt / generate on the right
- *   (sticky preview).
- * - The GENERATE action lives at the foot of the Prompt Builder section.
- */
 @Component({
   selector: 'app-index-studio',
   imports: [
@@ -37,13 +29,22 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   templateUrl: './index-studio.html',
   styleUrl: './index-studio.css',
 })
-export class IndexStudio {
+export class IndexStudio implements OnInit {
   protected readonly prompt = inject(PromptStateService);
+  private readonly studioState = inject(StudioStateService);
+  private readonly modelService = inject(ModelService);
+
+  ngOnInit(): void {
+    this.modelService.getFavorite().subscribe((res) => {
+      if (!res.error && res.data) {
+        this.studioState.setModelCode(res.data);
+      }
+    });
+  }
 
   protected onGenerate(): void {
     const compiled = this.prompt.compiledPrompt();
     if (!compiled) return;
-    // TODO follow-up PR: call SeedanceService.generate(...) and push the result.
     console.log('[Seedance] generate →', compiled, this.prompt.output());
   }
 }

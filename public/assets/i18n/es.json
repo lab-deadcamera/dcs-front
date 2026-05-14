@@ -12,7 +12,8 @@
     "CONTACT": "Contacto",
     "STUDIO": "Estudio",
     "CHARACTERS": "Personajes",
-    "FILES": "Archivos"
+    "FILES": "Archivos",
+    "PROVIDERS": "Proveedores"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -79,7 +80,8 @@
       "ADD_API_KEY": "AGREGAR API KEY",
       "EXPORT": "EXPORTAR",
       "API": "API"
-    }
+    },
+    "SELECT_MODEL": "Seleccionar un modelo"
   },
   "STUDIO": {
     "BRAND": {
@@ -209,6 +211,8 @@
     },
     "OUTPUT": {
       "TITLE": "Formato de Salida",
+      "MODEL": "Modelo",
+      "MODEL_PLACEHOLDER": "Auto (default del motor)",
       "ASPECT_RATIO": "Relación de Aspecto",
       "RESOLUTION": "Resolución",
       "DURATION": "Duración",
@@ -371,5 +375,25 @@
     "ERROR": "Error",
     "WARNING": "Advertencia",
     "INFO": "Información"
+  },
+  "PROVIDERS": {
+    "NEW_PROVIDER": "Nuevo Proveedor",
+    "DIALOG": {
+      "CREATE_TITLE": "Nuevo Proveedor",
+      "EDIT_TITLE": "Editar Proveedor"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "PROVIDER": "Proveedor",
+      "PROVIDER_PLACEHOLDER": "Selecciona un proveedor",
+      "MODEL_NAME": "Nombre del modelo",
+      "API_KEY": "API Key",
+      "URL": "URL",
+      "ENDPOINT": "Endpoint"
+    },
+    "MODEL_DIALOG": {
+      "CREATE_TITLE": "Nuevo Modelo",
+      "EDIT_TITLE": "Editar Modelo"
+    }
   }
 }

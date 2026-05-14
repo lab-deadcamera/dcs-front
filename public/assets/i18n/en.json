@@ -12,7 +12,8 @@
     "CONTACT": "Contact",
     "STUDIO": "Studio",
     "CHARACTERS": "Characters",
-    "FILES": "Files"
+    "FILES": "Files",
+    "PROVIDERS": "Providers"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -79,7 +80,8 @@
       "ADD_API_KEY": "ADD API KEY",
       "EXPORT": "EXPORT",
       "API": "API"
-    }
+    },
+    "SELECT_MODEL": "Select a model"
   },
   "STUDIO": {
     "BRAND": {
@@ -209,6 +211,8 @@
     },
     "OUTPUT": {
       "TITLE": "Output Format",
+      "MODEL": "Model",
+      "MODEL_PLACEHOLDER": "Auto (engine default)",
       "ASPECT_RATIO": "Aspect Ratio",
       "RESOLUTION": "Resolution",
       "DURATION": "Duration",
@@ -370,6 +374,26 @@
       "CHARACTER": "Character",
       "CHARACTER_PLACEHOLDER": "Pick a character",
       "SUBMIT": "Link"
+    }
+  },
+  "PROVIDERS": {
+    "NEW_PROVIDER": "New Provider",
+    "DIALOG": {
+      "CREATE_TITLE": "New Provider",
+      "EDIT_TITLE": "Edit Provider"
+    },
+    "FIELDS": {
+      "NAME": "Name",
+      "PROVIDER": "Provider",
+      "PROVIDER_PLACEHOLDER": "Select a provider",
+      "MODEL_NAME": "Model name",
+      "API_KEY": "API Key",
+      "URL": "URL",
+      "ENDPOINT": "Endpoint"
+    },
+    "MODEL_DIALOG": {
+      "CREATE_TITLE": "New Model",
+      "EDIT_TITLE": "Edit Model"
     }
   }
 }

@@ -20,10 +20,10 @@ import { MessageService } from 'primeng/api';
 import { Observable, forkJoin } from 'rxjs';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
-import { FilesApiService } from '@modules/files/files/services';
 import { FileEntity } from '@modules/files/files/interfaces';
 import { AssetFileKind, AssetType } from '../../../interfaces';
 import { CharactersService } from '../../../services';
+import { FilesApiService } from '@app/services';
 
 interface StagedFile {
   /** Synthetic key for `@for` tracking. */
@@ -363,8 +363,6 @@ export class AssetCreateDialogComponent implements OnDestroy {
             });
             return;
           }
-          console.log({ r });
-
           successfulIds.push((r.data as FileEntity).id);
         });
 

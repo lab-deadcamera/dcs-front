@@ -17,7 +17,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { Character, CharacterFile, CharacterFileRole } from '../../../interfaces';
 import { CharactersService } from '../../../services';
-import { FilesApiService } from '@modules/files/files/services';
+import { FilesApiService } from '@app/services';
 
 /**
  * Per-character file manager dialog.
@@ -220,40 +220,38 @@ export class CharacterFilesDialogComponent {
 
     const category = inferCategory(file);
     this.uploading.set(true);
-    this.filesApi
-      .upload({ file, category, storage: 'persistent' })
-      .subscribe((up) => {
-        if (up.error || !up.data) {
-          this.uploading.set(false);
+    this.filesApi.upload({ file, category, storage: 'persistent' }).subscribe((up) => {
+      if (up.error || !up.data) {
+        this.uploading.set(false);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Upload error',
+          detail: up.msg,
+        });
+        return;
+      }
+      const fileId = up.data.id;
+      const role = (this.roleCtrl.value.trim() || 'reference') as CharacterFileRole;
+
+      this.characters.assignFile(c.id, fileId, role).subscribe((link) => {
+        this.uploading.set(false);
+        if (link.error) {
           this.toast.add({
             severity: 'error',
-            summary: 'Upload error',
-            detail: up.msg,
+            summary: 'Link error',
+            detail: link.msg,
           });
           return;
         }
-        const fileId = up.data.id;
-        const role = (this.roleCtrl.value.trim() || 'reference') as CharacterFileRole;
-
-        this.characters.assignFile(c.id, fileId, role).subscribe((link) => {
-          this.uploading.set(false);
-          if (link.error) {
-            this.toast.add({
-              severity: 'error',
-              summary: 'Link error',
-              detail: link.msg,
-            });
-            return;
-          }
-          this.toast.add({
-            severity: 'success',
-            summary: 'OK',
-            detail: 'File linked',
-          });
-          this.selectedFile.set(null);
-          this.fetchLinks(c.id);
+        this.toast.add({
+          severity: 'success',
+          summary: 'OK',
+          detail: 'File linked',
         });
+        this.selectedFile.set(null);
+        this.fetchLinks(c.id);
       });
+    });
   }
 
   protected onUnlink(fileId: string): void {

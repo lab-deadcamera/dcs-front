@@ -2,10 +2,11 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { StudioUser } from '../interfaces/studio.models';
 import { ApiKeysStateService } from './api-keys.state';
 import { StudioStorageService } from './studio-storage.service';
+import { ModelData } from '../interfaces';
 
 interface StudioSnapshot {
   user: StudioUser;
-  projectCode: string;
+  modelCode: ModelData | null;
   exportCount: number;
 }
 
@@ -22,11 +23,11 @@ export class StudioStateService {
   private hydrated = false;
 
   private readonly _user = signal<StudioUser>({ handle: 'jander', initial: 'J' });
-  private readonly _projectCode = signal<string>('SR · 20');
+  private readonly _modelCode = signal<ModelData | null>(null);
   private readonly _exportCount = signal<number>(0);
 
   readonly user = this._user.asReadonly();
-  readonly projectCode = this._projectCode.asReadonly();
+  readonly modelCode = this._modelCode.asReadonly();
   readonly exportCount = this._exportCount.asReadonly();
 
   readonly hasApiKey = computed(() => this.apiKeys.hasActiveKey());
@@ -41,7 +42,7 @@ export class StudioStateService {
     effect(() => {
       const snap: StudioSnapshot = {
         user: this._user(),
-        projectCode: this._projectCode(),
+        modelCode: this._modelCode(),
         exportCount: this._exportCount(),
       };
       if (this.hydrated) {
@@ -55,7 +56,7 @@ export class StudioStateService {
       const snap = await this.storage.get<StudioSnapshot>('studio');
       if (snap) {
         if (snap.user) this._user.set(snap.user);
-        if (snap.projectCode) this._projectCode.set(snap.projectCode);
+        if (snap.modelCode) this._modelCode.set(snap.modelCode);
         if (typeof snap.exportCount === 'number') {
           this._exportCount.set(snap.exportCount);
         }
@@ -69,7 +70,7 @@ export class StudioStateService {
     this._exportCount.update((n) => n + 1);
   }
 
-  setProjectCode(code: string) {
-    this._projectCode.set(code);
+  setModelCode(code: ModelData | null) {
+    this._modelCode.set(code);
   }
 }

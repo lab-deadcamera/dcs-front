@@ -23,6 +23,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('@modules/files/files.routes').then((m) => m.FILES_ROUTES),
       },
+      {
+        path: 'providers',
+        loadChildren: () =>
+          import('@modules/providers/providers.routes').then((m) => m.PROVIDERS_ROUTES),
+      },
     ],
   },
   {
