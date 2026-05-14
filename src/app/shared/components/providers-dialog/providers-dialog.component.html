@@ -1,0 +1,465 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '64rem', height: '40rem' }"
+  [header]="'PROVIDERS.TITLE' | translate"
+  styleClass="providers-dialog"
+>
+  <div class="flex h-full min-h-0 gap-4">
+    <!-- ── Master: provider list ─────────────────────────────────────── -->
+    <aside
+      class="flex w-64 flex-shrink-0 flex-col border-r pr-3"
+      style="border-color: var(--border-color);"
+    >
+      <div class="mb-3 flex items-center justify-between">
+        <h3 class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+          {{ 'PROVIDERS.LIST_TITLE' | translate }}
+        </h3>
+        <p-button
+          icon="pi pi-plus"
+          size="small"
+          [label]="'PROVIDERS.NEW' | translate"
+          data-testid="providers-new"
+          (onClick)="openProviderCreate()"
+        />
+      </div>
+
+      @if (providers().length === 0) {
+        <p class="text-[12px] italic" style="color: var(--text-muted);">
+          {{ 'PROVIDERS.EMPTY' | translate }}
+        </p>
+      } @else {
+        <ul class="flex flex-col gap-1 overflow-y-auto">
+          @for (p of providers(); track p.id) {
+            <li>
+              <button
+                type="button"
+                class="flex w-full items-center justify-between border px-3 py-2 text-left text-[12px] transition-colors"
+                [class.border-primary-500]="selectedProviderId() === p.id"
+                [class.border-ink-500]="selectedProviderId() !== p.id"
+                style="background: var(--surface-bg);"
+                [attr.data-testid]="'provider-' + p.id"
+                (click)="selectProvider(p.id)"
+              >
+                <div class="min-w-0">
+                  <p
+                    class="truncate font-semibold"
+                    style="color: var(--text-primary);"
+                    [title]="p.name"
+                  >
+                    {{ p.name }}
+                  </p>
+                  <p
+                    class="truncate font-mono text-[10px]"
+                    style="color: var(--text-muted);"
+                    [title]="p.url"
+                  >
+                    {{ p.url }}
+                  </p>
+                </div>
+                @if (activeProviderId() === p.id) {
+                  <span
+                    class="ml-2 flex-shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] text-secondary-500"
+                  >●</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+
+    <!-- ── Detail pane: switches on `mode` ───────────────────────────── -->
+    <section class="flex min-h-0 flex-1 flex-col overflow-y-auto pl-1">
+      @switch (mode()) {
+        @case ('provider-create') {
+          <ng-container
+            [ngTemplateOutlet]="providerFormTpl"
+            [ngTemplateOutletContext]="{ create: true }"
+          />
+        }
+        @case ('provider-edit') {
+          <ng-container
+            [ngTemplateOutlet]="providerFormTpl"
+            [ngTemplateOutletContext]="{ create: false }"
+          />
+        }
+        @case ('model-create') {
+          <ng-container
+            [ngTemplateOutlet]="modelFormTpl"
+            [ngTemplateOutletContext]="{ create: true }"
+          />
+        }
+        @case ('model-edit') {
+          <ng-container
+            [ngTemplateOutlet]="modelFormTpl"
+            [ngTemplateOutletContext]="{ create: false }"
+          />
+        }
+        @default {
+          @if (selectedProvider(); as p) {
+            <!-- Provider details + models grid -->
+            <header class="mb-4 flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2
+                  class="truncate text-lg font-bold uppercase tracking-[0.08em]"
+                  style="color: var(--text-primary);"
+                >
+                  {{ p.name }}
+                </h2>
+                <p
+                  class="mt-1 truncate font-mono text-[11px]"
+                  style="color: var(--text-muted);"
+                  [title]="p.url"
+                >
+                  {{ p.url }}
+                </p>
+              </div>
+              <div class="flex flex-shrink-0 items-center gap-1">
+                @if (activeProviderId() !== p.id) {
+                  <p-button
+                    icon="pi pi-check"
+                    severity="secondary"
+                    size="small"
+                    [label]="'PROVIDERS.SET_ACTIVE' | translate"
+                    data-testid="provider-set-active"
+                    (onClick)="setActiveProvider(p.id)"
+                  />
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1 border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-secondary-500"
+                    style="border-color: var(--border-color);"
+                  >
+                    <i class="pi pi-check"></i>
+                    {{ 'PROVIDERS.ACTIVE' | translate }}
+                  </span>
+                }
+                <p-button
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  [attr.aria-label]="'COMMON.EDIT' | translate"
+                  data-testid="provider-edit"
+                  (onClick)="openProviderEdit()"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  [attr.aria-label]="'COMMON.DELETE' | translate"
+                  data-testid="provider-delete"
+                  (onClick)="confirmDeleteProvider()"
+                />
+              </div>
+            </header>
+
+            <dl
+              class="mb-4 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-2 border p-3 text-[12px]"
+              style="border-color: var(--border-color); background: var(--surface-bg);"
+            >
+              <dt
+                class="font-bold uppercase tracking-[0.12em]"
+                style="color: var(--text-secondary);"
+              >
+                {{ 'PROVIDERS.FIELDS.API_KEY' | translate }}
+              </dt>
+              <dd class="flex items-center gap-2 font-mono">
+                <span style="color: var(--text-primary);">
+                  {{ maskKey(p.apiKey) }}
+                </span>
+                <button
+                  type="button"
+                  class="text-[10px] uppercase tracking-[0.12em] text-fg-muted transition-colors hover:text-primary-500"
+                  (click)="toggleRevealKey()"
+                  data-testid="provider-toggle-key"
+                >
+                  {{
+                    (revealKeyFor() === selectedProviderId()
+                      ? 'PROVIDERS.HIDE'
+                      : 'PROVIDERS.SHOW') | translate
+                  }}
+                </button>
+              </dd>
+
+              @if (p.description) {
+                <dt
+                  class="font-bold uppercase tracking-[0.12em]"
+                  style="color: var(--text-secondary);"
+                >
+                  {{ 'PROVIDERS.FIELDS.DESCRIPTION' | translate }}
+                </dt>
+                <dd style="color: var(--text-primary);">{{ p.description }}</dd>
+              }
+            </dl>
+
+            <!-- Models -->
+            <div
+              class="mb-2 flex items-center justify-between border-t pt-3"
+              style="border-color: var(--border-color);"
+            >
+              <h3 class="text-[12px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+                {{ 'PROVIDERS.MODELS' | translate }}
+                <span
+                  class="ml-1 font-mono text-[10px]"
+                  style="color: var(--text-muted);"
+                >
+                  ({{ p.models.length }})
+                </span>
+              </h3>
+              <p-button
+                icon="pi pi-plus"
+                size="small"
+                [label]="'PROVIDERS.NEW_MODEL' | translate"
+                data-testid="model-new"
+                (onClick)="openModelCreate()"
+              />
+            </div>
+
+            @if (p.models.length === 0) {
+              <p class="text-[12px] italic" style="color: var(--text-muted);">
+                {{ 'PROVIDERS.NO_MODELS' | translate }}
+              </p>
+            } @else {
+              <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                @for (m of p.models; track m.id) {
+                  <li
+                    class="flex flex-col border p-3"
+                    style="border-color: var(--border-color); background: var(--surface-bg);"
+                    [attr.data-testid]="'model-' + m.id"
+                  >
+                    <div class="mb-1 flex items-start justify-between gap-2">
+                      <h4
+                        class="truncate text-[13px] font-semibold"
+                        style="color: var(--text-primary);"
+                        [title]="m.name"
+                      >
+                        {{ m.name }}
+                      </h4>
+                      @if (activeModelId() === m.id) {
+                        <span class="flex-shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] text-secondary-500">●</span>
+                      }
+                    </div>
+                    <p
+                      class="mb-2 flex-1 text-[11px]"
+                      style="color: var(--text-secondary);"
+                    >
+                      {{ m.description }}
+                    </p>
+                    <div
+                      class="flex items-center justify-end gap-1 border-t pt-2"
+                      style="border-color: var(--border-color);"
+                    >
+                      @if (activeModelId() !== m.id) {
+                        <p-button
+                          icon="pi pi-check"
+                          severity="secondary"
+                          size="small"
+                          [label]="'PROVIDERS.USE' | translate"
+                          [attr.data-testid]="'model-use-' + m.id"
+                          (onClick)="setActiveModel(m.id)"
+                        />
+                      }
+                      <p-button
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        size="small"
+                        [attr.aria-label]="'COMMON.EDIT' | translate"
+                        [attr.data-testid]="'model-edit-' + m.id"
+                        (onClick)="openModelEdit(m)"
+                      />
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        [rounded]="true"
+                        size="small"
+                        [attr.aria-label]="'COMMON.DELETE' | translate"
+                        [attr.data-testid]="'model-delete-' + m.id"
+                        (onClick)="confirmDeleteModel(m)"
+                      />
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          } @else {
+            <div
+              class="flex h-full items-center justify-center text-center italic"
+              style="color: var(--text-muted);"
+            >
+              <p>{{ 'PROVIDERS.SELECT_HINT' | translate }}</p>
+            </div>
+          }
+        }
+      }
+    </section>
+  </div>
+
+  <!-- ── Inline form templates ───────────────────────────────────────── -->
+  <ng-template #providerFormTpl let-create="create">
+    <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+      {{ (create ? 'PROVIDERS.FORM.CREATE_TITLE' : 'PROVIDERS.FORM.EDIT_TITLE') | translate }}
+    </h3>
+    <form
+      [formGroup]="providerForm"
+      (ngSubmit)="saveProvider()"
+      class="flex flex-col gap-3"
+    >
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.NAME' | translate }}
+        </label>
+        <input
+          pInputText
+          formControlName="name"
+          data-testid="provider-form-name"
+          [placeholder]="'PROVIDERS.FIELDS.NAME_PH' | translate"
+        />
+        <validator-errors
+          [control]="providerForm.get('name')"
+          [label]="'PROVIDERS.FIELDS.NAME' | translate"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.URL' | translate }}
+        </label>
+        <input
+          pInputText
+          formControlName="url"
+          data-testid="provider-form-url"
+          [placeholder]="'PROVIDERS.FIELDS.URL_PH' | translate"
+        />
+        <validator-errors
+          [control]="providerForm.get('url')"
+          [label]="'PROVIDERS.FIELDS.URL' | translate"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.API_KEY' | translate }}
+        </label>
+        <input
+          pInputText
+          type="password"
+          formControlName="apiKey"
+          data-testid="provider-form-api-key"
+          [placeholder]="'PROVIDERS.FIELDS.API_KEY_PH' | translate"
+          autocomplete="off"
+        />
+        <validator-errors
+          [control]="providerForm.get('apiKey')"
+          [label]="'PROVIDERS.FIELDS.API_KEY' | translate"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.DESCRIPTION' | translate }}
+        </label>
+        <textarea
+          pTextarea
+          rows="2"
+          formControlName="description"
+          data-testid="provider-form-description"
+          [placeholder]="'PROVIDERS.FIELDS.DESCRIPTION_PH' | translate"
+        ></textarea>
+      </div>
+
+      <div class="mt-2 flex justify-end gap-2">
+        <p-button
+          severity="secondary"
+          [text]="true"
+          [label]="'COMMON.CANCEL' | translate"
+          (onClick)="cancelForm()"
+        />
+        <p-button
+          icon="pi pi-check"
+          [label]="(create ? 'COMMON.CREATE' : 'COMMON.SAVE') | translate"
+          [disabled]="providerForm.invalid"
+          data-testid="provider-form-submit"
+          (onClick)="saveProvider()"
+        />
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template #modelFormTpl let-create="create">
+    <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+      {{ (create ? 'PROVIDERS.FORM.MODEL_CREATE' : 'PROVIDERS.FORM.MODEL_EDIT') | translate }}
+      @if (selectedProvider()) {
+        <span class="ml-1 font-mono text-[10px] normal-case tracking-normal" style="color: var(--text-muted);">
+          · {{ selectedProvider()!.name }}
+        </span>
+      }
+    </h3>
+    <form
+      [formGroup]="modelForm"
+      (ngSubmit)="saveModel()"
+      class="flex flex-col gap-3"
+    >
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.MODEL_NAME' | translate }}
+        </label>
+        <input
+          pInputText
+          formControlName="name"
+          data-testid="model-form-name"
+          [placeholder]="'PROVIDERS.FIELDS.MODEL_NAME_PH' | translate"
+        />
+        <validator-errors
+          [control]="modelForm.get('name')"
+          [label]="'PROVIDERS.FIELDS.MODEL_NAME' | translate"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.12em]">
+          {{ 'PROVIDERS.FIELDS.MODEL_DESCRIPTION' | translate }}
+        </label>
+        <textarea
+          pTextarea
+          rows="3"
+          formControlName="description"
+          data-testid="model-form-description"
+          [placeholder]="'PROVIDERS.FIELDS.MODEL_DESCRIPTION_PH' | translate"
+        ></textarea>
+        <validator-errors
+          [control]="modelForm.get('description')"
+          [label]="'PROVIDERS.FIELDS.MODEL_DESCRIPTION' | translate"
+        />
+      </div>
+
+      <div class="mt-2 flex justify-end gap-2">
+        <p-button
+          severity="secondary"
+          [text]="true"
+          [label]="'COMMON.CANCEL' | translate"
+          (onClick)="cancelForm()"
+        />
+        <p-button
+          icon="pi pi-check"
+          [label]="(create ? 'COMMON.CREATE' : 'COMMON.SAVE') | translate"
+          [disabled]="modelForm.invalid"
+          data-testid="model-form-submit"
+          (onClick)="saveModel()"
+        />
+      </div>
+    </form>
+  </ng-template>
+
+  <p-confirmDialog />
+  <p-toast position="bottom-right" />
+</p-dialog>

@@ -260,6 +260,58 @@
     "WARNING": "Warning",
     "INFO": "Info"
   },
+  "PROVIDERS": {
+    "OPEN_BUTTON": "AI providers & models",
+    "TITLE": "AI Providers & Models",
+    "LIST_TITLE": "Providers",
+    "EMPTY": "No providers yet. Add one to start.",
+    "NEW": "New",
+    "NEW_MODEL": "New model",
+    "MODELS": "Models",
+    "NO_MODELS": "No models for this provider yet.",
+    "SELECT_HINT": "Pick a provider from the left, or add a new one.",
+    "SET_ACTIVE": "Set as active",
+    "ACTIVE": "Active",
+    "USE": "Use",
+    "SHOW": "Show",
+    "HIDE": "Hide",
+    "FIELDS": {
+      "NAME": "Provider name",
+      "NAME_PH": "e.g. BytePlus",
+      "URL": "Base URL",
+      "URL_PH": "https://api.example.com/v1",
+      "API_KEY": "API key",
+      "API_KEY_PH": "Paste the secret key",
+      "DESCRIPTION": "Description",
+      "DESCRIPTION_PH": "Optional notes about the provider",
+      "MODEL_NAME": "Model name",
+      "MODEL_NAME_PH": "e.g. Ark Seedance 2",
+      "MODEL_DESCRIPTION": "Description",
+      "MODEL_DESCRIPTION_PH": "What does this model do? e.g. \"Multimodal video generation\""
+    },
+    "FORM": {
+      "CREATE_TITLE": "New provider",
+      "EDIT_TITLE": "Edit provider",
+      "MODEL_CREATE": "New model",
+      "MODEL_EDIT": "Edit model"
+    },
+    "CONFIRM": {
+      "DELETE_PROVIDER_HEADER": "Delete provider",
+      "DELETE_PROVIDER": "Delete \"{{label}}\" and all its models? This cannot be undone.",
+      "DELETE_MODEL_HEADER": "Delete model",
+      "DELETE_MODEL": "Delete model \"{{label}}\"?"
+    },
+    "TOAST": {
+      "CREATED": "Provider \"{{label}}\" added",
+      "UPDATED": "Provider \"{{label}}\" updated",
+      "DELETED": "Provider deleted",
+      "MODEL_CREATED": "Model \"{{label}}\" added",
+      "MODEL_UPDATED": "Model \"{{label}}\" updated",
+      "MODEL_DELETED": "Model deleted",
+      "ACTIVE_PROVIDER": "Active provider set",
+      "ACTIVE_MODEL": "Active model set"
+    }
+  },
   "COMMON": {
     "CANCEL": "Cancel",
     "CLOSE": "Close",

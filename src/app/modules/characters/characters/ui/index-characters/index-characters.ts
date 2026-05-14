@@ -12,11 +12,9 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { from, map, mergeMap } from 'rxjs';
 
 import { CharactersService } from '../../services';
 import {
-  AssetFileKind,
   AssetType,
   Character,
   CreateCharacterRequest,
@@ -25,7 +23,6 @@ import {
 import { CharacterFormDialogComponent } from '../components/character-form-dialog/character-form-dialog.component';
 import { CharacterFilesDialogComponent } from '../components/character-files-dialog/character-files-dialog.component';
 import { AssetCreateDialogComponent } from '../components/asset-create-dialog/asset-create-dialog.component';
-import { FilesApiService } from '@modules/files/files/services';
 import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
 
 /**
@@ -60,7 +57,6 @@ export class IndexCharacters implements OnInit {
   protected readonly characters = inject(CharactersService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
-  private readonly filesApi = inject(FilesApiService);
   private readonly prompt = inject(PromptStateService);
 
   /** Parent can listen to close itself when an asset is used. */
@@ -70,18 +66,12 @@ export class IndexCharacters implements OnInit {
   protected readonly activeType = signal<AssetType>('character');
 
   /**
-   * Per-asset preview metadata used by the card grid.
-   *
-   *   fileId       — first linked file, used to build the `<img src>`.
-   *   count        — total number of linked files (drives the +N badge).
-   *   imageBroken  — set when `<img>` errors out; the card falls back to
-   *                  the type/kind icon but the +N badge stays so the
-   *                  user still sees there are files attached.
-   *
-   * Populated lazily after `load()` completes. Cached for the session —
-   * `onAssetCreated` only refetches for the new asset, not the whole list.
+   * Set of asset ids whose preview `<img>` failed to load. Used as the
+   * sole fallback signal — actual thumbnail URLs come straight from
+   * `character.files[].thumbnailUrl`, so there's no preview cache to
+   * maintain anymore.
    */
-  protected readonly previewMap = signal<Record<string, PreviewInfo>>({});
+  protected readonly brokenPreviews = signal<Set<string>>(new Set());
 
   protected readonly tabs: {
     id: AssetType;
@@ -111,81 +101,38 @@ export class IndexCharacters implements OnInit {
   protected readonly createDialogType = signal<AssetType>('character');
 
   ngOnInit(): void {
-    this.characters.load().subscribe((res) => {
-      if (!res.error && res.data) this.loadPreviews(res.data);
-    });
+    this.characters.load().subscribe();
   }
 
   /**
-   * Fan out `GET /characters/{id}/files` for every asset, capped at 3
-   * concurrent in-flight requests so a large library doesn't hammer the
-   * backend. The UI updates incrementally as each response lands.
+   * Thumbnail URL for the card preview, or `null` if we should fall
+   * back to the icon. Returns `thumbnail_url` (which comes pre-resized
+   * from the backend) when the first attached file is an image; pure
+   * video/audio assets always render via the icon path.
    */
-  private loadPreviews(items: Character[]): void {
-    from(items)
-      .pipe(
-        mergeMap(
-          (c) =>
-            this.characters
-              .listFiles(c.id)
-              .pipe(map((r) => ({ c, r }))),
-          3,
-        ),
-      )
-      .subscribe(({ c, r }) => {
-        if (!r.error && r.data && r.data.length > 0) {
-          this.previewMap.update((m) => ({
-            ...m,
-            [c.id]: { fileId: r.data![0].fileId, count: r.data!.length },
-          }));
-        }
-      });
+  protected previewThumb(a: Character): string | null {
+    if (this.brokenPreviews().has(a.id)) return null;
+    const file = (a.files ?? []).find((f) => f.category === 'images');
+    if (!file) return null;
+    return file.thumbnailUrl ?? file.url ?? null;
   }
 
-  /** Refresh the preview entry for a single asset (used after create). */
-  private fetchPreviewFor(characterId: string): void {
-    this.characters.listFiles(characterId).subscribe((r) => {
-      if (!r.error && r.data && r.data.length > 0) {
-        this.previewMap.update((m) => ({
-          ...m,
-          [characterId]: {
-            fileId: r.data![0].fileId,
-            count: r.data!.length,
-          },
-        }));
-      }
-    });
-  }
-
-  /** Direct serve URL for a file — used as `<img src>` on asset cards. */
-  protected serveUrl(fileId: string): string {
-    return this.filesApi.serveUrl(fileId);
+  /** Total file count for an asset — drives the +N badge. */
+  protected fileCount(a: Character): number {
+    return a.files?.length ?? 0;
   }
 
   /**
-   * Mark this card's image as broken without dropping the file metadata.
-   * The +N badge still renders from `count`; only the `<img>` is hidden
-   * and the fallback icon shows through.
+   * Flip this card's preview into broken state. Removing the image from
+   * the DOM lets the always-rendered fallback icon shine through.
    */
   protected onPreviewError(characterId: string): void {
-    this.previewMap.update((m) => {
-      const cur = m[characterId];
-      if (!cur || cur.imageBroken) return m;
-      return { ...m, [characterId]: { ...cur, imageBroken: true } };
+    this.brokenPreviews.update((set) => {
+      if (set.has(characterId)) return set;
+      const next = new Set(set);
+      next.add(characterId);
+      return next;
     });
-  }
-
-  /**
-   * Decide whether to attempt an `<img>` render for this asset.
-   *
-   * Image kinds (and unknown/mixed) try the preview; pure video / audio
-   * skip the `<img>` and let the fallback icon represent the kind so
-   * the user is not stuck waiting on a request that can never render.
-   */
-  protected shouldRenderImage(a: Character): boolean {
-    if (a.metadata?.['fileKind'] === 'video') return false;
-    if (a.metadata?.['fileKind'] === 'audio') return false;
-    return true;
   }
 
   /**
@@ -238,12 +185,10 @@ export class IndexCharacters implements OnInit {
     this.createDialogVisible.set(true);
   }
 
-  protected onAssetCreated(evt: { id: string; type: AssetType }): void {
-    // Refresh the list so the new asset is visible in its tab, and
-    // hit the per-character endpoint ONLY for the newcomer — every
-    // other card already has a cached preview entry.
+  protected onAssetCreated(_evt: { id: string; type: AssetType }): void {
+    // The list endpoint now returns files inline, so a single `load()`
+    // refresh pulls the new asset *and* its preview thumbnails in one go.
     this.characters.load().subscribe();
-    this.fetchPreviewFor(evt.id);
   }
 
   protected openEdit(asset: Character): void {
@@ -329,11 +274,3 @@ function resolveKind(raw: unknown): UsedAssetKind {
   return 'image';
 }
 
-interface PreviewInfo {
-  /** First linked file id — used to construct the `<img src>`. */
-  fileId: string;
-  /** Total number of linked files (drives the +N badge). */
-  count: number;
-  /** True after the `<img>` element emitted (error). */
-  imageBroken?: boolean;
-}

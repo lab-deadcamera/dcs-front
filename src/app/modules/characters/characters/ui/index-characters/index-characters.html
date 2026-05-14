@@ -95,6 +95,9 @@
             class="relative aspect-square w-full overflow-hidden"
             style="background: var(--content-bg);"
           >
+            <!-- Always-rendered fallback icon — shows when there is no
+                 image file, the file kind isn't an image, or the <img>
+                 emits (error). -->
             <span
               aria-hidden="true"
               class="absolute inset-0 flex items-center justify-center"
@@ -106,11 +109,11 @@
               ></i>
             </span>
 
-            @let preview = previewMap()[a.id];
+            @let thumb = previewThumb(a);
 
-            @if (preview && shouldRenderImage(a) && !preview.imageBroken) {
+            @if (thumb) {
               <img
-                [src]="serveUrl(preview.fileId)"
+                [src]="thumb"
                 [alt]="a.name"
                 class="absolute inset-0 h-full w-full object-cover"
                 loading="lazy"
@@ -118,12 +121,12 @@
               />
             }
 
-            @if (preview && preview.count > 1) {
+            @if (fileCount(a) > 1) {
               <span
                 aria-hidden="true"
                 class="absolute top-1 right-1 z-10 bg-ink-950/70 px-1 py-0 font-mono text-[9px] leading-tight text-fg-strong"
               >
-                +{{ preview.count - 1 }}
+                +{{ fileCount(a) - 1 }}
               </span>
             }
           </div>

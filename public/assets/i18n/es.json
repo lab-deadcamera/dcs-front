@@ -366,6 +366,58 @@
       "SUBMIT": "Vincular"
     }
   },
+  "PROVIDERS": {
+    "OPEN_BUTTON": "Proveedores y modelos AI",
+    "TITLE": "Proveedores y Modelos AI",
+    "LIST_TITLE": "Proveedores",
+    "EMPTY": "Aún no hay proveedores. Agrega uno para empezar.",
+    "NEW": "Nuevo",
+    "NEW_MODEL": "Nuevo modelo",
+    "MODELS": "Modelos",
+    "NO_MODELS": "Aún no hay modelos para este proveedor.",
+    "SELECT_HINT": "Elige un proveedor de la lista, o agrega uno nuevo.",
+    "SET_ACTIVE": "Activar",
+    "ACTIVE": "Activo",
+    "USE": "Usar",
+    "SHOW": "Mostrar",
+    "HIDE": "Ocultar",
+    "FIELDS": {
+      "NAME": "Nombre del proveedor",
+      "NAME_PH": "ej. BytePlus",
+      "URL": "URL base",
+      "URL_PH": "https://api.ejemplo.com/v1",
+      "API_KEY": "API key",
+      "API_KEY_PH": "Pega la clave secreta",
+      "DESCRIPTION": "Descripción",
+      "DESCRIPTION_PH": "Notas opcionales sobre el proveedor",
+      "MODEL_NAME": "Nombre del modelo",
+      "MODEL_NAME_PH": "ej. Ark Seedance 2",
+      "MODEL_DESCRIPTION": "Descripción",
+      "MODEL_DESCRIPTION_PH": "¿Qué hace este modelo? ej. \"Generación de video multimodal\""
+    },
+    "FORM": {
+      "CREATE_TITLE": "Nuevo proveedor",
+      "EDIT_TITLE": "Editar proveedor",
+      "MODEL_CREATE": "Nuevo modelo",
+      "MODEL_EDIT": "Editar modelo"
+    },
+    "CONFIRM": {
+      "DELETE_PROVIDER_HEADER": "Eliminar proveedor",
+      "DELETE_PROVIDER": "¿Eliminar \"{{label}}\" y todos sus modelos? Esto no se puede deshacer.",
+      "DELETE_MODEL_HEADER": "Eliminar modelo",
+      "DELETE_MODEL": "¿Eliminar el modelo \"{{label}}\"?"
+    },
+    "TOAST": {
+      "CREATED": "Proveedor \"{{label}}\" agregado",
+      "UPDATED": "Proveedor \"{{label}}\" actualizado",
+      "DELETED": "Proveedor eliminado",
+      "MODEL_CREATED": "Modelo \"{{label}}\" agregado",
+      "MODEL_UPDATED": "Modelo \"{{label}}\" actualizado",
+      "MODEL_DELETED": "Modelo eliminado",
+      "ACTIVE_PROVIDER": "Proveedor activo configurado",
+      "ACTIVE_MODEL": "Modelo activo configurado"
+    }
+  },
   "TOAST": {
     "SUCCESS": "Éxito",
     "ERROR": "Error",

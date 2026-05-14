@@ -51,6 +51,12 @@ export interface Character {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  /**
+   * Files attached to this character — populated by the list / detail
+   * endpoints that embed file metadata inline. Empty/undefined when fetched
+   * through pathways that don't include files (e.g. POST create response).
+   */
+  files?: CharacterFile[];
 }
 
 /** Raw wire shape returned by the backend (metadata stringified). */
@@ -64,16 +70,30 @@ export interface CharacterWire {
   deleted_at: string | null;
 }
 
-/** Detail payload returned by GET /characters/{id}. */
-export interface CharacterDetailWire {
-  character: CharacterWire;
-  files: CharacterFile[];
-}
+/**
+ * Legacy detail wire shape — kept as a type alias for the new envelope so
+ * call sites that imported it continue to compile. Prefer
+ * `CharacterDetailResponseWire` going forward.
+ */
+export type CharacterDetailWire = CharacterListItemWire;
 
+/**
+ * File attached to a character. The list endpoint and `GET /characters/{id}`
+ * embed the full file metadata inline, so this shape now mirrors the wire
+ * payload (camelCased). Use `thumbnailUrl` (when `category === 'images'`)
+ * for card previews; `url` is the full-quality serve URL.
+ */
 export interface CharacterFile {
   id: string;
   filename: string;
-  url?: string;
+  url: string;
+  thumbnailUrl?: string;
+  mimeType?: string;
+  category?: 'images' | 'videos' | 'audio' | 'temp' | string;
+  format?: string;
+  size?: number;
+  role?: string;
+  createdAt?: string;
 }
 
 /** Domain shape returned by GET /characters/{id}/files. */
@@ -88,6 +108,40 @@ export interface CharacterFileLinkWire {
   file_id: string;
   role: string;
   created_at: string;
+}
+
+/** Full file metadata as it arrives nested inside list / detail responses. */
+export interface CharacterFileWire {
+  file_id: string;
+  role?: string;
+  filename: string;
+  url: string;
+  thumbnail_url?: string;
+  mime_type?: string;
+  category?: string;
+  format?: string;
+  size?: number;
+  created_at?: string;
+}
+
+/** Each row of GET /characters carries the character + its linked files. */
+export interface CharacterListItemWire {
+  character: CharacterWire;
+  files: CharacterFileWire[];
+}
+
+/** Envelope used by GET /characters. */
+export interface CharacterListResponseWire {
+  data: CharacterListItemWire[];
+  message: string;
+  success: boolean;
+}
+
+/** Envelope used by GET /characters/{id}. */
+export interface CharacterDetailResponseWire {
+  data: CharacterListItemWire;
+  message: string;
+  success: boolean;
 }
 
 /** Payload accepted by POST /characters. */

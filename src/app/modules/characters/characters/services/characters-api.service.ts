@@ -5,10 +5,12 @@ import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
 import {
   Character,
-  CharacterDetailWire,
+  CharacterDetailResponseWire,
   CharacterFile,
   CharacterFileLinkView,
   CharacterFileLinkWire,
+  CharacterFileWire,
+  CharacterListResponseWire,
   CharacterWire,
   CreateCharacterRequest,
   UpdateCharacterRequest,
@@ -27,6 +29,25 @@ export class CharactersApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.API_URL + '/characters';
 
+  /**
+   * GET /characters
+   *
+   * Backend response shape (post-2026-05-13 redesign):
+   *
+   *   {
+   *     "success": true,
+   *     "message": "success",
+   *     "data": [
+   *       { "character": {...}, "files": [{file_id, url, thumbnail_url, ...}] },
+   *       ...
+   *     ]
+   *   }
+   *
+   * Each character now arrives with its linked files inline — no more
+   * N+1 `listFiles` fan-out needed for previews. We attach `files` to
+   * the domain `Character` so the UI can read `c.files[0].thumbnailUrl`
+   * directly.
+   */
   list(): Observable<{ error: boolean; msg: string; data?: Character[] }> {
     const res = {
       error: true,
@@ -34,11 +55,19 @@ export class CharactersApiService {
       data: undefined as Character[] | undefined,
     };
 
-    return this.http.get<CharacterWire[]>(this.apiUrl).pipe(
-      map((wire) => {
+    return this.http.get<CharacterListResponseWire>(this.apiUrl).pipe(
+      map((resp) => {
+        if (!resp || !resp.success) {
+          res.msg = resp?.message ?? 'failed';
+          return res;
+        }
         res.error = false;
-        res.msg = 'ok';
-        res.data = wire.map((w) => toCharacter(w));
+        res.msg = resp.message ?? 'ok';
+        res.data = (resp.data ?? []).map((item) => {
+          const c = toCharacter(item.character);
+          c.files = (item.files ?? []).map(toCharacterFile);
+          return c;
+        });
         return res;
       }),
       catchError(httpErrorHandler<Character[]>),
@@ -61,15 +90,19 @@ export class CharactersApiService {
     };
 
     return this.http
-      .get<CharacterDetailWire>(`${this.apiUrl}/${id}`)
+      .get<CharacterDetailResponseWire>(`${this.apiUrl}/${id}`)
       .pipe(
-        map((wire) => {
+        map((resp) => {
+          if (!resp || !resp.success) {
+            res.msg = resp?.message ?? 'failed';
+            return res;
+          }
+          const character = toCharacter(resp.data.character);
+          const files = (resp.data.files ?? []).map(toCharacterFile);
+          character.files = files;
           res.error = false;
-          res.msg = 'ok';
-          res.data = {
-            character: toCharacter(wire.character),
-            files: wire.files ?? [],
-          };
+          res.msg = resp.message ?? 'ok';
+          res.data = { character, files };
           return res;
         }),
         catchError(
@@ -225,4 +258,20 @@ function parseMetadata(raw: string | null): Character['metadata'] {
   } catch {
     return {};
   }
+}
+
+/** Wire (snake_case + envelope fields) → domain `CharacterFile`. */
+function toCharacterFile(w: CharacterFileWire): CharacterFile {
+  return {
+    id: w.file_id,
+    role: w.role,
+    filename: w.filename,
+    url: w.url,
+    thumbnailUrl: w.thumbnail_url,
+    mimeType: w.mime_type,
+    category: w.category,
+    format: w.format,
+    size: w.size,
+    createdAt: w.created_at,
+  };
 }

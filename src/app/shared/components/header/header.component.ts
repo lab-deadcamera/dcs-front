@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ButtonModule } from 'primeng/button';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
+import { ProvidersDialogComponent } from '@shared/components/providers-dialog/providers-dialog.component';
 import { StudioStateService } from '@app/core/stores/studio.state';
 
 /**
@@ -23,6 +25,8 @@ import { StudioStateService } from '@app/core/stores/studio.state';
     NgOptimizedImage,
     RouterLink,
     RouterLinkActive,
+    ButtonModule,
+    ProvidersDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -82,9 +86,28 @@ import { StudioStateService } from '@app/core/stores/studio.state';
           badgeColor="red"
         />
 
+        <p-button
+          icon="pi pi-server"
+          severity="secondary"
+          [text]="true"
+          [rounded]="true"
+          size="small"
+          [attr.aria-label]="'PROVIDERS.OPEN_BUTTON' | translate"
+          [attr.title]="'PROVIDERS.OPEN_BUTTON' | translate"
+          data-testid="header-providers-button"
+          (onClick)="openProviders()"
+        />
+
         <app-theme-picker />
       </div>
     </header>
+
+    @if (providersDialogVisible()) {
+      <app-providers-dialog
+        [visible]="providersDialogVisible()"
+        (visibleChange)="providersDialogVisible.set($event)"
+      />
+    }
 
     <!--
       Route navigator — switch between the Studio and the Characters
@@ -116,4 +139,11 @@ import { StudioStateService } from '@app/core/stores/studio.state';
 })
 export class HeaderComponent {
   protected readonly state = inject(StudioStateService);
+
+  /** Admin dialog: AI providers + models catalog. */
+  protected readonly providersDialogVisible = signal(false);
+
+  protected openProviders(): void {
+    this.providersDialogVisible.set(true);
+  }
 }
