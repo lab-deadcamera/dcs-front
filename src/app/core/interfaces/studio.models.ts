@@ -94,6 +94,8 @@ export interface OutputFormatConfig {
   sound: boolean;
   engine: Engine;
   model: string;
+  /** Number of independent videos to request per generation, 1-4. */
+  batchCount: number;
 }
 
 export interface ReferenceAsset {

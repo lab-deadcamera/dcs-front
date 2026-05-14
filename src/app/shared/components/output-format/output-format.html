@@ -88,6 +88,45 @@
         (valueChange)="onEngine($event)"
       />
     </div>
+
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col">
+        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+          {{ 'STUDIO.OUTPUT.BATCH_COUNT' | translate }}
+        </p>
+        <p class="text-[10px] italic text-fg-muted">
+          {{ 'STUDIO.OUTPUT.BATCH_COUNT_HINT' | translate }}
+        </p>
+      </div>
+      <div
+        class="inline-flex items-stretch border border-ink-500 bg-ink-900"
+        role="group"
+        [attr.aria-label]="'STUDIO.OUTPUT.BATCH_COUNT' | translate"
+      >
+        <button
+          type="button"
+          class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="prompt.output().batchCount <= minBatch"
+          [attr.aria-label]="'STUDIO.OUTPUT.BATCH_DEC' | translate"
+          data-testid="batch-count-dec"
+          (click)="onBatchCount(-1)"
+        >−</button>
+        <span
+          class="flex min-w-8 items-center justify-center border-x border-ink-500 px-3 font-mono text-[13px] tabular-nums text-fg-strong"
+          data-testid="batch-count-value"
+        >
+          {{ prompt.output().batchCount }}
+        </span>
+        <button
+          type="button"
+          class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="prompt.output().batchCount >= maxBatch"
+          [attr.aria-label]="'STUDIO.OUTPUT.BATCH_INC' | translate"
+          data-testid="batch-count-inc"
+          (click)="onBatchCount(1)"
+        >+</button>
+      </div>
+    </div>
   </div>
   }
 </section>

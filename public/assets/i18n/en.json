@@ -125,7 +125,9 @@
       "HD_ARIA_OFF": "1080p HD off — click twice to enable",
       "HD_ARIA_PENDING": "Click again to confirm 1080p HD",
       "HD_ARIA_ON": "1080p HD on — click to drop back to 720p",
-      "REUSE_PROMPT": "Reuse this prompt — repopulate editor"
+      "REUSE_PROMPT": "Reuse this prompt — repopulate editor",
+      "DOWNLOAD": "Download video",
+      "GENERATING_COUNT": "Generating {{n}} video(s)…"
     },
     "PROMPT": {
       "TITLE": "Prompt Builder",
@@ -231,7 +233,11 @@
       "RES_720P": "720p",
       "RES_1080P": "1080p HD",
       "HD_CONFIRM": "click again to confirm",
-      "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable."
+      "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable.",
+      "BATCH_COUNT": "Videos per generation",
+      "BATCH_COUNT_HINT": "Up to 4 — one independent call is sent per video.",
+      "BATCH_INC": "Increase count",
+      "BATCH_DEC": "Decrease count"
     },
     "ASSETS": {
       "TITLE": "Character & Assets",
@@ -249,7 +255,10 @@
       "EXPAND": "Expand",
       "REMOVE": "Remove asset",
       "CREATE_ASSETS": "Create assets",
-      "CHARACTERS_DIALOG_TITLE": "Characters library"
+      "CHARACTERS_DIALOG_TITLE": "Characters library",
+      "LIBRARY_QUICKPICK": "My library",
+      "LIBRARY_QUICKPICK_HINT": "Click to add to the prompt",
+      "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet."
     },
     "FOOTER": {
       "VERSION": "v1.0",

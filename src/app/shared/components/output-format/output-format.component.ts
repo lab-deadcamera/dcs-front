@@ -18,7 +18,7 @@ import {
   Engine,
   Resolution,
 } from '@core/interfaces/studio.models';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { MAX_BATCH_COUNT, PromptStateService } from '@app/core/stores/prompt.state';
 import { ModelService } from '@app/services';
 
 @Component({
@@ -101,5 +101,13 @@ export class OutputFormatComponent implements OnInit {
   protected onModelChange(value: string | null): void {
     this.modelValue = value;
     this.prompt.patchOutput({ model: value ?? '' });
+  }
+
+  protected readonly minBatch = 1;
+  protected readonly maxBatch = MAX_BATCH_COUNT;
+
+  protected onBatchCount(delta: 1 | -1): void {
+    const next = (this.prompt.output().batchCount || 1) + delta;
+    this.prompt.patchOutput({ batchCount: next });
   }
 }

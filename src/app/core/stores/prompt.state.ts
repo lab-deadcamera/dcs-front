@@ -11,6 +11,14 @@ import { StudioStorageService } from './studio-storage.service';
 /** Bump when the persisted shape changes; older snapshots are discarded. */
 const SCHEMA_VERSION = 5;
 
+/** Maximum number of videos a single generate-click can request. */
+export const MAX_BATCH_COUNT = 4;
+
+function clamp(n: number, min: number, max: number): number {
+  if (Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
 /** Kind of file an external asset is built from — drives the chip icon. */
 export type UsedAssetKind = 'image' | 'video' | 'audio' | 'mixed';
 
@@ -21,6 +29,15 @@ export interface UsedAsset {
   name: string;
   /** Aggregated file type — drives the icon in the prompt chip. */
   kind: UsedAssetKind;
+}
+
+/** A single in-flight backend generation request. */
+export interface PendingGeneration {
+  id: string;
+  /** 0–100. Stays at 0 until the backend reports otherwise. */
+  progress: number;
+  /** Optional "1/3" style label so batched requests can be told apart. */
+  label?: string;
 }
 
 /**
@@ -108,7 +125,18 @@ export class PromptStateService {
     sound: false,
     engine: 'fast',
     model: '',
+    batchCount: 1,
   });
+
+  /**
+   * In-flight generation tasks. Each entry tracks a single backend call so
+   * the viewer can surface a per-task `progress` (0–100) overlay while the
+   * user waits. Cleared on completion or failure. Ephemeral by design —
+   * not persisted so a reload starts from a clean slate.
+   */
+  private readonly _pendingGenerations = signal<PendingGeneration[]>([]);
+  readonly pendingGenerations = this._pendingGenerations.asReadonly();
+  readonly isGenerating = computed(() => this._pendingGenerations().length > 0);
 
   private readonly _sessionClips = signal<GeneratedClip[]>([]);
   private readonly _activeClipId = signal<string | null>(null);
@@ -241,7 +269,10 @@ export class PromptStateService {
         // Preserve the Seedance scaffold if the persisted draft is empty.
         this._rawDescription.set(snap.rawDescription || PROMPT_TEMPLATE);
         this._cinematography.set(snap.cinematography);
-        this._output.set(snap.output);
+        // Merge with the current defaults so newly-added output fields
+        // (e.g. `batchCount`) don't end up undefined for users with an
+        // older saved snapshot — same schema version, additive field.
+        this._output.set({ ...this._output(), ...snap.output });
         this._sessionClips.set(snap.sessionClips);
         this._activeClipId.set(snap.activeClipId);
         this._compiledOverride.set(snap.compiledOverride ?? null);
@@ -292,7 +323,43 @@ export class PromptStateService {
   }
 
   patchOutput(patch: Partial<OutputFormatConfig>) {
-    this._output.update((o) => ({ ...o, ...patch }));
+    this._output.update((o) => {
+      const merged = { ...o, ...patch };
+      if (patch.batchCount !== undefined) {
+        merged.batchCount = clamp(Math.round(patch.batchCount), 1, MAX_BATCH_COUNT);
+      }
+      return merged;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pending generations
+  // ---------------------------------------------------------------------------
+
+  /** Register a new in-flight task and return its id for later updates. */
+  startGeneration(label?: string): string {
+    const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+    this._pendingGenerations.update((list) => [...list, { id, progress: 0, label }]);
+    return id;
+  }
+
+  /** Update the percentage on an in-flight task (clamped to 0–100). */
+  updateGenerationProgress(id: string, progress: number): void {
+    const next = clamp(Math.round(progress), 0, 100);
+    this._pendingGenerations.update((list) =>
+      list.map((g) => (g.id === id ? { ...g, progress: next } : g)),
+    );
+  }
+
+  /** Mark a task as finished. If a clip is passed it's pushed to the reel. */
+  completeGeneration(id: string, clip?: GeneratedClip): void {
+    this._pendingGenerations.update((list) => list.filter((g) => g.id !== id));
+    if (clip) this.pushClip(clip);
+  }
+
+  /** Drop a failed task without pushing a clip. */
+  failGeneration(id: string): void {
+    this._pendingGenerations.update((list) => list.filter((g) => g.id !== id));
   }
 
   pushClip(clip: GeneratedClip) {
