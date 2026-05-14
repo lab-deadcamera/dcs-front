@@ -16,7 +16,6 @@ import { from, map, mergeMap } from 'rxjs';
 
 import { CharactersService } from '../../services';
 import {
-  AssetFileKind,
   AssetType,
   Character,
   CreateCharacterRequest,
@@ -25,9 +24,9 @@ import {
 import { CharacterFormDialogComponent } from '../components/character-form-dialog/character-form-dialog.component';
 import { CharacterFilesDialogComponent } from '../components/character-files-dialog/character-files-dialog.component';
 import { AssetCreateDialogComponent } from '../components/asset-create-dialog/asset-create-dialog.component';
-import { FilesApiService } from '@modules/files/files/services';
 import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
 import { toCharacter } from '@shared/utils';
+import { FilesApiService } from '@app/services';
 
 /**
  * Characters library — typed asset board.

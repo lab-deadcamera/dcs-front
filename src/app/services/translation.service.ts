@@ -14,10 +14,11 @@ export class TranslationService {
 
   constructor() {
     const browserLang = this.translate.getBrowserLang() as SupportedLanguage | undefined;
-    const defaultLang = browserLang && this.availableLanguages.includes(browserLang) ? browserLang : 'es';
+    const defaultLang =
+      browserLang && this.availableLanguages.includes(browserLang) ? browserLang : 'en';
 
     this.translate.addLangs(this.availableLanguages);
-    this.translate.setFallbackLang('es');
+    this.translate.setFallbackLang('en');
     this.translate.use(defaultLang);
     this.currentLanguage.set(defaultLang);
   }

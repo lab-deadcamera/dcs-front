@@ -1,12 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { FilesApiService } from './files-api.service';
-import {
-  FileCategory,
-  FileEntity,
-  FileStorage,
-  UploadParams,
-} from '../interfaces';
+import { FileCategory, FileEntity, FileStorage, UploadParams } from '../interfaces';
+import { FilesApiService } from '@app/services/files-api.service';
 
 /**
  * Business layer for Files. Maintains an in-memory list scoped to the
@@ -36,9 +31,7 @@ export class FilesService {
     const cat = this._category();
     this._loading.set(true);
     const source$ =
-      cat === 'trash'
-        ? this.api.listTrash()
-        : this.api.list(cat as FileCategory, 'persistent');
+      cat === 'trash' ? this.api.listTrash() : this.api.list(cat as FileCategory, 'persistent');
 
     return source$.pipe(
       tap((res) => {
@@ -48,9 +41,7 @@ export class FilesService {
     );
   }
 
-  upload(
-    payload: UploadParams,
-  ): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
+  upload(payload: UploadParams): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
     return this.api.upload(payload).pipe(
       tap((res) => {
         // Prepend to the current list if the upload lands in the active view.
@@ -59,8 +50,7 @@ export class FilesService {
           const landsHere =
             active === 'trash'
               ? false
-              : payload.category === active &&
-                payload.storage === 'persistent';
+              : payload.category === active && payload.storage === 'persistent';
           if (landsHere) {
             this._items.update((list) => [res.data!, ...list]);
           }
@@ -79,12 +69,14 @@ export class FilesService {
     );
   }
 
-  restore(id: string, storage: FileStorage = 'persistent'): Observable<{
+  restore(
+    id: string,
+    storage: FileStorage = 'persistent',
+  ): Observable<{
     error: boolean;
     msg: string;
   }> {
-    const op$ =
-      storage === 'temp' ? this.api.recoverTemp(id) : this.api.restore(id);
+    const op$ = storage === 'temp' ? this.api.recoverTemp(id) : this.api.restore(id);
     return op$.pipe(
       tap((res) => {
         if (!res.error && this._category() === 'trash') {

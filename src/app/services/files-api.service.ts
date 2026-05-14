@@ -3,8 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
-import { FileCategory, FileEntity, FileStorage, FileWire, UploadParams } from '../interfaces';
-import { ResponseBase } from '@app/core/interfaces';
+import {
+  FileCategory,
+  FileEntity,
+  FileStorage,
+  FileWire,
+  ResponseBase,
+  UploadParams,
+} from '@app/core/interfaces';
 
 /**
  * HTTP adapter for /api/v1/files.

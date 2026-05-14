@@ -35,8 +35,8 @@ import {
   UpdateCharacterRequest,
 } from '../../../interfaces';
 import { CharactersService } from '../../../services';
-import { FilesApiService } from '@modules/files/files/services';
 import { FileEntity } from '@modules/files/files/interfaces';
+import { FilesApiService } from '@app/services';
 
 interface CharacterFormValue {
   name: string;
@@ -417,35 +417,6 @@ export class CharacterFormDialogComponent {
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'File unlinked' });
     });
   }
-
-  /** Mirror parent inputs into the form whenever the dialog re-opens. */
-  private readonly syncFromInputs = effect(() => {
-    const c = this.character();
-    const open = this.visible();
-    if (!open) return;
-    if (c) {
-      this.form.reset({
-        name: c.name,
-        description: c.description,
-        age: typeof c.metadata['age'] === 'number' ? c.metadata['age'] : null,
-        style: typeof c.metadata['style'] === 'string' ? c.metadata['style'] : null,
-        gender:
-          c.metadata['gender'] === 'male' ||
-          c.metadata['gender'] === 'female' ||
-          c.metadata['gender'] === 'other'
-            ? c.metadata['gender']
-            : null,
-      });
-    } else {
-      this.form.reset({
-        name: '',
-        description: '',
-        age: null,
-        style: null,
-        gender: null,
-      });
-    }
-  });
 
   private fetchLinks(characterId: string): void {
     this.loadingLinks.set(true);

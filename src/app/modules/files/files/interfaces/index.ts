@@ -1,1 +1,1 @@
-export * from './file.interface';
+export * from '@core/interfaces/file.interface';
