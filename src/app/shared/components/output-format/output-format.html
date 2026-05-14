@@ -9,6 +9,24 @@
 
   @if (expanded()) {
   <div class="mt-5 flex flex-col gap-5">
+    <!-- Model selector -->
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+        {{ 'STUDIO.OUTPUT.MODEL' | translate }}
+      </label>
+      <p-select
+        [options]="modelOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="'STUDIO.OUTPUT.MODEL_PLACEHOLDER' | translate"
+        [(ngModel)]="modelValue"
+        [loading]="modelsLoading()"
+        [showClear]="true"
+        data-testid="model-select"
+        (onChange)="onModelChange($event.value)"
+      />
+    </div>
+
     <ui-toggle-group
       labelKey="STUDIO.OUTPUT.ASPECT_RATIO"
       variant="accent"

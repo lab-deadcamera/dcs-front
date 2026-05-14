@@ -107,6 +107,7 @@ export class PromptStateService {
     durationSeconds: 5,
     sound: false,
     engine: 'fast',
+    model: '',
   });
 
   private readonly _sessionClips = signal<GeneratedClip[]>([]);
@@ -148,12 +149,14 @@ export class PromptStateService {
     this._sessionClips().find((c) => c.id === this._activeClipId()) ?? null,
   );
 
-  /** Engine -> BytePlus model id, used by the generate call. */
-  readonly modelId = computed(() =>
-    this._output().engine === 'fast'
+  /** Model id used by the generate call — user-selected model or engine default. */
+  readonly modelId = computed(() => {
+    const selected = this._output().model;
+    if (selected) return selected;
+    return this._output().engine === 'fast'
       ? 'dreamina-seedance-2-0-fast-260128'
-      : 'dreamina-seedance-2-0-260128',
-  );
+      : 'dreamina-seedance-2-0-260128';
+  });
 
   /**
    * The text block that would be sent to BytePlus *if* the user has not

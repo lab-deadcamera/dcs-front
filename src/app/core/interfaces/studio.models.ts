@@ -93,6 +93,7 @@ export interface OutputFormatConfig {
   durationSeconds: number;
   sound: boolean;
   engine: Engine;
+  model: string;
 }
 
 export interface ReferenceAsset {
