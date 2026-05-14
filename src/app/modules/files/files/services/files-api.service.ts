@@ -3,13 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
-import {
-  FileCategory,
-  FileEntity,
-  FileStorage,
-  FileWire,
-  UploadParams,
-} from '../interfaces';
+import { FileCategory, FileEntity, FileStorage, FileWire, UploadParams } from '../interfaces';
+import { ResponseBase } from '@app/core/interfaces';
 
 /**
  * HTTP adapter for /api/v1/files.
@@ -29,9 +24,7 @@ export class FilesApiService {
     return `${this.apiUrl}/${id}/serve`;
   }
 
-  upload(
-    payload: UploadParams,
-  ): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
+  upload(payload: UploadParams): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
     const res = {
       error: true,
       msg: 'Error undefined',
@@ -43,11 +36,11 @@ export class FilesApiService {
     form.append('category', payload.category);
     form.append('storage', payload.storage);
 
-    return this.http.post<FileWire>(`${this.apiUrl}/upload`, form).pipe(
-      map((wire) => {
-        res.error = false;
-        res.msg = 'ok';
-        res.data = this.toEntity(wire);
+    return this.http.post<ResponseBase<FileWire>>(`${this.apiUrl}/upload`, form).pipe(
+      map((r) => {
+        res.error = !r.success;
+        res.msg = r.message;
+        res.data = r.data ? this.toEntity(r.data) : undefined;
         return res;
       }),
       catchError(httpErrorHandler<FileEntity>),
@@ -68,11 +61,11 @@ export class FilesApiService {
     if (category) qs.set('category', category);
     qs.set('storage', storage);
 
-    return this.http.get<FileWire[]>(`${this.apiUrl}?${qs.toString()}`).pipe(
-      map((arr) => {
-        res.error = false;
-        res.msg = 'ok';
-        res.data = arr.map((w) => this.toEntity(w));
+    return this.http.get<ResponseBase<FileWire[]>>(`${this.apiUrl}?${qs.toString()}`).pipe(
+      map((r) => {
+        res.error = !r.success;
+        res.msg = r.message;
+        res.data = r.data.map((w) => this.toEntity(w));
         return res;
       }),
       catchError(httpErrorHandler<FileEntity[]>),
@@ -90,31 +83,29 @@ export class FilesApiService {
       data: undefined as FileEntity[] | undefined,
     };
 
-    return this.http.get<FileWire[]>(`${this.apiUrl}/trash`).pipe(
-      map((arr) => {
-        res.error = false;
-        res.msg = 'ok';
-        res.data = arr.map((w) => this.toEntity(w));
+    return this.http.get<ResponseBase<FileWire[]>>(`${this.apiUrl}/trash`).pipe(
+      map((r) => {
+        res.error = !r.success;
+        res.msg = r.message;
+        res.data = r.data.map((w) => this.toEntity(w));
         return res;
       }),
       catchError(httpErrorHandler<FileEntity[]>),
     );
   }
 
-  getById(
-    id: string,
-  ): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
+  getById(id: string): Observable<{ error: boolean; msg: string; data?: FileEntity }> {
     const res = {
       error: true,
       msg: 'Error undefined',
       data: undefined as FileEntity | undefined,
     };
 
-    return this.http.get<FileWire>(`${this.apiUrl}/${id}`).pipe(
-      map((wire) => {
-        res.error = false;
-        res.msg = 'ok';
-        res.data = this.toEntity(wire);
+    return this.http.get<ResponseBase<FileWire>>(`${this.apiUrl}/${id}`).pipe(
+      map((r) => {
+        res.error = !r.success;
+        res.msg = r.message;
+        res.data = r.data ? this.toEntity(r.data) : undefined;
         return res;
       }),
       catchError(httpErrorHandler<FileEntity>),
@@ -123,40 +114,34 @@ export class FilesApiService {
 
   /** Soft delete — moves the file to trash. */
   delete(id: string): Observable<{ error: boolean; msg: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`).pipe(
-      map((r) => ({ error: false, msg: r?.message ?? 'ok' })),
+    return this.http.delete<ResponseBase<void>>(`${this.apiUrl}/${id}`).pipe(
+      map((r) => ({ error: !r.success, msg: r.message })),
       catchError((err) => httpErrorHandler<void>(err)),
     );
   }
 
   /** Restore a persistent file from trash. */
   restore(id: string): Observable<{ error: boolean; msg: string }> {
-    return this.http
-      .post<{ message: string }>(`${this.apiUrl}/${id}/restore`, {})
-      .pipe(
-        map((r) => ({ error: false, msg: r?.message ?? 'ok' })),
-        catchError((err) => httpErrorHandler<void>(err)),
-      );
+    return this.http.post<ResponseBase<void>>(`${this.apiUrl}/${id}/restore`, {}).pipe(
+      map((r) => ({ error: !r.success, msg: r.message })),
+      catchError((err) => httpErrorHandler<void>(err)),
+    );
   }
 
   /** Restore a temp-storage file (cron exempt) from trash. */
   recoverTemp(id: string): Observable<{ error: boolean; msg: string }> {
-    return this.http
-      .post<{ message: string }>(`${this.apiUrl}/${id}/recover-temp`, {})
-      .pipe(
-        map((r) => ({ error: false, msg: r?.message ?? 'ok' })),
-        catchError((err) => httpErrorHandler<void>(err)),
-      );
+    return this.http.post<ResponseBase<void>>(`${this.apiUrl}/${id}/recover-temp`, {}).pipe(
+      map((r) => ({ error: !r.success, msg: r.message })),
+      catchError((err) => httpErrorHandler<void>(err)),
+    );
   }
 
   /** Hard delete — irreversibly removes the file. */
   hardDelete(id: string): Observable<{ error: boolean; msg: string }> {
-    return this.http
-      .delete<{ message: string }>(`${this.apiUrl}/${id}/hard`)
-      .pipe(
-        map((r) => ({ error: false, msg: r?.message ?? 'ok' })),
-        catchError((err) => httpErrorHandler<void>(err)),
-      );
+    return this.http.delete<ResponseBase<void>>(`${this.apiUrl}/${id}/hard`).pipe(
+      map((r) => ({ error: !r.success, msg: r.message })),
+      catchError((err) => httpErrorHandler<void>(err)),
+    );
   }
 
   /** Always returns a usable serve URL, even when the wire payload omits it. */

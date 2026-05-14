@@ -15,7 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { CharactersService } from '@modules/characters/characters/services';
-import { Character } from '@modules/characters/characters/interfaces';
+import { CharacterFileRole, Character, CharacterWithFiles } from '@modules/characters/characters/interfaces';
 import { FileEntity } from '../../../interfaces';
 
 /**
@@ -117,9 +117,7 @@ export class FileLinkDialogComponent {
     nonNullable: true,
   });
 
-  protected readonly characterOptions = signal<
-    { label: string; value: string }[]
-  >([]);
+  protected readonly characterOptions = signal<{ label: string; value: string }[]>([]);
 
   /** Lazy-load the characters list whenever this dialog opens. */
   private readonly ensureCharacters = effect(() => {
@@ -145,7 +143,7 @@ export class FileLinkDialogComponent {
     const f = this.file();
     const cid = this.characterCtrl.value;
     if (!f || !cid) return;
-    const role = this.roleCtrl.value.trim() || 'reference';
+    const role = (this.roleCtrl.value.trim() || 'reference') as CharacterFileRole;
     this.submitting.set(true);
     this.characters.assignFile(cid, f.id, role).subscribe((res) => {
       this.submitting.set(false);
@@ -164,9 +162,9 @@ export class FileLinkDialogComponent {
 
   private refreshOptions(): void {
     this.characterOptions.set(
-      this.characters.items().map((c: Character) => ({
-        label: c.name,
-        value: c.id,
+      this.characters.items().map((c: CharacterWithFiles) => ({
+        label: c.character.name,
+        value: c.character.id,
       })),
     );
   }

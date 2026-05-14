@@ -15,7 +15,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
-import { Character, CharacterFileLinkView } from '../../../interfaces';
+import { Character, CharacterFile, CharacterFileRole } from '../../../interfaces';
 import { CharactersService } from '../../../services';
 import { FilesApiService } from '@modules/files/files/services';
 
@@ -78,15 +78,15 @@ import { FilesApiService } from '@modules/files/files/services';
             </p>
           } @else {
             <ul class="flex flex-col gap-1.5">
-              @for (l of links(); track l.fileId) {
+              @for (l of links(); track l.file_id) {
                 <li
                   class="flex items-center justify-between gap-3 border px-3 py-2 text-[12px]"
                   style="border-color: var(--border-color);"
-                  [attr.data-testid]="'character-file-' + l.fileId"
+                  [attr.data-testid]="'character-file-' + l.file_id"
                 >
                   <img
-                    [src]="serveUrl(l.fileId)"
-                    [alt]="l.fileId"
+                    [src]="serveUrl(l.file_id)"
+                    [alt]="l.file_id"
                     class="h-10 w-10 flex-shrink-0 object-cover"
                     style="background: var(--surface-bg);"
                     onerror="this.style.display='none'"
@@ -94,10 +94,10 @@ import { FilesApiService } from '@modules/files/files/services';
                   <div class="min-w-0 flex-1">
                     <p
                       class="truncate font-mono text-[11px]"
-                      [title]="l.fileId"
+                      [title]="l.file_id"
                       style="color: var(--text-primary);"
                     >
-                      {{ l.fileId }}
+                      {{ l.file_id }}
                     </p>
                     <p
                       class="font-mono text-[10px] uppercase tracking-[0.12em]"
@@ -111,9 +111,9 @@ import { FilesApiService } from '@modules/files/files/services';
                     severity="danger"
                     [text]="true"
                     [rounded]="true"
-                    [attr.data-testid]="'character-file-unlink-' + l.fileId"
+                    [attr.data-testid]="'character-file-unlink-' + l.file_id"
                     [attr.aria-label]="'CHARACTERS.FILES.UNLINK' | translate"
-                    (onClick)="onUnlink(l.fileId)"
+                    (onClick)="onUnlink(l.file_id)"
                   />
                 </li>
               }
@@ -184,7 +184,7 @@ export class CharacterFilesDialogComponent {
   readonly character = input<Character | null>(null);
   readonly visibleChange = output<boolean>();
 
-  protected readonly links = signal<CharacterFileLinkView[]>([]);
+  protected readonly links = signal<CharacterFile[]>([]);
   protected readonly loadingList = signal(false);
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly uploading = signal(false);
@@ -233,7 +233,7 @@ export class CharacterFilesDialogComponent {
           return;
         }
         const fileId = up.data.id;
-        const role = this.roleCtrl.value.trim() || 'reference';
+        const role = (this.roleCtrl.value.trim() || 'reference') as CharacterFileRole;
 
         this.characters.assignFile(c.id, fileId, role).subscribe((link) => {
           this.uploading.set(false);
@@ -268,7 +268,7 @@ export class CharacterFilesDialogComponent {
         });
         return;
       }
-      this.links.update((list) => list.filter((l) => l.fileId !== fileId));
+      this.links.update((list) => list.filter((l) => l.file_id !== fileId));
     });
   }
 

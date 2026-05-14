@@ -5,22 +5,18 @@ import {
   AssetType,
   Character,
   CharacterFile,
-  CharacterFileLinkView,
+  CharacterMetadata,
+  CharacterWithFiles,
+  CharacterWire,
   CreateCharacterRequest,
   UpdateCharacterRequest,
 } from '../interfaces';
 
-/**
- * Business layer for Characters. Holds the in-memory list signal that
- * the UI binds to and orchestrates create / update / delete through
- * `CharactersApiService`. Keeps every HTTP detail (env URL, error mapping,
- * wire format) inside the API service.
- */
 @Injectable({ providedIn: 'root' })
 export class CharactersService {
   private readonly api = inject(CharactersApiService);
 
-  private readonly _items = signal<Character[]>([]);
+  private readonly _items = signal<CharacterWithFiles[]>([]);
   private readonly _loading = signal(false);
 
   readonly items = this._items.asReadonly();
@@ -35,11 +31,22 @@ export class CharactersService {
       prop: [],
     };
     for (const item of this._items()) {
-      const t = (item.metadata?.['assetType'] as AssetType) || 'character';
+      if (!item.character.metadata) continue;
+
+      const metadata: CharacterMetadata = JSON.parse(item.character.metadata);
+
+      const t = metadata.assetType || 'character';
+      const characterItem: Character = {
+        ...item.character,
+        metadata,
+        createdAt: item.character.created_at,
+        updatedAt: item.character.updated_at,
+        deletedAt: item.character.deleted_at,
+      };
       if (buckets[t]) {
-        buckets[t].push(item);
+        buckets[t].push(characterItem);
       } else {
-        buckets.character.push(item);
+        buckets.character.push(characterItem);
       }
     }
     return buckets;
@@ -56,7 +63,7 @@ export class CharactersService {
   });
 
   /** Refresh the in-memory cache from the backend. */
-  load(): Observable<{ error: boolean; msg: string; data?: Character[] }> {
+  load(): Observable<{ error: boolean; msg: string; data?: CharacterWithFiles[] }> {
     this._loading.set(true);
     return this.api.list().pipe(
       tap((res) => {
@@ -66,9 +73,7 @@ export class CharactersService {
     );
   }
 
-  getById(
-    id: string,
-  ): Observable<{
+  getById(id: string): Observable<{
     error: boolean;
     msg: string;
     data?: { character: Character; files: CharacterFile[] };
@@ -78,11 +83,11 @@ export class CharactersService {
 
   create(
     payload: CreateCharacterRequest,
-  ): Observable<{ error: boolean; msg: string; data?: Character }> {
+  ): Observable<{ error: boolean; msg: string; data?: CharacterWire }> {
     return this.api.create(payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
-          this._items.update((list) => [res.data!, ...list]);
+          this._items.update((list) => [{ character: res.data!, files: [] }, ...list]);
         }
       }),
     );
@@ -91,13 +96,14 @@ export class CharactersService {
   update(
     id: string,
     payload: UpdateCharacterRequest,
-  ): Observable<{ error: boolean; msg: string; data?: Character }> {
+  ): Observable<{ error: boolean; msg: string; data?: CharacterWire }> {
     return this.api.update(id, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
-          const updated = res.data;
           this._items.update((list) =>
-            list.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+            list.map((c) =>
+              c.character.id === id ? { character: res.data!, files: c.files } : c,
+            ),
           );
         }
       }),
@@ -108,7 +114,7 @@ export class CharactersService {
     return this.api.delete(id).pipe(
       tap((res) => {
         if (!res.error) {
-          this._items.update((list) => list.filter((c) => c.id !== id));
+          this._items.update((list) => list.filter((c) => c.character.id !== id));
         }
       }),
     );
@@ -117,25 +123,20 @@ export class CharactersService {
   assignFile(
     characterId: string,
     fileId: string,
-    role: string = 'reference',
+    role: 'reference' | 'portrait' | 'asset' = 'reference',
   ): Observable<{ error: boolean; msg: string }> {
     return this.api.assignFile(characterId, fileId, role);
   }
 
-  listFiles(
-    characterId: string,
-  ): Observable<{
+  listFiles(characterId: string): Observable<{
     error: boolean;
     msg: string;
-    data?: CharacterFileLinkView[];
+    data?: CharacterFile[];
   }> {
     return this.api.listFiles(characterId);
   }
 
-  unassignFile(
-    characterId: string,
-    fileId: string,
-  ): Observable<{ error: boolean; msg: string }> {
+  unassignFile(characterId: string, fileId: string): Observable<{ error: boolean; msg: string }> {
     return this.api.unassignFile(characterId, fileId);
   }
 }
