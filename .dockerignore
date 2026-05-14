@@ -49,6 +49,3 @@ tmp/
 .opencode/
 .codex/
 .github/
-
-# Docker
-.dockerignore
