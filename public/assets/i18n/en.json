@@ -9,9 +9,22 @@
     "HOME": "Home",
     "VIDEOS": "Videos",
     "ABOUT": "About",
-    "CONTACT": "Contact"
+    "CONTACT": "Contact",
+    "STUDIO": "Studio",
+    "CHARACTERS": "Characters",
+    "FILES": "Files",
+    "PROVIDERS": "Providers"
   },
   "GLOBAL": {
+    "SETTINGS": {
+      "THEME": "Theme",
+      "DARK_MODE": "Dark Mode"
+    },
+    "COLORS": {
+      "PRIMARY": "Primary",
+      "SECONDARY": "Secondary",
+      "ACCENT": "Accent"
+    },
     "ACTIONS": {
       "SAVE": "Save",
       "CANCEL": "Cancel",
@@ -54,10 +67,333 @@
     "SIZE": "Size",
     "FORMAT": "Format"
   },
+  "HEADER": {
+    "BRAND": {
+      "DEAD_CAMERA": "DEAD CAMERA",
+      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+    },
+    "SUBTITLE": {
+      "STUDIOS": "STUDIOS",
+      "AI_LAB": "AI RESEARCH LAB"
+    },
+    "ACTIONS": {
+      "ADD_API_KEY": "ADD API KEY",
+      "EXPORT": "EXPORT",
+      "API": "API"
+    },
+    "SELECT_MODEL": "Select a model"
+  },
+  "STUDIO": {
+    "BRAND": {
+      "PRIMARY": "Dead Camera",
+      "SECONDARY": "Seedance Studio",
+      "TAGLINE_TOP": "Studios",
+      "TAGLINE_BOTTOM": "AI Research Lab"
+    },
+    "HERO": {
+      "STRIKE_1": "Lights,",
+      "STRIKE_2": "Camera,",
+      "SCRIPT": "Vision",
+      "LIVE": "Action",
+      "SUBTITLE_TOP": "Reinvented Cinema.",
+      "SUBTITLE_BOTTOM": "Absolute Creative Control."
+    },
+    "API": {
+      "ADD_KEY": "Add API Key",
+      "NO_KEY": "no key",
+      "CONNECTED": "connected",
+      "TITLE": "API Keys",
+      "NO_KEYS": "No keys yet — add one below to start.",
+      "NAME_PLACEHOLDER": "Name (optional)",
+      "VALUE_PLACEHOLDER": "Paste your API key here",
+      "AK_PLACEHOLDER": "Access Key (AK)",
+      "SK_PLACEHOLDER": "Secret Key (SK)",
+      "AK_SK_TOGGLE": "Advanced: AK / SK (Assets API)",
+      "AK_SK_HINT": "Add Access Key and Secret Key only if you'll use the Assets API (Private Portrait Library).",
+      "AK_SK_MISMATCH": "AK and SK must be provided together (or both empty).",
+      "ADD_BUTTON": "+ Add Key",
+      "DELETE": "Del",
+      "ACTIVATE_ARIA": "Activate this key"
+    },
+    "VIEWER": {
+      "TITLE": "Viewer",
+      "HINT": "Final clip · evaluate quality, lip sync, sound, color",
+      "EMPTY_TITLE": "No Clip Loaded",
+      "EMPTY_HINT": "Generated output appears here",
+      "FULLSCREEN_ENTER": "Enter fullscreen",
+      "FULLSCREEN_EXIT": "Exit fullscreen",
+      "HD_ARIA_OFF": "1080p HD off — click twice to enable",
+      "HD_ARIA_PENDING": "Click again to confirm 1080p HD",
+      "HD_ARIA_ON": "1080p HD on — click to drop back to 720p",
+      "REUSE_PROMPT": "Reuse this prompt — repopulate editor"
+    },
+    "PROMPT": {
+      "TITLE": "Prompt Builder",
+      "HINT": "Describe the scene · the cinematographic style is injected automatically",
+      "PLACEHOLDER": "Describe the scene. Be specific: subject, action, setting, atmosphere. The cinematographic language is injected automatically from your selections.",
+      "COMPILED": "Compiled Prompt",
+      "CHARS": "{{n}} chars",
+      "EMPTY_PREVIEW": "_",
+      "GENERATE": "Generate",
+      "REFERENCES": "References",
+      "EDIT_COMPILED": "Edit compiled prompt",
+      "EDITED_BADGE": "edited",
+      "RESET_COMPILED": "Reset",
+      "SAVE_EDIT": "Save",
+      "CANCEL_EDIT": "Cancel"
+    },
+    "SESSION_REEL": {
+      "TITLE": "Session Reel",
+      "EMPTY": "Your generated clips will stack here"
+    },
+    "RATING": {
+      "TITLE": "Rating",
+      "HINT": "Rate the success of the generated clip",
+      "EMPTY": "Generate a clip to rate it",
+      "ARIA_GROUP": "Rate the clip from 1 to 5 stars",
+      "ARIA_STAR": "Rate {{n}} out of 5",
+      "CLEAR": "Clear"
+    },
+    "CINEMATOGRAPHY": {
+      "TITLE": "Cinematography",
+      "LENS": "Lens",
+      "CAMERA_BODY": "Camera Body",
+      "CAMERA_MOTION": "Camera Motion",
+      "COLOR_GRADING": "Color Grading",
+      "GENRE": "Genre",
+      "LENSES": {
+        "24MM_WIDE": "24mm Wide",
+        "35MM_CLASSIC": "35mm Classic",
+        "50MM_PORTRAIT": "50mm Portrait",
+        "85MM_TELE": "85mm Tele"
+      },
+      "BODIES": {
+        "ARRI_ALEXA_65": "ARRI Alexa 65",
+        "RED_KOMODO_6K": "RED Komodo 6K",
+        "SONY_VENICE": "Sony Venice",
+        "FILM_16MM": "16mm Film"
+      },
+      "MOTIONS": {
+        "STATIC": "Static Lock-Off",
+        "DOLLY_IN": "Slow Dolly-In",
+        "ORBIT": "Orbit",
+        "HANDHELD": "Handheld"
+      },
+      "GRADES": {
+        "TOKIO": "Tokio",
+        "COLOMBIA": "Colombia",
+        "OHIO": "Ohio",
+        "BANK": "Bank",
+        "VARIANT_TITLE": "Mood variants",
+        "VARIANT_HINT": "Pick a mood — applies the {{name}} grade with this twist."
+      },
+      "CUSTOM": {
+        "NEW_BUTTON": "New preset",
+        "DIALOG_TITLE": "Create cinematography preset",
+        "EDIT_TITLE": "Edit cinematography preset",
+        "CATEGORY": "Category",
+        "CATEGORY_PLACEHOLDER": "Pick a preset row",
+        "LABEL": "Name",
+        "LABEL_PLACEHOLDER": "e.g. Cyberpunk Neon",
+        "PROMPT": "Prompt",
+        "PROMPT_PLACEHOLDER": "Verbatim instruction injected into the final compiled prompt — e.g. \"cyberpunk neon grade, magenta-cyan dichotomy, …\"",
+        "PROMPT_HINT": "Written in English. This is the exact text Seedance receives — not translated.",
+        "SUBMIT": "Add preset",
+        "CREATED": "Preset \"{{label}}\" added",
+        "UPDATED": "Preset \"{{label}}\" updated"
+      },
+      "GENRES": {
+        "DRAMA": "Drama",
+        "ACTION": "Action",
+        "NOIR": "Noir",
+        "HORROR": "Horror"
+      }
+    },
+    "OUTPUT": {
+      "TITLE": "Output Format",
+      "MODEL": "Model",
+      "MODEL_PLACEHOLDER": "Auto (engine default)",
+      "ASPECT_RATIO": "Aspect Ratio",
+      "RESOLUTION": "Resolution",
+      "DURATION": "Duration",
+      "SOUND": "Sound",
+      "ENGINE": "Engine",
+      "ON": "On",
+      "OFF": "Off",
+      "FAST": "Fast",
+      "PRO": "Pro",
+      "ARIA_DURATION": "Duration in seconds",
+      "ASPECT_16_9": "16:9",
+      "ASPECT_9_16": "9:16",
+      "ASPECT_21_9": "21:9",
+      "ASPECT_1_1": "1:1",
+      "RES_480P": "480p",
+      "RES_720P": "720p",
+      "RES_1080P": "1080p HD",
+      "HD_CONFIRM": "click again to confirm",
+      "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable."
+    },
+    "ASSETS": {
+      "TITLE": "Character & Assets",
+      "CHARACTER_STUDIO": "Character Studio",
+      "CHARACTER_STUDIO_HINT": "Generate trusted reference images · powered by Seedream",
+      "MY_ASSETS": "My Assets",
+      "MY_ASSETS_HINT": "Private trusted library · BytePlus",
+      "REFERENCE": "Reference Assets",
+      "COUNT": "{{n}} assets",
+      "FIRST_FRAME": "First Frame",
+      "LAST_FRAME": "Last Frame",
+      "DROP_OR_CLICK": "Drop or click",
+      "REFERENCE_HINT_LEAD": "Reference them in your prompt as",
+      "REFERENCE_HINT_TAIL": "… Click any tag below a thumbnail to insert it into the prompt.",
+      "EXPAND": "Expand",
+      "REMOVE": "Remove asset",
+      "CREATE_ASSETS": "Create assets",
+      "CHARACTERS_DIALOG_TITLE": "Characters library"
+    },
+    "FOOTER": {
+      "VERSION": "v1.0",
+      "LIBRARY": "Assets Library",
+      "TAGLINE": "The Electric Mind",
+      "STUDIO": "We are Dead Camera Studios"
+    }
+  },
   "TOAST": {
     "SUCCESS": "Success",
     "ERROR": "Error",
     "WARNING": "Warning",
     "INFO": "Info"
+  },
+  "COMMON": {
+    "CANCEL": "Cancel",
+    "CLOSE": "Close",
+    "SAVE": "Save",
+    "CREATE": "Create",
+    "DELETE": "Delete",
+    "EDIT": "Edit",
+    "LOADING": "Loading…"
+  },
+  "VALIDATION": {
+    "REQUIRED": "{{label}} is required.",
+    "EMAIL": "{{label}} must be a valid email.",
+    "MIN_LENGTH": "{{label}} must be at least {{n}} characters.",
+    "MAX_LENGTH": "{{label}} must be at most {{n}} characters.",
+    "PATTERN": "{{label}} has an invalid format.",
+    "MIN": "{{label}} must be at least {{n}}.",
+    "MAX": "{{label}} must be at most {{n}}.",
+    "INVALID": "{{label}} is invalid."
+  },
+  "CHARACTERS": {
+    "TITLE": "Characters",
+    "HINT": "Trusted character library — name, description, metadata.",
+    "EMPTY": "No characters yet. Create your first one.",
+    "ACTIONS": {
+      "NEW": "New character",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "FILES": "Manage files",
+      "USE": "Use"
+    },
+    "FILES": {
+      "DIALOG_TITLE": "Files",
+      "LINKED": "Linked files",
+      "EMPTY": "No files linked yet.",
+      "UPLOAD": "Upload + link",
+      "UPLOAD_BUTTON": "Upload & link",
+      "ROLE": "Role",
+      "ROLE_PLACEHOLDER": "reference / portrait / asset / …",
+      "UNLINK": "Remove link"
+    },
+    "COLUMNS": {
+      "NAME": "Name",
+      "DESCRIPTION": "Description",
+      "METADATA": "Metadata",
+      "CREATED_AT": "Created",
+      "ACTIONS": "Actions"
+    },
+    "FIELDS": {
+      "NAME": "Name",
+      "NAME_PLACEHOLDER": "Neon Samurai",
+      "DESCRIPTION": "Description",
+      "DESCRIPTION_PLACEHOLDER": "Cyberpunk protagonist with katana",
+      "METADATA": "Metadata",
+      "AGE": "Age",
+      "STYLE": "Style",
+      "STYLE_PLACEHOLDER": "cyberpunk",
+      "GENDER": "Gender",
+      "GENDER_PLACEHOLDER": "Select"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Create character",
+      "EDIT_TITLE": "Edit character"
+    },
+    "TABS": {
+      "CHARACTER": "Character",
+      "LOCATION": "Location",
+      "PROP": "Props"
+    },
+    "ASSETS": {
+      "EMPTY": "No assets in this category yet. Pick a “New …” button above to create one.",
+      "NEW_CHARACTER": "New character",
+      "NEW_LOCATION": "New location",
+      "NEW_PROP": "New prop",
+      "TITLE_CHARACTER": "New character",
+      "TITLE_LOCATION": "New location",
+      "TITLE_PROP": "New prop",
+      "SUBMIT_CHARACTER": "Create character",
+      "SUBMIT_LOCATION": "Create location",
+      "SUBMIT_PROP": "Create prop",
+      "NAME_PH_LOCATION": "Tokyo rooftop",
+      "NAME_PH_PROP": "Neon katana",
+      "FILES_LABEL": "Reference images",
+      "FILES_COUNT": "file(s) ready",
+      "DROP_HINT": "Drop images or click to pick"
+    }
+  },
+  "FILES": {
+    "TITLE": "Files",
+    "HINT": "Upload, organize, and link assets to your characters.",
+    "EMPTY": "No files in this category yet.",
+    "UPLOAD": "Upload",
+    "COUNT_SUFFIX": "items",
+    "TABS": {
+      "IMAGES": "Images",
+      "VIDEOS": "Videos",
+      "AUDIO": "Audio",
+      "TEMP": "Temp",
+      "TRASH": "Trash"
+    },
+    "ACTIONS": {
+      "LINK": "Link to character",
+      "DELETE": "Move to trash",
+      "RESTORE": "Restore",
+      "HARD_DELETE": "Delete forever"
+    },
+    "LINK": {
+      "DIALOG_TITLE": "Link file to character",
+      "CHARACTER": "Character",
+      "CHARACTER_PLACEHOLDER": "Pick a character",
+      "SUBMIT": "Link"
+    }
+  },
+  "PROVIDERS": {
+    "NEW_PROVIDER": "New Provider",
+    "DIALOG": {
+      "CREATE_TITLE": "New Provider",
+      "EDIT_TITLE": "Edit Provider"
+    },
+    "FIELDS": {
+      "NAME": "Name",
+      "PROVIDER": "Provider",
+      "PROVIDER_PLACEHOLDER": "Select a provider",
+      "MODEL_NAME": "Model name",
+      "API_KEY": "API Key",
+      "URL": "URL",
+      "ENDPOINT": "Endpoint"
+    },
+    "MODEL_DIALOG": {
+      "CREATE_TITLE": "New Model",
+      "EDIT_TITLE": "Edit Model"
+    }
   }
 }

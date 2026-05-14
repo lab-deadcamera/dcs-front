@@ -1,0 +1,144 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+
+/**
+ * Drag-and-drop file zone with optional corner label.
+ * Used for FIRST FRAME, LAST FRAME, and the generic "+" asset slot.
+ *
+ *   <ui-drop-zone
+ *     labelKey="STUDIO.ASSETS.FIRST_FRAME"
+ *     placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
+ *     (filesDropped)="onFile($event)" />
+ *
+ * Emits the raw File[] — parent decides what to do (preview, upload, tag).
+ */
+@Component({
+  selector: 'ui-drop-zone',
+  imports: [TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <label
+      [class]="rootClasses()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      @if (preview(); as src) {
+        <img
+          [src]="src"
+          [alt]="previewAlt()"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <span
+          aria-hidden="true"
+          class="absolute inset-0 bg-ink-950/30 transition-colors group-hover:bg-ink-950/10"
+        ></span>
+      }
+
+      @if (labelKey(); as l) {
+        <span
+          class="absolute top-0 left-0 z-10 bg-primary-500 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong"
+        >
+          {{ l | translate }}
+        </span>
+      }
+
+      @if (preview()) {
+        <button
+          type="button"
+          class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-primary-500 hover:text-primary-500"
+          [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
+          (click)="onClear($event)"
+        >×</button>
+      } @else {
+        <div class="flex flex-col items-center gap-2 text-fg-muted">
+          <span class="text-2xl leading-none">+</span>
+          @if (placeholderKey(); as p) {
+            <span class="text-[11px] uppercase tracking-[0.18em]">
+              {{ p | translate }}
+            </span>
+          }
+        </div>
+      }
+
+      <input
+        type="file"
+        class="sr-only"
+        [accept]="accept()"
+        [multiple]="multiple()"
+        (change)="onPick($event)"
+      />
+    </label>
+  `,
+})
+export class DropZoneComponent {
+  readonly labelKey = input<string | null>(null);
+  readonly placeholderKey = input<string | null>(null);
+  readonly accept = input<string>('image/*,video/*');
+  readonly multiple = input<boolean>(false);
+  /** Compact variant for the "+" tile in the asset grid. */
+  readonly compact = input<boolean>(false);
+  /** Small variant — roughly half the default height (first/last frame slots). */
+  readonly small = input<boolean>(false);
+  /** Optional thumbnail URL — when set, the zone renders the preview. */
+  readonly preview = input<string | null | undefined>(null);
+  /** Alt text used for the preview image (filename or label). */
+  readonly previewAlt = input<string>('');
+
+  readonly filesDropped = output<File[]>();
+  readonly cleared = output<void>();
+
+  protected readonly hovering = signal(false);
+
+  protected rootClasses() {
+    const base =
+      'relative flex cursor-pointer items-center justify-center ' +
+      'border border-dashed transition-colors';
+    const size = this.compact()
+      ? ' h-20 w-20'
+      : this.small()
+        ? ' h-[5.5rem] w-full'
+        : ' h-44 w-full';
+    const hover = this.hovering()
+      ? ' border-primary-500 bg-ink-700'
+      : ' border-ink-500 bg-ink-850 hover:border-fg-muted';
+    return base + size + hover;
+  }
+
+  protected onDragOver(e: DragEvent) {
+    e.preventDefault();
+    this.hovering.set(true);
+  }
+
+  protected onDragLeave() {
+    this.hovering.set(false);
+  }
+
+  protected onDrop(e: DragEvent) {
+    e.preventDefault();
+    this.hovering.set(false);
+    const files = e.dataTransfer?.files;
+    if (files && files.length) this.filesDropped.emit(Array.from(files));
+  }
+
+  protected onPick(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files.length) {
+      this.filesDropped.emit(Array.from(input.files));
+      input.value = '';
+    }
+  }
+
+  protected onClear(e: MouseEvent) {
+    // Stop the surrounding <label> from re-opening the file picker.
+    e.preventDefault();
+    e.stopPropagation();
+    this.cleared.emit();
+  }
+}

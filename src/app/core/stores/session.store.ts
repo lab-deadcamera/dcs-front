@@ -7,7 +7,7 @@ import {
   withHooks,
   patchState,
 } from '@ngrx/signals';
-import type { SessionState, User } from '@core/interfaces';
+import type { SessionState, UserSession } from '@core/interfaces';
 import { inject } from '@angular/core';
 import { SessionStorageService } from './session-storage.service';
 
@@ -29,7 +29,7 @@ export const SessionStore = signalStore(
     isAuthenticated: computed(() => user() !== null && token() !== null),
   })),
   withMethods((store, storage = inject(SessionStorageService)) => ({
-    async login(user: User, token: string) {
+    async login(user: UserSession, token: string) {
       patchState(store, { user, token, isLoading: false });
       await storage.set({ user, token });
     },
@@ -37,7 +37,7 @@ export const SessionStore = signalStore(
       patchState(store, { user: null, token: null, isLoading: false });
       await storage.delete();
     },
-    async setUser(user: User) {
+    async setUser(user: UserSession) {
       patchState(store, { user });
     },
     async load() {

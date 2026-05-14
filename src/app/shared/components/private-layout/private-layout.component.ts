@@ -1,22 +1,23 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
-import { LanguagePicker } from '@shared/components/language-picker/language-picker.component';
+import { HeaderComponent } from '@shared/components/header/header.component';
 
 @Component({
   selector: 'app-private-layout',
-  imports: [RouterOutlet, ThemePicker, LanguagePicker],
+  imports: [RouterOutlet, HeaderComponent],
   template: `
-    <div class="min-h-dvh flex flex-col bg-surface-0 dark:bg-surface-950 text-surface-900 dark:text-surface-100">
-      <header class="flex items-center justify-between px-6 py-3 border-b border-surface-200 dark:border-surface-700">
-        <h1 class="text-lg font-bold text-primary-600 dark:text-primary-400">dcs-videos</h1>
-        <nav class="flex items-center gap-2">
-          <app-language-picker />
-          <app-theme-picker />
-        </nav>
-      </header>
+    <!--
+      Lateral chrome: the app body is condensed by ~200px on each side
+      on xl, with progressively smaller gutters on md/lg. The whole shell
+      uses the same true-black ink-950 so the gutter and the content
+      blend into a single seamless surface.
+    -->
+    <div
+      class="min-h-dvh flex flex-col bg-ink-950 text-fg md:px-8 lg:px-16 xl:px-[200px]"
+    >
+      <app-header />
 
-      <main class="flex-1 flex items-center justify-center p-6">
+      <main class="flex-1 flex flex-col">
         <router-outlet />
       </main>
     </div>

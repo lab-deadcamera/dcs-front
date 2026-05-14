@@ -1,0 +1,218 @@
+<section class="px-6 py-6">
+  <header class="mb-5 flex flex-col gap-4">
+    <div>
+      <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
+        {{ 'CHARACTERS.TITLE' | translate }}
+      </h1>
+      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary)">
+        {{ 'CHARACTERS.HINT' | translate }}
+      </p>
+    </div>
+
+    <!-- Typed create actions — one button per asset type. -->
+    <div class="flex flex-wrap gap-2">
+      <p-button
+        icon="pi pi-user-plus"
+        [label]="'CHARACTERS.ASSETS.NEW_CHARACTER' | translate"
+        data-testid="assets-new-character"
+        (onClick)="openCreate('character')"
+      />
+      <p-button
+        icon="pi pi-map-marker"
+        [label]="'CHARACTERS.ASSETS.NEW_LOCATION' | translate"
+        severity="secondary"
+        data-testid="assets-new-location"
+        (onClick)="openCreate('location')"
+      />
+      <p-button
+        icon="pi pi-box"
+        [label]="'CHARACTERS.ASSETS.NEW_PROP' | translate"
+        severity="secondary"
+        data-testid="assets-new-prop"
+        (onClick)="openCreate('prop')"
+      />
+    </div>
+  </header>
+
+  <!-- Type tabs -->
+  <div
+    class="mb-4 flex flex-wrap gap-1 border-b"
+    style="border-color: var(--border-color)"
+    role="tablist"
+  >
+    @for (t of tabs; track t.id) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeType() === t.id"
+        [class.border-primary-500]="activeType() === t.id"
+        [class.text-primary-500]="activeType() === t.id"
+        [class.border-transparent]="activeType() !== t.id"
+        class="-mb-px border-b-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:text-primary-500"
+        [attr.data-testid]="'assets-tab-' + t.id"
+        (click)="setActiveType(t.id)"
+      >
+        <i class="pi {{ t.icon }} mr-1"></i>
+        {{ t.labelKey | translate }}
+        <span class="ml-1 font-mono text-[10px]" style="color: var(--text-muted)">
+          ({{ characters.countByType()[t.id] }})
+        </span>
+      </button>
+    }
+  </div>
+
+  <!-- Assets grid for the active type -->
+  @if (characters.loading()) {
+    <p class="py-8 text-center italic" style="color: var(--text-muted)">
+      {{ 'COMMON.LOADING' | translate }}
+    </p>
+  } @else if (visibleAssets().length === 0) {
+    <p class="py-12 text-center italic" style="color: var(--text-muted)">
+      {{ 'CHARACTERS.ASSETS.EMPTY' | translate }}
+    </p>
+  } @else {
+    <ul
+      class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"
+      data-testid="assets-grid"
+    >
+      @for (a of visibleAssets(); track a.id) {
+        <li
+          class="group flex flex-col border"
+          style="border-color: var(--border-color); background: var(--surface-bg)"
+          [attr.data-testid]="'assets-card-' + a.id"
+        >
+          <!--
+            Preview area — layered:
+              1. Fallback icon is always rendered as the background; if
+                 the asset has no files, the wrong kind for an <img>,
+                 or its image 404/CORS-fails, this layer shows through.
+              2. <img> overlays only when shouldRenderImage(a) is true
+                 (skips pure video / audio kinds) and we have a file id.
+              3. "+N" badge surfaces additional files even when the
+                 image fails to load.
+          -->
+          <div
+            class="relative aspect-square w-full overflow-hidden"
+            style="background: var(--content-bg)"
+          >
+            <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center">
+              <i class="pi text-2xl" [class]="fallbackIcon(a)" style="color: var(--text-muted)"></i>
+            </span>
+
+            @let preview = previewMap()[a.id];
+
+            @if (preview && shouldRenderImage(a) && !preview.imageBroken) {
+              <img
+                [src]="serveUrl(preview.fileId)"
+                [alt]="a.name"
+                class="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                (error)="onPreviewError(a.id)"
+              />
+            }
+
+            @if (preview && preview.count > 1) {
+              <span
+                aria-hidden="true"
+                class="absolute top-1 right-1 z-10 bg-ink-950/70 px-1 py-0 font-mono text-[9px] leading-tight text-fg-strong"
+              >
+                +{{ preview.count - 1 }}
+              </span>
+            }
+          </div>
+
+          <div class="px-2 py-1.5">
+            <p
+              class="truncate text-[11px] font-semibold"
+              [title]="a.name"
+              style="color: var(--text-primary)"
+            >
+              {{ a.name }}
+            </p>
+            <p
+              class="truncate text-[10px]"
+              [title]="a.description"
+              style="color: var(--text-secondary)"
+            >
+              {{ a.description }}
+            </p>
+          </div>
+
+          <div
+            class="flex flex-col gap-1 border-t px-1.5 py-1.5"
+            style="border-color: var(--border-color)"
+          >
+            <p-button
+              [label]="'CHARACTERS.ACTIONS.USE' | translate"
+              icon="pi pi-arrow-right"
+              size="small"
+              [attr.data-testid]="'assets-use-' + a.id"
+              (onClick)="useAsset(a)"
+            />
+            <div class="flex items-center justify-end gap-0">
+              <p-button
+                icon="pi pi-folder"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-files-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.FILES' | translate"
+                (onClick)="openFiles(a)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-edit-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.EDIT' | translate"
+                (onClick)="openEdit(a)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [attr.data-testid]="'assets-delete-' + a.id"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.DELETE' | translate"
+                (onClick)="confirmDelete(a)"
+              />
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Create wizard — drag & drop multi-file upload + auto-link -->
+  <app-asset-create-dialog
+    [visible]="createDialogVisible()"
+    [type]="createDialogType()"
+    (visibleChange)="createDialogVisible.set($event)"
+    (created)="onAssetCreated($event)"
+  />
+
+  <!-- Edit (name + description) — reuses existing form dialog -->
+  <app-character-form-dialog
+    [visible]="editDialogVisible()"
+    [character]="editDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="editDialogVisible.set($event)"
+    (create)="onCreateLegacy($event)"
+    (update)="onUpdate($event)"
+    (updateList)="loadAssets()"
+  />
+
+  <!-- File manager for an existing asset -->
+  <app-character-files-dialog
+    [visible]="filesDialogVisible()"
+    [character]="filesDialogTarget()"
+    (visibleChange)="filesDialogVisible.set($event)"
+  />
+
+  <p-confirmDialog />
+  <p-toast position="bottom-right" />
+</section>

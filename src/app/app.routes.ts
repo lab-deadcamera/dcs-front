@@ -11,6 +11,23 @@ export const routes: Routes = [
         path: '',
         loadChildren: () => import('@modules/home/home.routes').then(m => m.HOME_ROUTES),
       },
+      {
+        path: 'studio',
+        loadChildren: () => import('@modules/studio/studio.routes').then(m => m.STUDIO_ROUTES),
+      },
+      // Characters: launched inline from the studio's "My Assets" section
+      // (CharacterAssetsComponent embeds <app-index-characters> in a dialog),
+      // so it no longer needs its own top-level route.
+      {
+        path: 'files',
+        loadChildren: () =>
+          import('@modules/files/files.routes').then((m) => m.FILES_ROUTES),
+      },
+      {
+        path: 'providers',
+        loadChildren: () =>
+          import('@modules/providers/providers.routes').then((m) => m.PROVIDERS_ROUTES),
+      },
     ],
   },
   {
