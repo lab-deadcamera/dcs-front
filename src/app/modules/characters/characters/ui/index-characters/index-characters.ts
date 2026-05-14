@@ -27,6 +27,7 @@ import { CharacterFilesDialogComponent } from '../components/character-files-dia
 import { AssetCreateDialogComponent } from '../components/asset-create-dialog/asset-create-dialog.component';
 import { FilesApiService } from '@modules/files/files/services';
 import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
+import { toCharacter } from '@shared/utils';
 
 /**
  * Characters library — typed asset board.
@@ -88,9 +89,9 @@ export class IndexCharacters implements OnInit {
     labelKey: string;
     icon: string;
   }[] = [
-    { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER', icon: 'pi pi-user'  },
-    { id: 'location',  labelKey: 'CHARACTERS.TABS.LOCATION',  icon: 'pi pi-map'   },
-    { id: 'prop',      labelKey: 'CHARACTERS.TABS.PROP',      icon: 'pi pi-box'   },
+    { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER', icon: 'pi pi-user' },
+    { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION', icon: 'pi pi-map' },
+    { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi pi-box' },
   ];
 
   protected readonly visibleAssets = computed<Character[]>(
@@ -111,8 +112,12 @@ export class IndexCharacters implements OnInit {
   protected readonly createDialogType = signal<AssetType>('character');
 
   ngOnInit(): void {
+    this.loadAssets();
+  }
+
+  protected loadAssets(): void {
     this.characters.load().subscribe((res) => {
-      if (!res.error && res.data) this.loadPreviews(res.data);
+      if (!res.error && res.data) this.loadPreviews(res.data.map((c) => toCharacter(c.character)));
     });
   }
 
@@ -123,20 +128,12 @@ export class IndexCharacters implements OnInit {
    */
   private loadPreviews(items: Character[]): void {
     from(items)
-      .pipe(
-        mergeMap(
-          (c) =>
-            this.characters
-              .listFiles(c.id)
-              .pipe(map((r) => ({ c, r }))),
-          3,
-        ),
-      )
+      .pipe(mergeMap((c) => this.characters.listFiles(c.id).pipe(map((r) => ({ c, r }))), 3))
       .subscribe(({ c, r }) => {
         if (!r.error && r.data && r.data.length > 0) {
           this.previewMap.update((m) => ({
             ...m,
-            [c.id]: { fileId: r.data![0].fileId, count: r.data!.length },
+            [c.id]: { fileId: r.data![0].file_id, count: r.data!.length },
           }));
         }
       });
@@ -149,7 +146,7 @@ export class IndexCharacters implements OnInit {
         this.previewMap.update((m) => ({
           ...m,
           [characterId]: {
-            fileId: r.data![0].fileId,
+            fileId: r.data![0].file_id,
             count: r.data!.length,
           },
         }));
@@ -201,9 +198,12 @@ export class IndexCharacters implements OnInit {
     if (kind === 'video') return 'pi-video';
     if (kind === 'audio') return 'pi-volume-up';
     switch (this.activeType()) {
-      case 'location': return 'pi-map';
-      case 'prop':     return 'pi-box';
-      default:         return 'pi-user';
+      case 'location':
+        return 'pi-map';
+      case 'prop':
+        return 'pi-box';
+      default:
+        return 'pi-user';
     }
   }
 
@@ -259,6 +259,7 @@ export class IndexCharacters implements OnInit {
   protected onUpdate(evt: { id: string; patch: UpdateCharacterRequest }): void {
     if (Object.keys(evt.patch).length === 0) {
       this.editDialogVisible.set(false);
+      this.fetchPreviewFor(evt.id);
       return;
     }
     this.submitting.set(true);
@@ -270,6 +271,7 @@ export class IndexCharacters implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Updated' });
       this.editDialogVisible.set(false);
+      this.fetchPreviewFor(evt.id);
     });
   }
 

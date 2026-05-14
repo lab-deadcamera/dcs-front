@@ -4,7 +4,7 @@
       <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
         {{ 'CHARACTERS.TITLE' | translate }}
       </h1>
-      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary);">
+      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary)">
         {{ 'CHARACTERS.HINT' | translate }}
       </p>
     </div>
@@ -37,7 +37,7 @@
   <!-- Type tabs -->
   <div
     class="mb-4 flex flex-wrap gap-1 border-b"
-    style="border-color: var(--border-color);"
+    style="border-color: var(--border-color)"
     role="tablist"
   >
     @for (t of tabs; track t.id) {
@@ -54,7 +54,7 @@
       >
         <i class="pi {{ t.icon }} mr-1"></i>
         {{ t.labelKey | translate }}
-        <span class="ml-1 font-mono text-[10px]" style="color: var(--text-muted);">
+        <span class="ml-1 font-mono text-[10px]" style="color: var(--text-muted)">
           ({{ characters.countByType()[t.id] }})
         </span>
       </button>
@@ -63,11 +63,11 @@
 
   <!-- Assets grid for the active type -->
   @if (characters.loading()) {
-    <p class="py-8 text-center italic" style="color: var(--text-muted);">
+    <p class="py-8 text-center italic" style="color: var(--text-muted)">
       {{ 'COMMON.LOADING' | translate }}
     </p>
   } @else if (visibleAssets().length === 0) {
-    <p class="py-12 text-center italic" style="color: var(--text-muted);">
+    <p class="py-12 text-center italic" style="color: var(--text-muted)">
       {{ 'CHARACTERS.ASSETS.EMPTY' | translate }}
     </p>
   } @else {
@@ -78,7 +78,7 @@
       @for (a of visibleAssets(); track a.id) {
         <li
           class="group flex flex-col border"
-          style="border-color: var(--border-color); background: var(--surface-bg);"
+          style="border-color: var(--border-color); background: var(--surface-bg)"
           [attr.data-testid]="'assets-card-' + a.id"
         >
           <!--
@@ -93,17 +93,10 @@
           -->
           <div
             class="relative aspect-square w-full overflow-hidden"
-            style="background: var(--content-bg);"
+            style="background: var(--content-bg)"
           >
-            <span
-              aria-hidden="true"
-              class="absolute inset-0 flex items-center justify-center"
-            >
-              <i
-                class="pi text-2xl"
-                [class]="fallbackIcon(a)"
-                style="color: var(--text-muted);"
-              ></i>
+            <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center">
+              <i class="pi text-2xl" [class]="fallbackIcon(a)" style="color: var(--text-muted)"></i>
             </span>
 
             @let preview = previewMap()[a.id];
@@ -132,14 +125,14 @@
             <p
               class="truncate text-[11px] font-semibold"
               [title]="a.name"
-              style="color: var(--text-primary);"
+              style="color: var(--text-primary)"
             >
               {{ a.name }}
             </p>
             <p
               class="truncate text-[10px]"
               [title]="a.description"
-              style="color: var(--text-secondary);"
+              style="color: var(--text-secondary)"
             >
               {{ a.description }}
             </p>
@@ -147,7 +140,7 @@
 
           <div
             class="flex flex-col gap-1 border-t px-1.5 py-1.5"
-            style="border-color: var(--border-color);"
+            style="border-color: var(--border-color)"
           >
             <p-button
               [label]="'CHARACTERS.ACTIONS.USE' | translate"
@@ -210,6 +203,7 @@
     (visibleChange)="editDialogVisible.set($event)"
     (create)="onCreateLegacy($event)"
     (update)="onUpdate($event)"
+    (updateList)="loadAssets()"
   />
 
   <!-- File manager for an existing asset -->

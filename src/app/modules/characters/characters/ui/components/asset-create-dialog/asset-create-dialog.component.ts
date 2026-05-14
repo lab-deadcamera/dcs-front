@@ -10,12 +10,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -76,16 +71,9 @@ interface StagedFile {
       [style]="{ width: '38rem' }"
       [header]="titleKey() | translate"
     >
-      <form
-        [formGroup]="form"
-        (ngSubmit)="onSubmit()"
-        class="flex flex-col gap-4"
-      >
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <label
-            for="asset-name"
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <label for="asset-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'CHARACTERS.FIELDS.NAME' | translate }}
           </label>
           <input
@@ -103,10 +91,7 @@ interface StagedFile {
         </div>
 
         <div class="flex flex-col gap-1">
-          <label
-            for="asset-description"
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <label for="asset-description" class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'CHARACTERS.FIELDS.DESCRIPTION' | translate }}
           </label>
           <textarea
@@ -115,16 +100,12 @@ interface StagedFile {
             rows="2"
             formControlName="description"
             data-testid="asset-create-description"
-            [placeholder]="
-              'CHARACTERS.FIELDS.DESCRIPTION_PLACEHOLDER' | translate
-            "
+            [placeholder]="'CHARACTERS.FIELDS.DESCRIPTION_PLACEHOLDER' | translate"
           ></textarea>
         </div>
 
         <div class="flex flex-col gap-2">
-          <label
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <label class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'CHARACTERS.ASSETS.FILES_LABEL' | translate }}
           </label>
 
@@ -155,9 +136,15 @@ interface StagedFile {
                       style="color: var(--text-muted); background: var(--surface-bg);"
                     >
                       @switch (s.kind) {
-                        @case ('video') { <i class="pi pi-video"></i> }
-                        @case ('audio') { <i class="pi pi-volume-up"></i> }
-                        @default        { <i class="pi pi-file"></i> }
+                        @case ('video') {
+                          <i class="pi pi-video"></i>
+                        }
+                        @case ('audio') {
+                          <i class="pi pi-volume-up"></i>
+                        }
+                        @default {
+                          <i class="pi pi-file"></i>
+                        }
                       }
                     </span>
                   }
@@ -166,14 +153,13 @@ interface StagedFile {
                     class="absolute top-0 right-0 z-10 flex h-3 w-3 items-center justify-center bg-ink-950/80 text-[8px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
                     [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
                     (click)="removeStaged(s.key)"
-                  >×</button>
+                  >
+                    ×
+                  </button>
                 </li>
               }
             </ul>
-            <p
-              class="font-mono text-[10px]"
-              style="color: var(--text-muted);"
-            >
+            <p class="font-mono text-[10px]" style="color: var(--text-muted);">
               {{ staged().length }}
               {{ 'CHARACTERS.ASSETS.FILES_COUNT' | translate }}
             </p>
@@ -226,25 +212,34 @@ export class AssetCreateDialogComponent implements OnDestroy {
 
   protected readonly titleKey = computed(() => {
     switch (this.type()) {
-      case 'location': return 'CHARACTERS.ASSETS.TITLE_LOCATION';
-      case 'prop':     return 'CHARACTERS.ASSETS.TITLE_PROP';
-      default:         return 'CHARACTERS.ASSETS.TITLE_CHARACTER';
+      case 'location':
+        return 'CHARACTERS.ASSETS.TITLE_LOCATION';
+      case 'prop':
+        return 'CHARACTERS.ASSETS.TITLE_PROP';
+      default:
+        return 'CHARACTERS.ASSETS.TITLE_CHARACTER';
     }
   });
 
   protected readonly submitLabelKey = computed(() => {
     switch (this.type()) {
-      case 'location': return 'CHARACTERS.ASSETS.SUBMIT_LOCATION';
-      case 'prop':     return 'CHARACTERS.ASSETS.SUBMIT_PROP';
-      default:         return 'CHARACTERS.ASSETS.SUBMIT_CHARACTER';
+      case 'location':
+        return 'CHARACTERS.ASSETS.SUBMIT_LOCATION';
+      case 'prop':
+        return 'CHARACTERS.ASSETS.SUBMIT_PROP';
+      default:
+        return 'CHARACTERS.ASSETS.SUBMIT_CHARACTER';
     }
   });
 
   protected readonly namePlaceholderKey = computed(() => {
     switch (this.type()) {
-      case 'location': return 'CHARACTERS.ASSETS.NAME_PH_LOCATION';
-      case 'prop':     return 'CHARACTERS.ASSETS.NAME_PH_PROP';
-      default:         return 'CHARACTERS.FIELDS.NAME_PLACEHOLDER';
+      case 'location':
+        return 'CHARACTERS.ASSETS.NAME_PH_LOCATION';
+      case 'prop':
+        return 'CHARACTERS.ASSETS.NAME_PH_PROP';
+      default:
+        return 'CHARACTERS.FIELDS.NAME_PLACEHOLDER';
     }
   });
 
@@ -320,6 +315,7 @@ export class AssetCreateDialogComponent implements OnDestroy {
         metadata: { assetType: type, fileKind },
       })
       .subscribe((res) => {
+        console.log({ res });
         if (res.error || !res.data) {
           this.submitting.set(false);
           this.toast.add({
@@ -367,6 +363,8 @@ export class AssetCreateDialogComponent implements OnDestroy {
             });
             return;
           }
+          console.log({ r });
+
           successfulIds.push((r.data as FileEntity).id);
         });
 
@@ -375,10 +373,9 @@ export class AssetCreateDialogComponent implements OnDestroy {
           return;
         }
 
-        const links$: Observable<{ error: boolean; msg: string }>[] =
-          successfulIds.map((fileId) =>
-            this.characters.assignFile(characterId, fileId, 'reference'),
-          );
+        const links$: Observable<{ error: boolean; msg: string }>[] = successfulIds.map((fileId) =>
+          this.characters.assignFile(characterId, fileId, 'reference'),
+        );
 
         forkJoin(links$).subscribe({
           next: () => this.finalize(characterId, type),
