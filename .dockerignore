@@ -1,16 +1,51 @@
-node_modules
-dist
-.git
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git/
 .gitignore
-.github
-.angular
-.cache
-.editorconfig
-.prettierrc
-.postcssrc.json
-*.md
-.vscode
-.cursor
-.claude
-.gemini
-.windsurf
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Angular/Aplicación
+.DS_Store
+Thumbs.db
+*.log
+package-lock.json
+
+# Desarrollo
+.env
+.env.*
+!.env.production
+
+# Tests y docs
+coverage/
+docs/
+*.spec.ts
+*.test.ts
+README.md
+AGENTS.md
+
+# Build artifacts
+dist/
+tmp/
+.cache/
+.angular/
+
+# AI agents
+.claude/
+.agent/
+.cursor/
+.gemini/
+.windsurf/
+.opencode/
+.codex/
+.github/
