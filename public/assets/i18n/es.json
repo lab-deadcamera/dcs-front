@@ -115,6 +115,26 @@
       "DELETE": "Del",
       "ACTIVATE_ARIA": "Activar esta clave"
     },
+    "SESSION_GATE": {
+      "TITLE": "Abrir sesión de escena",
+      "HINT": "Identifícate y declara la escena que vas a grabar. Cada clip generado se nombrará con la escena + toma que marques abajo.",
+      "EMAIL": "Correo electrónico",
+      "EMAIL_PLACEHOLDER": "tu@estudio.com",
+      "HANDLE": "Nombre de usuario",
+      "HANDLE_PLACEHOLDER": "ej. drako",
+      "SCENE": "Nombre o número de escena",
+      "SCENE_PLACEHOLDER": "ej. SC03 o 37",
+      "TAKES": "Cantidad de tomas",
+      "TAKES_HINT": "Cuántas tomas esperas grabar para esta escena (1-99). Aparecerá un checkmark por toma al lado del visor.",
+      "SUBMIT": "Abrir escena"
+    },
+    "TAKE_CHECKLIST": {
+      "TITLE": "Tomas",
+      "TAKE_ARIA": "Toma {{n}} — {{status}}",
+      "STATUS_PENDING": "pendiente",
+      "STATUS_CURRENT": "actual",
+      "STATUS_DONE": "completada"
+    },
     "VIEWER": {
       "TITLE": "Visor",
       "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",

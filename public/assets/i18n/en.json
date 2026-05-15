@@ -115,6 +115,26 @@
       "DELETE": "Del",
       "ACTIVATE_ARIA": "Activate this key"
     },
+    "SESSION_GATE": {
+      "TITLE": "Open scene session",
+      "HINT": "Identify yourself and declare the scene you're shooting. Each generated clip will be named with the scene + take you mark below.",
+      "EMAIL": "Email",
+      "EMAIL_PLACEHOLDER": "you@studio.com",
+      "HANDLE": "Username",
+      "HANDLE_PLACEHOLDER": "e.g. drako",
+      "SCENE": "Scene name / number",
+      "SCENE_PLACEHOLDER": "e.g. SC03 or 37",
+      "TAKES": "Number of takes",
+      "TAKES_HINT": "How many takes you expect to shoot for this scene (1-99). One checkmark per take will appear next to the viewer.",
+      "SUBMIT": "Open scene"
+    },
+    "TAKE_CHECKLIST": {
+      "TITLE": "Takes",
+      "TAKE_ARIA": "Take {{n}} — {{status}}",
+      "STATUS_PENDING": "pending",
+      "STATUS_CURRENT": "current",
+      "STATUS_DONE": "done"
+    },
     "VIEWER": {
       "TITLE": "Viewer",
       "HINT": "Final clip · evaluate quality, lip sync, sound, color",

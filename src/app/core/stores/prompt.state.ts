@@ -38,6 +38,13 @@ export interface PendingGeneration {
   progress: number;
   /** Optional "1/3" style label so batched requests can be told apart. */
   label?: string;
+  /**
+   * 1-based take number captured at the moment the request was queued.
+   * Propagates to the resulting `GeneratedClip.takeIndex` so the download
+   * filename reflects the take the user was working on when they clicked
+   * generate — independent of whether they advance the cursor later.
+   */
+  takeIndex?: number;
 }
 
 /**
@@ -337,9 +344,12 @@ export class PromptStateService {
   // ---------------------------------------------------------------------------
 
   /** Register a new in-flight task and return its id for later updates. */
-  startGeneration(label?: string): string {
+  startGeneration(label?: string, takeIndex?: number): string {
     const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    this._pendingGenerations.update((list) => [...list, { id, progress: 0, label }]);
+    this._pendingGenerations.update((list) => [
+      ...list,
+      { id, progress: 0, label, takeIndex },
+    ]);
     return id;
   }
 
@@ -353,8 +363,15 @@ export class PromptStateService {
 
   /** Mark a task as finished. If a clip is passed it's pushed to the reel. */
   completeGeneration(id: string, clip?: GeneratedClip): void {
+    const pending = this._pendingGenerations().find((g) => g.id === id);
     this._pendingGenerations.update((list) => list.filter((g) => g.id !== id));
-    if (clip) this.pushClip(clip);
+    if (clip) {
+      const withTake =
+        pending?.takeIndex !== undefined && clip.takeIndex === undefined
+          ? { ...clip, takeIndex: pending.takeIndex }
+          : clip;
+      this.pushClip(withTake);
+    }
   }
 
   /** Drop a failed task without pushing a clip. */

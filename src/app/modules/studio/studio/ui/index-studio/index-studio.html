@@ -8,7 +8,7 @@
         02 Cinematography
         03 Output Format
       RIGHT (preview + critique + prompt, sticky on lg+):
-        04 Viewer
+        04 Viewer  +  Takes checklist (right rail)
         05 Rating
         06 Prompt Builder
         · Session Reel (history)
@@ -19,6 +19,8 @@
       user scrolls the longer settings column.
     · Output Format (with the 1080p chip) lives in the LEFT column so
       it can't be misclicked while interacting with the viewer.
+    · The takes checklist sits as a narrow right rail next to the viewer
+      so the user can tick a take done without leaving the preview.
   -->
   <div class="flex flex-1 flex-col lg:flex-row lg:items-start">
     <!-- Steps 01 → 03 — Inputs (LEFT on lg+) -->
@@ -32,7 +34,19 @@
     <aside
       class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
     >
-      <app-viewer />
+      <div class="flex items-start">
+        <div class="min-w-0 flex-1">
+          <app-viewer />
+        </div>
+        @if (session.isReady()) {
+          <app-take-checklist
+            [takes]="session.takes()"
+            [currentIndex]="session.currentTakeIndex()"
+            [scenePrefix]="scenePrefix()"
+            (toggle)="onToggleTake($event)"
+          />
+        }
+      </div>
       <app-rating />
       <app-prompt-builder (generate)="onGenerate()" />
       <app-session-reel />
@@ -41,3 +55,8 @@
 
   <app-footer />
 </div>
+
+<app-session-gate-dialog
+  [visible]="gateOpen()"
+  (visibleChange)="gateOpen.set($event)"
+/>

@@ -12,6 +12,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { PromptStateService } from '@app/core/stores/prompt.state';
+import { SessionStateService } from '@app/core/stores/session.state';
 
 /**
  * Section 01 — VIEWER.
@@ -265,6 +266,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 })
 export class ViewerComponent implements OnDestroy {
   protected readonly prompt = inject(PromptStateService);
+  private readonly session = inject(SessionStateService);
   private readonly i18n = inject(TranslateService);
   protected readonly isFullscreen = signal(false);
   protected readonly hdPending = signal(false);
@@ -299,7 +301,7 @@ export class ViewerComponent implements OnDestroy {
   protected async onDownload(): Promise<void> {
     const clip = this.prompt.activeClip();
     if (!clip?.videoUrl) return;
-    const filename = `clip-${clip.id}.mp4`;
+    const filename = this.session.filenameForClip(clip);
     try {
       const res = await fetch(clip.videoUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

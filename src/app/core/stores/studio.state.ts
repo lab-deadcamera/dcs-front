@@ -73,4 +73,18 @@ export class StudioStateService {
   setModelCode(code: ModelData | null) {
     this._modelCode.set(code);
   }
+
+  /**
+   * Update the studio identity from the gate dialog. `initial` is derived
+   * from the first character of the handle so the header avatar tracks
+   * whatever username the user typed.
+   */
+  setUser(user: { handle: string }): void {
+    const handle = user.handle.trim();
+    if (!handle) return;
+    this._user.set({
+      handle,
+      initial: handle.charAt(0).toUpperCase(),
+    });
+  }
 }
