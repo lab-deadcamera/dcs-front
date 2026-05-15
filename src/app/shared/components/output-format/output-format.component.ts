@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SelectModule } from 'primeng/select';
@@ -12,12 +6,7 @@ import { SectionHeaderComponent } from '@shared/components/section-header/sectio
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import { PillToggleComponent } from '@shared/components/pill-toggle/pill-toggle.component';
 import { RangeSliderComponent } from '@shared/components/range-slider/range-slider.component';
-import {
-  AspectRatio,
-  ChipOption,
-  Engine,
-  Resolution,
-} from '@core/interfaces/studio.models';
+import { AspectRatio, ChipOption, Engine, Resolution } from '@core/interfaces/studio.models';
 import { MAX_BATCH_COUNT, PromptStateService } from '@app/core/stores/prompt.state';
 import { ModelService } from '@app/services';
 
@@ -48,16 +37,12 @@ export class OutputFormatComponent implements OnInit {
   protected modelValue: string | null = null;
 
   ngOnInit(): void {
-    this.modelValue = this.prompt.output().model || null;
-
     this.modelsLoading.set(true);
     this.modelService.getAllModels().subscribe((res) => {
       this.modelsLoading.set(false);
       if (!res.error && res.data) {
         this.modelOptions.set(
-          res.data
-            .filter((m) => m.active)
-            .map((m) => ({ label: m.name, value: m.name })),
+          res.data.filter((m) => m.active).map((m) => ({ label: m.name, value: m.name })),
         );
       }
     });
@@ -100,7 +85,6 @@ export class OutputFormatComponent implements OnInit {
 
   protected onModelChange(value: string | null): void {
     this.modelValue = value;
-    this.prompt.patchOutput({ model: value ?? '' });
   }
 
   protected readonly minBatch = 1;

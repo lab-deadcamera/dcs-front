@@ -131,7 +131,6 @@ export class PromptStateService {
     durationSeconds: 5,
     sound: false,
     engine: 'fast',
-    model: '',
     batchCount: 1,
   });
 
@@ -170,9 +169,7 @@ export class PromptStateService {
    */
   private readonly _compiledOverride = signal<string | null>(null);
   readonly compiledOverride = this._compiledOverride.asReadonly();
-  readonly hasCompiledOverride = computed(
-    () => this._compiledOverride() !== null,
-  );
+  readonly hasCompiledOverride = computed(() => this._compiledOverride() !== null);
 
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly cinematography = this._cinematography.asReadonly();
@@ -180,18 +177,9 @@ export class PromptStateService {
   readonly sessionClips = this._sessionClips.asReadonly();
   readonly activeClipId = this._activeClipId.asReadonly();
 
-  readonly activeClip = computed(() =>
-    this._sessionClips().find((c) => c.id === this._activeClipId()) ?? null,
+  readonly activeClip = computed(
+    () => this._sessionClips().find((c) => c.id === this._activeClipId()) ?? null,
   );
-
-  /** Model id used by the generate call — user-selected model or engine default. */
-  readonly modelId = computed(() => {
-    const selected = this._output().model;
-    if (selected) return selected;
-    return this._output().engine === 'fast'
-      ? 'dreamina-seedance-2-0-fast-260128'
-      : 'dreamina-seedance-2-0-260128';
-  });
 
   /**
    * The text block that would be sent to BytePlus *if* the user has not
@@ -240,9 +228,7 @@ export class PromptStateService {
    * The exact text block that will be sent to BytePlus. Equals the
    * manual override if one is active, otherwise the derived base.
    */
-  readonly compiledPrompt = computed(
-    () => this._compiledOverride() ?? this.baseCompiledPrompt(),
-  );
+  readonly compiledPrompt = computed(() => this._compiledOverride() ?? this.baseCompiledPrompt());
 
   readonly compiledLength = computed(() => this.compiledPrompt().length);
 
@@ -346,10 +332,7 @@ export class PromptStateService {
   /** Register a new in-flight task and return its id for later updates. */
   startGeneration(label?: string, takeIndex?: number): string {
     const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    this._pendingGenerations.update((list) => [
-      ...list,
-      { id, progress: 0, label, takeIndex },
-    ]);
+    this._pendingGenerations.update((list) => [...list, { id, progress: 0, label, takeIndex }]);
     return id;
   }
 
@@ -464,10 +447,7 @@ export class PromptStateService {
     const prev = this._lastInjections();
     let text = this._rawDescription();
 
-    const headers = new Set([
-      ...Object.keys(prev),
-      ...Object.keys(next),
-    ]);
+    const headers = new Set([...Object.keys(prev), ...Object.keys(next)]);
     for (const header of headers) {
       text = this.replaceSectionInjection(text, header, prev[header] ?? '', next[header] ?? '');
     }

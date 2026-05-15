@@ -33,6 +33,8 @@ import {
   StudioGenerateRequest,
   StudioTaskResponse,
 } from '@app/core/interfaces';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 /** Visual progress per status — backend reports no % during running, so we fake it. */
 const PROGRESS_QUEUED = 10;
@@ -54,6 +56,7 @@ const POLL_INTERVAL_MS = 3000;
     OutputFormatComponent,
     CharacterAssetsComponent,
     RatingComponent,
+    ToastModule,
     FooterComponent,
     SessionGateDialogComponent,
     TakeChecklistComponent,
@@ -61,15 +64,17 @@ const POLL_INTERVAL_MS = 3000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
   styleUrl: './index-studio.css',
+  providers: [ConfirmationService, MessageService],
 })
 export class IndexStudio implements OnInit {
   protected readonly prompt = inject(PromptStateService);
   protected readonly session = inject(SessionStateService);
-  private readonly studioState = inject(StudioStateService);
+  private readonly studioState = inject(StudioStateService); // StudioStateService
   private readonly assets = inject(AssetsStateService);
   private readonly modelService = inject(ModelService);
   private readonly seedance = inject(SeedanceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(MessageService);
 
   /**
    * Two-way binding for the gate dialog. Auto-opens when no session is
@@ -77,9 +82,7 @@ export class IndexStudio implements OnInit {
    * submit (or via the parent if we later add a "switch scene" affordance).
    */
   protected readonly gateOpen = signal(false);
-  protected readonly scenePrefix = computed(
-    () => this.session.scene()?.code ?? '',
-  );
+  protected readonly scenePrefix = computed(() => this.session.scene()?.code ?? '');
 
   ngOnInit(): void {
     this.modelService.getFavorite().subscribe((res) => {
@@ -108,7 +111,15 @@ export class IndexStudio implements OnInit {
    */
   protected onGenerate(): void {
     const compiled = this.prompt.compiledPrompt();
-    if (!compiled) return;
+    if (!compiled) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes escribir un prompt antes de generar',
+        severity: 'error',
+        life: 3000,
+      });
+      return;
+    }
     const count = Math.max(1, Math.min(MAX_BATCH_COUNT, this.prompt.output().batchCount || 1));
     for (let i = 0; i < count; i++) {
       this.runOneGeneration(compiled, i + 1, count);
@@ -128,6 +139,17 @@ export class IndexStudio implements OnInit {
     const label = total > 1 ? `${index}/${total}` : undefined;
     const takeIndex = this.session.currentTake()?.index;
     const localId = this.prompt.startGeneration(label, takeIndex);
+
+    if (!this.studioState.modelCode()) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes seleccionar un modelo',
+        severity: 'error',
+        life: 3000,
+      });
+      return;
+    }
+
     // Capture the source snapshot at submit time so the resulting clip can
     // be "reused" later even if the user has since edited the editor.
     const source = this.buildSourceSnapshot(prompt);
@@ -137,6 +159,14 @@ export class IndexStudio implements OnInit {
       .generate(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
+        console.log({ res });
+
+        this.toast.add({
+          summary: 'Respuesta del servidor',
+          detail: res.msg,
+          severity: res.error ? 'error' : 'success',
+          life: 7000,
+        });
         if (res.error || !res.data) {
           this.prompt.failGeneration(localId);
           return;
@@ -186,6 +216,12 @@ export class IndexStudio implements OnInit {
       .subscribe((res) => {
         if (res.error || !res.data) {
           this.prompt.failGeneration(localId);
+          this.toast.add({
+            summary: 'Error de generación',
+            detail: res.msg || 'Error al consultar el estado de la tarea',
+            severity: 'error',
+            life: 5000,
+          });
           return;
         }
         const task = res.data;
@@ -200,6 +236,12 @@ export class IndexStudio implements OnInit {
           this.finishWithClip(localId, task, source);
         } else if (task.status === 'failed') {
           this.prompt.failGeneration(localId);
+          this.toast.add({
+            summary: 'Generación fallida',
+            detail: 'La tarea no pudo completarse',
+            severity: 'error',
+            life: 5000,
+          });
         }
       });
   }
@@ -218,6 +260,12 @@ export class IndexStudio implements OnInit {
     const out = task.outputs.find((o) => o.type === 'video') ?? task.outputs[0];
     if (!out?.url) {
       this.prompt.failGeneration(localId);
+      this.toast.add({
+        summary: 'Error',
+        detail: 'No se recibió un video del servidor',
+        severity: 'error',
+        life: 5000,
+      });
       return;
     }
     const output = this.prompt.output();
@@ -231,6 +279,12 @@ export class IndexStudio implements OnInit {
       source,
     };
     this.prompt.completeGeneration(localId, clip);
+    this.toast.add({
+      summary: 'Generación completada',
+      detail: 'El video se ha generado correctamente',
+      severity: 'success',
+      life: 5000,
+    });
   }
 
   /** Build the request body from the current prompt + output + assets state. */
@@ -245,8 +299,9 @@ export class IndexStudio implements OnInit {
         text: ref.tag,
       });
     }
+
     return {
-      model: this.prompt.modelId(),
+      model: this.studioState.modelCode()?.name ?? '',
       content,
       ratio: output.aspectRatio,
       duration: output.durationSeconds,

@@ -24,12 +24,7 @@ export type ColorGradingId = string;
 export type GenreId = string;
 
 /** Cinematography categories that accept user-added custom presets. */
-export type PresetCategory =
-  | 'lens'
-  | 'camera'
-  | 'cameraMotion'
-  | 'colorGrading'
-  | 'genre';
+export type PresetCategory = 'lens' | 'camera' | 'cameraMotion' | 'colorGrading' | 'genre';
 
 /** A single option inside a ToggleGroup (chips list). */
 export interface ChipOption<V extends string = string> {
@@ -93,7 +88,6 @@ export interface OutputFormatConfig {
   durationSeconds: number;
   sound: boolean;
   engine: Engine;
-  model: string;
   /** Number of independent videos to request per generation, 1-4. */
   batchCount: number;
 }

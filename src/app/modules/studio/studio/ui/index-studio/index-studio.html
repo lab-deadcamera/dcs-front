@@ -56,7 +56,6 @@
   <app-footer />
 </div>
 
-<app-session-gate-dialog
-  [visible]="gateOpen()"
-  (visibleChange)="gateOpen.set($event)"
-/>
+<app-session-gate-dialog [visible]="gateOpen()" (visibleChange)="gateOpen.set($event)" />
+
+<p-toast position="top-right" />
