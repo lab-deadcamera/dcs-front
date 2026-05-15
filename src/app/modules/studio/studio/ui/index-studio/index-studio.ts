@@ -28,7 +28,6 @@ import { AssetsStateService } from '@app/core/stores/assets.state';
 import { ModelService, SeedanceService } from '@app/services';
 import {
   GeneratedClip,
-  ReferenceAsset,
   StudioContentItem,
   StudioGenerateRequest,
   StudioTaskResponse,
@@ -110,8 +109,8 @@ export class IndexStudio implements OnInit {
    * the batch.
    */
   protected onGenerate(): void {
-    const compiled = this.prompt.compiledPrompt();
-    if (!compiled) {
+    const text = this.prompt.rawDescription().trim();
+    if (!text) {
       this.toast.add({
         summary: 'Error',
         detail: 'Debes escribir un prompt antes de generar',
@@ -122,7 +121,7 @@ export class IndexStudio implements OnInit {
     }
     const count = Math.max(1, Math.min(MAX_BATCH_COUNT, this.prompt.output().batchCount || 1));
     for (let i = 0; i < count; i++) {
-      this.runOneGeneration(compiled, i + 1, count);
+      this.runOneGeneration(text, i + 1, count);
     }
   }
 
@@ -271,7 +270,7 @@ export class IndexStudio implements OnInit {
     const output = this.prompt.output();
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
-      prompt: this.prompt.compiledPrompt(),
+      prompt: this.prompt.rawDescription(),
       videoUrl: out.url,
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
@@ -287,14 +286,26 @@ export class IndexStudio implements OnInit {
     });
   }
 
-  /** Build the request body from the current prompt + output + assets state. */
-  private buildPayload(compiled: string): StudioGenerateRequest {
+  /**
+   * Build the request body from the current prompt + output + assets state.
+   *
+   * References come from two sources: the drop-zone slots (first/last/free
+   * via AssetsStateService) and the Characters library quick-pick (via
+   * PromptStateService.usedAssets). Both are flattened into a single
+   * deduped `content[]` array — drop-zone slots first because their order
+   * carries semantic meaning ("Image 1" = first frame).
+   */
+  private buildPayload(text: string): StudioGenerateRequest {
     const output = this.prompt.output();
-    const content: StudioContentItem[] = [{ type: 'text', text: compiled }];
-    for (const ref of this.collectReferenceAssets()) {
+    const refs = this.collectReferenceAssets();
+    const hints = this.buildFrameHints();
+    const finalText = hints ? `${hints} ${text}` : text;
+
+    const content: StudioContentItem[] = [{ type: 'text', text: finalText }];
+    for (const ref of refs) {
       content.push({
-        type: ref.kind,
-        id: ref.id,
+        type: ref.type,
+        id: ref.fileId,
         name: ref.filename,
         text: ref.tag,
       });
@@ -317,19 +328,65 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Flatten first-frame + last-frame + free assets into a single ordered
-   * list. Order matters: BytePlus treats the first reference image as
-   * "Image 1", second as "Image 2", and so on — the tags inside
-   * `ReferenceAsset.tag` already follow this convention.
+   * Auto-generated text prepended to the prompt so the model knows which
+   * reference image anchors the first/last frame of the video. Order
+   * mirrors `collectReferenceAssets`: first-frame is always Image 1; if
+   * a last-frame is set without a first-frame, it stands alone as Image 1.
    */
-  private collectReferenceAssets(): ReferenceAsset[] {
-    const list: ReferenceAsset[] = [];
+  private buildFrameHints(): string {
     const first = this.assets.firstFrame();
     const last = this.assets.lastFrame();
-    if (first) list.push(first);
-    if (last) list.push(last);
-    list.push(...this.assets.freeAssets());
-    return list;
+    if (first && last) return 'The video starts on Image 1 and ends on Image 2.';
+    if (first) return 'The video starts on Image 1.';
+    if (last) return 'The video ends on Image 1.';
+    return '';
+  }
+
+  /**
+   * Flatten every reference source into a single deduped list:
+   *   1. Drop-zone first frame
+   *   2. Drop-zone last frame
+   *   3. Drop-zone free assets (in user-added order)
+   *   4. Characters library picks (in click order)
+   * Order matters because BytePlus references images positionally
+   * ("Image 1" = first item with `type: 'image'`).
+   */
+  private collectReferenceAssets(): Array<{
+    fileId: string;
+    filename: string;
+    type: 'image' | 'video' | 'audio';
+    tag: string;
+  }> {
+    const out: Array<{
+      fileId: string;
+      filename: string;
+      type: 'image' | 'video' | 'audio';
+      tag: string;
+    }> = [];
+    const seen = new Set<string>();
+    const push = (
+      fileId: string,
+      filename: string,
+      type: 'image' | 'video' | 'audio',
+      tag: string,
+    ): void => {
+      if (seen.has(fileId)) return;
+      seen.add(fileId);
+      out.push({ fileId, filename, type, tag });
+    };
+
+    const first = this.assets.firstFrame();
+    if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
+    const last = this.assets.lastFrame();
+    if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
+    for (const free of this.assets.freeAssets()) {
+      push(free.id, free.filename, free.kind, free.tag);
+    }
+    for (const used of this.prompt.usedAssets()) {
+      const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
+      push(used.fileId, used.filename, type, used.name);
+    }
+    return out;
   }
 
   /** Snapshot of the editor inputs at submit time — drives "reuse prompt". */

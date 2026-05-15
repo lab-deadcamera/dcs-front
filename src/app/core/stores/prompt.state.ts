@@ -9,7 +9,7 @@ import { PresetsService } from './presets.service';
 import { StudioStorageService } from './studio-storage.service';
 
 /** Bump when the persisted shape changes; older snapshots are discarded. */
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 /** Maximum number of videos a single generate-click can request. */
 export const MAX_BATCH_COUNT = 4;
@@ -22,12 +22,21 @@ function clamp(n: number, min: number, max: number): number {
 /** Kind of file an external asset is built from — drives the chip icon. */
 export type UsedAssetKind = 'image' | 'video' | 'audio' | 'mixed';
 
+/**
+ * A file from the Characters library marked as a reference for the next
+ * generation. The `fileId` is what travels to the backend in the unified
+ * payload's `content[]` — character ids are only useful for the UI.
+ */
 export interface UsedAsset {
-  /** Character id from the Characters library this came from. */
-  id: string;
-  /** Display name — used to build the `@token` and label. */
+  /** File UUID from POST /api/v1/files/upload — required for the API. */
+  fileId: string;
+  /** Source character id — used for "is this character already used?" lookups. */
+  characterId: string;
+  /** Display name shown on the chip (typically the character's name). */
   name: string;
-  /** Aggregated file type — drives the icon in the prompt chip. */
+  /** Original filename — used by the backend's asset resolver. */
+  filename: string;
+  /** Aggregated file type — drives the chip icon and the content[].type. */
   kind: UsedAssetKind;
 }
 
@@ -50,10 +59,11 @@ export interface PendingGeneration {
 /**
  * Maps each cinematography preset slot to the section header in the prompt
  * scaffold where the preset's prompt text should be injected. Camera body
- * is intentionally absent — it gets appended at compile time only.
+ * lives next to lens/motion because they all describe the shot setup.
  */
 const PRESET_SECTION_TARGETS = {
   lens: 'POSE:',
+  cameraBody: 'POSE:',
   cameraMotion: 'POSE:',
   colorGrading: 'ENVIRONMENT AND LIGHTING:',
   genre: 'ENVIRONMENT AND LIGHTING:',
@@ -89,22 +99,19 @@ interface PromptSnapshot {
   output: OutputFormatConfig;
   sessionClips: GeneratedClip[];
   activeClipId: string | null;
-  /** Optional manual override applied on top of the computed compiled text. */
-  compiledOverride?: string | null;
   /** External assets pulled in from the Characters library. */
   usedAssets?: UsedAsset[];
 }
 
 /**
- * Holds the prompt builder state plus the compiled prompt that
- * gets sent to BytePlus / Seedance.
+ * Holds the prompt state. A single textarea (`rawDescription`) is the
+ * sole source of prompt text — cinematography presets are woven into
+ * the corresponding section headers via `syncPromptInjections` so what
+ * the user sees in the editor is exactly what the API receives.
  *
- * The compile algorithm mirrors `compilePromptText` + `buildPayload` from
- * dcs-v0/server.js — order: user → camera → lens → motion → grade → genre,
- * joined with ". ", terminated with ".", with frame hints prepended when
- * firstFrame/lastFrame are set. Technical fields (ratio, duration, sound)
- * do NOT live inside the prompt text — they travel as top-level payload
- * fields per the official BytePlus spec.
+ * Reference assets travel separately in the generate-payload's
+ * `content[]` array (see IndexStudio.buildPayload). They surface in the
+ * editor as chips above the textarea, not as inline tokens.
  *
  * Persisted in IndexedDB via StudioStorageService.
  */
@@ -156,20 +163,11 @@ export class PromptStateService {
 
   /**
    * External assets the user has marked as references from the Characters
-   * library. Rendered as chips in the Prompt Builder and woven into the
-   * compiled prompt as `@asset_name` tokens.
+   * library. Rendered as chips above the prompt textarea and folded into
+   * the generation payload as `content[]` items at submit time.
    */
   private readonly _usedAssets = signal<UsedAsset[]>([]);
   readonly usedAssets = this._usedAssets.asReadonly();
-
-  /**
-   * Manual override on the compiled prompt. When non-null, this exact
-   * string is what gets sent to BytePlus — preset / raw / hint changes
-   * still happen in the background but the final text is the user's edit.
-   */
-  private readonly _compiledOverride = signal<string | null>(null);
-  readonly compiledOverride = this._compiledOverride.asReadonly();
-  readonly hasCompiledOverride = computed(() => this._compiledOverride() !== null);
 
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly cinematography = this._cinematography.asReadonly();
@@ -181,58 +179,10 @@ export class PromptStateService {
     () => this._sessionClips().find((c) => c.id === this._activeClipId()) ?? null,
   );
 
-  /**
-   * The text block that would be sent to BytePlus *if* the user has not
-   * applied a manual override. This is the pure derivation: raw textarea
-   * + camera body + frame hints. The other cinematography presets are
-   * already woven into `_rawDescription` via `syncPromptInjections`, so
-   * they are not re-appended here.
-   */
-  readonly baseCompiledPrompt = computed(() => {
-    const raw = this._rawDescription().trim();
-    const cine = this._cinematography();
-    const camera = this.presets.findPreset(cine.cameraBody);
+  /** Character count of the unified prompt — drives the editor's footer. */
+  readonly rawLength = computed(() => this._rawDescription().length);
 
-    const parts: string[] = [];
-    if (raw) parts.push(raw);
-    if (camera) parts.push(camera.prompt);
-
-    let text = parts.filter(Boolean).join('. ');
-    if (text && !text.endsWith('.')) text += '.';
-
-    const first = this.assets.firstFrame();
-    const last = this.assets.lastFrame();
-    const frameHints: string[] = [];
-    if (first && last) {
-      frameHints.push('The video starts on Image 1 and ends on Image 2.');
-    } else if (first) {
-      frameHints.push('The video starts on Image 1.');
-    }
-    if (frameHints.length) {
-      text = frameHints.join(' ') + ' ' + text;
-    }
-
-    // Append @asset_name tokens for every used external reference.
-    const tokens = this._usedAssets()
-      .map((a) => '@' + a.name.trim().replace(/\s+/g, '_'))
-      .filter((t) => t.length > 1);
-    if (tokens.length) {
-      const sep = text ? (text.endsWith('.') ? ' ' : '. ') : '';
-      text = text + sep + tokens.join(' ');
-    }
-
-    return text;
-  });
-
-  /**
-   * The exact text block that will be sent to BytePlus. Equals the
-   * manual override if one is active, otherwise the derived base.
-   */
-  readonly compiledPrompt = computed(() => this._compiledOverride() ?? this.baseCompiledPrompt());
-
-  readonly compiledLength = computed(() => this.compiledPrompt().length);
-
-  /** True when a generation can be submitted (matches v0 guard). */
+  /** True when a generation can be submitted. */
   readonly canGenerate = computed(() => this._rawDescription().trim().length > 0);
 
   constructor() {
@@ -246,7 +196,6 @@ export class PromptStateService {
         output: this._output(),
         sessionClips: this._sessionClips(),
         activeClipId: this._activeClipId(),
-        compiledOverride: this._compiledOverride(),
         usedAssets: this._usedAssets(),
       };
       if (this.hydrated) {
@@ -259,22 +208,15 @@ export class PromptStateService {
     try {
       const snap = await this.storage.get<PromptSnapshot>('prompt');
       if (snap && snap.__v === SCHEMA_VERSION) {
-        // Preserve the Seedance scaffold if the persisted draft is empty.
         this._rawDescription.set(snap.rawDescription || PROMPT_TEMPLATE);
         this._cinematography.set(snap.cinematography);
-        // Merge with the current defaults so newly-added output fields
-        // (e.g. `batchCount`) don't end up undefined for users with an
-        // older saved snapshot — same schema version, additive field.
         this._output.set({ ...this._output(), ...snap.output });
         this._sessionClips.set(snap.sessionClips);
         this._activeClipId.set(snap.activeClipId);
-        this._compiledOverride.set(snap.compiledOverride ?? null);
         this._usedAssets.set(snap.usedAssets ?? []);
       }
     } finally {
       this.hydrated = true;
-      // Seed the injection bookkeeping so subsequent preset swaps know
-      // exactly which substring to find-and-replace inside the raw text.
       this._lastInjections.set(this.buildInjectionsMap());
     }
   }
@@ -283,31 +225,23 @@ export class PromptStateService {
     this._rawDescription.set(text);
   }
 
-  /** Set a manual override on the compiled prompt. Pass `null` to clear. */
-  setCompiledOverride(text: string | null) {
-    this._compiledOverride.set(text);
-  }
-
-  /** Drop the override and fall back to the auto-built compiled text. */
-  clearCompiledOverride() {
-    this._compiledOverride.set(null);
-  }
-
   /**
-   * Add an external asset to the prompt's reference list. Idempotent —
-   * duplicates by `id` are ignored so the user can click "use" multiple
-   * times without seeing the same `@token` repeat.
+   * Add a character-library file to the reference list. Idempotent —
+   * duplicates by `fileId` are ignored so the same character clicked
+   * twice doesn't queue the same file twice.
    */
   useAsset(asset: UsedAsset) {
     this._usedAssets.update((list) => {
-      if (list.some((a) => a.id === asset.id)) return list;
+      if (list.some((a) => a.fileId === asset.fileId)) return list;
       return [...list, asset];
     });
   }
 
-  /** Remove an external asset from the reference list. */
-  unuseAsset(id: string) {
-    this._usedAssets.update((list) => list.filter((a) => a.id !== id));
+  /** Remove a reference by either its file id or its source character id. */
+  unuseAsset(idOrFileId: string) {
+    this._usedAssets.update((list) =>
+      list.filter((a) => a.fileId !== idOrFileId && a.characterId !== idOrFileId),
+    );
   }
 
   patchCinematography(patch: Partial<CinematographyConfig>) {
@@ -397,9 +331,6 @@ export class PromptStateService {
       this.assets.replaceFreeAssets(assetSnap.free);
     }
 
-    // Drop any prior manual override so the reuse starts from the
-    // freshly-rebuilt base; the user can re-edit after the fact.
-    this._compiledOverride.set(null);
     // The restored raw text already contains the preset prompts — record
     // what's there so the next preset swap knows what to replace.
     this._lastInjections.set(this.buildInjectionsMap());
@@ -408,17 +339,18 @@ export class PromptStateService {
   // ---------------------------------------------------------------------------
   // Preset-into-section injection
   //
-  // When the user picks a lens / camera motion / color grading / genre, the
-  // preset's prompt text is woven directly into the corresponding section of
-  // the raw textarea. The bookkeeping in `_lastInjections` records exactly
-  // which substring belongs to each section so subsequent swaps can find-and-
-  // replace cleanly without duplicating or stranding prior preset text.
+  // When the user picks a lens / camera body / camera motion / color grading /
+  // genre, the preset's prompt text is woven directly into the corresponding
+  // section of the raw textarea. The bookkeeping in `_lastInjections` records
+  // exactly which substring belongs to each section so subsequent swaps can
+  // find-and-replace cleanly without duplicating or stranding prior preset text.
   // ---------------------------------------------------------------------------
 
   /** Resolve the current preset prompts that should live in each section. */
   private buildInjectionsMap(): Record<string, string> {
     const cine = this._cinematography();
     const lens = this.presets.findPreset(cine.lens);
+    const body = this.presets.findPreset(cine.cameraBody);
     const motion = this.presets.findPreset(cine.cameraMotion);
     const grade = this.presets.findPreset(cine.colorGrading);
     const genre = this.presets.findPreset(cine.genre);
@@ -430,6 +362,7 @@ export class PromptStateService {
       bySection[section].push(value);
     };
     push(PRESET_SECTION_TARGETS.lens, lens?.prompt);
+    push(PRESET_SECTION_TARGETS.cameraBody, body?.prompt);
     push(PRESET_SECTION_TARGETS.cameraMotion, motion?.prompt);
     push(PRESET_SECTION_TARGETS.colorGrading, grade?.prompt);
     push(PRESET_SECTION_TARGETS.genre, genre?.prompt);
@@ -470,7 +403,6 @@ export class PromptStateService {
     if (previous && text.includes(previous)) {
       if (next) return text.replace(previous, next);
       const cleaned = text.replace(previous, '');
-      // Tidy leftover separators sitting right after the header.
       return cleaned.replace(
         new RegExp(`(${escapeRegex(header)})([ \\t]*[.,;])+([ \\t]*)`, 'g'),
         '$1$3',
