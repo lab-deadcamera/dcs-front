@@ -94,6 +94,8 @@ export interface OutputFormatConfig {
   sound: boolean;
   engine: Engine;
   model: string;
+  /** Number of independent videos to request per generation, 1-4. */
+  batchCount: number;
 }
 
 export interface ReferenceAsset {
@@ -116,6 +118,12 @@ export interface GeneratedClip {
   resolution: Resolution;
   /** User-set success rating 1-5, undefined = unrated. */
   rating?: number;
+  /**
+   * 1-based take number from the active scene session. Stamped when the
+   * generation starts so the download filename can be reconstructed from
+   * scene + take + user metadata (see SessionStateService.filenameForClip).
+   */
+  takeIndex?: number;
   /**
    * Snapshot of the inputs that produced this clip — enables the
    * "reuse prompt" affordance in the viewer to repopulate the editor.

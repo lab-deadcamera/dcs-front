@@ -1,7 +1,12 @@
 <section class="px-6 py-6">
   <ui-section-header number="01" labelKey="STUDIO.ASSETS.TITLE" />
 
-  <div
+  <!--
+    Character Studio (Seedream) — temporarily hidden from the UI. The
+    section is kept in source because we'll re-enable it shortly to
+    plug in a different generation service. Do not delete.
+  -->
+  <!-- <div
     class="mt-5 flex items-center justify-between border-l-2 border-secondary-500 bg-ink-850 px-4 py-3"
   >
     <div class="flex items-center gap-3">
@@ -22,7 +27,7 @@
       class="text-fg-muted"
       [attr.aria-label]="'STUDIO.ASSETS.EXPAND' | translate"
     >▾</button>
-  </div>
+  </div> -->
 
   <!--
     My Assets is now a disclosure: the band acts as the trigger and the
@@ -176,6 +181,100 @@
           >Audio 1</span>
           {{ 'STUDIO.ASSETS.REFERENCE_HINT_TAIL' | translate }}
         </p>
+
+        <!--
+          ▸ MY LIBRARY quick-pick — every already-created character / location
+          / prop shown as a clickable tile. Tap to drop the @asset_name token
+          into the prompt without leaving the studio; tap again to remove it.
+        -->
+        <div class="mt-4 border-t border-ink-700 pt-3">
+          <div class="mb-2 flex items-end justify-between gap-3">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
+              ▸ {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK' | translate }}
+            </p>
+            <p class="font-mono text-[10px] italic text-fg-muted">
+              {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK_HINT' | translate }}
+            </p>
+          </div>
+
+          <div
+            class="mb-2 flex flex-wrap gap-1 border-b border-ink-700"
+            role="tablist"
+          >
+            @for (t of libraryTabs; track t.id) {
+              <button
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeLibraryType() === t.id"
+                class="-mb-px border-b-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors hover:text-primary-500"
+                [class.border-primary-500]="activeLibraryType() === t.id"
+                [class.text-primary-500]="activeLibraryType() === t.id"
+                [class.border-transparent]="activeLibraryType() !== t.id"
+                [attr.data-testid]="'my-library-tab-' + t.id"
+                (click)="setLibraryType(t.id)"
+              >
+                <i class="pi mr-1" [class]="t.icon"></i>
+                {{ t.labelKey | translate }}
+                <span class="ml-1 font-mono text-[10px] text-fg-muted">
+                  ({{ libraryCounts()[t.id] }})
+                </span>
+              </button>
+            }
+          </div>
+
+          @if (visibleLibrary().length === 0) {
+            <p class="py-3 text-center text-[11px] italic text-fg-muted">
+              {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK_EMPTY' | translate }}
+            </p>
+          } @else {
+            <ul class="flex flex-wrap gap-1.5">
+              @for (a of visibleLibrary(); track a.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="group relative flex h-14 w-14 flex-col overflow-hidden border bg-ink-800 transition-colors hover:border-primary-500 focus:outline-none focus:border-primary-500"
+                    [class.border-primary-500]="isUsed(a.id)"
+                    [class.border-ink-500]="!isUsed(a.id)"
+                    [title]="a.name"
+                    [attr.aria-pressed]="isUsed(a.id)"
+                    [attr.aria-label]="a.name"
+                    [attr.data-testid]="'my-library-pick-' + a.id"
+                    (click)="onPickLibraryAsset(a)"
+                  >
+                    @if (a.thumbUrl) {
+                      <img
+                        [src]="a.thumbUrl"
+                        [alt]="a.name"
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <span
+                        aria-hidden="true"
+                        class="flex h-full w-full items-center justify-center text-fg-muted"
+                      >
+                        <i class="pi text-base" [class]="libraryFallbackIcon()"></i>
+                      </span>
+                    }
+                    <span
+                      class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
+                    >
+                      {{ a.name }}
+                    </span>
+                    @if (isUsed(a.id)) {
+                      <span
+                        aria-hidden="true"
+                        class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-primary-500 text-ink-950"
+                      >
+                        <i class="pi pi-check text-[9px]"></i>
+                      </span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
     }
   </div>

@@ -101,23 +101,33 @@
 
             @let preview = previewMap()[a.id];
 
-            @if (preview && shouldRenderImage(a) && !preview.imageBroken) {
-              <img
-                [src]="serveUrl(preview.fileId)"
-                [alt]="a.name"
-                class="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-                (error)="onPreviewError(a.id)"
-              />
-            }
-
-            @if (preview && preview.count > 1) {
-              <span
-                aria-hidden="true"
-                class="absolute top-1 right-1 z-10 bg-ink-950/70 px-1 py-0 font-mono text-[9px] leading-tight text-fg-strong"
+            @if (preview && shouldRenderImage(a) && preview.fileIds.length > 0) {
+              <div
+                class="absolute inset-0 grid gap-px"
+                [class]="gridClass(preview.fileIds.length)"
               >
-                +{{ preview.count - 1 }}
-              </span>
+                @for (fid of preview.fileIds; track fid; let i = $index, last = $last) {
+                  <div class="relative overflow-hidden" style="background: var(--content-bg)">
+                    @if (!preview.brokenIds.has(fid)) {
+                      <img
+                        [src]="serveUrl(fid)"
+                        [alt]="a.name"
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                        (error)="onPreviewError(a.id, fid)"
+                      />
+                    }
+                    @if (last && preview.count > preview.fileIds.length) {
+                      <span
+                        aria-hidden="true"
+                        class="absolute inset-0 flex items-center justify-center bg-ink-950/60 font-mono text-[11px] text-fg-strong"
+                      >
+                        +{{ preview.count - preview.fileIds.length }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
             }
           </div>
 
