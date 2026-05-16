@@ -13,6 +13,7 @@
     "STUDIO": "Studio",
     "CHARACTERS": "Characters",
     "FILES": "Files",
+    "PROJECTS": "Projects",
     "PROVIDERS": "Providers"
   },
   "GLOBAL": {
@@ -403,6 +404,27 @@
       "CHARACTER": "Character",
       "CHARACTER_PLACEHOLDER": "Pick a character",
       "SUBMIT": "Link"
+    }
+  },
+  "PROJECTS": {
+    "NEW_PROJECT": "New Project",
+    "DIALOG": {
+      "CREATE_TITLE": "New Project",
+      "EDIT_TITLE": "Edit Project"
+    },
+    "SCENE_DIALOG": {
+      "CREATE_TITLE": "New Scene",
+      "EDIT_TITLE": "Edit Scene"
+    },
+    "TAKE_DIALOG": {
+      "CREATE_TITLE": "New Take",
+      "EDIT_TITLE": "Edit Take"
+    },
+    "FIELDS": {
+      "NAME": "Name",
+      "DESCRIPTION": "Description",
+      "SCENE_NUMBER": "Scene #",
+      "TAKE_NUMBER": "Take #"
     }
   },
   "PROVIDERS": {

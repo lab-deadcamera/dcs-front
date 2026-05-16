@@ -13,6 +13,7 @@
     "STUDIO": "Estudio",
     "CHARACTERS": "Personajes",
     "FILES": "Archivos",
+    "PROJECTS": "Proyectos",
     "PROVIDERS": "Proveedores"
   },
   "GLOBAL": {
@@ -404,6 +405,27 @@
     "ERROR": "Error",
     "WARNING": "Advertencia",
     "INFO": "Información"
+  },
+  "PROJECTS": {
+    "NEW_PROJECT": "Nuevo Proyecto",
+    "DIALOG": {
+      "CREATE_TITLE": "Nuevo Proyecto",
+      "EDIT_TITLE": "Editar Proyecto"
+    },
+    "SCENE_DIALOG": {
+      "CREATE_TITLE": "Nueva Escena",
+      "EDIT_TITLE": "Editar Escena"
+    },
+    "TAKE_DIALOG": {
+      "CREATE_TITLE": "Nueva Toma",
+      "EDIT_TITLE": "Editar Toma"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "SCENE_NUMBER": "Escena #",
+      "TAKE_NUMBER": "Toma #"
+    }
   },
   "PROVIDERS": {
     "NEW_PROVIDER": "Nuevo Proveedor",

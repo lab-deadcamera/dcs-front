@@ -24,6 +24,11 @@ export const routes: Routes = [
           import('@modules/files/files.routes').then((m) => m.FILES_ROUTES),
       },
       {
+        path: 'projects',
+        loadChildren: () =>
+          import('@modules/projects/projects.routes').then((m) => m.PROJECTS_ROUTES),
+      },
+      {
         path: 'providers',
         loadChildren: () =>
           import('@modules/providers/providers.routes').then((m) => m.PROVIDERS_ROUTES),

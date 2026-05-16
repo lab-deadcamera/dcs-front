@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,6 +6,7 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -15,15 +17,17 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { SessionStateService } from '@app/core/stores/session.state';
 import { StudioStateService } from '@app/core/stores/studio.state';
+import { ProjectsApiService } from '@modules/projects/projects/services';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
+import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
 
 /**
  * Entry gate: blocks the studio until the user has identified themselves
- * and declared which scene they're working on (with how many takes).
+ * and selected a project + scene with pre-defined takes.
  *
  * The email field is intentionally lax — `required` only, no format check —
  * because authentication / permissions are not wired yet. Once the auth
@@ -35,10 +39,11 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
   imports: [
     ReactiveFormsModule,
     TranslatePipe,
+    DecimalPipe,
     DialogModule,
     ButtonModule,
     InputTextModule,
-    InputNumberModule,
+    SelectModule,
     ValidatorErrors,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -109,54 +114,76 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
 
         <div class="flex flex-col gap-1">
           <label
-            for="session-gate-scene"
+            for="session-gate-project"
             class="text-[12px] font-bold uppercase tracking-[0.12em]"
           >
-            {{ 'STUDIO.SESSION_GATE.SCENE' | translate }}
+            Project
           </label>
-          <input
-            id="session-gate-scene"
-            type="text"
-            pInputText
-            formControlName="sceneCode"
-            data-testid="session-gate-scene"
-            [placeholder]="'STUDIO.SESSION_GATE.SCENE_PLACEHOLDER' | translate"
-          />
+          @if (loadingProjects()) {
+            <p class="text-[12px] italic text-fg-muted">Loading projects…</p>
+          } @else {
+            <p-select
+              inputId="session-gate-project"
+              formControlName="projectId"
+              [options]="projects()"
+              optionLabel="name"
+              optionValue="id"
+              [placeholder]="'Select a project'"
+              [showClear]="true"
+              styleClass="w-full"
+              data-testid="session-gate-project"
+              (onChange)="onProjectChange($event.value)"
+            />
+          }
           <validator-errors
-            [control]="form.get('sceneCode')"
-            [label]="'STUDIO.SESSION_GATE.SCENE' | translate"
+            [control]="form.get('projectId')"
+            [label]="'Project'"
           />
         </div>
 
         <div class="flex flex-col gap-1">
           <label
-            for="session-gate-takes"
+            for="session-gate-scene"
             class="text-[12px] font-bold uppercase tracking-[0.12em]"
           >
-            {{ 'STUDIO.SESSION_GATE.TAKES' | translate }}
+            Scene
           </label>
-          <p-inputNumber
-            inputId="session-gate-takes"
-            formControlName="totalTakes"
-            [min]="1"
-            [max]="99"
-            [showButtons]="true"
-            buttonLayout="horizontal"
-            decrementButtonClass="p-button-secondary"
-            incrementButtonClass="p-button-secondary"
-            data-testid="session-gate-takes"
-          />
+          @if (!form.get('projectId')?.value) {
+            <p class="text-[12px] italic text-fg-muted">
+              Select a project first.
+            </p>
+          } @else if (loadingScenes()) {
+            <p class="text-[12px] italic text-fg-muted">Loading scenes…</p>
+          } @else {
+            <p-select
+              inputId="session-gate-scene"
+              formControlName="sceneId"
+              [options]="scenes()"
+              optionLabel="label"
+              optionValue="id"
+              [placeholder]="'Select a scene'"
+              [showClear]="true"
+              styleClass="w-full"
+              data-testid="session-gate-scene"
+              (onChange)="onSceneChange($event.value)"
+            />
+          }
           <validator-errors
-            [control]="form.get('totalTakes')"
-            [label]="'STUDIO.SESSION_GATE.TAKES' | translate"
+            [control]="form.get('sceneId')"
+            [label]="'Scene'"
           />
-          <p
-            class="font-mono text-[10px]"
-            style="color: var(--text-muted);"
-          >
-            {{ 'STUDIO.SESSION_GATE.TAKES_HINT' | translate }}
-          </p>
         </div>
+
+        @if (selectedScene()) {
+          <div class="rounded border p-3 text-[12px]" style="border-color: var(--border-color);">
+            <span class="font-semibold">Scene:</span>
+            SC{{ selectedScene()!.number | number:'2.0' }}
+            — {{ selectedScene()!.name }}
+            <br />
+            <span class="font-semibold">Takes:</span>
+            {{ takes().length }} take{{ takes().length !== 1 ? 's' : '' }}
+          </div>
+        }
       </form>
 
       <ng-template pTemplate="footer">
@@ -164,7 +191,8 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
           <p-button
             [icon]="'pi pi-play'"
             [label]="'STUDIO.SESSION_GATE.SUBMIT' | translate"
-            [disabled]="form.invalid"
+            [disabled]="form.invalid || submitting()"
+            [loading]="submitting()"
             data-testid="session-gate-submit"
             (onClick)="onSubmit()"
           />
@@ -177,19 +205,27 @@ export class SessionGateDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly session = inject(SessionStateService);
   private readonly studio = inject(StudioStateService);
+  private readonly projectsApi = inject(ProjectsApiService);
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
 
-  /**
-   * `email` only uses `required` on purpose — see the class doc. Replace
-   * with `Validators.email` once auth is wired and permissions are real.
-   */
+  // Local state for pickers
+  protected readonly projects = signal<Project[]>([]);
+  protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>([]);
+  protected readonly takes = signal<Take[]>([]);
+  protected readonly loadingProjects = signal(false);
+  protected readonly loadingScenes = signal(false);
+  protected readonly submitting = signal(false);
+
+  /** Derived scene object for the info panel. */
+  protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(null);
+
   protected readonly form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.minLength(3)]],
     handle: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(40)]],
-    sceneCode: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(40)]],
-    totalTakes: [3, [Validators.required, Validators.min(1), Validators.max(99)]],
+    projectId: [null, [Validators.required]],
+    sceneId: [null, [Validators.required]],
   });
 
   /**
@@ -199,14 +235,81 @@ export class SessionGateDialogComponent {
   private readonly resetOnOpen = effect(() => {
     if (!this.visible()) return;
     const user = this.session.user();
-    const scene = this.session.scene();
     this.form.reset({
       email: user?.email ?? '',
       handle: user?.handle ?? '',
-      sceneCode: scene?.code ?? '',
-      totalTakes: scene?.totalTakes ?? 3,
+      projectId: null,
+      sceneId: null,
     });
+    this.selectedScene.set(null);
+    this.takes.set([]);
+    this.scenes.set([]);
+    this.loadProjects();
   });
+
+  /** Called when the user picks a project. */
+  protected onProjectChange(projectId: string | null): void {
+    this.scenes.set([]);
+    this.takes.set([]);
+    this.selectedScene.set(null);
+    this.form.patchValue({ sceneId: null }, { emitEvent: false });
+    if (projectId) {
+      this.loadScenes(projectId);
+    }
+  }
+
+  /** Called when the user picks a scene. */
+  protected onSceneChange(sceneId: string | null): void {
+    const projectId: string | null = this.form.get('projectId')?.value;
+    if (!sceneId || !projectId) {
+      this.selectedScene.set(null);
+      this.takes.set([]);
+      return;
+    }
+    const scene = this.scenes().find((s) => s.id === sceneId);
+    if (scene) {
+      this.selectedScene.set({ id: scene.id, number: scene.number, name: scene.name });
+    }
+    this.loadTakes(projectId, sceneId);
+  }
+
+  protected loadProjects(): void {
+    this.loadingProjects.set(true);
+    this.projectsApi.listProjects().subscribe((res) => {
+      this.loadingProjects.set(false);
+      if (!res.error && res.data) {
+        this.projects.set(res.data);
+      }
+    });
+  }
+
+  protected loadScenes(projectId: string): void {
+    this.loadingScenes.set(true);
+    this.form.patchValue({ sceneId: null }, { emitEvent: false });
+    this.projectsApi.listScenes(projectId).subscribe((res) => {
+      this.loadingScenes.set(false);
+      if (!res.error && res.data) {
+        this.scenes.set(
+          res.data.map((s) => ({
+            id: s.id,
+            number: s.number,
+            name: s.name,
+            label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected loadTakes(projectId: string, sceneId: string): void {
+    this.projectsApi.listTakes(projectId, sceneId).subscribe((res) => {
+      if (!res.error && res.data) {
+        this.takes.set(res.data);
+      } else {
+        this.takes.set([]);
+      }
+    });
+  }
 
   protected onVisibleChange(v: boolean): void {
     this.visibleChange.emit(v);
@@ -217,16 +320,22 @@ export class SessionGateDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, handle, sceneCode, totalTakes } = this.form.getRawValue() as {
+    const { email, handle, sceneId } = this.form.getRawValue() as {
       email: string;
       handle: string;
-      sceneCode: string;
-      totalTakes: number;
+      sceneId: string;
     };
+
+    const scene = this.selectedScene();
+    if (!scene) return;
+
+    const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
+    const totalTakes = Math.max(1, this.takes().length);
+
+    this.submitting.set(true);
     this.session.initSession({ email, handle, sceneCode, totalTakes });
-    // Mirror the handle into the global studio state so the header's
-    // user chip (and anywhere else reading `studio.user()`) reflects it.
     this.studio.setUser({ handle });
+    this.submitting.set(false);
     this.visibleChange.emit(false);
   }
 }
