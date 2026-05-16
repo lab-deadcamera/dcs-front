@@ -4,7 +4,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ModelService } from '@app/services';
 import { ModelData } from '@app/core/interfaces';
-import { StudioStateService } from '@app/core/stores/studio.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-model-select-dialog',
@@ -95,7 +95,7 @@ import { StudioStateService } from '@app/core/stores/studio.state';
 })
 export class ModelSelectDialogComponent implements OnInit {
   private readonly modelService = inject(ModelService);
-  private readonly studioState = inject(StudioStateService);
+  private readonly studio = inject(StudioStore);
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
@@ -125,11 +125,11 @@ export class ModelSelectDialogComponent implements OnInit {
   }
 
   protected isSelected(id: string): boolean {
-    return this.studioState.modelCode()?.id === id;
+    return this.studio.modelCode()?.id === id;
   }
 
   protected select(m: ModelData): void {
-    this.studioState.setModelCode(m);
+    this.studio.model = m;
     this.visibleChange.emit(false);
   }
 }

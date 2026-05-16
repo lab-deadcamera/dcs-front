@@ -7,7 +7,8 @@ import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-gro
 import { PillToggleComponent } from '@shared/components/pill-toggle/pill-toggle.component';
 import { RangeSliderComponent } from '@shared/components/range-slider/range-slider.component';
 import { AspectRatio, ChipOption, Engine, Resolution } from '@core/interfaces/studio.models';
-import { MAX_BATCH_COUNT, PromptStateService } from '@app/core/stores/prompt.state';
+import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelService } from '@app/services';
 
 @Component({
@@ -25,7 +26,7 @@ import { ModelService } from '@app/services';
   templateUrl: './output-format.html',
 })
 export class OutputFormatComponent implements OnInit {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly modelService = inject(ModelService);
 
   protected readonly expanded = signal(false);
@@ -64,23 +65,23 @@ export class OutputFormatComponent implements OnInit {
   ];
 
   protected onAspect(v: AspectRatio | null) {
-    if (v) this.prompt.patchOutput({ aspectRatio: v });
+    if (v) this.studio.patchOutput({ aspectRatio: v });
   }
 
   protected onResolution(v: Resolution | null) {
     if (!v || v === '1080p') return;
-    this.prompt.patchOutput({ resolution: v });
+    this.studio.patchOutput({ resolution: v });
   }
 
   protected onDuration(v: number) {
-    this.prompt.patchOutput({ durationSeconds: v });
+    this.studio.patchOutput({ durationSeconds: v });
   }
   protected onSound(side: 'left' | 'right') {
-    this.prompt.patchOutput({ sound: side === 'right' });
+    this.studio.patchOutput({ sound: side === 'right' });
   }
   protected onEngine(side: 'left' | 'right') {
     const engine: Engine = side === 'left' ? 'fast' : 'pro';
-    this.prompt.patchOutput({ engine });
+    this.studio.patchOutput({ engine });
   }
 
   protected onModelChange(value: string | null): void {
@@ -91,7 +92,7 @@ export class OutputFormatComponent implements OnInit {
   protected readonly maxBatch = MAX_BATCH_COUNT;
 
   protected onBatchCount(delta: 1 | -1): void {
-    const next = (this.prompt.output().batchCount || 1) + delta;
-    this.prompt.patchOutput({ batchCount: next });
+    const next = (this.studio.output().batchCount || 1) + delta;
+    this.studio.patchOutput({ batchCount: next });
   }
 }

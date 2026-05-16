@@ -5,14 +5,14 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
-import { AssetsStateService } from '@app/core/stores/assets.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
 import { FilesApiService } from '@app/services';
 import { inferKind } from '@app/shared/utils';
 import { CharactersService } from '@modules/characters/characters/services';
 import { AssetType, CharacterMetadata } from '@modules/characters/characters/interfaces';
-import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 
 interface LibraryItem {
   id: string;
@@ -53,9 +53,8 @@ interface LibraryItem {
 export class CharacterAssetsComponent {
   private readonly filesApi = inject(FilesApiService);
   private readonly toast = inject(MessageService);
-  protected readonly assets = inject(AssetsStateService);
+  protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
-  protected readonly prompt = inject(PromptStateService);
 
   /**
    * Whether the "My Assets" band acts as an open disclosure — its body
@@ -124,7 +123,7 @@ export class CharacterAssetsComponent {
   });
 
   protected readonly usedAssetIds = computed(
-    () => new Set(this.prompt.usedAssets().map((a) => a.characterId)),
+    () => new Set(this.studio.usedAssets().map((a) => a.characterId)),
   );
 
   /** PrimeIcons class used as a fallback when a tile has no thumbnail. */
@@ -176,7 +175,7 @@ export class CharacterAssetsComponent {
    */
   protected onPickLibraryAsset(a: LibraryItem): void {
     if (this.isUsed(a.id)) {
-      this.prompt.unuseAsset(a.id);
+      this.studio.unuseAsset(a.id);
       return;
     }
     if (!a.fileId) {
@@ -187,7 +186,7 @@ export class CharacterAssetsComponent {
       });
       return;
     }
-    this.prompt.useAsset({
+    this.studio.useAsset({
       fileId: a.fileId,
       characterId: a.id,
       name: a.name,
@@ -209,7 +208,7 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.assets.setFirstFrame({
+      this.studio.setFirstFrame({
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
@@ -228,7 +227,7 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.assets.setLastFrame({
+      this.studio.setLastFrame({
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
@@ -246,7 +245,7 @@ export class CharacterAssetsComponent {
           this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
           return;
         }
-        this.assets.addFreeAsset({
+        this.studio.addFreeAsset({
           id: up.data.id,
           kind: inferKind(f),
           filename: up.data.filename,

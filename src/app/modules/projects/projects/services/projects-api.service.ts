@@ -16,6 +16,16 @@ import {
   UpdateTakeRequest,
 } from '../interfaces';
 
+/** Minimal shape returned by the save-generation endpoint. */
+export interface SaveGenerationResponse {
+  id: string;
+  scene_id: string;
+  number: number;
+  video_url: string;
+  status: string;
+  active: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProjectsApiService {
   private readonly http = inject(HttpClient);
@@ -122,5 +132,50 @@ export class ProjectsApiService {
       map((r) => ({ error: !r.success, msg: r.message })),
       catchError((err) => httpErrorHandler<void>(err)),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Generation <-> Take association
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Save a generated video URL to a take slot (scene+number).
+   * If an active take already exists for this number, it is discarded
+   * (active=false) and a fresh take record is created.
+   */
+  saveGeneration(
+    projectId: string,
+    sceneId: string,
+    payload: { number: number; video_url: string },
+  ): Observable<{ error: boolean; msg: string; data?: SaveGenerationResponse }> {
+    return this.http
+      .post<ResponseBase<SaveGenerationResponse>>(
+        `${this.apiUrl}/projects/${projectId}/scenes/${sceneId}/takes/save-generation`,
+        payload,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<SaveGenerationResponse>),
+      );
+  }
+
+  /**
+   * Toggle a take's active status. The specified take becomes active,
+   * and all other takes with the same scene+number are deactivated.
+   */
+  toggleTakeActive(
+    projectId: string,
+    sceneId: string,
+    takeId: string,
+  ): Observable<{ error: boolean; msg: string; data?: SaveGenerationResponse }> {
+    return this.http
+      .post<ResponseBase<SaveGenerationResponse>>(
+        `${this.apiUrl}/projects/${projectId}/scenes/${sceneId}/takes/${takeId}/toggle-active`,
+        {},
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<SaveGenerationResponse>),
+      );
   }
 }

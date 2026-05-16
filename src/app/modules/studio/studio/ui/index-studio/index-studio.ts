@@ -13,7 +13,7 @@ import { switchMap, takeWhile } from 'rxjs/operators';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
-import { SessionReelComponent } from '@shared/components/session-reel/session-reel.component';
+import { TakesReelComponent } from '@shared/components/takes-reel/takes-reel.component';
 import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
 import { OutputFormatComponent } from '@shared/components/output-format/output-format.component';
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
@@ -21,11 +21,10 @@ import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
-import { MAX_BATCH_COUNT, PromptStateService } from '@app/core/stores/prompt.state';
-import { StudioStateService } from '@app/core/stores/studio.state';
-import { SessionStateService } from '@app/core/stores/session.state';
-import { AssetsStateService } from '@app/core/stores/assets.state';
+import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelService, SeedanceService } from '@app/services';
+import { ProjectsApiService } from '@modules/projects/projects/services';
 import {
   GeneratedClip,
   StudioContentItem,
@@ -50,7 +49,7 @@ const POLL_INTERVAL_MS = 3000;
     HeroComponent,
     ViewerComponent,
     PromptBuilderComponent,
-    SessionReelComponent,
+    TakesReelComponent,
     CinematographyComponent,
     OutputFormatComponent,
     CharacterAssetsComponent,
@@ -66,14 +65,12 @@ const POLL_INTERVAL_MS = 3000;
   providers: [ConfirmationService, MessageService],
 })
 export class IndexStudio implements OnInit {
-  protected readonly prompt = inject(PromptStateService);
-  protected readonly session = inject(SessionStateService);
-  private readonly studioState = inject(StudioStateService); // StudioStateService
-  private readonly assets = inject(AssetsStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly modelService = inject(ModelService);
   private readonly seedance = inject(SeedanceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
+  private readonly projectsApi = inject(ProjectsApiService);
 
   /**
    * Two-way binding for the gate dialog. Auto-opens when no session is
@@ -81,25 +78,56 @@ export class IndexStudio implements OnInit {
    * submit (or via the parent if we later add a "switch scene" affordance).
    */
   protected readonly gateOpen = signal(false);
-  protected readonly scenePrefix = computed(() => this.session.scene()?.code ?? '');
+  protected readonly scenePrefix = computed(() => this.studio.sceneCode());
+
+  /** True when the current take already has a video (re-generation mode). */
+  protected readonly isRegenerating = this.studio.currentTakeHasVideo;
 
   ngOnInit(): void {
     this.modelService.getFavorite().subscribe((res) => {
       if (!res.error && res.data) {
-        this.studioState.setModelCode(res.data);
+        this.studio.model = res.data;
       }
     });
     // Open the gate immediately if there's no persisted session. Hydrate is
     // async, so wait a tick before checking — otherwise we'd flash the gate
     // even for returning users whose session is being read from IndexedDB.
     queueMicrotask(() => {
-      if (!this.session.isReady()) this.gateOpen.set(true);
+      if (!this.studio.isReady()) this.gateOpen.set(true);
     });
   }
 
   /** Forwarded from the take-checklist's `(toggle)` output. */
   protected onToggleTake(takeIndex: number): void {
-    this.session.toggleTake(takeIndex);
+    this.studio.toggleTake(takeIndex);
+  }
+
+  /**
+   * Forwarded from the takes-reel's `(selectTake)` output.
+   * Selects a take by its index, setting the cursor so the next
+   * generation targets it. The prompt builder switches to "VOLVER A GENERAR"
+   * if this take already has a video.
+   */
+  protected onSelectTake(takeIndex: number): void {
+    this.studio.selectTake(takeIndex);
+  }
+
+  /**
+   * Forwarded from the takes-reel's `(toggleActive)` output.
+   * Reactivates a discarded take via the backend API, then updates
+   * local state so the reel reflects the change.
+   */
+  protected onToggleTakeActive(takeId: string, takeIndex: number): void {
+    const projectId = this.studio.projectId();
+    const sceneId = this.studio.sceneId();
+    if (!projectId || !sceneId) return;
+
+    this.projectsApi.toggleTakeActive(projectId, sceneId, takeId).subscribe((res) => {
+      if (!res.error && res.data) {
+        // Reload the session's backend takes to reflect the toggle
+        this.studio.selectTake(takeIndex);
+      }
+    });
   }
 
   /**
@@ -109,7 +137,7 @@ export class IndexStudio implements OnInit {
    * the batch.
    */
   protected onGenerate(): void {
-    const text = this.prompt.rawDescription().trim();
+    const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({
         summary: 'Error',
@@ -119,7 +147,7 @@ export class IndexStudio implements OnInit {
       });
       return;
     }
-    const count = Math.max(1, Math.min(MAX_BATCH_COUNT, this.prompt.output().batchCount || 1));
+    const count = Math.max(1, Math.min(MAX_BATCH_COUNT, this.studio.output().batchCount || 1));
     for (let i = 0; i < count; i++) {
       this.runOneGeneration(text, i + 1, count);
     }
@@ -136,10 +164,10 @@ export class IndexStudio implements OnInit {
    */
   private runOneGeneration(prompt: string, index: number, total: number): void {
     const label = total > 1 ? `${index}/${total}` : undefined;
-    const takeIndex = this.session.currentTake()?.index;
-    const localId = this.prompt.startGeneration(label, takeIndex);
+    const takeIndex = this.studio.currentTake()?.index;
+    const localId = this.studio.startGeneration(label, takeIndex);
 
-    if (!this.studioState.modelCode()) {
+    if (!this.studio.modelCode()) {
       this.toast.add({
         summary: 'Error',
         detail: 'Debes seleccionar un modelo',
@@ -167,7 +195,7 @@ export class IndexStudio implements OnInit {
           life: 7000,
         });
         if (res.error || !res.data) {
-          this.prompt.failGeneration(localId);
+          this.studio.failGeneration(localId);
           return;
         }
         const initial = res.data;
@@ -176,11 +204,11 @@ export class IndexStudio implements OnInit {
           return;
         }
         if (initial.status === 'failed') {
-          this.prompt.failGeneration(localId);
+          this.studio.failGeneration(localId);
           return;
         }
         // Async path: kick off the polling loop.
-        this.prompt.updateGenerationProgress(
+        this.studio.updateGenerationProgress(
           localId,
           initial.status === 'running' ? PROGRESS_RUNNING_START : PROGRESS_QUEUED,
         );
@@ -214,7 +242,7 @@ export class IndexStudio implements OnInit {
       )
       .subscribe((res) => {
         if (res.error || !res.data) {
-          this.prompt.failGeneration(localId);
+          this.studio.failGeneration(localId);
           this.toast.add({
             summary: 'Error de generación',
             detail: res.msg || 'Error al consultar el estado de la tarea',
@@ -230,11 +258,11 @@ export class IndexStudio implements OnInit {
             PROGRESS_RUNNING_CAP,
             PROGRESS_RUNNING_START + pollCount * PROGRESS_RUNNING_STEP,
           );
-          this.prompt.updateGenerationProgress(localId, next);
+          this.studio.updateGenerationProgress(localId, next);
         } else if (task.status === 'succeeded') {
           this.finishWithClip(localId, task, source);
         } else if (task.status === 'failed') {
-          this.prompt.failGeneration(localId);
+          this.studio.failGeneration(localId);
           this.toast.add({
             summary: 'Generación fallida',
             detail: 'La tarea no pudo completarse',
@@ -250,6 +278,11 @@ export class IndexStudio implements OnInit {
    * to the prompt store so it surfaces in the viewer + session reel. If
    * the backend reports `succeeded` without any outputs, treat it as a
    * failure rather than push a broken clip.
+   *
+   * After the clip is ready, associate it with the current session's take
+   * by calling the projects API's save-generation endpoint. The backend
+   * handles discarding the previous generation for the same take number
+   * and returns the new take record.
    */
   private finishWithClip(
     localId: string,
@@ -258,7 +291,7 @@ export class IndexStudio implements OnInit {
   ): void {
     const out = task.outputs.find((o) => o.type === 'video') ?? task.outputs[0];
     if (!out?.url) {
-      this.prompt.failGeneration(localId);
+      this.studio.failGeneration(localId);
       this.toast.add({
         summary: 'Error',
         detail: 'No se recibió un video del servidor',
@@ -267,23 +300,53 @@ export class IndexStudio implements OnInit {
       });
       return;
     }
-    const output = this.prompt.output();
+    const output = this.studio.output();
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
-      prompt: this.prompt.rawDescription(),
+      prompt: this.studio.rawDescription(),
       videoUrl: out.url,
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
       resolution: output.resolution,
       source,
     };
-    this.prompt.completeGeneration(localId, clip);
+    this.studio.completeGeneration(localId, clip);
+
+    // Associate the generated video with the current scene+take
+    this.persistGeneration(clip);
+
     this.toast.add({
       summary: 'Generación completada',
       detail: 'El video se ha generado correctamente',
       severity: 'success',
       life: 5000,
     });
+  }
+
+  /**
+   * Persist the generation result to the backend, linking it to the
+   * current session's project, scene, and take. The backend discards
+   * (deactivates) any previous generation for the same take number.
+   */
+  private persistGeneration(clip: GeneratedClip): void {
+    const projectId = this.studio.projectId();
+    const sceneId = this.studio.sceneId();
+    const take = this.studio.currentTake();
+    if (!projectId || !sceneId || !take || !clip.videoUrl) return;
+
+    this.projectsApi
+      .saveGeneration(projectId, sceneId, {
+        number: take.index,
+        video_url: clip.videoUrl,
+      })
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.studio.saveGenerationResponse(take.index, {
+            id: res.data.id,
+            video_url: res.data.video_url,
+          });
+        }
+      });
   }
 
   /**
@@ -296,7 +359,7 @@ export class IndexStudio implements OnInit {
    * carries semantic meaning ("Image 1" = first frame).
    */
   private buildPayload(text: string): StudioGenerateRequest {
-    const output = this.prompt.output();
+    const output = this.studio.output();
     const refs = this.collectReferenceAssets();
     const hints = this.buildFrameHints();
     const finalText = hints ? `${hints} ${text}` : text;
@@ -312,7 +375,7 @@ export class IndexStudio implements OnInit {
     }
 
     return {
-      model: this.studioState.modelCode()?.name ?? '',
+      model: this.studio.modelCode()?.name ?? '',
       content,
       ratio: output.aspectRatio,
       duration: output.durationSeconds,
@@ -334,8 +397,8 @@ export class IndexStudio implements OnInit {
    * a last-frame is set without a first-frame, it stands alone as Image 1.
    */
   private buildFrameHints(): string {
-    const first = this.assets.firstFrame();
-    const last = this.assets.lastFrame();
+    const first = this.studio.firstFrame();
+    const last = this.studio.lastFrame();
     if (first && last) return 'The video starts on Image 1 and ends on Image 2.';
     if (first) return 'The video starts on Image 1.';
     if (last) return 'The video ends on Image 1.';
@@ -375,14 +438,14 @@ export class IndexStudio implements OnInit {
       out.push({ fileId, filename, type, tag });
     };
 
-    const first = this.assets.firstFrame();
+    const first = this.studio.firstFrame();
     if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
-    const last = this.assets.lastFrame();
+    const last = this.studio.lastFrame();
     if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
-    for (const free of this.assets.freeAssets()) {
+    for (const free of this.studio.freeAssets()) {
       push(free.id, free.filename, free.kind, free.tag);
     }
-    for (const used of this.prompt.usedAssets()) {
+    for (const used of this.studio.usedAssets()) {
       const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
       push(used.fileId, used.filename, type, used.name);
     }
@@ -393,12 +456,12 @@ export class IndexStudio implements OnInit {
   private buildSourceSnapshot(compiled: string): GeneratedClip['source'] {
     return {
       rawDescription: compiled,
-      cinematography: this.prompt.cinematography(),
-      output: this.prompt.output(),
+      cinematography: this.studio.cinematography(),
+      output: this.studio.output(),
       assets: {
-        firstFrame: this.assets.firstFrame(),
-        lastFrame: this.assets.lastFrame(),
-        free: this.assets.freeAssets(),
+        firstFrame: this.studio.firstFrame(),
+        lastFrame: this.studio.lastFrame(),
+        free: this.studio.freeAssets(),
       },
     };
   }

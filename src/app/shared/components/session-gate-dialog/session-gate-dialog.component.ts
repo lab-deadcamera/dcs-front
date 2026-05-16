@@ -8,19 +8,14 @@ import {
   output,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { SessionStateService } from '@app/core/stores/session.state';
-import { StudioStateService } from '@app/core/stores/studio.state';
+import { SessionStore } from '@app/core/stores/session.store';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
 import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
@@ -63,16 +58,9 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
         {{ 'STUDIO.SESSION_GATE.HINT' | translate }}
       </p>
 
-      <form
-        [formGroup]="form"
-        (ngSubmit)="onSubmit()"
-        class="flex flex-col gap-4"
-      >
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <label
-            for="session-gate-email"
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <label for="session-gate-email" class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'STUDIO.SESSION_GATE.EMAIL' | translate }}
           </label>
           <input
@@ -126,6 +114,7 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
               inputId="session-gate-project"
               formControlName="projectId"
               [options]="projects()"
+              appendTo="body"
               optionLabel="name"
               optionValue="id"
               [placeholder]="'Select a project'"
@@ -135,29 +124,22 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
               (onChange)="onProjectChange($event.value)"
             />
           }
-          <validator-errors
-            [control]="form.get('projectId')"
-            [label]="'Project'"
-          />
+          <validator-errors [control]="form.get('projectId')" [label]="'Project'" />
         </div>
 
         <div class="flex flex-col gap-1">
-          <label
-            for="session-gate-scene"
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <label for="session-gate-scene" class="text-[12px] font-bold uppercase tracking-[0.12em]">
             Scene
           </label>
           @if (!form.get('projectId')?.value) {
-            <p class="text-[12px] italic text-fg-muted">
-              Select a project first.
-            </p>
+            <p class="text-[12px] italic text-fg-muted">Select a project first.</p>
           } @else if (loadingScenes()) {
             <p class="text-[12px] italic text-fg-muted">Loading scenes…</p>
           } @else {
             <p-select
               inputId="session-gate-scene"
               formControlName="sceneId"
+              appendTo="body"
               [options]="scenes()"
               optionLabel="label"
               optionValue="id"
@@ -168,17 +150,13 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
               (onChange)="onSceneChange($event.value)"
             />
           }
-          <validator-errors
-            [control]="form.get('sceneId')"
-            [label]="'Scene'"
-          />
+          <validator-errors [control]="form.get('sceneId')" [label]="'Scene'" />
         </div>
 
         @if (selectedScene()) {
           <div class="rounded border p-3 text-[12px]" style="border-color: var(--border-color);">
             <span class="font-semibold">Scene:</span>
-            SC{{ selectedScene()!.number | number:'2.0' }}
-            — {{ selectedScene()!.name }}
+            SC{{ selectedScene()!.number | number: '2.0' }} — {{ selectedScene()!.name }}
             <br />
             <span class="font-semibold">Takes:</span>
             {{ takes().length }} take{{ takes().length !== 1 ? 's' : '' }}
@@ -203,8 +181,8 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
 })
 export class SessionGateDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly session = inject(SessionStateService);
-  private readonly studio = inject(StudioStateService);
+  private readonly sessionStore = inject(SessionStore);
+  private readonly studio = inject(StudioStore);
   private readonly projectsApi = inject(ProjectsApiService);
 
   readonly visible = input(false);
@@ -212,14 +190,18 @@ export class SessionGateDialogComponent {
 
   // Local state for pickers
   protected readonly projects = signal<Project[]>([]);
-  protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>([]);
+  protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>(
+    [],
+  );
   protected readonly takes = signal<Take[]>([]);
   protected readonly loadingProjects = signal(false);
   protected readonly loadingScenes = signal(false);
   protected readonly submitting = signal(false);
 
   /** Derived scene object for the info panel. */
-  protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(null);
+  protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(
+    null,
+  );
 
   protected readonly form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.minLength(3)]],
@@ -234,7 +216,7 @@ export class SessionGateDialogComponent {
    */
   private readonly resetOnOpen = effect(() => {
     if (!this.visible()) return;
-    const user = this.session.user();
+    const user = this.sessionStore.user();
     this.form.reset({
       email: user?.email ?? '',
       handle: user?.handle ?? '',
@@ -320,9 +302,10 @@ export class SessionGateDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, handle, sceneId } = this.form.getRawValue() as {
+    const raw = this.form.getRawValue() as {
       email: string;
       handle: string;
+      projectId: string;
       sceneId: string;
     };
 
@@ -333,8 +316,18 @@ export class SessionGateDialogComponent {
     const totalTakes = Math.max(1, this.takes().length);
 
     this.submitting.set(true);
-    this.session.initSession({ email, handle, sceneCode, totalTakes });
-    this.studio.setUser({ handle });
+    this.sessionStore.initSession({
+      email: raw.email,
+      handle: raw.handle,
+    });
+    this.studio.initStudioSession({
+      projectId: raw.projectId,
+      sceneId: raw.sceneId,
+      sceneCode,
+      userHandle: raw.handle,
+      totalTakes,
+      backendTakes: this.takes(),
+    });
     this.submitting.set(false);
     this.visibleChange.emit(false);
   }

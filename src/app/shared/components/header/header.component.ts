@@ -5,7 +5,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
-import { StudioStateService } from '@app/core/stores/studio.state';
+import { SessionStore } from '@app/core/stores/session.store';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
 
 @Component({
@@ -50,7 +51,7 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
       <div class="flex items-center gap-3">
         <ui-icon-button
           icon="👤"
-          [label]="state.user().handle"
+          [label]="session.user()?.handle ?? 'User'"
           iconColor="purple"
           labelColor="green"
         />
@@ -107,7 +108,11 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
   `,
 })
 export class HeaderComponent {
-  protected readonly state = inject(StudioStateService);
+  protected readonly studio = inject(StudioStore);
+  protected readonly session = inject(SessionStore);
+
+  // Keep aliases for template compatibility
+  protected readonly state = this.studio;
 
   protected readonly modelDialogVisible = signal(false);
 

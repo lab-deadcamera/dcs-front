@@ -75,7 +75,7 @@
           </p>
           <div class="flex items-center gap-3">
             <p class="font-mono text-[11px] text-fg-muted">
-              {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
+              {{ 'STUDIO.ASSETS.COUNT' | translate: { n: studio.totalCount() } }}
             </p>
             <p-button
               [label]="'STUDIO.ASSETS.CREATE_ASSETS' | translate"
@@ -92,19 +92,19 @@
             labelKey="STUDIO.ASSETS.FIRST_FRAME"
             placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
             [small]="true"
-            [preview]="assets.firstFrame()?.thumbnailUrl ?? null"
-            [previewAlt]="assets.firstFrame()?.filename ?? ''"
+            [preview]="studio.firstFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="studio.firstFrame()?.filename ?? ''"
             (filesDropped)="onFirstFrame($event)"
-            (cleared)="assets.setFirstFrame(null)"
+            (cleared)="studio.setFirstFrame(null)"
           />
           <ui-drop-zone
             labelKey="STUDIO.ASSETS.LAST_FRAME"
             placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
             [small]="true"
-            [preview]="assets.lastFrame()?.thumbnailUrl ?? null"
-            [previewAlt]="assets.lastFrame()?.filename ?? ''"
+            [preview]="studio.lastFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="studio.lastFrame()?.filename ?? ''"
             (filesDropped)="onLastFrame($event)"
-            (cleared)="assets.setLastFrame(null)"
+            (cleared)="studio.setLastFrame(null)"
           />
         </div>
 
@@ -116,9 +116,9 @@
           />
         </div>
 
-        @if (assets.freeAssets().length) {
+        @if (studio.freeAssets().length) {
           <ul class="mt-3 flex flex-wrap gap-1.5">
-            @for (a of assets.freeAssets(); track a.id) {
+            @for (a of studio.freeAssets(); track a.id) {
               <li
                 class="group relative flex h-14 w-14 flex-col overflow-hidden border border-ink-500 bg-ink-800"
                 [title]="a.tag + ' · ' + a.filename"
@@ -159,7 +159,7 @@
                   <button
                     type="button"
                     class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
-                    (click)="assets.removeFreeAsset(a.id)"
+                    (click)="studio.removeFreeAsset(a.id)"
                     [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
                   >×</button>
                 </div>

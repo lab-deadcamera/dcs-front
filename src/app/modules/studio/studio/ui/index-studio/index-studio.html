@@ -38,18 +38,27 @@
         <div class="min-w-0 flex-1">
           <app-viewer />
         </div>
-        @if (session.isReady()) {
-          <app-take-checklist
-            [takes]="session.takes()"
-            [currentIndex]="session.currentTakeIndex()"
-            [scenePrefix]="scenePrefix()"
-            (toggle)="onToggleTake($event)"
-          />
-        }
+        <app-take-checklist
+          [takes]="studio.takes()"
+          [currentIndex]="studio.currentTakeIndex()"
+          [scenePrefix]="scenePrefix()"
+          [locked]="!studio.isReady()"
+          (toggle)="onToggleTake($event)"
+        />
       </div>
       <app-rating />
-      <app-prompt-builder (generate)="onGenerate()" />
-      <app-session-reel />
+      <app-prompt-builder
+        (generate)="onGenerate()"
+        [isRegenerating]="isRegenerating()"
+        [takeSelected]="studio.isReady()"
+      />
+      <app-takes-reel
+        [takes]="studio.activeTakes()"
+        [discardedTakes]="studio.discardedTakes()"
+        [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+        (selectTake)="onSelectTake($event)"
+        (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
+      />
     </aside>
   </div>
 

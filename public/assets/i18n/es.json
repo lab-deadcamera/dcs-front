@@ -134,13 +134,17 @@
       "TAKE_ARIA": "Toma {{n}} — {{status}}",
       "STATUS_PENDING": "pendiente",
       "STATUS_CURRENT": "actual",
-      "STATUS_DONE": "completada"
+      "STATUS_DONE": "completada",
+      "STATUS_CONFIRMED": "confirmada",
+      "LOCKED_TOOLTIP": "Selecciona una escena primero"
     },
     "VIEWER": {
       "TITLE": "Visor",
       "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",
       "EMPTY_TITLE": "Sin Clip Cargado",
       "EMPTY_HINT": "La salida generada aparece aquí",
+      "NO_SCENE_TITLE": "Selecciona una escena para continuar",
+      "NO_SCENE_HINT": "Abre un proyecto y escena desde el diálogo superior",
       "FULLSCREEN_ENTER": "Pantalla completa",
       "FULLSCREEN_EXIT": "Salir de pantalla completa",
       "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
@@ -158,6 +162,7 @@
       "CHARS": "{{n}} caracteres",
       "EMPTY_PREVIEW": "_",
       "GENERATE": "Generar",
+      "REGENERATE": "Volver a Generar",
       "REFERENCES": "Referencias",
       "EDIT_COMPILED": "Editar prompt compilado",
       "EDITED_BADGE": "editado",
@@ -165,9 +170,11 @@
       "SAVE_EDIT": "Guardar",
       "CANCEL_EDIT": "Cancelar"
     },
-    "SESSION_REEL": {
-      "TITLE": "Carrete de Sesión",
-      "EMPTY": "Tus clips generados se apilarán aquí"
+    "TAKES_REEL": {
+      "TITLE": "Carrete de Tomas",
+      "EMPTY": "Tus tomas generadas aparecerán aquí",
+      "DISCARDED": "Tomas descartadas",
+      "REACTIVATE": "Reactivar"
     },
     "RATING": {
       "TITLE": "Calificación",

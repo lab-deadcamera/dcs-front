@@ -134,13 +134,17 @@
       "TAKE_ARIA": "Take {{n}} — {{status}}",
       "STATUS_PENDING": "pending",
       "STATUS_CURRENT": "current",
-      "STATUS_DONE": "done"
+      "STATUS_DONE": "done",
+      "STATUS_CONFIRMED": "confirmed",
+      "LOCKED_TOOLTIP": "Select a scene first"
     },
     "VIEWER": {
       "TITLE": "Viewer",
       "HINT": "Final clip · evaluate quality, lip sync, sound, color",
       "EMPTY_TITLE": "No Clip Loaded",
       "EMPTY_HINT": "Generated output appears here",
+      "NO_SCENE_TITLE": "Select a scene to continue",
+      "NO_SCENE_HINT": "Open a project and scene from the dialog above",
       "FULLSCREEN_ENTER": "Enter fullscreen",
       "FULLSCREEN_EXIT": "Exit fullscreen",
       "HD_ARIA_OFF": "1080p HD off — click twice to enable",
@@ -158,6 +162,7 @@
       "CHARS": "{{n}} chars",
       "EMPTY_PREVIEW": "_",
       "GENERATE": "Generate",
+      "REGENERATE": "Re-Generate",
       "REFERENCES": "References",
       "EDIT_COMPILED": "Edit compiled prompt",
       "EDITED_BADGE": "edited",
@@ -165,9 +170,11 @@
       "SAVE_EDIT": "Save",
       "CANCEL_EDIT": "Cancel"
     },
-    "SESSION_REEL": {
-      "TITLE": "Session Reel",
-      "EMPTY": "Your generated clips will stack here"
+    "TAKES_REEL": {
+      "TITLE": "Carrete de Tomas",
+      "EMPTY": "Your generated takes will appear here",
+      "DISCARDED": "Discarded takes",
+      "REACTIVATE": "Reactivate"
     },
     "RATING": {
       "TITLE": "Rating",

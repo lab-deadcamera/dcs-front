@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Popover } from 'primeng/popover';
-import { ApiKeysStateService } from '@app/core/stores/api-keys.state';
+import { GlobalStore } from '@app/core/stores/global.store';
 import {
   DEFAULT_ENDPOINT_ID,
   maskKey,
@@ -31,7 +31,7 @@ type DraftField = 'name' | 'value' | 'endpoint' | 'ak' | 'sk';
   templateUrl: './api-keys-popover.html',
 })
 export class ApiKeysPopoverComponent {
-  protected readonly keys = inject(ApiKeysStateService);
+  protected readonly keys = inject(GlobalStore);
 
   @ViewChild('popover') protected readonly popover!: Popover;
 

@@ -1,53 +1,59 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { StudioStorageService } from './studio-storage.service';
 import {
-  API_ENDPOINTS,
   ApiEndpoint,
   ApiKey,
+  API_ENDPOINTS,
   DEFAULT_ENDPOINT_ID,
 } from '../interfaces/api-keys.interface';
-import { StudioStorageService } from './studio-storage.service';
 
 const SCHEMA_VERSION = 1;
 
-interface KeysSnapshot {
+interface GlobalSnapshot {
   __v: number;
   keys: ApiKey[];
-  activeId: string | null;
+  activeKeyId: string | null;
 }
 
 /**
- * Multi-key vault for BytePlus / Volcengine credentials.
- * Mirrors the keys.json + /api/keys endpoints in dcs-v0/server.js — but
- * lives entirely in the browser, persisted via IndexedDB.
+ * Global store — API keys (BytePlus / Volcengine credentials).
+ *
+ * Persisted in IndexedDB via StudioStorageService. Other global concerns
+ * (presets, etc.) live in their own dedicated services for now.
  *
  * Security note: the key value is stored unmasked in IndexedDB so the
- * upcoming SeedanceService can use it for Bearer auth. This is the same
- * trust model as dcs-v0 (key on the user's machine, never leaves it).
+ * SeedanceService can use it for Bearer auth. This is the same trust
+ * model as dcs-v0 (key on the user's machine, never leaves it).
  */
 @Injectable({ providedIn: 'root' })
-export class ApiKeysStateService {
+export class GlobalStore {
   private readonly storage = inject(StudioStorageService);
   private hydrated = false;
 
   private readonly _keys = signal<ApiKey[]>([]);
-  private readonly _activeId = signal<string | null>(null);
+  private readonly _activeKeyId = signal<string | null>(null);
 
   readonly keys = this._keys.asReadonly();
-  readonly activeId = this._activeId.asReadonly();
+  readonly activeId = this._activeKeyId.asReadonly();
   readonly activeKey = computed(
-    () => this._keys().find((k) => k.id === this._activeId()) ?? null,
+    () => this._keys().find((k) => k.id === this._activeKeyId()) ?? null,
   );
   readonly hasActiveKey = computed(() => this.activeKey() !== null);
   readonly endpoints: readonly ApiEndpoint[] = API_ENDPOINTS;
+
+  /** i18n key — translate in the template. */
+  readonly apiBadge = computed(() =>
+    this.hasActiveKey() ? 'STUDIO.API.CONNECTED' : 'STUDIO.API.NO_KEY',
+  );
 
   constructor() {
     this.hydrate();
 
     effect(() => {
-      const snap: KeysSnapshot = {
+      const snap: GlobalSnapshot = {
         __v: SCHEMA_VERSION,
         keys: this._keys(),
-        activeId: this._activeId(),
+        activeKeyId: this._activeKeyId(),
       };
       if (this.hydrated) {
         void this.storage.set('keys', snap);
@@ -57,10 +63,10 @@ export class ApiKeysStateService {
 
   private async hydrate() {
     try {
-      const snap = await this.storage.get<KeysSnapshot>('keys');
+      const snap = await this.storage.get<GlobalSnapshot>('keys');
       if (snap && snap.__v === SCHEMA_VERSION) {
         this._keys.set(snap.keys);
-        this._activeId.set(snap.activeId);
+        this._activeKeyId.set(snap.activeKeyId);
       }
     } finally {
       this.hydrated = true;
@@ -90,21 +96,21 @@ export class ApiKeysStateService {
     };
 
     this._keys.update((list) => [...list, newKey]);
-    if (!this._activeId()) this._activeId.set(newKey.id);
+    if (!this._activeKeyId()) this._activeKeyId.set(newKey.id);
     return newKey;
   }
 
   activate(id: string) {
     if (this._keys().some((k) => k.id === id)) {
-      this._activeId.set(id);
+      this._activeKeyId.set(id);
     }
   }
 
   remove(id: string) {
-    const wasActive = this._activeId() === id;
+    const wasActive = this._activeKeyId() === id;
     this._keys.update((list) => list.filter((k) => k.id !== id));
     if (wasActive) {
-      this._activeId.set(this._keys()[0]?.id ?? null);
+      this._activeKeyId.set(this._keys()[0]?.id ?? null);
     }
   }
 

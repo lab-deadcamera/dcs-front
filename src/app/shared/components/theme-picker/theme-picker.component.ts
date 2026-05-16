@@ -2,7 +2,7 @@ import { Component, inject, ChangeDetectionStrategy, ViewChild } from '@angular/
 import { Popover } from 'primeng/popover'
 import { ButtonModule } from 'primeng/button'
 import { TranslatePipe } from '@ngx-translate/core'
-import { ThemeService } from '@core/theme/theme.service'
+import { SessionStore } from '@app/core/stores/session.store'
 import { LanguagePicker } from '@shared/components/language-picker/language-picker.component'
 
 @Component({
@@ -12,7 +12,10 @@ import { LanguagePicker } from '@shared/components/language-picker/language-pick
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemePicker {
-  protected readonly theme = inject(ThemeService)
+  protected readonly session = inject(SessionStore)
+
+  // Template compatibility alias
+  protected readonly theme = this.session
 
   @ViewChild('popover') protected readonly popover!: Popover
 }

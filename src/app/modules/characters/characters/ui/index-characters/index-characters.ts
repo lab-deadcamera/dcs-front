@@ -24,7 +24,8 @@ import {
 import { CharacterFormDialogComponent } from '../components/character-form-dialog/character-form-dialog.component';
 import { CharacterFilesDialogComponent } from '../components/character-files-dialog/character-files-dialog.component';
 import { AssetCreateDialogComponent } from '../components/asset-create-dialog/asset-create-dialog.component';
-import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
 
@@ -61,7 +62,7 @@ export class IndexCharacters implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
   private readonly filesApi = inject(FilesApiService);
-  private readonly prompt = inject(PromptStateService);
+  private readonly studio = inject(StudioStore);
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
@@ -251,7 +252,7 @@ export class IndexCharacters implements OnInit {
       return;
     }
     const kind = resolveKind(asset.metadata?.['fileKind']);
-    this.prompt.useAsset({
+    this.studio.useAsset({
       fileId,
       characterId: asset.id,
       name: asset.name,

@@ -3,12 +3,14 @@ import {
   Component,
   computed,
   inject,
+  input,
   output,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
-import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 
 /**
  * Section 06 — PROMPT BUILDER.
@@ -37,7 +39,7 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
         and the Characters library quick-pick. Each chip has a × to
         remove the reference; the API payload picks them up automatically.
       -->
-      @if (prompt.usedAssets().length > 0) {
+      @if (studio.usedAssets().length > 0) {
         <div
           class="mt-4 flex flex-wrap items-center gap-2 border border-ink-500 bg-ink-900 px-3 py-2"
         >
@@ -46,7 +48,7 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
           >
             {{ 'STUDIO.PROMPT.REFERENCES' | translate }}
           </span>
-          @for (a of prompt.usedAssets(); track a.fileId) {
+          @for (a of studio.usedAssets(); track a.fileId) {
             <span
               class="inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
               [attr.data-testid]="'used-asset-' + a.fileId"
@@ -58,7 +60,7 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
                 type="button"
                 class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                 [attr.aria-label]="'COMMON.DELETE' | translate"
-                (click)="prompt.unuseAsset(a.fileId)"
+                (click)="studio.unuseAsset(a.fileId)"
               >×</button>
             </span>
           }
@@ -69,14 +71,14 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
         <textarea
           class="block w-full resize-y border border-ink-500 bg-ink-850 px-4 py-3 font-mono text-[12px] leading-relaxed text-fg-strong placeholder:italic placeholder:font-sans placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
           rows="12"
-          [value]="prompt.rawDescription()"
+          [value]="studio.rawDescription()"
           (input)="onInput($event)"
           [placeholder]="placeholder()"
           data-testid="prompt-textarea"
         ></textarea>
         <div class="mt-1 flex items-center justify-end">
           <span class="font-mono text-[11px] text-fg-muted">
-            {{ 'STUDIO.PROMPT.CHARS' | translate: { n: prompt.rawLength() } }}
+            {{ 'STUDIO.PROMPT.CHARS' | translate: { n: studio.rawLength() } }}
           </span>
         </div>
       </div>
@@ -88,21 +90,26 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
       <button
         type="button"
         class="mt-3 flex w-full items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        [disabled]="!prompt.canGenerate()"
+        [disabled]="!studio.canGenerate() || !takeSelected()"
         (click)="onGenerate()"
       >
-        {{ 'STUDIO.PROMPT.GENERATE' | translate }}
+        {{ generateLabel() }}
         <span aria-hidden="true">→</span>
       </button>
     </section>
   `,
 })
 export class PromptBuilderComponent {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
+
+  /** When true, the generate button reads "VOLVER A GENERAR". */
+  readonly isRegenerating = input(false);
+  /** When false, the generate button is disabled (no take selected). */
+  readonly takeSelected = input(true);
 
   /** Re-resolve placeholder when the language changes. */
   private readonly lang = toSignal(this.i18n.onLangChange, { initialValue: null });
@@ -112,12 +119,22 @@ export class PromptBuilderComponent {
     return this.i18n.instant('STUDIO.PROMPT.PLACEHOLDER');
   });
 
+  /** Button label: GENERAR or VOLVER A GENERAR. */
+  protected readonly generateLabel = computed(() => {
+    // Read signals so this computed re-evaluates when either changes
+    const lang = this.lang();
+    const regen = this.isRegenerating();
+    return this.i18n.instant(
+      regen ? 'STUDIO.PROMPT.REGENERATE' : 'STUDIO.PROMPT.GENERATE',
+    );
+  });
+
   protected onInput(e: Event) {
-    this.prompt.setRawDescription((e.target as HTMLTextAreaElement).value);
+    this.studio.setRawDescription((e.target as HTMLTextAreaElement).value);
   }
 
   protected onGenerate(): void {
-    if (!this.prompt.canGenerate()) return;
+    if (!this.studio.canGenerate()) return;
     this.generate.emit();
   }
 

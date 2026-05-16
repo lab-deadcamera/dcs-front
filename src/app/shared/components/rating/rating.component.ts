@@ -6,7 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 /**
  * Rating — compact 5-star strip shown between the Viewer and the Prompt
@@ -66,15 +66,15 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   `,
 })
 export class RatingComponent {
-  private readonly prompt = inject(PromptStateService);
+  private readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
 
   protected readonly stars = [1, 2, 3, 4, 5] as const;
   protected readonly hover = signal(0);
 
-  protected readonly hasClip = computed(() => !!this.prompt.activeClip());
+  protected readonly hasClip = computed(() => !!this.studio.activeClip());
   protected readonly rating = computed(
-    () => this.prompt.activeClip()?.rating ?? 0,
+    () => this.studio.activeClip()?.rating ?? 0,
   );
   protected readonly effective = computed(
     () => this.hover() || this.rating(),
@@ -89,8 +89,8 @@ export class RatingComponent {
   }
 
   protected set(n: number): void {
-    const clip = this.prompt.activeClip();
+    const clip = this.studio.activeClip();
     if (!clip) return;
-    this.prompt.setClipRating(clip.id, n);
+    this.studio.setClipRating(clip.id, n);
   }
 }

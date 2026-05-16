@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 /**
  * "SESSION REEL" — horizontal strip of generated clip thumbnails.
@@ -20,19 +20,19 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
       </div>
 
       <div class="mt-3 border-t border-ink-600 pt-3">
-        @if (prompt.sessionClips().length === 0) {
+        @if (studio.sessionClips().length === 0) {
           <p class="mt-2 text-[12px] italic text-fg-muted">
             {{ 'STUDIO.SESSION_REEL.EMPTY' | translate }}
           </p>
         } @else {
           <div class="mt-3 flex gap-3 overflow-x-auto">
-            @for (clip of prompt.sessionClips(); track clip.id) {
+            @for (clip of studio.sessionClips(); track clip.id) {
               <button
                 type="button"
                 class="relative h-20 w-32 flex-none overflow-hidden border bg-ink-900 transition-colors"
-                [class.border-primary-500]="clip.id === prompt.activeClipId()"
-                [class.border-ink-500]="clip.id !== prompt.activeClipId()"
-                (click)="prompt.selectClip(clip.id)"
+                [class.border-primary-500]="clip.id === studio.activeClipId()"
+                [class.border-ink-500]="clip.id !== studio.activeClipId()"
+                (click)="studio.selectClip(clip.id)"
               >
                 @if (clip.thumbnailUrl) {
                   <img
@@ -68,7 +68,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   `,
 })
 export class SessionReelComponent {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
 
   /**
    * Append `#t=0.1` to the video URL so the browser seeks to ~100ms and

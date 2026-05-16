@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
 
 import { AUTH_PATHS } from '@core/constants';
+import { authGuard } from '@core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('@shared/components/private-layout/private-layout.component').then(m => m.PrivateLayout),
+    canActivate: [authGuard],
     children: [
       {
         path: '',
