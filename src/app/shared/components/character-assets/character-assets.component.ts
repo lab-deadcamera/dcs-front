@@ -17,6 +17,10 @@ import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state
 interface LibraryItem {
   id: string;
   name: string;
+  /** First linked file id — null when the asset has no files. */
+  fileId: string | null;
+  /** First linked file's filename — used by the backend asset resolver. */
+  filename: string;
   /** First linked file's serve URL — null when the asset has no files. */
   thumbUrl: string | null;
   fileKind: UsedAssetKind;
@@ -96,10 +100,13 @@ export class CharacterAssetsComponent {
         metadata = {};
       }
       const t: AssetType = (metadata.assetType as AssetType) ?? 'character';
-      const fileId = item.files?.[0]?.file_id ?? null;
+      const firstFile = item.files?.[0];
+      const fileId = firstFile?.file_id ?? null;
       (buckets[t] ?? buckets.character).push({
         id: item.character.id,
         name: item.character.name,
+        fileId,
+        filename: firstFile?.filename ?? item.character.name,
         thumbUrl: fileId ? this.filesApi.serveUrl(fileId) : null,
         fileKind: resolveUsedKind(metadata.fileKind),
       });
@@ -117,7 +124,7 @@ export class CharacterAssetsComponent {
   });
 
   protected readonly usedAssetIds = computed(
-    () => new Set(this.prompt.usedAssets().map((a) => a.id)),
+    () => new Set(this.prompt.usedAssets().map((a) => a.characterId)),
   );
 
   /** PrimeIcons class used as a fallback when a tile has no thumbnail. */
@@ -163,17 +170,34 @@ export class CharacterAssetsComponent {
    * Toggle the asset's presence in the prompt's used-asset list. Already-
    * used assets are removed (so the same tile acts as both add and undo)
    * and the prompt-builder chips reflect the change instantly.
+   *
+   * Assets without an uploaded file can't be sent as a reference — show
+   * a warning toast instead of silently no-oping.
    */
   protected onPickLibraryAsset(a: LibraryItem): void {
     if (this.isUsed(a.id)) {
       this.prompt.unuseAsset(a.id);
       return;
     }
-    this.prompt.useAsset({ id: a.id, name: a.name, kind: a.fileKind });
+    if (!a.fileId) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'No file',
+        detail: `"${a.name}" has no file uploaded yet — open the library to add one.`,
+      });
+      return;
+    }
+    this.prompt.useAsset({
+      fileId: a.fileId,
+      characterId: a.id,
+      name: a.name,
+      filename: a.filename,
+      kind: a.fileKind,
+    });
     this.toast.add({
       severity: 'success',
-      summary: 'OK',
-      detail: `@${a.name.replace(/\s+/g, '_')}`,
+      summary: 'Reference added',
+      detail: a.name,
     });
   }
 

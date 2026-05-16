@@ -230,22 +230,38 @@ export class IndexCharacters implements OnInit {
   }
 
   /**
-   * Push the asset into the Prompt Builder's reference list. The token
-   * shows up as `@asset_name` in the compiled prompt and as a typed chip
-   * above the textarea. Emits `assetUsed` so the parent can dismiss the
-   * library dialog and let the user see the prompt update.
+   * Push the asset into the Prompt Builder's reference list. The chip is
+   * surfaced above the prompt textarea and the file id travels to the
+   * Seedance API in the generation payload's `content[]`. Emits
+   * `assetUsed` so the parent can dismiss the library dialog and let the
+   * user see the prompt update.
+   *
+   * If the asset has no uploaded file yet, we can't reference it — warn
+   * the user instead of queueing an unusable entry.
    */
   protected useAsset(asset: Character): void {
+    const preview = this.previewMap()[asset.id];
+    const fileId = preview?.fileIds?.[0];
+    if (!fileId) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'No file',
+        detail: `"${asset.name}" has no file uploaded yet — add one before referencing it.`,
+      });
+      return;
+    }
     const kind = resolveKind(asset.metadata?.['fileKind']);
     this.prompt.useAsset({
-      id: asset.id,
+      fileId,
+      characterId: asset.id,
       name: asset.name,
+      filename: asset.name,
       kind,
     });
     this.toast.add({
       severity: 'success',
-      summary: 'OK',
-      detail: `@${asset.name.replace(/\s+/g, '_')} added to prompt`,
+      summary: 'Reference added',
+      detail: asset.name,
     });
     this.assetUsed.emit(asset.id);
   }

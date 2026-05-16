@@ -29,7 +29,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
             @for (clip of prompt.sessionClips(); track clip.id) {
               <button
                 type="button"
-                class="relative h-20 w-32 flex-none overflow-hidden border transition-colors"
+                class="relative h-20 w-32 flex-none overflow-hidden border bg-ink-900 transition-colors"
                 [class.border-primary-500]="clip.id === prompt.activeClipId()"
                 [class.border-ink-500]="clip.id !== prompt.activeClipId()"
                 (click)="prompt.selectClip(clip.id)"
@@ -40,11 +40,25 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
                     [alt]="clip.prompt"
                     class="h-full w-full object-cover"
                   />
+                } @else if (clip.videoUrl) {
+                  <!-- See posterUrl() — uses a media fragment to force first-frame paint. -->
+                  <video
+                    [src]="posterUrl(clip.videoUrl)"
+                    preload="metadata"
+                    muted
+                    playsinline
+                    class="pointer-events-none h-full w-full object-cover"
+                  ></video>
                 } @else {
                   <span class="flex h-full w-full items-center justify-center bg-ink-800 font-mono text-[10px] text-fg-muted">
                     {{ clip.durationSeconds }}s
                   </span>
                 }
+                <span
+                  class="pointer-events-none absolute bottom-1 right-1 bg-ink-950/70 px-1 font-mono text-[9px] text-fg-strong"
+                >
+                  {{ clip.durationSeconds }}s
+                </span>
               </button>
             }
           </div>
@@ -55,4 +69,14 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 })
 export class SessionReelComponent {
   protected readonly prompt = inject(PromptStateService);
+
+  /**
+   * Append `#t=0.1` to the video URL so the browser seeks to ~100ms and
+   * paints that frame as the visible poster. Skips the suffix when the
+   * URL already carries a fragment (BytePlus URLs don't, but we guard
+   * anyway to avoid stomping on a future contract).
+   */
+  protected posterUrl(url: string): string {
+    return url.includes('#') ? url : `${url}#t=0.1`;
+  }
 }
