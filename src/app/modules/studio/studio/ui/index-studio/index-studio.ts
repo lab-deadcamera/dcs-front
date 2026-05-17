@@ -21,7 +21,6 @@ import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
 import { SessionStore } from '@app/core/stores/session.store';
-import { SeedanceService } from '@app/services';
 import { ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';

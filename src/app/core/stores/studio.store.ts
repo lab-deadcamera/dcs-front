@@ -448,12 +448,6 @@ export class StudioStore {
 
   // ── Pending generations ──────────────────────────────────────────
 
-  startGeneration(label?: string, takeIndex?: number): string {
-    const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    this._pendingGenerations.update((list) => [...list, { id, progress: 0, label, takeIndex }]);
-    return id;
-  }
-
   updateGenerationProgress(id: string, progress: number): void {
     const next = clamp(Math.round(progress), 0, 100);
     this._pendingGenerations.update((list) =>

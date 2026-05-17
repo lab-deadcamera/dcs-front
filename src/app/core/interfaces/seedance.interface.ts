@@ -126,6 +126,9 @@ export interface SyncAssetItem {
   status: string;
   error_message: string;
 }
+
+/** Paginated wrapper for GET /studio/logs/generation. */
+export interface GenerationLogListResponse {
   logs: GenerationLogEntry[];
   total: number;
   page: number;
