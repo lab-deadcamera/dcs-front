@@ -173,12 +173,14 @@ interface UserOption {
                     {{ log.task_id }}
                   </td>
                   <td class="px-3 py-2 font-mono">{{ log.model_name }}</td>
-                  <td class="px-3 py-2 font-mono">{{ log.user_id ?? '—' }}</td>
-                  <td class="max-w-[120px] truncate px-3 py-2 font-mono" [title]="log.project_id">
-                    {{ log.project_id || '—' }}
+                  <td class="px-3 py-2 font-mono" [title]="'id: ' + (log.user_id ?? '')">
+                    {{ log.user_display_name || log.user_name || log.user_id ?? '—' }}
                   </td>
-                  <td class="max-w-[120px] truncate px-3 py-2 font-mono" [title]="log.scene_id">
-                    {{ log.scene_id || '—' }}
+                  <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.project_id">
+                    {{ log.project_name || log.project_id || '—' }}
+                  </td>
+                  <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.scene_id">
+                    {{ sceneLabel(log) || log.scene_id || '—' }}
                   </td>
                   <td class="px-3 py-2 font-mono">{{ log.take_number ?? '—' }}</td>
                   <td class="px-3 py-2">
@@ -357,6 +359,15 @@ export class IndexAdmin implements OnInit {
     this.page.set(ev.page ?? 0);
     this.limit.set(ev.rows ?? 20);
     this.loadPage();
+  }
+
+  protected sceneLabel(log: GenerationLogEntry): string {
+    if (log.scene_name) {
+      return log.scene_number != null
+        ? `SC${String(log.scene_number).padStart(2, '0')} — ${log.scene_name}`
+        : log.scene_name;
+    }
+    return '';
   }
 
   private loadPage(): void {

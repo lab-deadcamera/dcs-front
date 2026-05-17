@@ -88,6 +88,12 @@ export interface GenerationLogEntry {
   error_message: string;
   created_at: string;
   updated_at: string;
+  // Enriched fields (LEFT JOIN desde el backend)
+  user_name?: string;
+  user_display_name?: string;
+  project_name?: string;
+  scene_name?: string;
+  scene_number?: number;
 }
 
 /** Paginated wrapper for GET /studio/logs/generation. */
