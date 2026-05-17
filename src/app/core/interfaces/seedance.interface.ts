@@ -76,6 +76,7 @@ export interface GenerationLogEntry {
   id: string;
   task_id: string;
   model_name: string;
+  user_id?: number;
   project_id: string;
   scene_id: string;
   scene_code: string;

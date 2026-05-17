@@ -90,6 +90,10 @@ export class SeedanceService {
     project_id?: string;
     scene_id?: string;
     status?: string;
+    model_name?: string;
+    user_id?: number;
+    date_from?: string;
+    date_to?: string;
     page?: number;
     limit?: number;
   }): Observable<{ error: boolean; msg: string; data?: import('@app/core/interfaces/seedance.interface').GenerationLogListResponse }> {
@@ -97,6 +101,10 @@ export class SeedanceService {
     if (filters.project_id) params.set('project_id', filters.project_id);
     if (filters.scene_id) params.set('scene_id', filters.scene_id);
     if (filters.status) params.set('status', filters.status);
+    if (filters.model_name) params.set('model_name', filters.model_name);
+    if (filters.user_id) params.set('user_id', String(filters.user_id));
+    if (filters.date_from) params.set('date_from', filters.date_from);
+    if (filters.date_to) params.set('date_to', filters.date_to);
     if (filters.page) params.set('page', String(filters.page));
     if (filters.limit) params.set('limit', String(filters.limit));
     const qs = params.toString();

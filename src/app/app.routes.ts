@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { AUTH_PATHS } from '@core/constants';
 import { authGuard } from '@core/guards/auth.guard';
+import { adminGuard } from '@core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -34,6 +35,12 @@ export const routes: Routes = [
         path: 'providers',
         loadChildren: () =>
           import('@modules/providers/providers.routes').then((m) => m.PROVIDERS_ROUTES),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadChildren: () =>
+          import('@modules/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
     ],
   },
