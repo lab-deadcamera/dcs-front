@@ -14,7 +14,7 @@ import {
 } from '../interfaces/studio.models';
 import { ModelData } from '../interfaces';
 
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 interface StudioSnapshot {
   __v: number;
@@ -30,6 +30,8 @@ interface StudioSnapshot {
   sessionClips: GeneratedClip[];
   activeClipId: string | null;
   usedAssets?: UsedAsset[];
+  /** Persistimos generaciones en curso para poder re-checkear tras recarga. */
+  pendingGenerations: PendingGeneration[];
 }
 
 interface AssetsSnapshot {
@@ -173,6 +175,34 @@ export class StudioStore {
   readonly pendingGenerations = this._pendingGenerations.asReadonly();
   readonly isGenerating = computed(() => this._pendingGenerations().length > 0);
 
+  /**
+   * Crea una entrada de generación en curso. taskId se asigna después
+   * cuando el backend responde (setGenerationTaskId).
+   */
+  startGeneration(label?: string, takeIndex?: number): string {
+    const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+    this._pendingGenerations.update((list) => [...list, { id, taskId: '', progress: 0, label, takeIndex }]);
+    return id;
+  }
+
+  /** Guarda el taskId devuelto por el backend en la entrada pendiente. */
+  setGenerationTaskId(localId: string, taskId: string): void {
+    this._pendingGenerations.update((list) =>
+      list.map((g) => (g.id === localId ? { ...g, taskId } : g)),
+    );
+  }
+
+  /**
+   * Reemplaza una generación pendiente (recuperada tras recarga) con
+   * la info del backend. Se usa en IndexStudio.restorePendingTasks para
+   * sincronizar el taskId si la entrada se hidrató vacía.
+   */
+  restorePendingTask(id: string, taskId: string, modelName: string): void {
+    this._pendingGenerations.update((list) =>
+      list.map((g) => (g.id === id ? { ...g, taskId, modelName, progress: 10 } : g)),
+    );
+  }
+
   // ── Assets (reference) ───────────────────────────────────────────
 
   private readonly _firstFrame = signal<ReferenceAsset | null>(null);
@@ -221,6 +251,7 @@ export class StudioStore {
         sessionClips: this._sessionClips(),
         activeClipId: this._activeClipId(),
         usedAssets: this._usedAssets(),
+        pendingGenerations: this._pendingGenerations(),
       };
       if (this.hydrated) {
         void this.storage.set('studio', snap);
@@ -257,6 +288,7 @@ export class StudioStore {
         this._sessionClips.set(snap.sessionClips);
         this._activeClipId.set(snap.activeClipId);
         this._usedAssets.set(snap.usedAssets ?? []);
+        this._pendingGenerations.set(snap.pendingGenerations ?? []);
       }
 
       const assetsSnap = await this.storage.get<AssetsSnapshot>('assets');
@@ -365,8 +397,8 @@ export class StudioStore {
     this._cinematography.set({ lens: null, cameraBody: null, cameraMotion: null, colorGrading: null, genre: null });
     this._sessionClips.set([]);
     this._activeClipId.set(null);
-    this._pendingGenerations.set([]);
     this._usedAssets.set([]);
+    this._pendingGenerations.set([]);
     this._firstFrame.set(null);
     this._lastFrame.set(null);
     this._freeAssets.set([]);

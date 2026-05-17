@@ -99,7 +99,47 @@ export class IndexStudio implements OnInit {
     // even for returning users whose session is being read from IndexedDB.
     queueMicrotask(() => {
       if (!this.studio.isReady()) this.gateOpen.set(true);
+      // Intenta recuperar generaciones que quedaron en curso tras una recarga.
+      this.restorePendingTasks();
     });
+  }
+
+  /**
+   * Revisa si hay generaciones pendientes hidratadas desde IndexedDB
+   * y re-chequea su estado contra el backend para recuperar el flujo.
+   */
+  private restorePendingTasks(): void {
+    const pending = this.studio.pendingGenerations();
+    for (const p of pending) {
+      if (!p.taskId || !this.studio.modelCode()) continue;
+      // Re-poll status for tasks that were in-flight
+      this.seedance.status(p.taskId).subscribe((res) => {
+        if (res.error || !res.data) {
+          this.studio.failGeneration(p.id);
+          return;
+        }
+        const task = res.data;
+        const source = p.takeIndex != null
+          ? { rawDescription: '', cinematography: {} as any, output: {} as any }
+          : undefined;
+        if (task.status === 'succeeded') {
+          this.finishWithClip(p.id, task, source as any);
+        } else if (task.status === 'failed') {
+          this.studio.failGeneration(p.id);
+          this.toast.add({
+            summary: 'Generación recuperada',
+            detail: `Take ${p.takeIndex ?? '?'} falló antes de la recarga`,
+            severity: 'warn',
+            life: 5000,
+          });
+        } else {
+          // Todavía en progreso — reanudar polling
+          this.studio.restorePendingTask(p.id, p.taskId, this.studio.modelCode()?.name ?? '');
+          this.studio.updateGenerationProgress(p.id, 30);
+          this.pollUntilTerminal(p.taskId, p.id, source as any);
+        }
+      });
+    }
   }
 
   /** Forwarded from the take-checklist's `(toggle)` output. */
@@ -215,6 +255,15 @@ export class IndexStudio implements OnInit {
           return;
         }
         const initial = res.data;
+
+        // Guardar taskId y modelName en la entrada pendiente para poder
+        // recuperar el estado si hay una recarga.
+        this.studio.setGenerationTaskId(localId, initial.taskId);
+        const modelCode = this.studio.modelCode();
+        if (modelCode) {
+          this.studio.restorePendingTask(localId, initial.taskId, modelCode.name);
+        }
+
         if (initial.status === 'succeeded') {
           this.finishWithClip(localId, initial, source);
           return;

@@ -129,12 +129,16 @@ export interface UsedAsset {
 /** A single in-flight backend generation request. */
 export interface PendingGeneration {
   id: string;
+  /** Backend task_id — necesario para recuperar el estado tras recarga. */
+  taskId: string;
   /** 0–100. */
   progress: number;
   /** Optional "1/3" style label for batched requests. */
   label?: string;
   /** 1-based take number captured at queue time. */
   takeIndex?: number;
+  /** Model name used for the generation. */
+  modelName?: string;
 }
 
 /** Canonical Seedance prompt scaffold. */
