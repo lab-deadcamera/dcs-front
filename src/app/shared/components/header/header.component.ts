@@ -99,6 +99,16 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
       >
         {{ 'NAV.PROVIDERS' | translate }}
       </a>
+      @if (session.roleLevel() <= 1) {
+        <a
+          routerLink="/admin"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+          data-testid="nav-admin"
+        >
+          {{ 'NAV.ADMIN' | translate }}
+        </a>
+      }
     </nav>
 
     <app-model-select-dialog
