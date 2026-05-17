@@ -269,7 +269,8 @@ export class UserManagementComponent implements OnInit {
           this.toast.add({ severity: 'warn', summary: 'Warning', detail: 'No roles returned from server', life: 5000 });
           return;
         }
-        this.roles.set(res.data.map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
+        // SUPER_ADMIN (level 0) no se muestra — es único, creado desde .env
+        this.roles.set(res.data.filter((r: AdminRole) => r.level > 0).map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
       });
   }
 }
