@@ -59,6 +59,11 @@ export interface StudioGenerateRequest {
   generate_audio: boolean;
   /** BytePlus-specific image processing mode. Hardcoded to "PIL" until docs cover alternatives. */
   image_mode: 'PIL';
+
+  /** Session tracking — el backend lo guarda en generation_logs para filtrar y recuperar estado. */
+  project_id?: string;
+  scene_id?: string;
+  scene_code?: string;
 }
 
 /**
@@ -66,6 +71,30 @@ export interface StudioGenerateRequest {
  * The shape is identical regardless of whether the task is in-flight or
  * complete — only `status` and `outputs` differ.
  */
+/** Entry from generation_logs — permite recuperar estado desde el backend. */
+export interface GenerationLogEntry {
+  id: string;
+  task_id: string;
+  model_name: string;
+  project_id: string;
+  scene_id: string;
+  scene_code: string;
+  outputs: string;
+  status: string;
+  error_message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Paginated wrapper for GET /studio/logs/generation. */
+export interface GenerationLogListResponse {
+  logs: GenerationLogEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 export interface StudioTaskResponse {
   taskId: string;
   status: StudioTaskStatus;

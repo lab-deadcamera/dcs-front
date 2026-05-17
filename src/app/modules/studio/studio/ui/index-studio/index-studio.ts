@@ -105,14 +105,18 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Revisa si hay generaciones pendientes hidratadas desde IndexedDB
-   * y re-chequea su estado contra el backend para recuperar el flujo.
+   * Recupera el estado de generaciones desde dos fuentes:
+   *   1. Pending tasks hidratadas desde IndexedDB (re-poll status).
+   *   2. Backend generation_logs filtrados por proyecto/escena (completados).
    */
   private restorePendingTasks(): void {
     const pending = this.studio.pendingGenerations();
+    const projectId = this.studio.projectId();
+    const sceneId = this.studio.sceneId();
+
+    // 1. Re-poll tasks que estaban en curso antes de la recarga
     for (const p of pending) {
-      if (!p.taskId || !this.studio.modelCode()) continue;
-      // Re-poll status for tasks that were in-flight
+      if (!p.taskId) continue;
       this.seedance.status(p.taskId).subscribe((res) => {
         if (res.error || !res.data) {
           this.studio.failGeneration(p.id);
@@ -134,12 +138,43 @@ export class IndexStudio implements OnInit {
           });
         } else {
           // Todavía en progreso — reanudar polling
-          this.studio.restorePendingTask(p.id, p.taskId, this.studio.modelCode()?.name ?? '');
+          const modelName = this.studio.modelCode()?.name ?? '';
+          this.studio.restorePendingTask(p.id, p.taskId, modelName);
           this.studio.updateGenerationProgress(p.id, 30);
           this.pollUntilTerminal(p.taskId, p.id, source as any);
         }
       });
     }
+
+    // 2. Consultar logs del backend para el proyecto/escena actual y
+    //    asegurar que ningún clip completado se perdió en el olvido.
+    if (!projectId || !sceneId) return;
+
+    this.seedance.getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 }).subscribe((res) => {
+      if (res.error || !res.data) return;
+      const existingUrls = new Set(this.studio.sessionClips().map((c) => c.videoUrl));
+      for (const log of res.data.logs) {
+        if (log.status !== 'succeeded') continue;
+        if (!log.outputs) continue;
+        try {
+          const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs);
+          const video = outputs.find((o) => o.type === 'video');
+          if (!video?.url || existingUrls.has(video.url)) continue;
+
+          this.studio.pushClip({
+            id: crypto.randomUUID(),
+            prompt: '',
+            videoUrl: video.url,
+            createdAt: new Date(log.created_at).getTime(),
+            durationSeconds: 5,
+            resolution: '480p',
+          });
+          existingUrls.add(video.url);
+        } catch {
+          // JSON parse error — skip this log entry
+        }
+      }
+    });
   }
 
   /** Forwarded from the take-checklist's `(toggle)` output. */
@@ -452,6 +487,9 @@ export class IndexStudio implements OnInit {
       resolution: output.resolution,
       generate_audio: output.sound,
       image_mode: 'PIL',
+      project_id: this.studio.projectId() ?? undefined,
+      scene_id: this.studio.sceneId() ?? undefined,
+      scene_code: this.studio.sceneCode() || undefined,
     };
   }
 

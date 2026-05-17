@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { GenerationLogEntry } from '@app/core/interfaces';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
@@ -78,6 +79,35 @@ export class SeedanceService {
           return res;
         }),
         catchError(httpErrorHandler<StudioTaskResponse>),
+      );
+  }
+
+  /**
+   * Query generation logs filtrados por proyecto/escena. Permite recuperar
+   * el estado de generaciones tras una recarga o desde la vista de admin.
+   */
+  getLogs(filters: {
+    project_id?: string;
+    scene_id?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<{ error: boolean; msg: string; data?: import('@app/core/interfaces/seedance.interface').GenerationLogListResponse }> {
+    const params = new URLSearchParams();
+    if (filters.project_id) params.set('project_id', filters.project_id);
+    if (filters.scene_id) params.set('scene_id', filters.scene_id);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.page) params.set('page', String(filters.page));
+    if (filters.limit) params.set('limit', String(filters.limit));
+    const qs = params.toString();
+
+    return this.http
+      .get<import('@app/core/interfaces/api.interface').ResponseBase<import('@app/core/interfaces/seedance.interface').GenerationLogListResponse>>(
+        `${this.apiUrl}/logs/generation${qs ? '?' + qs : ''}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<import('@app/core/interfaces/seedance.interface').GenerationLogListResponse>),
       );
   }
 
