@@ -486,7 +486,7 @@ export class IndexAdmin implements OnInit {
   // ── Payload dialog ───────────────────────────────────────────────
 
   protected readonly payloadDialogVisible = signal(false);
-  protected readonly selectedPayload = signal<Record<string, any> | null>(null);
+  protected readonly selectedPayload = signal<any>(null);
   protected readonly selectedPayloadContent = signal<Array<{ type: string; text?: string; name?: string; id?: string }>>([]);
 
   protected showPayload(log: GenerationLogEntry): void {

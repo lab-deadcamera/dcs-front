@@ -83,6 +83,7 @@ export interface GenerationLogEntry {
   scene_id: string;
   scene_code: string;
   take_number?: number;
+  request: string;
   outputs: string;
   status: string;
   error_message: string;
