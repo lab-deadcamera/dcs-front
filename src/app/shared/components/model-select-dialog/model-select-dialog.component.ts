@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -93,7 +93,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
     </p-dialog>
   `,
 })
-export class ModelSelectDialogComponent implements OnInit {
+export class ModelSelectDialogComponent {
   private readonly modelService = inject(ModelService);
   private readonly studio = inject(StudioStore);
 
@@ -101,16 +101,15 @@ export class ModelSelectDialogComponent implements OnInit {
   readonly visibleChange = output<boolean>();
 
   protected readonly loading = signal(true);
-  protected readonly models = signal<ModelData[]>([]);
-
   protected readonly grouped = signal<{ provider: string; models: ModelData[] }[]>([]);
 
-  ngOnInit(): void {
+  /** Refetch models cada vez que el diálogo se abre, así siempre está actualizado. */
+  private readonly fetchOnOpen = effect(() => {
+    if (!this.visible()) return;
+    this.loading.set(true);
     this.modelService.getAllModels().subscribe((res) => {
       this.loading.set(false);
       if (res.error || !res.data) return;
-
-      this.models.set(res.data);
 
       const map = new Map<string, ModelData[]>();
       for (const m of res.data) {
@@ -122,7 +121,7 @@ export class ModelSelectDialogComponent implements OnInit {
         Array.from(map.entries()).map(([provider, models]) => ({ provider, models })),
       );
     });
-  }
+  });
 
   protected isSelected(id: string): boolean {
     return this.studio.modelCode()?.id === id;
