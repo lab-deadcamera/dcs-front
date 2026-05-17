@@ -1,17 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
-import { TooltipModule } from 'primeng/tooltip';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
-import { ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
-import { FilesApiService, SeedanceService } from '@app/services';
+import { FilesApiService } from '@app/services';
 import { inferKind } from '@app/shared/utils';
 import { CharactersService } from '@modules/characters/characters/services';
 import { AssetType, CharacterMetadata } from '@modules/characters/characters/interfaces';
@@ -45,9 +42,7 @@ interface LibraryItem {
     TranslatePipe,
     ButtonModule,
     DialogModule,
-    TooltipModule,
     IndexCharacters,
-    DatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
@@ -58,7 +53,6 @@ export class CharacterAssetsComponent {
   private readonly toast = inject(MessageService);
   protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
-  private readonly seedance = inject(SeedanceService);
 
   /**
    * Whether the "My Assets" band acts as an open disclosure — its body
@@ -74,25 +68,6 @@ export class CharacterAssetsComponent {
    * full character CRUD inline so the user never has to leave the studio.
    */
   protected readonly charactersDialogVisible = signal(false);
-
-  // ── Sync status dialog ────────────────────────────────────────────
-
-  protected readonly syncDialogVisible = signal(false);
-  protected readonly syncedAssets = signal<ModelAssetSync[]>([]);
-  protected readonly syncLoading = signal(false);
-
-  protected openSyncStatus(): void {
-    const model = this.studio.modelCode();
-    if (!model?.id) return;
-    this.syncLoading.set(true);
-    this.syncDialogVisible.set(true);
-    this.seedance.getSyncedAssets(model.id).subscribe((res) => {
-      this.syncLoading.set(false);
-      if (!res.error && res.data) {
-        this.syncedAssets.set(res.data);
-      }
-    });
-  }
 
   // ---------------------------------------------------------------------------
   // My Library quick-pick

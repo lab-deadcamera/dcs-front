@@ -21,6 +21,12 @@ import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
 import { SessionStore } from '@app/core/stores/session.store';
+import { SeedanceService } from '@app/services';
+import { ModelAssetSync } from '@core/interfaces/seedance.interface';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { DatePipe } from '@angular/common';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
 import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -59,6 +65,10 @@ const POLL_INTERVAL_MS = 3000;
     FooterComponent,
     SessionGateDialogComponent,
     TakeChecklistComponent,
+    ButtonModule,
+    DialogModule,
+    TooltipModule,
+    DatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
@@ -73,6 +83,67 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
+
+  // ── Sync floating button ────────────────────────────────────────────
+
+  protected readonly syncDialogVisible = signal(false);
+  protected readonly syncedAssets = signal<ModelAssetSync[]>([]);
+  protected readonly syncLoading = signal(false);
+
+  /** Posición del botón flotante. */
+  protected readonly syncBtnPos = signal({ x: 16, y: 200 });
+  private dragging = false;
+  private dragStart = { x: 0, y: 0, btnX: 0, btnY: 0 };
+  private moved = false;
+
+  protected onSyncBtnDown(e: MouseEvent | TouchEvent): void {
+    this.dragging = true;
+    this.moved = false;
+    const pos = this.syncBtnPos();
+    if ('touches' in e) {
+      this.dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, btnX: pos.x, btnY: pos.y };
+    } else {
+      this.dragStart = { x: e.clientX, y: e.clientY, btnX: pos.x, btnY: pos.y };
+    }
+  }
+
+  protected onSyncBtnMove(e: MouseEvent | TouchEvent): void {
+    if (!this.dragging) return;
+    e.preventDefault();
+    const cx = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const cy = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const dx = cx - this.dragStart.x;
+    const dy = cy - this.dragStart.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this.moved = true;
+    this.syncBtnPos.set({ x: this.dragStart.btnX + dx, y: this.dragStart.btnY + dy });
+  }
+
+  protected onSyncBtnUp(): void {
+    this.dragging = false;
+  }
+
+  protected onSyncBtnClick(): void {
+    if (this.moved) return; // fue un arrastre, no un click
+    this.openSyncDialog();
+  }
+
+  protected openSyncDialog(): void {
+    const model = this.studio.modelCode();
+    if (!model?.id) {
+      this.toast.add({ severity: 'warn', summary: 'Sync', detail: 'Select a model first', life: 3000 });
+      return;
+    }
+    this.syncLoading.set(true);
+    this.syncDialogVisible.set(true);
+    this.seedance.getSyncedAssets(model.id).subscribe((res) => {
+      this.syncLoading.set(false);
+      if (!res.error && res.data) {
+        this.syncedAssets.set(res.data);
+      } else {
+        this.toast.add({ severity: 'error', summary: 'Sync', detail: res.msg, life: 3000 });
+      }
+    });
+  }
 
   /**
    * Two-way binding for the gate dialog. Auto-opens when no session is
