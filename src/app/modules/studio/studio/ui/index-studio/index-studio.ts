@@ -20,6 +20,7 @@ import { CharacterAssetsComponent } from '@shared/components/character-assets/ch
 import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
+import { SessionStore } from '@app/core/stores/session.store';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
 import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -66,6 +67,7 @@ const POLL_INTERVAL_MS = 3000;
 })
 export class IndexStudio implements OnInit {
   protected readonly studio = inject(StudioStore);
+  private readonly sessionStore = inject(SessionStore);
   private readonly modelService = inject(ModelService);
   private readonly seedance = inject(SeedanceService);
   private readonly destroyRef = inject(DestroyRef);
@@ -82,6 +84,9 @@ export class IndexStudio implements OnInit {
 
   /** True when the current take already has a video (re-generation mode). */
   protected readonly isRegenerating = this.studio.currentTakeHasVideo;
+
+  /** Admins (level ≤ 1) pueden cerrar el gate sin seleccionar proyecto/escena. */
+  protected readonly canBypassGate = computed(() => this.sessionStore.roleLevel() <= 1);
 
   ngOnInit(): void {
     this.modelService.getFavorite().subscribe((res) => {
@@ -137,6 +142,17 @@ export class IndexStudio implements OnInit {
    * the batch.
    */
   protected onGenerate(): void {
+    if (!this.studio.projectId() || !this.studio.sceneId()) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes seleccionar un proyecto y una escena antes de generar',
+        severity: 'error',
+        life: 3000,
+      });
+      this.gateOpen.set(true);
+      return;
+    }
+
     const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({

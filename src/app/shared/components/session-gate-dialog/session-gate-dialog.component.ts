@@ -21,13 +21,12 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
 import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
 
 /**
- * Entry gate: blocks the studio until the user has identified themselves
- * and selected a project + scene with pre-defined takes.
+ * Entry gate: blocks the studio until the user has selected a project
+ * and scene. The user's nickname is shown as read-only — it comes from
+ * the auth session (already persisted in IndexedDB).
  *
- * The email field is intentionally lax — `required` only, no format check —
- * because authentication / permissions are not wired yet. Once the auth
- * layer lands, swap the validator for `Validators.email` and gate the
- * submit on a real lookup.
+ * Admins (role level <= 1) may close the dialog without configuring a
+ * session; regular users must complete the form to proceed.
  */
 @Component({
   selector: 'app-session-gate-dialog',
@@ -47,8 +46,8 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
       [visible]="visible()"
       (visibleChange)="onVisibleChange($event)"
       [modal]="true"
-      [closable]="false"
-      [closeOnEscape]="false"
+      [closable]="adminClosable()"
+      [closeOnEscape]="adminClosable()"
       [draggable]="false"
       [dismissableMask]="false"
       [style]="{ width: '32rem' }"
@@ -59,45 +58,14 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
       </p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <!-- Nickname — read-only display -->
         <div class="flex flex-col gap-1">
-          <label for="session-gate-email" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            {{ 'STUDIO.SESSION_GATE.EMAIL' | translate }}
-          </label>
-          <input
-            id="session-gate-email"
-            type="text"
-            pInputText
-            formControlName="email"
-            autocomplete="email"
-            data-testid="session-gate-email"
-            [placeholder]="'STUDIO.SESSION_GATE.EMAIL_PLACEHOLDER' | translate"
-          />
-          <validator-errors
-            [control]="form.get('email')"
-            [label]="'STUDIO.SESSION_GATE.EMAIL' | translate"
-          />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label
-            for="session-gate-handle"
-            class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >
+          <span class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'STUDIO.SESSION_GATE.HANDLE' | translate }}
-          </label>
-          <input
-            id="session-gate-handle"
-            type="text"
-            pInputText
-            formControlName="handle"
-            autocomplete="username"
-            data-testid="session-gate-handle"
-            [placeholder]="'STUDIO.SESSION_GATE.HANDLE_PLACEHOLDER' | translate"
-          />
-          <validator-errors
-            [control]="form.get('handle')"
-            [label]="'STUDIO.SESSION_GATE.HANDLE' | translate"
-          />
+          </span>
+          <span class="rounded px-3 py-2 text-[14px]" style="background: var(--surface-ground); border: 1px solid var(--border-color);">
+            {{ user()?.handle || user()?.email || '—' }}
+          </span>
         </div>
 
         <div class="flex flex-col gap-1">
@@ -166,6 +134,14 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
 
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
+          @if (adminClosable()) {
+            <p-button
+              severity="secondary"
+              [text]="true"
+              label="Cancel"
+              (onClick)="close()"
+            />
+          }
           <p-button
             [icon]="'pi pi-play'"
             [label]="'STUDIO.SESSION_GATE.SUBMIT' | translate"
@@ -188,6 +164,12 @@ export class SessionGateDialogComponent {
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
 
+  /**
+   * Cuando es true (admin/super-admin), la modal es closable y muestra un
+   * botón Cancel. Los usuarios regulares deben completar el formulario.
+   */
+  readonly adminClosable = input(false);
+
   // Local state for pickers
   protected readonly projects = signal<Project[]>([]);
   protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>(
@@ -197,6 +179,7 @@ export class SessionGateDialogComponent {
   protected readonly loadingProjects = signal(false);
   protected readonly loadingScenes = signal(false);
   protected readonly submitting = signal(false);
+  protected readonly user = this.sessionStore.user;
 
   /** Derived scene object for the info panel. */
   protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(
@@ -204,22 +187,18 @@ export class SessionGateDialogComponent {
   );
 
   protected readonly form: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.minLength(3)]],
-    handle: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(40)]],
     projectId: [null, [Validators.required]],
     sceneId: [null, [Validators.required]],
   });
 
   /**
-   * Prefill the form from the persisted session every time the dialog
-   * opens so a returning user doesn't have to re-type the same metadata.
+   * Reset project/scene pickers every time the dialog opens. The user's
+   * identity is already in the store (persisted via IndexedDB) and shown
+   * as read-only — no need to re-capture it.
    */
   private readonly resetOnOpen = effect(() => {
     if (!this.visible()) return;
-    const user = this.sessionStore.user();
     this.form.reset({
-      email: user?.email ?? '',
-      handle: user?.handle ?? '',
       projectId: null,
       sceneId: null,
     });
@@ -293,8 +272,15 @@ export class SessionGateDialogComponent {
     });
   }
 
+  protected close(): void {
+    this.visibleChange.emit(false);
+  }
+
+  /** Sólo admins pueden cerrar la modal con X / ESC. */
   protected onVisibleChange(v: boolean): void {
-    this.visibleChange.emit(v);
+    if (this.adminClosable()) {
+      this.visibleChange.emit(v);
+    }
   }
 
   protected onSubmit(): void {
@@ -302,9 +288,8 @@ export class SessionGateDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
+
     const raw = this.form.getRawValue() as {
-      email: string;
-      handle: string;
       projectId: string;
       sceneId: string;
     };
@@ -312,19 +297,22 @@ export class SessionGateDialogComponent {
     const scene = this.selectedScene();
     if (!scene) return;
 
+    const currentUser = this.sessionStore.user();
+    const handle = currentUser?.handle || currentUser?.email || 'anonymous';
+
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
     const totalTakes = Math.max(1, this.takes().length);
 
     this.submitting.set(true);
     this.sessionStore.initSession({
-      email: raw.email,
-      handle: raw.handle,
+      email: currentUser?.email ?? '',
+      handle,
     });
     this.studio.initStudioSession({
       projectId: raw.projectId,
       sceneId: raw.sceneId,
       sceneCode,
-      userHandle: raw.handle,
+      userHandle: handle,
       totalTakes,
       backendTakes: this.takes(),
     });
