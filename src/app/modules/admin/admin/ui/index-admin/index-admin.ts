@@ -7,6 +7,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { SeedanceService } from '@app/services';
 import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
@@ -27,7 +29,7 @@ interface UserOption {
 
 @Component({
   selector: 'app-index-admin',
-  imports: [
+imports: [
     DatePipe,
     FormsModule,
     ButtonModule,
@@ -35,6 +37,8 @@ interface UserOption {
     SelectModule,
     PaginatorModule,
     ToastModule,
+    DialogModule,
+    TooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MessageService],
@@ -164,6 +168,7 @@ interface UserOption {
                 <th class="px-3 py-2 font-medium">Take</th>
                 <th class="px-3 py-2 font-medium">Status</th>
                 <th class="px-3 py-2 font-medium">Date</th>
+                <th class="w-28 px-3 py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -174,7 +179,7 @@ interface UserOption {
                   </td>
                   <td class="px-3 py-2 font-mono">{{ log.model_name }}</td>
                   <td class="px-3 py-2 font-mono" [title]="'id: ' + (log.user_id ?? '')">
-                    {{ log.user_display_name || log.user_name || log.user_id ?? '—' }}
+                    {{ log.user_display_name || log.user_name || (log.user_id ?? '—') }}
                   </td>
                   <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.project_id">
                     {{ log.project_name || log.project_id || '—' }}
@@ -202,6 +207,36 @@ interface UserOption {
                   <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
                     {{ log.created_at | date: 'dd/MM/yy HH:mm' }}
                   </td>
+                  <td class="px-3 py-2">
+                    <div class="flex items-center gap-1">
+                      <p-button
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="Refresh task status"
+                        [loading]="refreshingId() === log.task_id"
+                        (onClick)="refreshTask(log)"
+                      />
+                      <p-button
+                        icon="pi pi-eye"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="View request payload"
+                        (onClick)="showPayload(log)"
+                      />
+                      <p-button
+                        icon="pi pi-video"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="View generated videos"
+                        [disabled]="!log.outputs || log.outputs === '[]'"
+                        (onClick)="showVideo(log)"
+                      />
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -223,6 +258,84 @@ interface UserOption {
         </p>
       }
     </section>
+
+    <!-- Payload dialog -->
+    <p-dialog
+      [visible]="payloadDialogVisible()"
+      (visibleChange)="payloadDialogVisible.set($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [style]="{ width: '40rem' }"
+      header="Request Payload"
+    >
+      <div class="flex flex-col gap-3 text-[12px]">
+        <div><span class="font-bold uppercase">Model:</span> {{ selectedPayload()?.model }}</div>
+        <div><span class="font-bold uppercase">Ratio:</span> {{ selectedPayload()?.ratio }}</div>
+        <div><span class="font-bold uppercase">Duration:</span> {{ selectedPayload()?.duration }}s</div>
+        <div><span class="font-bold uppercase">Resolution:</span> {{ selectedPayload()?.resolution }}</div>
+        <div><span class="font-bold uppercase">Quality:</span> {{ selectedPayload()?.quality }}</div>
+        <div><span class="font-bold uppercase">Seed:</span> {{ selectedPayload()?.seed || 'random' }}</div>
+        <div><span class="font-bold uppercase">Audio:</span> {{ selectedPayload()?.generate_audio ? 'Yes' : 'No' }}</div>
+        @if (selectedPayload()?.project_id) {
+          <div><span class="font-bold uppercase">Project:</span> {{ selectedPayload()?.project_id }}</div>
+          <div><span class="font-bold uppercase">Scene:</span> {{ selectedPayload()?.scene_code }}</div>
+          <div><span class="font-bold uppercase">Take:</span> {{ selectedPayload()?.take_number }}</div>
+        }
+        @if (selectedPayloadContent().length > 0) {
+          <div class="mt-2">
+            <span class="font-bold uppercase">Content:</span>
+            <ul class="mt-1 list-inside list-disc">
+              @for (item of selectedPayloadContent(); track $index) {
+                <li class="truncate text-fg-muted" [title]="item.text">
+                  <span class="font-mono text-[10px] uppercase">{{ item.type }}</span>:
+                  {{ item.text || item.name || item.id }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </p-dialog>
+
+    <!-- Video dialog -->
+    <p-dialog
+      [visible]="videoDialogVisible()"
+      (visibleChange)="videoDialogVisible.set($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [style]="{ width: '44rem' }"
+      header="Generated Videos"
+    >
+      @if (selectedVideos().length === 0) {
+        <p class="py-4 text-center text-[13px] italic text-fg-muted">No videos available.</p>
+      }
+      <div class="flex flex-col gap-4">
+        @for (v of selectedVideos(); track $index) {
+          <div class="overflow-hidden rounded border" style="border-color: var(--border-color);">
+            <video
+              [src]="v.url"
+              controls
+              class="w-full max-h-[400px]"
+              preload="metadata"
+              playsinline
+            >
+              Your browser does not support the video tag.
+            </video>
+            <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
+              <span>{{ v.type }}</span>
+              <a
+                [href]="v.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary-500 underline hover:text-primary-400"
+              >Open in new tab</a>
+            </div>
+          </div>
+        }
+      </div>
+    </p-dialog>
 
     <p-toast position="top-right" />
   `,
@@ -368,6 +481,60 @@ export class IndexAdmin implements OnInit {
         : log.scene_name;
     }
     return '';
+  }
+
+  // ── Payload dialog ───────────────────────────────────────────────
+
+  protected readonly payloadDialogVisible = signal(false);
+  protected readonly selectedPayload = signal<Record<string, any> | null>(null);
+  protected readonly selectedPayloadContent = signal<Array<{ type: string; text?: string; name?: string; id?: string }>>([]);
+
+  protected showPayload(log: GenerationLogEntry): void {
+    try {
+      const parsed = JSON.parse(log.request);
+      this.selectedPayload.set(parsed);
+      this.selectedPayloadContent.set(parsed.content ?? []);
+      this.payloadDialogVisible.set(true);
+    } catch {
+      this.toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid payload JSON', life: 3000 });
+    }
+  }
+
+  // ── Video dialog ─────────────────────────────────────────────────
+
+  protected readonly videoDialogVisible = signal(false);
+  protected readonly selectedVideos = signal<Array<{ url: string; type: string }>>([]);
+
+  protected showVideo(log: GenerationLogEntry): void {
+    try {
+      const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs || '[]');
+      this.selectedVideos.set(outputs);
+      this.videoDialogVisible.set(true);
+    } catch {
+      this.toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid outputs JSON', life: 3000 });
+    }
+  }
+
+  // ── Refresh task ─────────────────────────────────────────────────
+
+  protected readonly refreshingId = signal<string | null>(null);
+
+  protected refreshTask(log: GenerationLogEntry): void {
+    this.refreshingId.set(log.task_id);
+    this.seedance.status(log.task_id).subscribe((res) => {
+      this.refreshingId.set(null);
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Refresh failed', detail: res.msg, life: 3000 });
+        return;
+      }
+      this.toast.add({
+        severity: res.data?.status === 'succeeded' ? 'success' : 'warn',
+        summary: 'Task refreshed',
+        detail: `Status: ${res.data?.status ?? 'unknown'}`,
+        life: 3000,
+      });
+      this.loadPage();
+    });
   }
 
   private loadPage(): void {
