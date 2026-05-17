@@ -241,9 +241,9 @@
                     [attr.data-testid]="'my-library-pick-' + a.id"
                     (click)="onPickLibraryAsset(a)"
                   >
-                    @if (a.thumbUrl) {
+                    @if (a.firstFile?.thumbUrl) {
                       <img
-                        [src]="a.thumbUrl"
+                        [src]="a.firstFile.thumbUrl"
                         [alt]="a.name"
                         class="h-full w-full object-cover"
                         loading="lazy"
@@ -261,6 +261,12 @@
                     >
                       {{ a.name }}
                     </span>
+                    @if (a.files.length > 1) {
+                      <span
+                        class="absolute top-0 left-0 flex h-4 min-w-[1rem] items-center justify-center bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-fg-muted"
+                        title="{{ a.files.length }} files"
+                      >{{ a.files.length }}</span>
+                    }
                     @if (isUsed(a.id)) {
                       <span
                         aria-hidden="true"

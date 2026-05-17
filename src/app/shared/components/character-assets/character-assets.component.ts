@@ -17,12 +17,10 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
 interface LibraryItem {
   id: string;
   name: string;
-  /** First linked file id — null when the asset has no files. */
-  fileId: string | null;
-  /** First linked file's filename — used by the backend asset resolver. */
-  filename: string;
-  /** First linked file's serve URL — null when the asset has no files. */
-  thumbUrl: string | null;
+  /** All linked files — cada uno se envía como un reference independiente. */
+  files: Array<{ fileId: string; filename: string; thumbUrl: string | null }>;
+  /** Primer archivo (para la miniatura del tile). */
+  firstFile: { fileId: string; filename: string; thumbUrl: string | null } | null;
   fileKind: UsedAssetKind;
 }
 
@@ -99,14 +97,17 @@ export class CharacterAssetsComponent {
         metadata = {};
       }
       const t: AssetType = (metadata.assetType as AssetType) ?? 'character';
-      const firstFile = item.files?.[0];
-      const fileId = firstFile?.file_id ?? null;
+      const files = (item.files ?? []).map((f) => ({
+        fileId: f.file_id,
+        filename: f.filename,
+        thumbUrl: f.file_id ? this.filesApi.serveUrl(f.file_id) : null,
+      }));
+      const firstFile = files[0] ?? null;
       (buckets[t] ?? buckets.character).push({
         id: item.character.id,
         name: item.character.name,
-        fileId,
-        filename: firstFile?.filename ?? item.character.name,
-        thumbUrl: fileId ? this.filesApi.serveUrl(fileId) : null,
+        files,
+        firstFile,
         fileKind: resolveUsedKind(metadata.fileKind),
       });
     }
@@ -170,6 +171,9 @@ export class CharacterAssetsComponent {
    * used assets are removed (so the same tile acts as both add and undo)
    * and the prompt-builder chips reflect the change instantly.
    *
+   * Cuando se selecciona un personaje se agregan TODAS sus imágenes como
+   * referencias independientes en content[].
+   *
    * Assets without an uploaded file can't be sent as a reference — show
    * a warning toast instead of silently no-oping.
    */
@@ -178,7 +182,7 @@ export class CharacterAssetsComponent {
       this.studio.unuseAsset(a.id);
       return;
     }
-    if (!a.fileId) {
+    if (a.files.length === 0) {
       this.toast.add({
         severity: 'warn',
         summary: 'No file',
@@ -186,17 +190,19 @@ export class CharacterAssetsComponent {
       });
       return;
     }
-    this.studio.useAsset({
-      fileId: a.fileId,
-      characterId: a.id,
-      name: a.name,
-      filename: a.filename,
-      kind: a.fileKind,
-    });
+    for (const f of a.files) {
+      this.studio.useAsset({
+        fileId: f.fileId,
+        characterId: a.id,
+        name: a.name,
+        filename: f.filename,
+        kind: a.fileKind,
+      });
+    }
     this.toast.add({
       severity: 'success',
       summary: 'Reference added',
-      detail: a.name,
+      detail: `${a.name} (${a.files.length} file${a.files.length !== 1 ? 's' : ''})`,
     });
   }
 
