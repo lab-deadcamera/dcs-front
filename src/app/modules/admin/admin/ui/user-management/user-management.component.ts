@@ -257,13 +257,19 @@ export class UserManagementComponent implements OnInit {
       .get<{ success: boolean; data?: AdminRole[] }>(`${environment.API_URL}/admin/roles`)
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),
-        catchError(() => [{ error: true, data: undefined }]),
+        catchError((err) => [{ error: true, data: undefined, msg: err.message }]),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((res) => {
-        if (!res.error && res.data) {
-          this.roles.set(res.data.map((r) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
+      .subscribe((res: any) => {
+        if (res.error) {
+          this.toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load roles: ' + (res.msg || 'unknown'), life: 5000 });
+          return;
         }
+        if (!res.data || res.data.length === 0) {
+          this.toast.add({ severity: 'warn', summary: 'Warning', detail: 'No roles returned from server', life: 5000 });
+          return;
+        }
+        this.roles.set(res.data.map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
       });
   }
 }
