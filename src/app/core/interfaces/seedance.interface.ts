@@ -95,6 +95,44 @@ export interface GenerationLogListResponse {
   total_pages: number;
 }
 
+/** Sync record — model_assets table, devuelto por GET /studio/synced-assets. */
+export interface ModelAssetSync {
+  id: string;
+  model_id: string;
+  file_id: string;
+  asset_id: string;
+  asset_group_id: string;
+  status: string; // "syncing", "active", "failed"
+  error_message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Resumen del sync de un personaje. */
+export interface SyncResultSummary {
+  model_id: string;
+  total: number;
+  successful: number;
+  failed: number;
+  results: SyncAssetItem[];
+}
+
+export interface SyncAssetItem {
+  id: string;
+  model_id: string;
+  file_id: string;
+  asset_id: string;
+  asset_group_id: string;
+  status: string;
+  error_message: string;
+}
+  logs: GenerationLogEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 export interface StudioTaskResponse {
   taskId: string;
   status: StudioTaskStatus;

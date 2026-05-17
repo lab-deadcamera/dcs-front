@@ -111,6 +111,43 @@ export class SeedanceService {
       );
   }
 
+  /**
+   * Lista los assets sincronizados con un modelo — cola de sync.
+   * GET /studio/synced-assets?model_id=X
+   */
+  getSyncedAssets(
+    modelId: string,
+  ): Observable<{ error: boolean; msg: string; data?: import('@app/core/interfaces/seedance.interface').ModelAssetSync[] }> {
+    return this.http
+      .get<import('@app/core/interfaces/api.interface').ResponseBase<import('@app/core/interfaces/seedance.interface').ModelAssetSync[]>>(
+        `${this.apiUrl}/synced-assets`,
+        { params: { model_id: modelId } },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<import('@app/core/interfaces/seedance.interface').ModelAssetSync[]>),
+      );
+  }
+
+  /**
+   * Sincroniza todos los archivos de un personaje con un modelo.
+   * POST /studio/sync-character-assets
+   */
+  syncCharacterAssets(
+    characterId: string,
+    modelId: string,
+  ): Observable<{ error: boolean; msg: string; data?: import('@app/core/interfaces/seedance.interface').SyncResultSummary }> {
+    return this.http
+      .post<import('@app/core/interfaces/api.interface').ResponseBase<import('@app/core/interfaces/seedance.interface').SyncResultSummary>>(
+        `${this.apiUrl}/sync-character-assets`,
+        { character_id: characterId, model_id: modelId },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<import('@app/core/interfaces/seedance.interface').SyncResultSummary>),
+      );
+  }
+
   /** Cancel an in-flight task. No-op on the backend if already terminal. */
   cancel(taskId: string): Observable<{ error: boolean; msg: string }> {
     return this.http
