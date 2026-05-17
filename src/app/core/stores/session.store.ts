@@ -101,6 +101,15 @@ export class SessionStore {
   constructor() {
     this.translate.addLangs(this.availableLanguages);
     this.translate.setFallbackLang('en');
+
+    // Lectura síncrona del token desde localStorage para que el authGuard
+    // pueda validar la sesión inmediatamente, sin esperar la hidratación
+    // async desde IndexedDB.
+    const storedToken = localStorage.getItem('dcs-token');
+    if (storedToken) {
+      this._token.set(storedToken);
+    }
+
     this.hydrate();
 
     effect(() => {
@@ -185,6 +194,7 @@ export class SessionStore {
     this._token.set(response.token);
     this._authUser.set(response.user);
     this._user.set({ email: response.user.email, handle: response.user.user_name || response.user.username });
+    localStorage.setItem('dcs-token', response.token);
   }
 
   /** Clear all auth state and redirect to login. */
@@ -192,10 +202,11 @@ export class SessionStore {
     this._token.set(null);
     this._authUser.set(null);
     this._user.set(null);
+    localStorage.removeItem('dcs-token');
     this.router.navigateByUrl('/auth/login');
   }
 
-  reset() { this._user.set(null); this._token.set(null); this._authUser.set(null); }
+  reset() { this._user.set(null); this._token.set(null); this._authUser.set(null); localStorage.removeItem('dcs-token'); }
 
   setLanguage(lang: SupportedLanguage) { this._language.set(lang); }
   get(key: string, params?: Record<string, unknown>): string {

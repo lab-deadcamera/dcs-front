@@ -101,7 +101,11 @@ export default class LoginComponent {
           return;
         }
         this.session.login(res.data);
-        this.router.navigateByUrl('/studio');
+        if (res.data.user.role.level <= 1) {
+          this.router.navigateByUrl('/');
+        } else {
+          this.router.navigateByUrl('/studio');
+        }
       },
       error: (err) => {
         this.loading.set(false);
