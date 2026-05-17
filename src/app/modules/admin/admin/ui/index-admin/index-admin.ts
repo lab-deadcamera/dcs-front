@@ -1,8 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -11,13 +11,25 @@ import { SeedanceService } from '@app/services';
 import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { environment } from '@environment/environment';
+import { map, catchError } from 'rxjs';
+import { httpErrorHandler } from '@shared/utils';
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+interface UserOption {
+  label: string;
+  value: number;
+}
 
 @Component({
   selector: 'app-index-admin',
   imports: [
     DatePipe,
     FormsModule,
-    TranslatePipe,
     ButtonModule,
     InputTextModule,
     SelectModule,
@@ -39,43 +51,63 @@ import { MessageService } from 'primeng/api';
       <div class="mb-4 flex flex-wrap items-end gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Model</label>
-          <input
-            pInputText
+          <p-select
+            [options]="modelOptions()"
             [ngModel]="filters().modelName"
-            (ngModelChange)="filters.set({ ...filters(), modelName: $event })"
-            placeholder="dreamina-seedance-2-0…"
-            class="w-44"
+            (ngModelChange)="filters.set({ ...filters(), modelName: $event ?? '' })"
+            [filter]="true"
+            filterBy="label"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Any model"
+            [showClear]="true"
+            styleClass="w-48"
           />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">User ID</label>
-          <input
-            pInputText
-            type="number"
+          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">User</label>
+          <p-select
+            [options]="userOptions()"
             [ngModel]="filters().userId"
-            (ngModelChange)="filters.set({ ...filters(), userId: $event })"
-            placeholder="any"
-            class="w-24"
+            (ngModelChange)="filters.set({ ...filters(), userId: $event ?? null })"
+            [filter]="true"
+            filterBy="label"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Any user"
+            [showClear]="true"
+            styleClass="w-48"
           />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Project</label>
-          <input
-            pInputText
+          <p-select
+            [options]="projectOptions()"
             [ngModel]="filters().projectId"
-            (ngModelChange)="filters.set({ ...filters(), projectId: $event })"
-            placeholder="project id"
-            class="w-40"
+            (ngModelChange)="onProjectChange($event ?? '')"
+            [filter]="true"
+            filterBy="label"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Any project"
+            [showClear]="true"
+            styleClass="w-48"
           />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Scene</label>
-          <input
-            pInputText
+          <p-select
+            [options]="sceneOptions()"
             [ngModel]="filters().sceneId"
-            (ngModelChange)="filters.set({ ...filters(), sceneId: $event })"
-            placeholder="scene id"
-            class="w-40"
+            (ngModelChange)="filters.set({ ...filters(), sceneId: $event ?? '' })"
+            [filter]="true"
+            filterBy="label"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Any scene"
+            [showClear]="true"
+            styleClass="w-48"
+            [disabled]="!filters().projectId"
           />
         </div>
         <div class="flex flex-col gap-1">
@@ -83,7 +115,7 @@ import { MessageService } from 'primeng/api';
           <p-select
             [options]="statusOptions"
             [ngModel]="filters().status"
-            (ngModelChange)="filters.set({ ...filters(), status: $event })"
+            (ngModelChange)="filters.set({ ...filters(), status: $event ?? null })"
             placeholder="Any"
             [showClear]="true"
             styleClass="w-32"
@@ -129,6 +161,7 @@ import { MessageService } from 'primeng/api';
                 <th class="px-3 py-2 font-medium">User</th>
                 <th class="px-3 py-2 font-medium">Project</th>
                 <th class="px-3 py-2 font-medium">Scene</th>
+                <th class="px-3 py-2 font-medium">Take</th>
                 <th class="px-3 py-2 font-medium">Status</th>
                 <th class="px-3 py-2 font-medium">Date</th>
               </tr>
@@ -136,7 +169,7 @@ import { MessageService } from 'primeng/api';
             <tbody>
               @for (log of logs(); track log.id) {
                 <tr class="border-t" style="border-color: var(--border-color);">
-                  <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.task_id">
+                  <td class="max-w-[140px] truncate px-3 py-2 font-mono" [title]="log.task_id">
                     {{ log.task_id }}
                   </td>
                   <td class="px-3 py-2 font-mono">{{ log.model_name }}</td>
@@ -147,6 +180,7 @@ import { MessageService } from 'primeng/api';
                   <td class="max-w-[120px] truncate px-3 py-2 font-mono" [title]="log.scene_id">
                     {{ log.scene_id || '—' }}
                   </td>
+                  <td class="px-3 py-2 font-mono">{{ log.take_number ?? '—' }}</td>
                   <td class="px-3 py-2">
                     <span
                       class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
@@ -192,6 +226,7 @@ import { MessageService } from 'primeng/api';
   `,
 })
 export class IndexAdmin implements OnInit {
+  private readonly http = inject(HttpClient);
   private readonly seedance = inject(SeedanceService);
   private readonly toast = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
@@ -202,6 +237,12 @@ export class IndexAdmin implements OnInit {
     { label: 'Queued', value: 'queued' },
     { label: 'Failed', value: 'failed' },
   ];
+
+  // Dropdown options
+  protected readonly modelOptions = signal<SelectOption[]>([]);
+  protected readonly userOptions = signal<UserOption[]>([]);
+  protected readonly projectOptions = signal<SelectOption[]>([]);
+  protected readonly sceneOptions = signal<SelectOption[]>([]);
 
   protected readonly filters = signal({
     modelName: '',
@@ -220,7 +261,85 @@ export class IndexAdmin implements OnInit {
   protected readonly limit = signal(20);
 
   ngOnInit(): void {
+    this.loadDropdowns();
     this.search();
+  }
+
+  private loadDropdowns(): void {
+    // Models
+    this.http
+      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(`${environment.API_URL}/models`)
+      .pipe(
+        map((r) => ({ error: !r.success, data: r.data })),
+        catchError(() => [{ error: true, data: undefined }]),
+      )
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.modelOptions.set(
+            res.data.map((m) => ({ label: m.name, value: m.name })),
+          );
+        }
+      });
+
+    // Users
+    this.http
+      .get<{ success: boolean; data?: Array<{ id: number; username: string; name: string; surname: string }> }>(
+        `${environment.API_URL}/admin/users`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, data: r.data })),
+        catchError(() => [{ error: true, data: undefined }]),
+      )
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.userOptions.set(
+            res.data.map((u) => ({
+              label: `${u.username} ${u.name ? `(${u.name} ${u.surname})` : ''}`.trim(),
+              value: u.id,
+            })),
+          );
+        }
+      });
+
+    // Projects
+    this.http
+      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(`${environment.API_URL}/projects`)
+      .pipe(
+        map((r) => ({ error: !r.success, data: r.data })),
+        catchError(() => [{ error: true, data: undefined }]),
+      )
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.projectOptions.set(
+            res.data.map((p) => ({ label: p.name, value: p.id })),
+          );
+        }
+      });
+  }
+
+  protected onProjectChange(projectId: string): void {
+    this.filters.set({ ...this.filters(), projectId, sceneId: '' });
+    this.sceneOptions.set([]);
+    if (!projectId) return;
+
+    this.http
+      .get<{ success: boolean; data?: Array<{ id: string; number: number; name: string }> }>(
+        `${environment.API_URL}/projects/${projectId}/scenes`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, data: r.data })),
+        catchError(() => [{ error: true, data: undefined }]),
+      )
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.sceneOptions.set(
+            res.data.map((s) => ({
+              label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
+              value: s.id,
+            })),
+          );
+        }
+      });
   }
 
   protected search(): void {
@@ -230,6 +349,7 @@ export class IndexAdmin implements OnInit {
 
   protected clearFilters(): void {
     this.filters.set({ modelName: '', userId: null, projectId: '', sceneId: '', status: null, dateFrom: '', dateTo: '' });
+    this.sceneOptions.set([]);
     this.search();
   }
 
