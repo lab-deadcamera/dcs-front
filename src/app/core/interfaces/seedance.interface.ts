@@ -60,10 +60,12 @@ export interface StudioGenerateRequest {
   /** BytePlus-specific image processing mode. Hardcoded to "PIL" until docs cover alternatives. */
   image_mode: 'PIL';
 
-  /** Session tracking — el backend lo guarda en generation_logs para filtrar y recuperar estado. */
-  project_id?: string;
-  scene_id?: string;
-  scene_code?: string;
+  /** Session tracking — obligatorio para registrar la generación y recuperar estado. */
+  project_id: string;
+  scene_id: string;
+  scene_code: string;
+  take_number: number;
+  user_id: number;
 }
 
 /**
@@ -80,6 +82,7 @@ export interface GenerationLogEntry {
   project_id: string;
   scene_id: string;
   scene_code: string;
+  take_number?: number;
   outputs: string;
   status: string;
   error_message: string;

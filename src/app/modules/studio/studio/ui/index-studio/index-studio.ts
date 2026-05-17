@@ -544,6 +544,7 @@ export class IndexStudio implements OnInit {
       });
     }
 
+    const takeIndex = this.studio.currentTake()?.index ?? 1;
     return {
       model: this.studio.modelCode()?.name ?? '',
       content,
@@ -557,9 +558,11 @@ export class IndexStudio implements OnInit {
       resolution: output.resolution,
       generate_audio: output.sound,
       image_mode: 'PIL',
-      project_id: this.studio.projectId() ?? undefined,
-      scene_id: this.studio.sceneId() ?? undefined,
-      scene_code: this.studio.sceneCode() || undefined,
+      project_id: this.studio.projectId() ?? '',
+      scene_id: this.studio.sceneId() ?? '',
+      scene_code: this.studio.sceneCode(),
+      take_number: takeIndex,
+      user_id: this.sessionStore.authUser()?.id ?? 0,
     };
   }
 
