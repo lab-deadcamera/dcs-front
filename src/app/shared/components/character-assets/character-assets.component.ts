@@ -13,6 +13,7 @@ import { inferKind } from '@app/shared/utils';
 import { CharactersService } from '@modules/characters/characters/services';
 import { AssetType, CharacterMetadata } from '@modules/characters/characters/interfaces';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
+import { SourceAssetPipe } from '@app/core/pipes';
 
 interface LibraryItem {
   id: string;
@@ -40,6 +41,7 @@ interface LibraryItem {
     SectionHeaderComponent,
     DropZoneComponent,
     TranslatePipe,
+    SourceAssetPipe,
     ButtonModule,
     DialogModule,
     IndexCharacters,

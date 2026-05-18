@@ -47,9 +47,7 @@
       <div class="flex items-center gap-3">
         <span class="text-accent-500">◆</span>
         <div>
-          <p
-            class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500"
-          >
+          <p class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500">
             {{ 'STUDIO.ASSETS.MY_ASSETS' | translate }}
           </p>
           <p class="text-[11px] italic text-fg-muted">
@@ -61,14 +59,12 @@
         aria-hidden="true"
         class="inline-block text-fg-muted transition-transform duration-150"
         [class.rotate-180]="myAssetsExpanded()"
-      >▾</span>
+        >▾</span
+      >
     </button>
 
     @if (myAssetsExpanded()) {
-      <div
-        id="my-assets-panel"
-        class="border border-t-0 border-ink-600 bg-ink-900 p-4"
-      >
+      <div id="my-assets-panel" class="border border-t-0 border-ink-600 bg-ink-900 p-4">
         <div class="mb-3 flex items-center justify-between gap-3">
           <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
             ▸ {{ 'STUDIO.ASSETS.REFERENCE' | translate }}
@@ -109,11 +105,7 @@
         </div>
 
         <div class="mt-3">
-          <ui-drop-zone
-            [compact]="true"
-            [multiple]="true"
-            (filesDropped)="onFreeAssets($event)"
-          />
+          <ui-drop-zone [compact]="true" [multiple]="true" (filesDropped)="onFreeAssets($event)" />
         </div>
 
         @if (studio.freeAssets().length) {
@@ -124,15 +116,15 @@
                 [title]="a.tag + ' · ' + a.filename"
               >
                 <div class="relative h-full w-full bg-ink-900">
-                  @if (a.kind === 'image' && a.thumbnailUrl) {
+                  @if (a.kind === 'image') {
                     <img
-                      [src]="a.thumbnailUrl"
+                      [src]="a.id | sourceAsset"
                       [alt]="a.filename"
                       class="h-full w-full object-cover"
                     />
-                  } @else if (a.kind === 'video' && a.thumbnailUrl) {
+                  } @else if (a.kind === 'video') {
                     <video
-                      [src]="a.thumbnailUrl"
+                      [src]="a.id | sourceAsset"
                       class="h-full w-full object-cover"
                       muted
                       playsinline
@@ -140,28 +132,33 @@
                     <span
                       aria-hidden="true"
                       class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
-                    >▶</span>
-                  } @else {
+                      >▶</span
+                    >
+                  } @else if (a.kind === 'audio') {
+                    <audio
+                      [src]="a.id | sourceAsset"
+                      class="h-full w-full object-cover"
+                      muted
+                      playsinline
+                    ></audio>
                     <span
                       aria-hidden="true"
-                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-muted"
+                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
+                      >🎧</span
                     >
-                      @switch (a.kind) {
-                        @case ('audio') { ♪ }
-                        @case ('video') { ▶ }
-                        @default { ◇ }
-                      }
-                    </span>
                   }
                   <span
                     class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
-                  >{{ a.tag }}</span>
+                    >{{ a.tag }}</span
+                  >
                   <button
                     type="button"
                     class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
                     (click)="studio.removeFreeAsset(a.id)"
                     [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
-                  >×</button>
+                  >
+                    ×
+                  </button>
                 </div>
               </li>
             }
@@ -172,13 +169,16 @@
           {{ 'STUDIO.ASSETS.REFERENCE_HINT_LEAD' | translate }}
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Image 1</span>,
+            >Image 1</span
+          >,
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Video 1</span>,
+            >Video 1</span
+          >,
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Audio 1</span>
+            >Audio 1</span
+          >
           {{ 'STUDIO.ASSETS.REFERENCE_HINT_TAIL' | translate }}
         </p>
 
@@ -197,10 +197,7 @@
             </p>
           </div>
 
-          <div
-            class="mb-2 flex flex-wrap gap-1 border-b border-ink-700"
-            role="tablist"
-          >
+          <div class="mb-2 flex flex-wrap gap-1 border-b border-ink-700" role="tablist">
             @for (t of libraryTabs; track t.id) {
               <button
                 type="button"
@@ -265,7 +262,8 @@
                       <span
                         class="absolute top-0 left-0 flex h-4 min-w-[1rem] items-center justify-center bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-fg-muted"
                         title="{{ a.files.length }} files"
-                      >{{ a.files.length }}</span>
+                        >{{ a.files.length }}</span
+                      >
                     }
                     @if (isUsed(a.id)) {
                       <span
