@@ -189,14 +189,31 @@
   <!--
         Generate action — spans the full Prompt Builder column width
         (matches the viewer width above) for a confident submit affordance.
+        Preview sits next to it as a secondary action: same payload, dry-run
+        only, surfaces the backend's resolved request in a modal so the user
+        can inspect what would be sent before paying for the generation.
       -->
-  <button
-    type="button"
-    class="mt-3 flex w-full items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-    [disabled]="!studio.canGenerate() || !takeSelected()"
-    (click)="onGenerate()"
-  >
-    {{ generateLabel() }}
-    <span aria-hidden="true">→</span>
-  </button>
+  <div class="mt-3 flex gap-2">
+    <button
+      type="button"
+      class="flex flex-1 items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+      [disabled]="!studio.canGenerate() || !takeSelected()"
+      (click)="onGenerate()"
+    >
+      {{ generateLabel() }}
+      <span aria-hidden="true">→</span>
+    </button>
+    @if (canPreview()) {
+      <button
+        type="button"
+        class="flex items-center justify-center gap-2 border border-primary-500 bg-transparent px-4 py-3 text-sm font-bold uppercase tracking-[0.28em] text-primary-500 transition-colors hover:bg-primary-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!studio.canGenerate() || !takeSelected()"
+        (click)="onPreview()"
+        data-testid="prompt-preview-button"
+      >
+        <i class="pi pi-eye" aria-hidden="true"></i>
+        {{ 'STUDIO.PROMPT.PREVIEW' | translate }}
+      </button>
+    }
+  </div>
 </section>

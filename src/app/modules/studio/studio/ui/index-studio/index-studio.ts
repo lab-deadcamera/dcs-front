@@ -29,13 +29,13 @@ import { DatePipe } from '@angular/common';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
 import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
-import { ModelService, SeedanceService } from '@app/services';
+import { GenerationLogsService, ModelService, VideoGeneratorService } from '@app/services';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import {
   GeneratedClip,
-  StudioContentItem,
-  StudioGenerateRequest,
-  StudioTaskResponse,
+  VideoGenerateContentItem,
+  VideoGenerateRequest,
+  VideoGenerateResponse,
 } from '@app/core/interfaces';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -78,10 +78,24 @@ export class IndexStudio implements OnInit {
   protected readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly modelService = inject(ModelService);
-  private readonly seedance = inject(SeedanceService);
+  private readonly videoGenerator = inject(VideoGeneratorService);
+  private readonly genLogs = inject(GenerationLogsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
+
+  // ── Preview dialog ──────────────────────────────────────────────────
+
+  protected readonly previewDialogVisible = signal(false);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewData = signal<Record<string, unknown> | null>(null);
+  protected readonly previewError = signal<string | null>(null);
+
+  /** Pretty-printed JSON for the preview modal. */
+  protected readonly previewDataPretty = computed(() => {
+    const d = this.previewData();
+    return d ? JSON.stringify(d, null, 2) : '';
+  });
 
   // ── Sync floating button ────────────────────────────────────────────
 
@@ -134,7 +148,7 @@ export class IndexStudio implements OnInit {
     }
     this.syncLoading.set(true);
     this.syncDialogVisible.set(true);
-    this.seedance.getSyncedAssets(model.id).subscribe((res) => {
+    this.genLogs.getSyncedAssets(model.id).subscribe((res) => {
       this.syncLoading.set(false);
       if (!res.error && res.data) {
         this.syncedAssets.set(res.data);
@@ -157,6 +171,9 @@ export class IndexStudio implements OnInit {
 
   /** Admins (level ≤ 1) pueden cerrar el gate sin seleccionar proyecto/escena. */
   protected readonly canBypassGate = computed(() => this.sessionStore.roleLevel() <= 1);
+
+  /** Solo SUPER_ADMIN (level 0) ve el botón de Vista previa del payload. */
+  protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
 
   ngOnInit(): void {
     this.modelService.getFavorite().subscribe((res) => {
@@ -187,7 +204,7 @@ export class IndexStudio implements OnInit {
     // 1. Re-poll tasks que estaban en curso antes de la recarga
     for (const p of pending) {
       if (!p.taskId) continue;
-      this.seedance.status(p.taskId).subscribe((res) => {
+      this.videoGenerator.status(p.taskId).subscribe((res) => {
         if (res.error || !res.data) {
           this.studio.failGeneration(p.id);
           return;
@@ -220,7 +237,7 @@ export class IndexStudio implements OnInit {
     //    asegurar que ningún clip completado se perdió en el olvido.
     if (!projectId || !sceneId) return;
 
-    this.seedance.getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 }).subscribe((res) => {
+    this.genLogs.getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 }).subscribe((res) => {
       if (res.error || !res.data) return;
       const existingUrls = new Set(this.studio.sessionClips().map((c) => c.videoUrl));
       for (const log of res.data.logs) {
@@ -315,6 +332,57 @@ export class IndexStudio implements OnInit {
   }
 
   /**
+   * Dry-run the same payload `onGenerate` would send and show the backend's
+   * response in a modal. Skips the polling loop and the generation queue —
+   * the user can inspect what would have been sent before paying for the
+   * actual run.
+   */
+  protected onPreview(): void {
+    // Defense in depth — the button is already hidden for non-superadmins
+    // via `[canPreview]`, but guard the handler in case it gets called
+    // programmatically (e.g. dev tools, future shortcut binding).
+    if (!this.isSuperAdmin()) return;
+    if (!this.studio.projectId() || !this.studio.sceneId()) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes seleccionar un proyecto y una escena antes de previsualizar',
+        severity: 'error',
+        life: 3000,
+      });
+      this.gateOpen.set(true);
+      return;
+    }
+    const text = this.studio.rawDescription().trim();
+    if (!text) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes escribir un prompt antes de previsualizar',
+        severity: 'error',
+        life: 3000,
+      });
+      return;
+    }
+
+    const payload = this.buildPayload(text);
+    this.previewData.set(null);
+    this.previewError.set(null);
+    this.previewLoading.set(true);
+    this.previewDialogVisible.set(true);
+
+    this.videoGenerator
+      .preview(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.previewLoading.set(false);
+        if (res.error) {
+          this.previewError.set(res.msg);
+          return;
+        }
+        this.previewData.set(res.data ?? {});
+      });
+  }
+
+  /**
    * Submit one task to the studio API and follow its lifecycle:
    *   1. POST /studio/generate           — registers task, returns taskId
    *   2. GET  /studio/status/{taskId}    — every 3s until succeeded/failed
@@ -343,7 +411,7 @@ export class IndexStudio implements OnInit {
     const source = this.buildSourceSnapshot(prompt);
     const payload = this.buildPayload(prompt);
 
-    this.seedance
+    this.videoGenerator
       .generate(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
@@ -400,7 +468,7 @@ export class IndexStudio implements OnInit {
     let pollCount = 0;
     interval(POLL_INTERVAL_MS)
       .pipe(
-        switchMap(() => this.seedance.status(taskId)),
+        switchMap(() => this.videoGenerator.status(taskId)),
         takeWhile(
           (res) =>
             !res.error &&
@@ -456,7 +524,7 @@ export class IndexStudio implements OnInit {
    */
   private finishWithClip(
     localId: string,
-    task: StudioTaskResponse,
+    task: VideoGenerateResponse,
     source: GeneratedClip['source'],
   ): void {
     const out = task.outputs.find((o) => o.type === 'video') ?? task.outputs[0];
@@ -528,13 +596,13 @@ export class IndexStudio implements OnInit {
    * deduped `content[]` array — drop-zone slots first because their order
    * carries semantic meaning ("Image 1" = first frame).
    */
-  private buildPayload(text: string): StudioGenerateRequest {
+  private buildPayload(text: string): VideoGenerateRequest {
     const output = this.studio.output();
     const refs = this.collectReferenceAssets();
     const hints = this.buildFrameHints();
     const finalText = hints ? `${hints} ${text}` : text;
 
-    const content: StudioContentItem[] = [{ type: 'text', text: finalText }];
+    const content: VideoGenerateContentItem[] = [{ type: 'text', text: finalText }];
     for (const ref of refs) {
       content.push({
         type: ref.type,

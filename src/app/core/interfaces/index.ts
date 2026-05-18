@@ -5,3 +5,7 @@ export * from './api.interface';
 export * from './file.interface';
 export * from './models.interface';
 export * from './seedance.interface';
+export * from './text-generator.interface';
+export * from './image-generator.interface';
+export * from './video-generator.interface';
+export * from './audio-generator.interface';

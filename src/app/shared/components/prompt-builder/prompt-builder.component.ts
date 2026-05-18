@@ -56,10 +56,23 @@ export class PromptBuilderComponent {
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
 
+  /**
+   * Wire this in the parent shell to run a dry-run preview against the
+   * backend (same payload as generate) and surface the result in a modal.
+   */
+  readonly preview = output<void>();
+
   /** When true, the generate button reads "VOLVER A GENERAR". */
   readonly isRegenerating = input(false);
   /** When false, the generate button is disabled (no take selected). */
   readonly takeSelected = input(true);
+  /**
+   * When false, the secondary "Preview" button is hidden. Defaults to false
+   * because preview is a privileged dry-run surface (SUPER_ADMIN only) —
+   * the parent shell flips it on via `[canPreview]` based on the session
+   * role level so the rest of the studio chrome stays auth-agnostic.
+   */
+  readonly canPreview = input(false);
 
   /** Re-resolve placeholder when the language changes. */
   private readonly lang = toSignal(this.i18n.onLangChange, { initialValue: null });
@@ -163,6 +176,11 @@ export class PromptBuilderComponent {
   protected onGenerate(): void {
     if (!this.studio.canGenerate()) return;
     this.generate.emit();
+  }
+
+  protected onPreview(): void {
+    if (!this.studio.canGenerate()) return;
+    this.preview.emit();
   }
 
   /** PrimeIcons class for the chip representing each asset kind. */
