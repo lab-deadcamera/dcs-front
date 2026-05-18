@@ -9,7 +9,7 @@ import { SelectModule } from 'primeng/select';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { SeedanceService } from '@app/services';
+import { GenerationLogsService, VideoGeneratorService } from '@app/services';
 import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -342,7 +342,8 @@ imports: [
 })
 export class IndexAdmin implements OnInit {
   private readonly http = inject(HttpClient);
-  private readonly seedance = inject(SeedanceService);
+  private readonly videoGenerator = inject(VideoGeneratorService);
+  private readonly genLogs = inject(GenerationLogsService);
   private readonly toast = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -521,7 +522,7 @@ export class IndexAdmin implements OnInit {
 
   protected refreshTask(log: GenerationLogEntry): void {
     this.refreshingId.set(log.task_id);
-    this.seedance.status(log.task_id).subscribe((res) => {
+    this.videoGenerator.status(log.task_id).subscribe((res) => {
       this.refreshingId.set(null);
       if (res.error) {
         this.toast.add({ severity: 'error', summary: 'Refresh failed', detail: res.msg, life: 3000 });
@@ -540,7 +541,7 @@ export class IndexAdmin implements OnInit {
   private loadPage(): void {
     const f = this.filters();
     this.loading.set(true);
-    this.seedance.getLogs({
+    this.genLogs.getLogs({
       model_name: f.modelName || undefined,
       user_id: f.userId ?? undefined,
       project_id: f.projectId || undefined,
