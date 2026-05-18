@@ -24,12 +24,7 @@ export type ColorGradingId = string;
 export type GenreId = string;
 
 /** Cinematography categories that accept user-added custom presets. */
-export type PresetCategory =
-  | 'lens'
-  | 'camera'
-  | 'cameraMotion'
-  | 'colorGrading'
-  | 'genre';
+export type PresetCategory = 'lens' | 'camera' | 'cameraMotion' | 'colorGrading' | 'genre';
 
 /** A single option inside a ToggleGroup (chips list). */
 export interface ChipOption<V extends string = string> {
@@ -93,7 +88,8 @@ export interface OutputFormatConfig {
   durationSeconds: number;
   sound: boolean;
   engine: Engine;
-  model: string;
+  /** Number of independent videos to request per generation, 1-4. */
+  batchCount: number;
 }
 
 export interface ReferenceAsset {
@@ -106,6 +102,60 @@ export interface ReferenceAsset {
   slot?: 'first-frame' | 'last-frame' | 'free';
 }
 
+/** Maximum number of videos a single generate-click can request. */
+export const MAX_BATCH_COUNT = 4;
+
+/** Kind of file an external asset is built from — drives the chip icon. */
+export type UsedAssetKind = 'image' | 'video' | 'audio' | 'mixed';
+
+/**
+ * A file from the Characters library marked as a reference for the next
+ * generation. The `fileId` is what travels to the backend in the unified
+ * payload's `content[]`.
+ */
+export interface UsedAsset {
+  /** File UUID from POST /api/v1/files/upload. */
+  fileId: string;
+  /** Source character id — used for "is this character already used?" lookups. */
+  characterId: string;
+  /** Display name shown on the chip (typically the character's name). */
+  name: string;
+  /** Original filename — used by the backend's asset resolver. */
+  filename: string;
+  /** Aggregated file type — drives the chip icon and content[].type. */
+  kind: UsedAssetKind;
+}
+
+/** A single in-flight backend generation request. */
+export interface PendingGeneration {
+  id: string;
+  /** Backend task_id — necesario para recuperar el estado tras recarga. */
+  taskId: string;
+  /** 0–100. */
+  progress: number;
+  /** Optional "1/3" style label for batched requests. */
+  label?: string;
+  /** 1-based take number captured at queue time. */
+  takeIndex?: number;
+  /** Model name used for the generation. */
+  modelName?: string;
+}
+
+/** Canonical Seedance prompt scaffold. */
+export const PROMPT_TEMPLATE = [
+  'SUBJECT:',
+  '',
+  'WARDROBE:',
+  '',
+  'POSE:',
+  '',
+  'ENVIRONMENT AND LIGHTING:',
+  '',
+  'NEGATIVE:',
+  '',
+  'REFERENCE SLOTS:',
+].join('\n');
+
 export interface GeneratedClip {
   id: string;
   prompt: string;
@@ -116,6 +166,12 @@ export interface GeneratedClip {
   resolution: Resolution;
   /** User-set success rating 1-5, undefined = unrated. */
   rating?: number;
+  /**
+   * 1-based take number from the active scene session. Stamped when the
+   * generation starts so the download filename can be reconstructed from
+   * scene + take + user metadata (see SessionStateService.filenameForClip).
+   */
+  takeIndex?: number;
   /**
    * Snapshot of the inputs that produced this clip — enables the
    * "reuse prompt" affordance in the viewer to repopulate the editor.

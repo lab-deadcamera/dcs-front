@@ -22,7 +22,7 @@ import {
   PresetCategory,
 } from '@core/interfaces/studio.models';
 import { PresetsService } from '@app/core/stores/presets.service';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 /**
  * Pool of mood adjectives used to seed the random Color-Grading variants
@@ -92,7 +92,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.LENS"
           [options]="lensOptions()"
-          [value]="prompt.cinematography().lens"
+          [value]="studio.cinematography().lens"
           (valueChange)="onLens($event)"
           (edit)="onEditPreset('lens', $event)"
           (remove)="onRemovePreset('lens', $event)"
@@ -101,7 +101,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_BODY"
           [options]="bodyOptions()"
-          [value]="prompt.cinematography().cameraBody"
+          [value]="studio.cinematography().cameraBody"
           (valueChange)="onBody($event)"
           (edit)="onEditPreset('camera', $event)"
           (remove)="onRemovePreset('camera', $event)"
@@ -110,7 +110,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_MOTION"
           [options]="motionOptions()"
-          [value]="prompt.cinematography().cameraMotion"
+          [value]="studio.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
           (edit)="onEditPreset('cameraMotion', $event)"
           (remove)="onRemovePreset('cameraMotion', $event)"
@@ -126,7 +126,7 @@ interface GradeVariant {
           </p>
           <div class="flex flex-wrap gap-2">
             @for (grade of gradeOptions(); track grade.id) {
-              @let active = prompt.cinematography().colorGrading === grade.id;
+              @let active = studio.cinematography().colorGrading === grade.id;
 
               @if (grade.isCustom) {
                 <!--
@@ -251,7 +251,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.GENRE"
           [options]="genreOptions()"
-          [value]="prompt.cinematography().genre"
+          [value]="studio.cinematography().genre"
           (valueChange)="onGenre($event)"
           (edit)="onEditPreset('genre', $event)"
           (remove)="onRemovePreset('genre', $event)"
@@ -270,7 +270,7 @@ interface GradeVariant {
   `,
 })
 export class CinematographyComponent {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly presets = inject(PresetsService);
 
   /**
@@ -367,16 +367,16 @@ export class CinematographyComponent {
   }
 
   protected onLens(v: LensId | null) {
-    this.prompt.patchCinematography({ lens: v });
+    this.studio.patchCinematography({ lens: v });
   }
   protected onBody(v: CameraBodyId | null) {
-    this.prompt.patchCinematography({ cameraBody: v });
+    this.studio.patchCinematography({ cameraBody: v });
   }
   protected onMotion(v: CameraMotionId | null) {
-    this.prompt.patchCinematography({ cameraMotion: v });
+    this.studio.patchCinematography({ cameraMotion: v });
   }
   protected onGenre(v: GenreId | null) {
-    this.prompt.patchCinematography({ genre: v });
+    this.studio.patchCinematography({ genre: v });
   }
 
   protected onPickVariant(
@@ -384,7 +384,7 @@ export class CinematographyComponent {
     variant: GradeVariant,
     pop: Popover,
   ) {
-    this.prompt.patchCinematography({ colorGrading: parentId as ColorGradingId });
+    this.studio.patchCinematography({ colorGrading: parentId as ColorGradingId });
     this.selectedVariant.set(variant.name);
     pop.hide();
   }
@@ -395,8 +395,8 @@ export class CinematographyComponent {
    * grades have no popover variants to drive the selection.
    */
   protected onPickCustomGrade(id: string): void {
-    const cur = this.prompt.cinematography().colorGrading;
-    this.prompt.patchCinematography({
+    const cur = this.studio.cinematography().colorGrading;
+    this.studio.patchCinematography({
       colorGrading: cur === id ? null : (id as ColorGradingId),
     });
     if (cur === id) this.selectedVariant.set(null);
@@ -404,7 +404,7 @@ export class CinematographyComponent {
 
   /**
    * Open the wizard in edit mode pre-filled with this preset's current
-   * label and prompt. The category is locked once the dialog opens —
+   * label and studio. The category is locked once the dialog opens —
    * moving a preset to a different row is treated as delete-then-create.
    */
   protected onEditPreset(category: PresetCategory, id: string): void {
@@ -426,27 +426,27 @@ export class CinematographyComponent {
    * was pointing at the removed preset.
    */
   protected onRemovePreset(category: PresetCategory, id: string): void {
-    const cine = this.prompt.cinematography();
+    const cine = this.studio.cinematography();
     switch (category) {
       case 'lens':
-        if (cine.lens === id) this.prompt.patchCinematography({ lens: null });
+        if (cine.lens === id) this.studio.patchCinematography({ lens: null });
         break;
       case 'camera':
         if (cine.cameraBody === id)
-          this.prompt.patchCinematography({ cameraBody: null });
+          this.studio.patchCinematography({ cameraBody: null });
         break;
       case 'cameraMotion':
         if (cine.cameraMotion === id)
-          this.prompt.patchCinematography({ cameraMotion: null });
+          this.studio.patchCinematography({ cameraMotion: null });
         break;
       case 'colorGrading':
         if (cine.colorGrading === id) {
-          this.prompt.patchCinematography({ colorGrading: null });
+          this.studio.patchCinematography({ colorGrading: null });
           this.selectedVariant.set(null);
         }
         break;
       case 'genre':
-        if (cine.genre === id) this.prompt.patchCinematography({ genre: null });
+        if (cine.genre === id) this.studio.patchCinematography({ genre: null });
         break;
     }
     this.presets.removePreset(category, id);

@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SelectModule } from 'primeng/select';
@@ -12,13 +6,9 @@ import { SectionHeaderComponent } from '@shared/components/section-header/sectio
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import { PillToggleComponent } from '@shared/components/pill-toggle/pill-toggle.component';
 import { RangeSliderComponent } from '@shared/components/range-slider/range-slider.component';
-import {
-  AspectRatio,
-  ChipOption,
-  Engine,
-  Resolution,
-} from '@core/interfaces/studio.models';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { AspectRatio, ChipOption, Engine, Resolution } from '@core/interfaces/studio.models';
+import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelService } from '@app/services';
 
 @Component({
@@ -36,7 +26,7 @@ import { ModelService } from '@app/services';
   templateUrl: './output-format.html',
 })
 export class OutputFormatComponent implements OnInit {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly modelService = inject(ModelService);
 
   protected readonly expanded = signal(false);
@@ -48,16 +38,12 @@ export class OutputFormatComponent implements OnInit {
   protected modelValue: string | null = null;
 
   ngOnInit(): void {
-    this.modelValue = this.prompt.output().model || null;
-
     this.modelsLoading.set(true);
     this.modelService.getAllModels().subscribe((res) => {
       this.modelsLoading.set(false);
       if (!res.error && res.data) {
         this.modelOptions.set(
-          res.data
-            .filter((m) => m.active)
-            .map((m) => ({ label: m.name, value: m.name })),
+          res.data.filter((m) => m.active).map((m) => ({ label: m.name, value: m.name })),
         );
       }
     });
@@ -79,27 +65,34 @@ export class OutputFormatComponent implements OnInit {
   ];
 
   protected onAspect(v: AspectRatio | null) {
-    if (v) this.prompt.patchOutput({ aspectRatio: v });
+    if (v) this.studio.patchOutput({ aspectRatio: v });
   }
 
   protected onResolution(v: Resolution | null) {
     if (!v || v === '1080p') return;
-    this.prompt.patchOutput({ resolution: v });
+    this.studio.patchOutput({ resolution: v });
   }
 
   protected onDuration(v: number) {
-    this.prompt.patchOutput({ durationSeconds: v });
+    this.studio.patchOutput({ durationSeconds: v });
   }
   protected onSound(side: 'left' | 'right') {
-    this.prompt.patchOutput({ sound: side === 'right' });
+    this.studio.patchOutput({ sound: side === 'right' });
   }
   protected onEngine(side: 'left' | 'right') {
     const engine: Engine = side === 'left' ? 'fast' : 'pro';
-    this.prompt.patchOutput({ engine });
+    this.studio.patchOutput({ engine });
   }
 
   protected onModelChange(value: string | null): void {
     this.modelValue = value;
-    this.prompt.patchOutput({ model: value ?? '' });
+  }
+
+  protected readonly minBatch = 1;
+  protected readonly maxBatch = MAX_BATCH_COUNT;
+
+  protected onBatchCount(delta: 1 | -1): void {
+    const next = (this.studio.output().batchCount || 1) + delta;
+    this.studio.patchOutput({ batchCount: next });
   }
 }

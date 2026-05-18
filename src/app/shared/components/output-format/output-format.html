@@ -8,86 +8,118 @@
   />
 
   @if (expanded()) {
-  <div class="mt-5 flex flex-col gap-5">
-    <!-- Model selector -->
-    <div class="flex flex-col gap-1">
-      <label class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
-        {{ 'STUDIO.OUTPUT.MODEL' | translate }}
-      </label>
-      <p-select
-        [options]="modelOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [placeholder]="'STUDIO.OUTPUT.MODEL_PLACEHOLDER' | translate"
-        [(ngModel)]="modelValue"
-        [loading]="modelsLoading()"
-        [showClear]="true"
-        data-testid="model-select"
-        (onChange)="onModelChange($event.value)"
+    <div class="mt-5 flex flex-col gap-5">
+      <!-- Model selector -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+          {{ 'STUDIO.OUTPUT.MODEL' | translate }}
+        </label>
+        <p-select
+          [options]="modelOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="'STUDIO.OUTPUT.MODEL_PLACEHOLDER' | translate"
+          [(ngModel)]="modelValue"
+          [loading]="modelsLoading()"
+          [showClear]="true"
+          data-testid="model-select"
+          (onChange)="onModelChange($event.value)"
+        />
+      </div>
+
+      <ui-toggle-group
+        labelKey="STUDIO.OUTPUT.ASPECT_RATIO"
+        variant="accent"
+        [options]="aspectOptions"
+        [value]="studio.output().aspectRatio"
+        (valueChange)="onAspect($event)"
       />
-    </div>
 
-    <ui-toggle-group
-      labelKey="STUDIO.OUTPUT.ASPECT_RATIO"
-      variant="accent"
-      [options]="aspectOptions"
-      [value]="prompt.output().aspectRatio"
-      (valueChange)="onAspect($event)"
-    />
-
-    <ui-toggle-group
-      labelKey="STUDIO.OUTPUT.RESOLUTION"
-      variant="accent"
-      [options]="resolutionOptions"
-      [value]="prompt.output().resolution === '1080p' ? null : prompt.output().resolution"
-      (valueChange)="onResolution($event)"
-    />
-    <p class="-mt-3 text-[10px] italic text-fg-muted">
-      {{ 'STUDIO.OUTPUT.HD_HINT' | translate }}
-    </p>
-
-    <div>
-      <p class="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
-        {{ 'STUDIO.OUTPUT.DURATION' | translate }}
-        <span class="font-mono text-fg-muted">{{ prompt.output().durationSeconds }}s</span>
+      <ui-toggle-group
+        labelKey="STUDIO.OUTPUT.RESOLUTION"
+        variant="accent"
+        [options]="resolutionOptions"
+        [value]="studio.output().resolution === '1080p' ? null : studio.output().resolution"
+        (valueChange)="onResolution($event)"
+      />
+      <p class="-mt-3 text-[10px] italic text-fg-muted">
+        {{ 'STUDIO.OUTPUT.HD_HINT' | translate }}
       </p>
-      <ui-range-slider
-        ariaLabelKey="STUDIO.OUTPUT.ARIA_DURATION"
-        [min]="4"
-        [max]="15"
-        [step]="1"
-        unit="s"
-        [ticks]="[4, 8, 12, 15]"
-        [value]="prompt.output().durationSeconds"
-        (valueChange)="onDuration($event)"
-      />
-    </div>
 
-    <div class="flex items-center justify-between">
-      <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
-        {{ 'STUDIO.OUTPUT.SOUND' | translate }}
-      </p>
-      <ui-pill-toggle
-        leftLabelKey="STUDIO.OUTPUT.OFF"
-        rightLabelKey="STUDIO.OUTPUT.ON"
-        accentSide="left"
-        [value]="prompt.output().sound ? 'right' : 'left'"
-        (valueChange)="onSound($event)"
-      />
-    </div>
+      <div>
+        <p
+          class="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong"
+        >
+          {{ 'STUDIO.OUTPUT.DURATION' | translate }}
+          <span class="font-mono text-fg-muted">{{ studio.output().durationSeconds }}s</span>
+        </p>
+        <ui-range-slider
+          ariaLabelKey="STUDIO.OUTPUT.ARIA_DURATION"
+          [min]="4"
+          [max]="15"
+          [step]="1"
+          unit="s"
+          [ticks]="[4, 8, 12, 15]"
+          [value]="studio.output().durationSeconds"
+          (valueChange)="onDuration($event)"
+        />
+      </div>
 
-    <div class="flex items-center justify-between">
-      <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
-        {{ 'STUDIO.OUTPUT.ENGINE' | translate }}
-      </p>
-      <ui-pill-toggle
-        leftLabelKey="STUDIO.OUTPUT.FAST"
-        rightLabelKey="STUDIO.OUTPUT.PRO"
-        accentSide="left"
-        [value]="prompt.output().engine === 'fast' ? 'left' : 'right'"
-        (valueChange)="onEngine($event)"
-      />
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+          {{ 'STUDIO.OUTPUT.SOUND' | translate }}
+        </p>
+        <ui-pill-toggle
+          leftLabelKey="STUDIO.OUTPUT.OFF"
+          rightLabelKey="STUDIO.OUTPUT.ON"
+          accentSide="left"
+          [value]="studio.output().sound ? 'right' : 'left'"
+          (valueChange)="onSound($event)"
+        />
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+          <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fg-strong">
+            {{ 'STUDIO.OUTPUT.BATCH_COUNT' | translate }}
+          </p>
+          <p class="text-[10px] italic text-fg-muted">
+            {{ 'STUDIO.OUTPUT.BATCH_COUNT_HINT' | translate }}
+          </p>
+        </div>
+        <div
+          class="inline-flex items-stretch border border-ink-500 bg-ink-900"
+          role="group"
+          [attr.aria-label]="'STUDIO.OUTPUT.BATCH_COUNT' | translate"
+        >
+          <button
+            type="button"
+            class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            [disabled]="studio.output().batchCount <= minBatch"
+            [attr.aria-label]="'STUDIO.OUTPUT.BATCH_DEC' | translate"
+            data-testid="batch-count-dec"
+            (click)="onBatchCount(-1)"
+          >
+            −
+          </button>
+          <span
+            class="flex min-w-8 items-center justify-center border-x border-ink-500 px-3 font-mono text-[13px] tabular-nums text-fg-strong"
+            data-testid="batch-count-value"
+          >
+            {{ studio.output().batchCount }}
+          </span>
+          <button
+            type="button"
+            class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            [disabled]="studio.output().batchCount >= maxBatch"
+            [attr.aria-label]="'STUDIO.OUTPUT.BATCH_INC' | translate"
+            data-testid="batch-count-inc"
+            (click)="onBatchCount(1)"
+          >
+            +
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
   }
 </section>

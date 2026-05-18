@@ -3,16 +3,15 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
-import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
-import { StudioStateService } from '@app/core/stores/studio.state';
+import { SessionStore } from '@app/core/stores/session.store';
+import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
 
 @Component({
   selector: 'app-header',
   imports: [
     IconButtonComponent,
-    ApiKeysPopoverComponent,
     ThemePicker,
     TranslatePipe,
     NgOptimizedImage,
@@ -50,7 +49,7 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
       <div class="flex items-center gap-3">
         <ui-icon-button
           icon="👤"
-          [label]="state.user().handle"
+          [label]="session.user()?.handle ?? 'User'"
           iconColor="purple"
           labelColor="green"
         />
@@ -75,6 +74,14 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
         {{ 'NAV.STUDIO' | translate }}
       </a>
       <a
+        routerLink="/projects"
+        routerLinkActive="!text-fg-strong !border-primary-500"
+        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        data-testid="nav-projects"
+      >
+        {{ 'NAV.PROJECTS' | translate }}
+      </a>
+      <a
         routerLink="/files"
         routerLinkActive="!text-fg-strong !border-primary-500"
         class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
@@ -90,6 +97,16 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
       >
         {{ 'NAV.PROVIDERS' | translate }}
       </a>
+      @if (session.roleLevel() <= 1) {
+        <a
+          routerLink="/admin"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+          data-testid="nav-admin"
+        >
+          {{ 'NAV.ADMIN' | translate }}
+        </a>
+      }
     </nav>
 
     <app-model-select-dialog
@@ -99,7 +116,11 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
   `,
 })
 export class HeaderComponent {
-  protected readonly state = inject(StudioStateService);
+  protected readonly studio = inject(StudioStore);
+  protected readonly session = inject(SessionStore);
+
+  // Keep aliases for template compatibility
+  protected readonly state = this.studio;
 
   protected readonly modelDialogVisible = signal(false);
 

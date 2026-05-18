@@ -11,7 +11,7 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 /**
  * Section 01 — VIEWER.
@@ -46,11 +46,37 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
         <ui-corner-frame position="bottom-left" />
         <ui-corner-frame position="bottom-right" />
 
+        <!-- Download icon — saves the currently-active clip as an .mp4. -->
+        <button
+          type="button"
+          class="absolute top-3 right-[5.25rem] z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-primary-500 hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+          [disabled]="!canDownload()"
+          (click)="onDownload()"
+          [attr.aria-label]="'STUDIO.VIEWER.DOWNLOAD' | translate"
+          [attr.title]="'STUDIO.VIEWER.DOWNLOAD' | translate"
+          data-testid="viewer-download"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            class="h-3.5 w-3.5"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M8 2v9" />
+            <path d="M4 7l4 4 4-4" />
+            <path d="M2.5 13.5h11" />
+          </svg>
+        </button>
+
         <!-- Reuse-prompt icon — repopulates the editor from the active clip. -->
         <button
           type="button"
           class="absolute top-3 right-12 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-secondary-500 hover:text-secondary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-          [disabled]="!prompt.activeClip()"
+          [disabled]="!studio.activeClip()"
           (click)="onReuse()"
           [attr.aria-label]="'STUDIO.VIEWER.REUSE_PROMPT' | translate"
           [attr.title]="'STUDIO.VIEWER.REUSE_PROMPT' | translate"
@@ -105,12 +131,26 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
           }
         </button>
 
-        @if (prompt.activeClip(); as clip) {
+        @if (studio.activeClip(); as clip) {
           <video
             class="h-full w-full object-contain"
             [src]="clip.videoUrl"
             controls
           ></video>
+        } @else if (!studio.isReady()) {
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center gap-3"
+          >
+            <svg viewBox="0 0 24 24" class="h-8 w-8 text-fg-faint" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <p class="text-lg font-light italic text-fg-strong">
+              {{ 'STUDIO.VIEWER.NO_SCENE_TITLE' | translate }}
+            </p>
+            <p class="text-[11px] uppercase tracking-[0.18em] text-fg-muted">
+              {{ 'STUDIO.VIEWER.NO_SCENE_HINT' | translate }}
+            </p>
+          </div>
         } @else {
           <div
             class="absolute inset-0 flex flex-col items-center justify-center gap-3"
@@ -127,6 +167,49 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
             <p class="text-[11px] uppercase tracking-[0.18em] text-fg-muted">
               {{ 'STUDIO.VIEWER.EMPTY_HINT' | translate }}
             </p>
+          </div>
+        }
+
+        <!--
+          Progress overlay — surfaces every in-flight backend generation as
+          a progress-N% ring so the user can see how far each request is
+          and how many are still running. Sits on top of the video / empty
+          state without dismissing them so a previously-active clip stays
+          visible while a fresh batch is queued.
+        -->
+        @if (studio.isGenerating()) {
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-ink-950/75 backdrop-blur-sm"
+            role="status"
+            aria-live="polite"
+            data-testid="viewer-progress"
+          >
+            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-muted">
+              {{
+                'STUDIO.VIEWER.GENERATING_COUNT'
+                  | translate: { n: studio.pendingGenerations().length }
+              }}
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-4">
+              @for (g of studio.pendingGenerations(); track g.id) {
+                <div class="flex flex-col items-center gap-1">
+                  <p class="font-mono text-3xl tabular-nums text-primary-500">
+                    {{ g.progress }}<span class="text-base text-fg-muted">%</span>
+                  </p>
+                  <div class="h-1 w-24 overflow-hidden bg-ink-700">
+                    <div
+                      class="h-full bg-primary-500 transition-all duration-300"
+                      [style.width.%]="g.progress"
+                    ></div>
+                  </div>
+                  @if (g.label) {
+                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+                      {{ g.label }}
+                    </p>
+                  }
+                </div>
+              }
+            </div>
           </div>
         }
 
@@ -195,7 +278,7 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
   ],
 })
 export class ViewerComponent implements OnDestroy {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
   protected readonly isFullscreen = signal(false);
   protected readonly hdPending = signal(false);
@@ -203,13 +286,44 @@ export class ViewerComponent implements OnDestroy {
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
 
   protected readonly isHd = computed(
-    () => this.prompt.output().resolution === '1080p',
+    () => this.studio.output().resolution === '1080p',
   );
 
+  /** Disable the download icon when there's no playable clip URL. */
+  protected readonly canDownload = computed(() => {
+    const clip = this.studio.activeClip();
+    return !!clip?.videoUrl;
+  });
+
   protected onReuse(): void {
-    const clip = this.prompt.activeClip();
+    const clip = this.studio.activeClip();
     if (!clip) return;
-    this.prompt.reuseClip(clip.id);
+    this.studio.reuseClip(clip.id);
+  }
+
+  /**
+   * Save the active clip's video to disk.
+   *
+   * Tries to `fetch` the file and trigger a blob-download so the browser
+   * uses the canonical filename. Falls back to a plain anchor with the
+   * `download` attribute when the response is opaque / CORS-blocked —
+   * Chromium then opens the URL in a new tab and the user can save it
+   * manually, which is still better than no affordance at all.
+   */
+  protected async onDownload(): Promise<void> {
+    const clip = this.studio.activeClip();
+    if (!clip?.videoUrl) return;
+    const filename = this.studio.filenameForClip(clip);
+    try {
+      const res = await fetch(clip.videoUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, filename);
+      URL.revokeObjectURL(url);
+    } catch {
+      triggerDownload(clip.videoUrl, filename, '_blank');
+    }
   }
 
   protected async toggleFullscreen(): Promise<void> {
@@ -230,12 +344,12 @@ export class ViewerComponent implements OnDestroy {
   protected onHdClick(): void {
     if (this.isHd()) {
       this.cancelHdPending();
-      this.prompt.patchOutput({ resolution: '720p' });
+      this.studio.patchOutput({ resolution: '720p' });
       return;
     }
     if (this.hdPending()) {
       this.cancelHdPending();
-      this.prompt.patchOutput({ resolution: '1080p' });
+      this.studio.patchOutput({ resolution: '1080p' });
       return;
     }
     this.hdPending.set(true);
@@ -263,4 +377,14 @@ export class ViewerComponent implements OnDestroy {
   ngOnDestroy(): void {
     if (this.hdTimer) clearTimeout(this.hdTimer);
   }
+}
+
+function triggerDownload(href: string, filename: string, target?: '_blank'): void {
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  if (target) a.target = target;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }

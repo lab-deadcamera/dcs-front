@@ -1,14 +1,21 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ModelService } from '@app/services';
 import { ModelData } from '@app/core/interfaces';
-import { StudioStateService } from '@app/core/stores/studio.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-model-select-dialog',
-  imports: [DialogModule, ButtonModule, TranslatePipe],
+  imports: [DialogModule, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -28,7 +35,9 @@ import { StudioStateService } from '@app/core/stores/studio.state';
         <div class="flex flex-col items-center gap-3 py-12">
           <i class="pi pi-database text-3xl text-fg-muted"></i>
           <p class="text-[13px] text-fg-muted">No models available.</p>
-          <p class="text-[11px] text-fg-muted">Configure providers and models in the Providers section first.</p>
+          <p class="text-[11px] text-fg-muted">
+            Configure providers and models in the Providers section first.
+          </p>
         </div>
       }
 
@@ -93,24 +102,23 @@ import { StudioStateService } from '@app/core/stores/studio.state';
     </p-dialog>
   `,
 })
-export class ModelSelectDialogComponent implements OnInit {
+export class ModelSelectDialogComponent {
   private readonly modelService = inject(ModelService);
-  private readonly studioState = inject(StudioStateService);
+  private readonly studio = inject(StudioStore);
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
 
   protected readonly loading = signal(true);
-  protected readonly models = signal<ModelData[]>([]);
-
   protected readonly grouped = signal<{ provider: string; models: ModelData[] }[]>([]);
 
-  ngOnInit(): void {
+  /** Refetch models cada vez que el diálogo se abre, así siempre está actualizado. */
+  private readonly fetchOnOpen = effect(() => {
+    if (!this.visible()) return;
+    this.loading.set(true);
     this.modelService.getAllModels().subscribe((res) => {
       this.loading.set(false);
       if (res.error || !res.data) return;
-
-      this.models.set(res.data);
 
       const map = new Map<string, ModelData[]>();
       for (const m of res.data) {
@@ -122,14 +130,14 @@ export class ModelSelectDialogComponent implements OnInit {
         Array.from(map.entries()).map(([provider, models]) => ({ provider, models })),
       );
     });
-  }
+  });
 
   protected isSelected(id: string): boolean {
-    return this.studioState.modelCode()?.id === id;
+    return this.studio.modelCode()?.id === id;
   }
 
   protected select(m: ModelData): void {
-    this.studioState.setModelCode(m);
+    this.studio.model = m;
     this.visibleChange.emit(false);
   }
 }

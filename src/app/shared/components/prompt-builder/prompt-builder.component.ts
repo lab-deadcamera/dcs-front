@@ -3,21 +3,23 @@ import {
   Component,
   computed,
   inject,
+  input,
   output,
-  signal,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 
 /**
- * Section 02 — PROMPT BUILDER.
+ * Section 06 — PROMPT BUILDER.
  *
- * Two-textarea layout:
- *   1. User describes the scene.
- *   2. Read-only "Compiled Prompt" preview = raw + cinematography injection.
- * Followed by the big red GENERATE button.
+ * A single textarea that holds the prompt the user (and the cinematography
+ * presets) write into. Presets inject themselves into the matching section
+ * headers so what the user sees is exactly the text that gets sent to the
+ * Seedance API. Reference assets live as chips on top of the textarea and
+ * travel through the API payload separately, not as inline tokens.
  */
 @Component({
   selector: 'app-prompt-builder',
@@ -32,12 +34,12 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
       />
 
       <!--
-        Reference chips — assets pulled in from the Characters library.
-        Each chip shows a type icon (image / video / audio / mixed) plus
-        the @asset_name token and a × to remove. The token is woven into
-        the compiled prompt automatically by PromptStateService.
+        Reference chips — files attached as generation references. The
+        source is unified across the asset drop-zones (first/last/free)
+        and the Characters library quick-pick. Each chip has a × to
+        remove the reference; the API payload picks them up automatically.
       -->
-      @if (prompt.usedAssets().length > 0) {
+      @if (studio.usedAssets().length > 0) {
         <div
           class="mt-4 flex flex-wrap items-center gap-2 border border-ink-500 bg-ink-900 px-3 py-2"
         >
@@ -46,19 +48,19 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
           >
             {{ 'STUDIO.PROMPT.REFERENCES' | translate }}
           </span>
-          @for (a of prompt.usedAssets(); track a.id) {
+          @for (a of studio.usedAssets(); track a.fileId) {
             <span
               class="inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
-              [attr.data-testid]="'used-asset-' + a.id"
-              [title]="a.kind"
+              [attr.data-testid]="'used-asset-' + a.fileId"
+              [title]="a.filename"
             >
               <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
-              <span>&#64;{{ tokenize(a.name) }}</span>
+              <span>{{ a.name }}</span>
               <button
                 type="button"
                 class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                 [attr.aria-label]="'COMMON.DELETE' | translate"
-                (click)="prompt.unuseAsset(a.id)"
+                (click)="studio.unuseAsset(a.fileId)"
               >×</button>
             </span>
           }
@@ -67,111 +69,18 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
 
       <div class="mt-4">
         <textarea
-          class="block w-full resize-none border border-ink-500 bg-ink-850 px-4 py-3 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
-          rows="5"
-          [value]="prompt.rawDescription()"
+          class="block w-full resize-y border border-ink-500 bg-ink-850 px-4 py-3 font-mono text-[12px] leading-relaxed text-fg-strong placeholder:italic placeholder:font-sans placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
+          rows="12"
+          [value]="studio.rawDescription()"
           (input)="onInput($event)"
           [placeholder]="placeholder()"
+          data-testid="prompt-textarea"
         ></textarea>
-      </div>
-
-      <div class="mt-4 border-l-2 border-primary-500 bg-ink-850 px-4 py-3">
-        <div class="flex w-full items-center justify-between gap-2">
-          <button
-            type="button"
-            class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500"
-            (click)="toggleExpanded()"
-          >
-            <span
-              class="inline-block transition-transform"
-              [class.rotate-180]="!expanded()"
-            >▼</span>
-            <span>{{ 'STUDIO.PROMPT.COMPILED' | translate }}</span>
-            @if (prompt.hasCompiledOverride()) {
-              <span
-                class="font-mono text-[10px] normal-case tracking-normal text-accent-500"
-              >
-                · {{ 'STUDIO.PROMPT.EDITED_BADGE' | translate }}
-              </span>
-            }
-          </button>
-
-          <div class="flex items-center gap-2">
-            <span class="font-mono text-[11px] text-fg-muted">
-              {{ 'STUDIO.PROMPT.CHARS' | translate: { n: prompt.compiledLength() } }}
-            </span>
-
-            @if (prompt.hasCompiledOverride() && !editingCompiled()) {
-              <button
-                type="button"
-                class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-primary-500"
-                (click)="onResetCompiled()"
-                [attr.aria-label]="'STUDIO.PROMPT.RESET_COMPILED' | translate"
-                [attr.title]="'STUDIO.PROMPT.RESET_COMPILED' | translate"
-              >
-                {{ 'STUDIO.PROMPT.RESET_COMPILED' | translate }}
-              </button>
-            }
-
-            @if (!editingCompiled()) {
-              <button
-                type="button"
-                class="flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900 text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 focus:outline-none"
-                (click)="onStartEditing()"
-                [attr.aria-label]="'STUDIO.PROMPT.EDIT_COMPILED' | translate"
-                [attr.title]="'STUDIO.PROMPT.EDIT_COMPILED' | translate"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  class="h-3.5 w-3.5"
-                  aria-hidden="true"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
-                  <path d="M9.5 3.5l3 3" />
-                </svg>
-              </button>
-            }
-          </div>
+        <div class="mt-1 flex items-center justify-end">
+          <span class="font-mono text-[11px] text-fg-muted">
+            {{ 'STUDIO.PROMPT.CHARS' | translate: { n: studio.rawLength() } }}
+          </span>
         </div>
-
-        @if (expanded()) {
-          @if (editingCompiled()) {
-            <textarea
-              #editBox
-              class="mt-3 block w-full resize-y border border-primary-500 bg-ink-900 px-3 py-2 font-mono text-[12px] leading-relaxed text-fg-strong focus:outline-none"
-              rows="8"
-              [value]="editBuffer()"
-              (input)="onEditInput($event)"
-            ></textarea>
-            <div class="mt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                class="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
-                (click)="onCancelEditing()"
-              >
-                {{ 'STUDIO.PROMPT.CANCEL_EDIT' | translate }}
-              </button>
-              <button
-                type="button"
-                class="bg-primary-500 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-fg-strong transition-opacity hover:opacity-90"
-                (click)="onSaveEditing()"
-              >
-                {{ 'STUDIO.PROMPT.SAVE_EDIT' | translate }}
-              </button>
-            </div>
-          } @else {
-            <p
-              class="mt-3 min-h-[1.5em] font-mono text-[12px] leading-relaxed text-fg whitespace-pre-wrap"
-            >
-              {{ prompt.compiledPrompt() || ('STUDIO.PROMPT.EMPTY_PREVIEW' | translate) }}
-            </p>
-          }
-        }
       </div>
 
       <!--
@@ -180,91 +89,66 @@ import { PromptStateService } from '@app/core/stores/prompt.state';
       -->
       <button
         type="button"
-        class="mt-5 flex w-full items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        [disabled]="!prompt.canGenerate()"
+        class="mt-3 flex w-full items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!studio.canGenerate() || !takeSelected()"
         (click)="onGenerate()"
       >
-        {{ 'STUDIO.PROMPT.GENERATE' | translate }}
+        {{ generateLabel() }}
         <span aria-hidden="true">→</span>
       </button>
     </section>
   `,
 })
 export class PromptBuilderComponent {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
-
-  protected readonly expanded = signal(true);
-
-  /** Whether the inline editor for the compiled prompt is open. */
-  protected readonly editingCompiled = signal(false);
-  /** Buffer that holds the in-progress edit until the user hits Save. */
-  protected readonly editBuffer = signal('');
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
+
+  /** When true, the generate button reads "VOLVER A GENERAR". */
+  readonly isRegenerating = input(false);
+  /** When false, the generate button is disabled (no take selected). */
+  readonly takeSelected = input(true);
 
   /** Re-resolve placeholder when the language changes. */
   private readonly lang = toSignal(this.i18n.onLangChange, { initialValue: null });
 
   protected readonly placeholder = computed(() => {
-    // Track lang signal so the value updates on language switches.
     this.lang();
     return this.i18n.instant('STUDIO.PROMPT.PLACEHOLDER');
   });
 
-  protected onInput(e: Event) {
-    this.prompt.setRawDescription((e.target as HTMLTextAreaElement).value);
-  }
+  /** Button label: GENERAR or VOLVER A GENERAR. */
+  protected readonly generateLabel = computed(() => {
+    // Read signals so this computed re-evaluates when either changes
+    const lang = this.lang();
+    const regen = this.isRegenerating();
+    return this.i18n.instant(
+      regen ? 'STUDIO.PROMPT.REGENERATE' : 'STUDIO.PROMPT.GENERATE',
+    );
+  });
 
-  protected toggleExpanded() {
-    this.expanded.update((v) => !v);
+  protected onInput(e: Event) {
+    this.studio.setRawDescription((e.target as HTMLTextAreaElement).value);
   }
 
   protected onGenerate(): void {
-    if (!this.prompt.canGenerate()) return;
+    if (!this.studio.canGenerate()) return;
     this.generate.emit();
   }
 
-  protected onStartEditing(): void {
-    // Open the editor with whatever is currently being sent to the model
-    // — either the existing override or the freshly-derived base.
-    this.editBuffer.set(this.prompt.compiledPrompt());
-    this.editingCompiled.set(true);
-    if (!this.expanded()) this.expanded.set(true);
-  }
-
-  protected onEditInput(e: Event): void {
-    this.editBuffer.set((e.target as HTMLTextAreaElement).value);
-  }
-
-  protected onCancelEditing(): void {
-    this.editingCompiled.set(false);
-  }
-
-  protected onSaveEditing(): void {
-    const text = this.editBuffer().trim();
-    // Empty save → clear the override and fall back to the derived value.
-    this.prompt.setCompiledOverride(text.length ? this.editBuffer() : null);
-    this.editingCompiled.set(false);
-  }
-
-  protected onResetCompiled(): void {
-    this.prompt.clearCompiledOverride();
-  }
-
   /** PrimeIcons class for the chip representing each asset kind. */
-  protected iconForKind(kind: 'image' | 'video' | 'audio' | 'mixed'): string {
+  protected iconForKind(kind: UsedAssetKind): string {
     switch (kind) {
-      case 'video': return 'pi-video';
-      case 'audio': return 'pi-volume-up';
-      case 'mixed': return 'pi-folder';
-      default:      return 'pi-image';
+      case 'video':
+        return 'pi-video';
+      case 'audio':
+        return 'pi-volume-up';
+      case 'mixed':
+        return 'pi-folder';
+      default:
+        return 'pi-image';
     }
-  }
-
-  /** Sanitize an asset name so it produces a clean `@token`. */
-  protected tokenize(name: string): string {
-    return name.trim().replace(/\s+/g, '_');
   }
 }

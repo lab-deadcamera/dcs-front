@@ -13,7 +13,10 @@
     "STUDIO": "Estudio",
     "CHARACTERS": "Personajes",
     "FILES": "Archivos",
-    "PROVIDERS": "Proveedores"
+    "PROJECTS": "Proyectos",
+    "PROVIDERS": "Proveedores",
+    "ADMIN": "Admin",
+    "LOGOUT": "Cerrar Sesión"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -115,17 +118,43 @@
       "DELETE": "Del",
       "ACTIVATE_ARIA": "Activar esta clave"
     },
+    "SESSION_GATE": {
+      "TITLE": "Abrir sesión de escena",
+      "HINT": "Identifícate y declara la escena que vas a grabar. Cada clip generado se nombrará con la escena + toma que marques abajo.",
+      "EMAIL": "Correo electrónico",
+      "EMAIL_PLACEHOLDER": "tu@estudio.com",
+      "HANDLE": "Nombre de usuario",
+      "HANDLE_PLACEHOLDER": "ej. drako",
+      "SCENE": "Nombre o número de escena",
+      "SCENE_PLACEHOLDER": "ej. SC03 o 37",
+      "TAKES": "Cantidad de tomas",
+      "TAKES_HINT": "Cuántas tomas esperas grabar para esta escena (1-99). Aparecerá un checkmark por toma al lado del visor.",
+      "SUBMIT": "Abrir escena"
+    },
+    "TAKE_CHECKLIST": {
+      "TITLE": "Tomas",
+      "TAKE_ARIA": "Toma {{n}} — {{status}}",
+      "STATUS_PENDING": "pendiente",
+      "STATUS_CURRENT": "actual",
+      "STATUS_DONE": "completada",
+      "STATUS_CONFIRMED": "confirmada",
+      "LOCKED_TOOLTIP": "Selecciona una escena primero"
+    },
     "VIEWER": {
       "TITLE": "Visor",
       "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",
       "EMPTY_TITLE": "Sin Clip Cargado",
       "EMPTY_HINT": "La salida generada aparece aquí",
+      "NO_SCENE_TITLE": "Selecciona una escena para continuar",
+      "NO_SCENE_HINT": "Abre un proyecto y escena desde el diálogo superior",
       "FULLSCREEN_ENTER": "Pantalla completa",
       "FULLSCREEN_EXIT": "Salir de pantalla completa",
       "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
       "HD_ARIA_PENDING": "Haz clic de nuevo para confirmar 1080p HD",
       "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p",
-      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor"
+      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor",
+      "DOWNLOAD": "Descargar video",
+      "GENERATING_COUNT": "Generando {{n}} video(s)…"
     },
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
@@ -135,6 +164,7 @@
       "CHARS": "{{n}} caracteres",
       "EMPTY_PREVIEW": "_",
       "GENERATE": "Generar",
+      "REGENERATE": "Volver a Generar",
       "REFERENCES": "Referencias",
       "EDIT_COMPILED": "Editar prompt compilado",
       "EDITED_BADGE": "editado",
@@ -142,9 +172,11 @@
       "SAVE_EDIT": "Guardar",
       "CANCEL_EDIT": "Cancelar"
     },
-    "SESSION_REEL": {
-      "TITLE": "Carrete de Sesión",
-      "EMPTY": "Tus clips generados se apilarán aquí"
+    "TAKES_REEL": {
+      "TITLE": "Carrete de Tomas",
+      "EMPTY": "Tus tomas generadas aparecerán aquí",
+      "DISCARDED": "Tomas descartadas",
+      "REACTIVATE": "Reactivar"
     },
     "RATING": {
       "TITLE": "Calificación",
@@ -231,7 +263,11 @@
       "RES_720P": "720p",
       "RES_1080P": "1080p HD",
       "HD_CONFIRM": "haz clic de nuevo para confirmar",
-      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse."
+      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse.",
+      "BATCH_COUNT": "Videos por generación",
+      "BATCH_COUNT_HINT": "Hasta 4 — se envía una llamada independiente por cada video.",
+      "BATCH_INC": "Aumentar cantidad",
+      "BATCH_DEC": "Disminuir cantidad"
     },
     "ASSETS": {
       "TITLE": "Personajes y Assets",
@@ -249,7 +285,10 @@
       "EXPAND": "Expandir",
       "REMOVE": "Eliminar asset",
       "CREATE_ASSETS": "Crear assets",
-      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes"
+      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes",
+      "LIBRARY_QUICKPICK": "Mi biblioteca",
+      "LIBRARY_QUICKPICK_HINT": "Haz clic para añadir al prompt",
+      "LIBRARY_QUICKPICK_EMPTY": "Aún no hay assets en esta categoría."
     },
     "FOOTER": {
       "VERSION": "v1.0",
@@ -375,6 +414,27 @@
     "ERROR": "Error",
     "WARNING": "Advertencia",
     "INFO": "Información"
+  },
+  "PROJECTS": {
+    "NEW_PROJECT": "Nuevo Proyecto",
+    "DIALOG": {
+      "CREATE_TITLE": "Nuevo Proyecto",
+      "EDIT_TITLE": "Editar Proyecto"
+    },
+    "SCENE_DIALOG": {
+      "CREATE_TITLE": "Nueva Escena",
+      "EDIT_TITLE": "Editar Escena"
+    },
+    "TAKE_DIALOG": {
+      "CREATE_TITLE": "Nueva Toma",
+      "EDIT_TITLE": "Editar Toma"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "SCENE_NUMBER": "Escena #",
+      "TAKE_NUMBER": "Toma #"
+    }
   },
   "PROVIDERS": {
     "NEW_PROVIDER": "Nuevo Proveedor",

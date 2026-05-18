@@ -8,7 +8,7 @@
         02 Cinematography
         03 Output Format
       RIGHT (preview + critique + prompt, sticky on lg+):
-        04 Viewer
+        04 Viewer  +  Takes checklist (right rail)
         05 Rating
         06 Prompt Builder
         · Session Reel (history)
@@ -19,6 +19,8 @@
       user scrolls the longer settings column.
     · Output Format (with the 1080p chip) lives in the LEFT column so
       it can't be misclicked while interacting with the viewer.
+    · The takes checklist sits as a narrow right rail next to the viewer
+      so the user can tick a take done without leaving the preview.
   -->
   <div class="flex flex-1 flex-col lg:flex-row lg:items-start">
     <!-- Steps 01 → 03 — Inputs (LEFT on lg+) -->
@@ -32,12 +34,129 @@
     <aside
       class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
     >
-      <app-viewer />
+      <div class="flex items-start">
+        <div class="min-w-0 flex-1">
+          <app-viewer />
+        </div>
+        <app-take-checklist
+          [takes]="studio.takes()"
+          [currentIndex]="studio.currentTakeIndex()"
+          [scenePrefix]="scenePrefix()"
+          [locked]="!studio.isReady()"
+          (toggle)="onToggleTake($event)"
+        />
+      </div>
       <app-rating />
-      <app-prompt-builder (generate)="onGenerate()" />
-      <app-session-reel />
+      <app-prompt-builder
+        (generate)="onGenerate()"
+        [isRegenerating]="isRegenerating()"
+        [takeSelected]="studio.isReady()"
+      />
+      <app-takes-reel
+        [takes]="studio.activeTakes()"
+        [discardedTakes]="studio.discardedTakes()"
+        [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+        (selectTake)="onSelectTake($event)"
+        (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
+      />
     </aside>
   </div>
 
   <app-footer />
 </div>
+
+<app-session-gate-dialog [visible]="gateOpen()" [adminClosable]="canBypassGate()" (visibleChange)="gateOpen.set($event)" />
+
+<p-toast position="top-right" />
+
+<!-- Floating sync button -->
+<button
+  type="button"
+  class="sync-fab"
+  [style]="{ transform: 'translate(' + syncBtnPos().x + 'px, ' + syncBtnPos().y + 'px)' }"
+  (mousedown)="onSyncBtnDown($event)"
+  (mousemove)="onSyncBtnMove($event)"
+  (mouseup)="onSyncBtnUp()"
+  (mouseleave)="onSyncBtnUp()"
+  (touchstart)="onSyncBtnDown($event)"
+  (touchmove)="onSyncBtnMove($event)"
+  (touchend)="onSyncBtnUp()"
+  (click)="onSyncBtnClick()"
+  pTooltip="Sync queue"
+>
+  <i class="pi pi-sync" aria-hidden="true"></i>
+</button>
+
+<!-- Sync queue dialog -->
+<p-dialog
+  [visible]="syncDialogVisible()"
+  (visibleChange)="syncDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '42rem' }"
+  header="Sync Queue"
+>
+  @if (syncLoading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
+  } @else if (syncedAssets().length === 0) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      No synced assets yet. Sync a character from the character library first.
+    </p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-[12px]">
+        <thead>
+          <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+            <th class="px-3 py-2 font-medium">File</th>
+            <th class="px-3 py-2 font-medium">Status</th>
+            <th class="px-3 py-2 font-medium">Sync date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of syncedAssets(); track a.id) {
+            <tr class="border-t" style="border-color: var(--border-color);">
+              <td class="max-w-[200px] truncate px-3 py-2 font-mono text-[13px]">
+                {{ a.file_id }}
+              </td>
+              <td class="px-3 py-2">
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                  [class.bg-green-900/40]="a.status === 'active'"
+                  [class.text-green-400]="a.status === 'active'"
+                  [class.bg-yellow-900/40]="a.status === 'syncing'"
+                  [class.text-yellow-400]="a.status === 'syncing'"
+                  [class.bg-red-900/40]="a.status === 'failed'"
+                  [class.text-red-400]="a.status === 'failed'"
+                >
+                  {{ a.status }}
+                </span>
+                @if (a.error_message) {
+                  <p class="mt-0.5 text-[10px] text-red-400">{{ a.error_message }}</p>
+                }
+              </td>
+              <td class="px-3 py-2 font-mono text-fg-muted">
+                {{ a.created_at | date: 'dd/MM/yy HH:mm' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        label="Close"
+        (onClick)="syncDialogVisible.set(false)"
+      />
+      <p-button
+        icon="pi pi-refresh"
+        label="Refresh"
+        (onClick)="openSyncDialog()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

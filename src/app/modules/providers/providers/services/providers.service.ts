@@ -77,10 +77,17 @@ export class ProvidersService {
     return this.api.createModel(payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
+          // El backend devuelve Model sin provider_name; lo parcheamos
+          // con el nombre del provider desde el store local.
+          const provider = this._providers().find((p) => p.provider.id === payload.provider_id);
+          const model: Model = {
+            ...res.data!,
+            provider_name: provider?.provider.name ?? '',
+          };
           this._providers.update((list) =>
             list.map((p) =>
               p.provider.id === payload.provider_id
-                ? { ...p, models: [...p.models, res.data!] }
+                ? { ...p, models: [...p.models, model] }
                 : p,
             ),
           );
@@ -97,12 +104,17 @@ export class ProvidersService {
     return this.api.updateModel(id, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
+          const provider = this._providers().find((p) => p.provider.id === providerId);
+          const model: Model = {
+            ...res.data!,
+            provider_name: provider?.provider.name ?? '',
+          };
           this._providers.update((list) =>
             list.map((p) =>
               p.provider.id === providerId
                 ? {
                     ...p,
-                    models: p.models.map((m) => (m.id === id ? res.data! : m)),
+                    models: p.models.map((m) => (m.id === id ? model : m)),
                   }
                 : p,
             ),
