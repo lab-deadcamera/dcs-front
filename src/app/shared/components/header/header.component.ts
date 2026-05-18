@@ -3,7 +3,6 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
-import { ApiKeysPopoverComponent } from '@shared/components/api-keys-popover/api-keys-popover.component';
 import { ThemePicker } from '@shared/components/theme-picker/theme-picker.component';
 import { SessionStore } from '@app/core/stores/session.store';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -13,7 +12,6 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
   selector: 'app-header',
   imports: [
     IconButtonComponent,
-    ApiKeysPopoverComponent,
     ThemePicker,
     TranslatePipe,
     NgOptimizedImage,

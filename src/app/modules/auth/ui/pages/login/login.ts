@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { SessionStore } from '@app/core/stores/session.store';
@@ -13,16 +12,14 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, TranslatePipe, RouterLink, InputTextModule, ButtonModule, PasswordModule],
+  imports: [ReactiveFormsModule, TranslatePipe, InputTextModule, ButtonModule, PasswordModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-md px-4 py-12">
       <h2 class="mb-2 text-center text-2xl font-bold uppercase tracking-[0.12em]">
         {{ 'STUDIO.BRAND.PRIMARY' | translate }}
       </h2>
-      <p class="mb-8 text-center text-[13px] text-fg-muted">
-        Sign in to your account
-      </p>
+      <p class="mb-8 text-center text-[13px] text-fg-muted">Sign in to your account</p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
@@ -62,11 +59,6 @@ import { Router } from '@angular/router';
           data-testid="login-submit"
         />
       </form>
-
-      <p class="mt-6 text-center text-[12px] text-fg-muted">
-        Don't have an account?
-        <a routerLink="../register" class="text-primary-500 underline">Register</a>
-      </p>
     </div>
   `,
 })
@@ -90,27 +82,30 @@ export default class LoginComponent {
     this.loading.set(true);
     this.error.set(null);
 
-    this.http.post<{ data: LoginResponse; success: boolean; message: string }>(
-      `${environment.API_URL}/auth/login`,
-      this.form.getRawValue(),
-    ).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        if (!res.success || !res.data) {
-          this.error.set(res.message || 'Login failed');
-          return;
-        }
-        this.session.login(res.data);
-        if (res.data.user.role.level <= 1) {
-          this.router.navigateByUrl('/');
-        } else {
-          this.router.navigateByUrl('/studio');
-        }
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.error.set(err.error?.error || 'Login failed');
-      },
-    });
+    this.http
+      .post<{
+        data: LoginResponse;
+        success: boolean;
+        message: string;
+      }>(`${environment.API_URL}/auth/login`, this.form.getRawValue())
+      .subscribe({
+        next: (res) => {
+          this.loading.set(false);
+          if (!res.success || !res.data) {
+            this.error.set(res.message || 'Login failed');
+            return;
+          }
+          this.session.login(res.data);
+          if (res.data.user.role.level <= 1) {
+            this.router.navigateByUrl('/');
+          } else {
+            this.router.navigateByUrl('/studio');
+          }
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.error.set(err.error?.error || 'Login failed');
+        },
+      });
   }
 }

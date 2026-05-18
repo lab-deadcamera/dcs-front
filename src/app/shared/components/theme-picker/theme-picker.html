@@ -9,13 +9,6 @@
 
 <p-popover #popover [dismissable]="true">
   <div class="w-80 p-4 space-y-4 bg-surface-0 dark:bg-surface-900">
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-surface-200 dark:border-surface-700 pb-3">
-      <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-200 uppercase tracking-wider">
-        {{ 'GLOBAL.SETTINGS.THEME' | translate }}
-      </h3>
-    </div>
-
     <!-- Language Picker -->
     <app-language-picker />
 
@@ -24,7 +17,9 @@
 
     <!-- Dark Mode Toggle -->
     <div class="flex items-center justify-between">
-      <span class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ 'GLOBAL.SETTINGS.DARK_MODE' | translate }}</span>
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-200">{{
+        'GLOBAL.SETTINGS.DARK_MODE' | translate
+      }}</span>
       <p-button
         [icon]="theme.mode() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'"
         [rounded]="true"
@@ -36,13 +31,30 @@
 
     <!-- Color Palettes -->
     <div class="space-y-4">
-      @for (section of [
-        { label: 'GLOBAL.COLORS.PRIMARY' | translate, current: theme.primaryName, select: theme.setPrimary.bind(theme) },
-        { label: 'GLOBAL.COLORS.SECONDARY' | translate, current: theme.secondaryName, select: theme.setSecondary.bind(theme) },
-        { label: 'GLOBAL.COLORS.ACCENT' | translate, current: theme.accentName, select: theme.setAccent.bind(theme) },
-      ]; track section.label) {
+      @for (
+        section of [
+          {
+            label: 'GLOBAL.COLORS.PRIMARY' | translate,
+            current: theme.primaryName,
+            select: theme.setPrimary.bind(theme),
+          },
+          {
+            label: 'GLOBAL.COLORS.SECONDARY' | translate,
+            current: theme.secondaryName,
+            select: theme.setSecondary.bind(theme),
+          },
+          {
+            label: 'GLOBAL.COLORS.ACCENT' | translate,
+            current: theme.accentName,
+            select: theme.setAccent.bind(theme),
+          },
+        ];
+        track section.label
+      ) {
         <div>
-          <p class="text-xs font-medium text-surface-600 dark:text-surface-400 mb-2">{{ section.label }}</p>
+          <p class="text-xs font-medium text-surface-600 dark:text-surface-400 mb-2">
+            {{ section.label }}
+          </p>
           <div class="flex flex-wrap gap-2">
             @for (palette of theme.palettes; track palette.name) {
               <button
@@ -52,9 +64,11 @@
                 [attr.title]="palette.label"
                 class="relative h-7 w-7 rounded-full border-2 transition-all duration-150 hover:scale-110 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
                 [style]="{ backgroundColor: palette.shades[5] }"
-                [class]="section.current() === palette.name
-                  ? 'border-surface-900 dark:border-white scale-110 ring-2 ring-offset-1 ring-surface-400 dark:ring-surface-500'
-                  : 'border-transparent'"
+                [class]="
+                  section.current() === palette.name
+                    ? 'border-surface-900 dark:border-white scale-110 ring-2 ring-offset-1 ring-surface-400 dark:ring-surface-500'
+                    : 'border-transparent'
+                "
               >
                 @if (section.current() === palette.name) {
                   <i class="pi pi-check absolute inset-0 m-auto text-xs text-white"></i>
@@ -65,5 +79,18 @@
         </div>
       }
     </div>
+
+    <!-- Divider -->
+    <div class="border-t border-surface-200 dark:border-surface-700"></div>
+
+    <!-- Logout Button -->
+    <p-button
+      icon="pi pi-sign-out"
+      label="{{ 'NAV.LOGOUT' | translate }}"
+      severity="danger"
+      [outlined]="true"
+      (onClick)="logout()"
+      styleClass="w-full"
+    />
   </div>
 </p-popover>

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -16,7 +16,6 @@ import { TakeFormDialogComponent } from '../components/take-form-dialog/take-for
   selector: 'app-index-projects',
   imports: [
     TranslatePipe,
-    DatePipe,
     ButtonModule,
     DecimalPipe,
     TooltipModule,

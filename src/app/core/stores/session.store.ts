@@ -41,7 +41,9 @@ function readStoredState(): Partial<SessionSnapshot> {
         accentName: parsed.accent ?? 'amber',
       };
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return {};
 }
 
@@ -99,6 +101,7 @@ export class SessionStore {
   readonly roleLevel = computed(() => this.role()?.level ?? -1);
 
   constructor() {
+    // Configure available languages first
     this.translate.addLangs(this.availableLanguages);
     this.translate.setFallbackLang('en');
 
@@ -109,6 +112,11 @@ export class SessionStore {
     if (storedToken) {
       this._token.set(storedToken);
     }
+
+    // Determine initial language synchronously before hydration
+    const initialLang = resolveInitialLanguage(this.translate);
+    this._language.set(initialLang);
+    this.translate.use(initialLang);
 
     this.hydrate();
 
@@ -169,7 +177,7 @@ export class SessionStore {
         this._accentName.set(snap.accentName ?? storedTheme.accentName ?? 'amber');
       } else {
         this._language.set(resolveInitialLanguage(this.translate));
-        this._mode.set(storedTheme.mode as 'light' | 'dark' ?? 'light');
+        this._mode.set((storedTheme.mode as 'light' | 'dark') ?? 'light');
         this._primaryName.set(storedTheme.primaryName ?? 'blue');
         this._secondaryName.set(storedTheme.secondaryName ?? 'purple');
         this._accentName.set(storedTheme.accentName ?? 'amber');
@@ -182,8 +190,12 @@ export class SessionStore {
     }
   }
 
-  setUser(user: SessionUser | null) { this._user.set(user); }
-  setToken(token: string | null) { this._token.set(token); }
+  setUser(user: SessionUser | null) {
+    this._user.set(user);
+  }
+  setToken(token: string | null) {
+    this._token.set(token);
+  }
 
   initSession(input: { email: string; handle: string }) {
     this._user.set({ email: input.email.trim(), handle: input.handle.trim() });
@@ -193,30 +205,55 @@ export class SessionStore {
   login(response: LoginResponse) {
     this._token.set(response.token);
     this._authUser.set(response.user);
-    this._user.set({ email: response.user.email, handle: response.user.user_name || response.user.username });
+    this._user.set({
+      email: response.user.email,
+      handle: response.user.user_name || response.user.username,
+    });
     localStorage.setItem('dcs-token', response.token);
   }
 
-  /** Clear all auth state and redirect to login. */
+  /** Clear all auth state except language and redirect to logout. */
   logout() {
     this._token.set(null);
     this._authUser.set(null);
     this._user.set(null);
     localStorage.removeItem('dcs-token');
-    this.router.navigateByUrl('/auth/login');
+    void this.storage.delete('session');
   }
 
-  reset() { this._user.set(null); this._token.set(null); this._authUser.set(null); localStorage.removeItem('dcs-token'); }
+  reset() {
+    this._user.set(null);
+    this._token.set(null);
+    this._authUser.set(null);
+    localStorage.removeItem('dcs-token');
+  }
 
-  setLanguage(lang: SupportedLanguage) { this._language.set(lang); }
+  setLanguage(lang: SupportedLanguage) {
+    this._language.set(lang);
+  }
   get(key: string, params?: Record<string, unknown>): string {
     return this.translate.instant(key, params);
   }
-  get$(key: string, params?: Record<string, unknown>) { return this.translate.get(key, params); }
+  get$(key: string, params?: Record<string, unknown>) {
+    return this.translate.get(key, params);
+  }
 
-  setMode(mode: 'light' | 'dark') { this._mode.set(mode); }
-  toggleMode() { this._mode.update((m) => (m === 'light' ? 'dark' : 'light')); }
-  setPrimary(name: string) { this._primaryName.set(name); this._primaryPalette.set(findPalette(name)); }
-  setSecondary(name: string) { this._secondaryName.set(name); this._secondaryPalette.set(findPalette(name)); }
-  setAccent(name: string) { this._accentName.set(name); this._accentPalette.set(findPalette(name)); }
+  setMode(mode: 'light' | 'dark') {
+    this._mode.set(mode);
+  }
+  toggleMode() {
+    this._mode.update((m) => (m === 'light' ? 'dark' : 'light'));
+  }
+  setPrimary(name: string) {
+    this._primaryName.set(name);
+    this._primaryPalette.set(findPalette(name));
+  }
+  setSecondary(name: string) {
+    this._secondaryName.set(name);
+    this._secondaryPalette.set(findPalette(name));
+  }
+  setAccent(name: string) {
+    this._accentName.set(name);
+    this._accentPalette.set(findPalette(name));
+  }
 }

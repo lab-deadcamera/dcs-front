@@ -14,7 +14,9 @@
     "CHARACTERS": "Personajes",
     "FILES": "Archivos",
     "PROJECTS": "Proyectos",
-    "PROVIDERS": "Proveedores"
+    "PROVIDERS": "Proveedores",
+    "ADMIN": "Admin",
+    "LOGOUT": "Cerrar Sesión"
   },
   "GLOBAL": {
     "SETTINGS": {

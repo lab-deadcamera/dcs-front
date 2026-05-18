@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ModelService } from '@app/services';
@@ -8,7 +15,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-model-select-dialog',
-  imports: [DialogModule, ButtonModule, TranslatePipe],
+  imports: [DialogModule, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -28,7 +35,9 @@ import { StudioStore } from '@app/core/stores/studio.store';
         <div class="flex flex-col items-center gap-3 py-12">
           <i class="pi pi-database text-3xl text-fg-muted"></i>
           <p class="text-[13px] text-fg-muted">No models available.</p>
-          <p class="text-[11px] text-fg-muted">Configure providers and models in the Providers section first.</p>
+          <p class="text-[11px] text-fg-muted">
+            Configure providers and models in the Providers section first.
+          </p>
         </div>
       }
 
