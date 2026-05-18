@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -55,6 +55,15 @@ export class CharacterAssetsComponent {
   private readonly toast = inject(MessageService);
   protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
+
+  /**
+   * Emitted once per file successfully added to the prompt's used-asset
+   * list — the parent shell forwards this to the prompt-builder so the
+   * matching `[Image N]` / `[Video N]` / `[Audio N]` token is inserted at
+   * the cursor in the editor.
+   */
+  readonly assetPicked = output<UsedAssetKind>();
+
 
   /**
    * Whether the "My Assets" band acts as an open disclosure — its body
@@ -193,6 +202,7 @@ export class CharacterAssetsComponent {
       return;
     }
     for (const f of a.files) {
+      const before = this.studio.usedAssets().length;
       this.studio.useAsset({
         fileId: f.fileId,
         characterId: a.id,
@@ -200,6 +210,11 @@ export class CharacterAssetsComponent {
         filename: f.filename,
         kind: a.fileKind,
       });
+      // useAsset dedupes by fileId — only emit when an entry actually
+      // appeared, so the prompt-builder doesn't insert a stale token.
+      if (this.studio.usedAssets().length > before) {
+        this.assetPicked.emit(a.fileKind);
+      }
     }
     this.toast.add({
       severity: 'success',
@@ -263,6 +278,42 @@ export class CharacterAssetsComponent {
         });
       });
     }
+  }
+
+  /**
+   * Toggle an uploaded file in the references list. Free uploads share
+   * the same `usedAssets` bucket as library picks, so they get numbered
+   * in the per-kind sequence (`[Image1]`, `[Image2]`, …) based on the
+   * order they were clicked, interleaved with library picks. Reuses the
+   * same `assetPicked` output so the parent inserts the matching token
+   * into the editor exactly like a library pick.
+   */
+  protected onPickFreeAsset(a: ReferenceAsset): void {
+    if (this.isUsed(a.id)) {
+      this.studio.unuseAsset(a.id);
+      return;
+    }
+    this.studio.useAsset({
+      fileId: a.id,
+      // No backing character — reuse the file id so unuseAsset(a.id)
+      // matches whether the caller passes a characterId or a fileId.
+      characterId: a.id,
+      name: a.filename,
+      filename: a.filename,
+      kind: a.kind,
+    });
+    this.assetPicked.emit(a.kind);
+  }
+
+  /**
+   * Remove the upload from the grid entirely, and unpick it if it was
+   * also sitting in the references list. The editor-side `[ImageN]`
+   * cleanup is handled by the prompt-builder's prune effect, which
+   * watches `usedAssets()` shrinkage.
+   */
+  protected onRemoveFreeAsset(id: string): void {
+    this.studio.unuseAsset(id);
+    this.studio.removeFreeAsset(id);
   }
 }
 
