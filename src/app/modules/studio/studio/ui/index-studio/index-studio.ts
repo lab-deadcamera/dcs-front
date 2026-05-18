@@ -618,9 +618,9 @@ export class IndexStudio implements OnInit {
     if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
     const last = this.studio.lastFrame();
     if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
-    for (const free of this.studio.freeAssets()) {
-      push(free.id, free.filename, free.kind, free.tag);
-    }
+    // Free-asset uploads only enter the payload when the user clicks the
+    // thumbnail — at that point they're already in `usedAssets` below and
+    // travel with the same per-kind `[ImageN]` numbering as library picks.
     for (const used of this.studio.usedAssets()) {
       const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
       push(used.fileId, used.filename, type, used.name);

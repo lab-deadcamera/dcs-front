@@ -93,10 +93,10 @@ export class PromptBuilderComponent {
     video: string;
     audio: string;
   } = {
-    image: 'STUDIO.PROMPT.REFERENCES_IMAGES',
-    video: 'STUDIO.PROMPT.REFERENCES_VIDEO',
-    audio: 'STUDIO.PROMPT.REFERENCES_AUDIO',
-  };
+      image: 'STUDIO.PROMPT.REFERENCES_IMAGES',
+      video: 'STUDIO.PROMPT.REFERENCES_VIDEO',
+      audio: 'STUDIO.PROMPT.REFERENCES_AUDIO',
+    };
 
   // ── Editor content ───────────────────────────────────────────────
 
@@ -105,6 +105,13 @@ export class PromptBuilderComponent {
 
   /** Flag to prevent syncing store → editor when the change originated from the editor. */
   private skipStoreSync = false;
+
+  /**
+   * Last observed count per token-prefix. Tokens are pruned only when a
+   * count *decreases*, so legitimate text written manually (or hydrated
+   * from storage on first paint) is never wiped out by the initial run.
+   */
+  private prevCounts = { image: 0, video: 0, audio: 0 };
 
   constructor() {
     this.editorContent.set(this.studio.rawDescription());
@@ -118,6 +125,32 @@ export class PromptBuilderComponent {
         }
       }
       this.skipStoreSync = false;
+    });
+
+    // When the user removes a chip, drop the highest-numbered matching
+    // tokens from the editor so the prompt text mirrors the chip strip.
+    // Chips always renumber to 1..N per kind in display order, so pruning
+    // anything with N > current-count is correct regardless of which
+    // asset was removed. Deferred via microtask so Quill is settled
+    // before we mutate it from inside a reactive effect.
+    effect(() => {
+      const next = {
+        image: this.imageAssets().length,
+        video: this.videoAssets().length,
+        audio: this.audioAssets().length,
+      };
+      const shrunk = {
+        image: next.image < this.prevCounts.image,
+        video: next.video < this.prevCounts.video,
+        audio: next.audio < this.prevCounts.audio,
+      };
+      this.prevCounts = next;
+      if (!shrunk.image && !shrunk.video && !shrunk.audio) return;
+      queueMicrotask(() => {
+        if (shrunk.image) this.pruneStaleTokens('Image', next.image);
+        if (shrunk.video) this.pruneStaleTokens('Video', next.video);
+        if (shrunk.audio) this.pruneStaleTokens('Audio', next.audio);
+      });
     });
   }
 
@@ -151,10 +184,79 @@ export class PromptBuilderComponent {
     return html.replace(/<[^>]*>/g, '').trim();
   }
 
-  /** Adds a reference to the prompt at the current cursor position. */
+  /**
+   * Adds a reference to the prompt at the current cursor position.
+   * If the editor has no selection (never focused), falls back to the end
+   * of the document so the chip lands next to the last typed letter rather
+   * than at position 0.
+   */
   addReference(reference: string): void {
     const quill = this.editorRef.getQuill();
-    const cursorPosition = quill.getSelection()?.index || 0;
-    quill.insertText(cursorPosition, `[${reference}]`);
+    const selection = quill.getSelection();
+    // Quill always appends a trailing newline → length-1 is the end of content.
+    const fallbackEnd = Math.max(0, quill.getLength() - 1);
+    const cursorPosition = selection?.index ?? fallbackEnd;
+    const text = ` [${reference}]`;
+    quill.insertText(cursorPosition, text);
+    quill.setSelection(cursorPosition + text.length, 0);
+  }
+
+  /**
+   * Canonical English label for a chip kind. Hardcoded (not translated)
+   * because the token also ships to the model in the payload and must
+   * match the frame hint vocabulary ("Image 1", "Video 1", "Audio 1").
+   */
+  protected labelFor(kind: UsedAssetKind): 'Image' | 'Video' | 'Audio' {
+    if (kind === 'video') return 'Video';
+    if (kind === 'audio') return 'Audio';
+    return 'Image';
+  }
+
+  /**
+   * Inserts a reference label whose number matches the chip the user just
+   * picked from the library (e.g. picking a third image emits `[Image3]`).
+   * Reads the count from the same filtered signals that render the chip
+   * strip so labels stay in sync with what the user sees.
+   */
+  addReferenceForKind(kind: UsedAssetKind): void {
+    const label = this.labelFor(kind);
+    const count =
+      kind === 'video'
+        ? this.videoAssets().length
+        : kind === 'audio'
+          ? this.audioAssets().length
+          : this.imageAssets().length;
+    this.addReference(`${label}${count}`);
+  }
+
+  /**
+   * Remove every `[<label>N]` token whose N exceeds `maxAllowed`. Iterates
+   * in reverse so deletions don't shift the indices of earlier matches.
+   * Absorbs a single leading space so we don't leave double spaces behind
+   * the way `addReference` inserts them.
+   */
+  private pruneStaleTokens(label: 'Image' | 'Video' | 'Audio', maxAllowed: number): void {
+    if (!this.editorRef) return;
+    const quill = this.editorRef.getQuill();
+    if (!quill) return;
+    const text = quill.getText();
+    const pattern = new RegExp(` ?\\[${label}(\\d+)\\]`, 'g');
+    const stale: Array<{ index: number; length: number }> = [];
+    let m: RegExpExecArray | null;
+    while ((m = pattern.exec(text)) !== null) {
+      if (parseInt(m[1], 10) > maxAllowed) {
+        stale.push({ index: m.index, length: m[0].length });
+      }
+    }
+    if (stale.length === 0) return;
+    for (let i = stale.length - 1; i >= 0; i--) {
+      quill.deleteText(stale[i].index, stale[i].length);
+    }
+    // Keep the store in sync — Quill's text-change event normally feeds
+    // onTextChange, but we set the flag preemptively in case the event
+    // path is suppressed for `api`-source edits.
+    this.skipStoreSync = true;
+    this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
   }
 }
+
