@@ -84,6 +84,19 @@ export class IndexStudio implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
 
+  // ── Preview dialog ──────────────────────────────────────────────────
+
+  protected readonly previewDialogVisible = signal(false);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewData = signal<Record<string, unknown> | null>(null);
+  protected readonly previewError = signal<string | null>(null);
+
+  /** Pretty-printed JSON for the preview modal. */
+  protected readonly previewDataPretty = computed(() => {
+    const d = this.previewData();
+    return d ? JSON.stringify(d, null, 2) : '';
+  });
+
   // ── Sync floating button ────────────────────────────────────────────
 
   protected readonly syncDialogVisible = signal(false);
@@ -158,6 +171,9 @@ export class IndexStudio implements OnInit {
 
   /** Admins (level ≤ 1) pueden cerrar el gate sin seleccionar proyecto/escena. */
   protected readonly canBypassGate = computed(() => this.sessionStore.roleLevel() <= 1);
+
+  /** Solo SUPER_ADMIN (level 0) ve el botón de Vista previa del payload. */
+  protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
 
   ngOnInit(): void {
     this.modelService.getFavorite().subscribe((res) => {
@@ -313,6 +329,57 @@ export class IndexStudio implements OnInit {
     for (let i = 0; i < count; i++) {
       this.runOneGeneration(text, i + 1, count);
     }
+  }
+
+  /**
+   * Dry-run the same payload `onGenerate` would send and show the backend's
+   * response in a modal. Skips the polling loop and the generation queue —
+   * the user can inspect what would have been sent before paying for the
+   * actual run.
+   */
+  protected onPreview(): void {
+    // Defense in depth — the button is already hidden for non-superadmins
+    // via `[canPreview]`, but guard the handler in case it gets called
+    // programmatically (e.g. dev tools, future shortcut binding).
+    if (!this.isSuperAdmin()) return;
+    if (!this.studio.projectId() || !this.studio.sceneId()) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes seleccionar un proyecto y una escena antes de previsualizar',
+        severity: 'error',
+        life: 3000,
+      });
+      this.gateOpen.set(true);
+      return;
+    }
+    const text = this.studio.rawDescription().trim();
+    if (!text) {
+      this.toast.add({
+        summary: 'Error',
+        detail: 'Debes escribir un prompt antes de previsualizar',
+        severity: 'error',
+        life: 3000,
+      });
+      return;
+    }
+
+    const payload = this.buildPayload(text);
+    this.previewData.set(null);
+    this.previewError.set(null);
+    this.previewLoading.set(true);
+    this.previewDialogVisible.set(true);
+
+    this.videoGenerator
+      .preview(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.previewLoading.set(false);
+        if (res.error) {
+          this.previewError.set(res.msg);
+          return;
+        }
+        this.previewData.set(res.data ?? {});
+      });
   }
 
   /**

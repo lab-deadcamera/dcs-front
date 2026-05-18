@@ -50,8 +50,10 @@
       <app-prompt-builder
         #promptBuilder
         (generate)="onGenerate()"
+        (preview)="onPreview()"
         [isRegenerating]="isRegenerating()"
         [takeSelected]="studio.isReady()"
+        [canPreview]="isSuperAdmin()"
       />
       <app-takes-reel
         [takes]="studio.activeTakes()"
@@ -157,6 +159,39 @@
         icon="pi pi-refresh"
         label="Refresh"
         (onClick)="openSyncDialog()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Preview payload dialog — shows the raw response of VideoGeneratorService.preview() -->
+<p-dialog
+  [visible]="previewDialogVisible()"
+  (visibleChange)="previewDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '60rem', maxWidth: '95vw' }"
+  header="Vista previa del payload"
+>
+  @if (previewLoading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">Cargando…</p>
+  } @else if (previewError()) {
+    <p class="py-4 font-mono text-[12px] text-red-400">{{ previewError() }}</p>
+  } @else if (!previewData()) {
+    <p class="py-4 text-[13px] italic text-fg-muted">Sin datos en la respuesta.</p>
+  } @else {
+    <pre
+      class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
+    >{{ previewDataPretty() }}</pre>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        label="Cerrar"
+        (onClick)="previewDialogVisible.set(false)"
       />
     </div>
   </ng-template>
