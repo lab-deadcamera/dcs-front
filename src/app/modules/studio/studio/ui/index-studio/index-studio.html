@@ -30,9 +30,14 @@
       <app-output-format />
     </section>
 
-    <!-- Steps 04 → 06 — Preview, Rating, Prompt (RIGHT on lg+, sticky) -->
+    <!--
+      Steps 04 → 06 — Preview, Rating, Prompt (RIGHT on lg+, sticky).
+      `top-28` (7rem) clears the sticky brand + nav header above; the
+      `max-h` mirror keeps the rail's scroll area from spilling past the
+      viewport once the header takes its slice.
+    -->
     <aside
-      class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto"
+      class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-28 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto"
     >
       <div class="flex items-start">
         <div class="min-w-0 flex-1">

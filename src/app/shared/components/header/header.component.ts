@@ -19,6 +19,11 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
     RouterLinkActive,
     ModelSelectDialogComponent,
   ],
+  // Sticky header — pins the brand strip + primary nav to the top of the
+  // viewport as the user scrolls. `bg-ink-950` matches the layout shell so
+  // content underneath doesn't bleed through; `z-50` keeps it above the
+  // studio's sticky right-rail and any dialog backdrops below modal-level.
+  host: { class: 'sticky top-0 z-50 bg-ink-950' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4">
