@@ -170,9 +170,20 @@
   }
 
   <div class="mt-4">
+    <!--
+      Bind via explicit signal read + .set() rather than [(ngModel)].
+      `[(ngModel)]="editorContent"` desugars into an assignment
+      (`editorContent = $event`) on every change-event, which would
+      REPLACE the WritableSignal with the plain string emitted by Quill
+      on the first keystroke. Once that happens, the effect-driven
+      `editorContent.set(...)` we use to sync preset injections (and
+      external rawDescription changes) silently throws and the editor
+      never visually updates again.
+    -->
     <p-editor
       #editor
-      [(ngModel)]="editorContent"
+      [ngModel]="editorContent()"
+      (ngModelChange)="editorContent.set($event)"
       (onTextChange)="onTextChange($event)"
       [modules]="{ toolbar: false }"
       [style]="{ height: '340px', border: '1px solid #3a3a4c', borderRadius: '0' }"
