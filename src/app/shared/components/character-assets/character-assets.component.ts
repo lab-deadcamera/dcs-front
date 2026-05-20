@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
+import { ImageGenPanelComponent } from '@shared/components/image-gen-panel/image-gen-panel.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
@@ -40,6 +41,7 @@ interface LibraryItem {
   imports: [
     SectionHeaderComponent,
     DropZoneComponent,
+    ImageGenPanelComponent,
     TranslatePipe,
     SourceAssetPipe,
     ButtonModule,
@@ -64,6 +66,14 @@ export class CharacterAssetsComponent {
    */
   readonly assetPicked = output<UsedAssetKind>();
 
+
+  /**
+   * Whether the "Image Generation" band acts as an open disclosure — its
+   * body mounts <app-image-gen-panel> only when expanded. Defaults to
+   * collapsed so the heavier-weight panel doesn't load until the user
+   * opts in.
+   */
+  protected readonly imageGenExpanded = signal(false);
 
   /**
    * Whether the "My Assets" band acts as an open disclosure — its body
@@ -155,6 +165,10 @@ export class CharacterAssetsComponent {
     // first paint. Subsequent creates inside the library dialog refresh
     // the same singleton — `libraryByType` updates reactively.
     this.chars.load().subscribe();
+  }
+
+  protected toggleImageGen(): void {
+    this.imageGenExpanded.update((v) => !v);
   }
 
   protected toggleMyAssets(): void {

@@ -283,6 +283,8 @@
       "TITLE": "Personajes y Assets",
       "CHARACTER_STUDIO": "Character Studio",
       "CHARACTER_STUDIO_HINT": "Genera imágenes de referencia confiables · powered by Seedream",
+      "IMAGE_GENERATION": "Image Generation",
+      "IMAGE_GENERATION_HINT": "Genera nuevas imágenes a partir de un prompt y referencias",
       "MY_ASSETS": "Mis Assets",
       "MY_ASSETS_HINT": "Biblioteca privada confiable · BytePlus",
       "REFERENCE": "Assets de Referencia",
