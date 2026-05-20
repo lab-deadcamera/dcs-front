@@ -9,15 +9,18 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ModelService, ImageGeneratorService, FilesApiService } from '@app/services';
 import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-image-gen-panel',
   imports: [
     FormsModule,
     ButtonModule,
+    DialogModule,
     SelectModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -110,22 +113,23 @@ import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
         }
       </div>
 
-      <!-- Generated image result -->
+      <!-- Generated image result — inline preview -->
       @if (generatedImage(); as img) {
         <div class="mt-2 flex flex-col gap-2">
           <img
             [src]="img.url"
             alt="Generated image"
-            class="w-full rounded object-contain"
-            style="max-height: 400px; background: var(--ink-900);"
+            class="w-full cursor-pointer rounded object-contain"
+            style="max-height: 300px; background: var(--ink-900);"
+            (click)="previewVisible.set(true)"
           />
           <div class="flex items-center gap-2">
             <p-button
               severity="secondary"
               [text]="true"
-              icon="pi pi-external-link"
-              label="Open"
-              (onClick)="openUrl(img.url)"
+              icon="pi pi-window-maximize"
+              label="Preview"
+              (onClick)="previewVisible.set(true)"
             />
             <p-button
               severity="secondary"
@@ -159,6 +163,50 @@ import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
         </div>
       }
 
+      <!-- Preview modal -->
+      <p-dialog
+        [visible]="previewVisible()"
+        (visibleChange)="previewVisible.set($event)"
+        [modal]="true"
+        [closable]="true"
+        [draggable]="false"
+        [style]="{ width: '80vw', maxWidth: '1024px' }"
+        header="Generated Image"
+      >
+        @if (generatedImage(); as img) {
+          <img
+            [src]="img.url"
+            alt="Generated image"
+            class="w-full rounded object-contain"
+            style="max-height: 80vh; background: var(--ink-900);"
+          />
+        }
+        <ng-template pTemplate="footer">
+          <div class="flex justify-end gap-2">
+            <p-button
+              severity="secondary"
+              [text]="true"
+              icon="pi pi-download"
+              label="Download"
+              (onClick)="downloadImage(generatedImage()!.url)"
+            />
+            <p-button
+              severity="info"
+              icon="pi pi-save"
+              [label]="saving() ? 'Saving…' : 'Save as temp asset'"
+              [loading]="saving()"
+              (onClick)="saveAsTempAsset(generatedImage()!.url)"
+            />
+            <p-button
+              severity="secondary"
+              [text]="true"
+              label="Close"
+              (onClick)="previewVisible.set(false)"
+            />
+          </div>
+        </ng-template>
+      </p-dialog>
+
       <!-- Error state -->
       @if (error(); as msg) {
         <p class="text-[12px] text-red-400">{{ msg }}</p>
@@ -170,6 +218,7 @@ export class ImageGenPanelComponent implements OnInit {
   private readonly modelService = inject(ModelService);
   private readonly imageGenerator = inject(ImageGeneratorService);
   private readonly filesApi = inject(FilesApiService);
+  private readonly studio = inject(StudioStore);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly imageModels = signal<ModelData[]>([]);
@@ -181,6 +230,7 @@ export class ImageGenPanelComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly generatedImage = signal<{ url: string } | null>(null);
   protected readonly savedAssetUrl = signal<string | null>(null);
+  protected readonly previewVisible = signal(false);
   protected readonly error = signal<string | null>(null);
 
   protected readonly referenceImages = signal<Array<{ id: string; url: string; fileId: string }>>([]);
@@ -188,7 +238,8 @@ export class ImageGenPanelComponent implements OnInit {
   protected readonly canGenerate = (): boolean =>
     !this.generating() &&
     !!this.selectedModelId() &&
-    this.prompt().trim().length > 0;
+    this.prompt().trim().length > 0 &&
+    this.hasSession();
 
   ngOnInit(): void {
     this.loadImageModels();
@@ -236,14 +287,25 @@ export class ImageGenPanelComponent implements OnInit {
     this.referenceImages.update((list) => list.filter((r) => r.id !== id));
   }
 
+  private hasSession(): boolean {
+    return !!this.studio.projectId() && !!this.studio.sceneId();
+  }
+
   protected onGenerate(): void {
     const model = this.imageModels().find((m) => m.id === this.selectedModelId());
     if (!model || !this.prompt().trim()) return;
+
+    if (!this.hasSession()) {
+      this.error.set('project_id, scene_id, scene_code and take_number are required for generation');
+      return;
+    }
 
     this.generating.set(true);
     this.error.set(null);
     this.generatedImage.set(null);
     this.savedAssetUrl.set(null);
+
+    const takeIndex = this.studio.currentTake()?.index ?? 1;
 
     // Build content array: text prompt + reference images
     const content: Array<{ type: string; text?: string; id?: string }> = [
@@ -258,10 +320,10 @@ export class ImageGenPanelComponent implements OnInit {
       content,
       ratio: '1:1',
       resolution: '1K',
-      project_id: '',
-      scene_id: '',
-      scene_code: '',
-      take_number: 1,
+      project_id: this.studio.projectId() ?? '',
+      scene_id: this.studio.sceneId() ?? '',
+      scene_code: this.studio.sceneCode(),
+      take_number: takeIndex,
     } as unknown as ImageGenerateRequest;
     this.imageGenerator.generate(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.generating.set(false);
@@ -303,10 +365,6 @@ export class ImageGenPanelComponent implements OnInit {
         }
       });
     }, 3000);
-  }
-
-  protected openUrl(url: string): void {
-    window.open(url, '_blank');
   }
 
   protected downloadImage(url: string): void {
