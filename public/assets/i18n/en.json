@@ -457,13 +457,20 @@
       "PROVIDER": "Provider",
       "PROVIDER_PLACEHOLDER": "Select a provider",
       "MODEL_NAME": "Model name",
+      "MODEL_TYPE": "Model type",
       "API_KEY": "API Key",
       "URL": "URL",
-      "ENDPOINT": "Endpoint"
+      "ENDPOINT": "Endpoint",
+      "ACCESS_KEY_ID": "Access Key ID",
+      "SECRET_ACCESS_KEY": "Secret Access Key",
+      "DEFAULT_ASSET_GROUP_ID": "Default Asset Group ID",
+      "PROJECT_NAME": "Project Name",
+      "PROJECT_NUMBER": "Project Number"
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "New Model",
-      "EDIT_TITLE": "Edit Model"
+      "EDIT_TITLE": "Edit Model",
+      "MORE_OPTIONS": "More options"
     }
   }
 }
