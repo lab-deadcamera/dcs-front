@@ -393,7 +393,7 @@ export class ImageGenPanelComponent implements OnInit {
       .then((res) => res.blob())
       .then((blob) => {
         const file = new File([blob], `generated-${Date.now()}.png`, { type: blob.type });
-        this.filesApi.upload({ file, category: 'temp', storage: 'temp' })
+        this.filesApi.upload({ file, category: 'images', storage: 'temp' })
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((res) => {
             this.saving.set(false);
