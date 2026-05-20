@@ -156,6 +156,30 @@
       "DOWNLOAD": "Download video",
       "GENERATING_COUNT": "Generating {{n}} video(s)…"
     },
+    "IMAGE_GEN": {
+      "TITLE": "Image Generation",
+      "HINT": "Generate reference images with AI · powered by Gemini",
+      "PROMPT_LABEL": "Prompt",
+      "PROMPT_PLACEHOLDER": "Describe the image you want to generate. Be specific: subject, style, lighting, composition.",
+      "ASPECT_RATIO": "Aspect ratio",
+      "OUTPUT_SIZE": "Output size",
+      "MODEL_LABEL": "Model",
+      "GENERATE": "Generate image",
+      "GENERATING": "Generating…",
+      "RESULTS": "Results",
+      "REFERENCES": "Reference images",
+      "REFERENCES_DROP": "Drop or click to add references",
+      "REFERENCES_UPLOADING": "Uploading…",
+      "REFERENCES_FULL_HINT": "You've reached the maximum of 10 references. Remove one to add another.",
+      "REMOVE_REFERENCE": "Remove reference",
+      "RATIOS": {
+        "SQUARE": "Square",
+        "WIDE": "Wide",
+        "PORTRAIT": "Portrait",
+        "STANDARD": "Standard",
+        "STANDARD_P": "Portrait standard"
+      }
+    },
     "PROMPT": {
       "TITLE": "Prompt Builder",
       "HINT": "Describe the scene · the cinematographic style is injected automatically",

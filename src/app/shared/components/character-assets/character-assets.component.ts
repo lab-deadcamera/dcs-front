@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
+import { ImageStudioComponent } from '@shared/components/image-studio/image-studio.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
@@ -40,6 +41,7 @@ interface LibraryItem {
   imports: [
     SectionHeaderComponent,
     DropZoneComponent,
+    ImageStudioComponent,
     TranslatePipe,
     SourceAssetPipe,
     ButtonModule,

@@ -17,7 +17,6 @@ import { TakesReelComponent } from '@shared/components/takes-reel/takes-reel.com
 import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
 import { OutputFormatComponent } from '@shared/components/output-format/output-format.component';
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
-import { ImageGenPanelComponent } from '@shared/components/image-gen-panel/image-gen-panel.component';
 import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
@@ -56,7 +55,6 @@ const POLL_INTERVAL_MS = 3000;
     HeroComponent,
     ViewerComponent,
     PromptBuilderComponent,
-    ImageGenPanelComponent,
     TakesReelComponent,
     CinematographyComponent,
     OutputFormatComponent,

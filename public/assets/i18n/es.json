@@ -156,6 +156,30 @@
       "DOWNLOAD": "Descargar video",
       "GENERATING_COUNT": "Generando {{n}} video(s)…"
     },
+    "IMAGE_GEN": {
+      "TITLE": "Generación de Imagen",
+      "HINT": "Crea imágenes de referencia con IA · powered by Gemini",
+      "PROMPT_LABEL": "Descripción",
+      "PROMPT_PLACEHOLDER": "Describe la imagen que quieres generar. Sé específico: sujeto, estilo, iluminación, composición.",
+      "ASPECT_RATIO": "Relación de aspecto",
+      "OUTPUT_SIZE": "Tamaño de salida",
+      "MODEL_LABEL": "Modelo",
+      "GENERATE": "Generar imagen",
+      "GENERATING": "Generando…",
+      "RESULTS": "Resultados",
+      "REFERENCES": "Imágenes de referencia",
+      "REFERENCES_DROP": "Arrastra o haz clic para añadir referencias",
+      "REFERENCES_UPLOADING": "Subiendo…",
+      "REFERENCES_FULL_HINT": "Has alcanzado el máximo de 10 referencias. Elimina una para añadir otra.",
+      "REMOVE_REFERENCE": "Quitar referencia",
+      "RATIOS": {
+        "SQUARE": "Cuadrada",
+        "WIDE": "Panorámica",
+        "PORTRAIT": "Vertical",
+        "STANDARD": "Estándar",
+        "STANDARD_P": "Estándar vertical"
+      }
+    },
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
       "HINT": "Describe la escena · el estilo cinematográfico se inyecta automáticamente",

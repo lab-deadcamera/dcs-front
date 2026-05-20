@@ -1,0 +1,278 @@
+<!--
+  Disclosure band — same visual rhythm as the "My Assets" disclosure
+  below, but uses the secondary accent + ✦ icon so the two surfaces are
+  visually distinct while remaining clearly siblings.
+-->
+<div class="mt-3">
+  <button
+    type="button"
+    class="flex w-full items-center justify-between border-l-2 border-secondary-500 bg-ink-850 px-4 py-3 text-left transition-colors hover:bg-ink-800 focus:outline-none"
+    (click)="toggleExpanded()"
+    [attr.aria-expanded]="expanded()"
+    aria-controls="image-studio-panel"
+    data-testid="image-studio-toggle"
+  >
+    <div class="flex items-center gap-3">
+      <span class="text-secondary-500">✦</span>
+      <div>
+        <p class="text-[12px] font-bold uppercase tracking-[0.18em] text-secondary-500">
+          {{ 'STUDIO.IMAGE_GEN.TITLE' | translate }}
+        </p>
+        <p class="text-[11px] italic text-fg-muted">
+          {{ 'STUDIO.IMAGE_GEN.HINT' | translate }}
+        </p>
+      </div>
+    </div>
+    <span
+      aria-hidden="true"
+      class="inline-block text-fg-muted transition-transform duration-150"
+      [class.rotate-180]="expanded()"
+      >▾</span
+    >
+  </button>
+
+  @if (expanded()) {
+    <div
+      id="image-studio-panel"
+      class="flex flex-col gap-4 border border-t-0 border-ink-600 bg-ink-900 p-4"
+    >
+      <!-- Prompt input -->
+      <div class="flex flex-col gap-1.5">
+        <label
+          for="image-studio-prompt"
+          class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted"
+        >
+          {{ 'STUDIO.IMAGE_GEN.PROMPT_LABEL' | translate }}
+        </label>
+        <textarea
+          pTextarea
+          id="image-studio-prompt"
+          rows="3"
+          autoResize
+          [ngModel]="prompt()"
+          (ngModelChange)="prompt.set($event)"
+          [placeholder]="'STUDIO.IMAGE_GEN.PROMPT_PLACEHOLDER' | translate"
+          class="w-full border border-ink-500 bg-ink-950 px-3 py-2 font-mono text-[12px] leading-relaxed text-fg placeholder:italic placeholder:text-fg-muted focus:border-secondary-500 focus:outline-none"
+          data-testid="image-studio-prompt"
+        ></textarea>
+      </div>
+
+      <!--
+        Reference images — up to 10 inputs the model can condition on.
+        Existing DropZoneComponent handles drag-drop + click-to-pick; the
+        strip below renders thumbnails with × to drop individual entries.
+      -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ 'STUDIO.IMAGE_GEN.REFERENCES' | translate }}
+          </span>
+          <span
+            class="font-mono text-[10px] tabular-nums text-fg-muted"
+            [class.text-secondary-500]="referencesFull()"
+            data-testid="image-studio-ref-count"
+          >
+            {{ references().length }} / {{ maxReferences }}
+          </span>
+        </div>
+
+        @if (references().length) {
+          <ul class="flex flex-wrap gap-2">
+            @for (r of references(); track r.fileId) {
+              <li
+                class="group relative h-16 w-16 overflow-hidden border border-ink-500 bg-ink-800"
+                [title]="r.filename"
+              >
+                <img
+                  [src]="r.url"
+                  [alt]="r.filename"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <button
+                  type="button"
+                  class="absolute top-0 right-0 z-10 flex h-5 w-5 items-center justify-center bg-ink-950/80 text-[11px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-secondary-500 focus:opacity-100"
+                  (click)="onRemoveReference(r.fileId)"
+                  [attr.aria-label]="'STUDIO.IMAGE_GEN.REMOVE_REFERENCE' | translate"
+                  [attr.data-testid]="'image-studio-ref-remove-' + r.fileId"
+                >
+                  ×
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (!referencesFull()) {
+          <ui-drop-zone
+            [compact]="references().length > 0"
+            [multiple]="true"
+            accept="image/*"
+            [placeholderKey]="
+              uploadingReferences()
+                ? 'STUDIO.IMAGE_GEN.REFERENCES_UPLOADING'
+                : 'STUDIO.IMAGE_GEN.REFERENCES_DROP'
+            "
+            (filesDropped)="onReferenceFiles($event)"
+          />
+        } @else {
+          <p class="font-mono text-[10px] italic text-fg-muted">
+            {{ 'STUDIO.IMAGE_GEN.REFERENCES_FULL_HINT' | translate }}
+          </p>
+        }
+      </div>
+
+      <!--
+        Aspect-ratio chooser — popover trigger shows the current ratio
+        + a small live preview of the rectangle so the user knows what
+        shape they're requesting before opening the picker.
+      -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ 'STUDIO.IMAGE_GEN.ASPECT_RATIO' | translate }}
+          </span>
+          <button
+            type="button"
+            class="group inline-flex items-center gap-2.5 border border-ink-500 bg-ink-800 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-fg transition-colors hover:border-secondary-500 hover:text-fg-strong focus:outline-none focus:border-secondary-500"
+            (click)="ratioPop.toggle($event)"
+            [attr.aria-haspopup]="'menu'"
+            [attr.aria-expanded]="false"
+            data-testid="image-studio-ratio-trigger"
+          >
+            <span
+              aria-hidden="true"
+              class="block border border-fg-muted bg-ink-700 group-hover:border-fg-strong"
+              [style.width.px]="activeAspect().width"
+              [style.height.px]="activeAspect().height"
+            ></span>
+            <span class="whitespace-nowrap">{{ aspectRatio() }}</span>
+            <span class="ml-1 text-fg-muted" aria-hidden="true">▾</span>
+          </button>
+
+          <p-popover #ratioPop [dismissable]="true" appendTo="body">
+            <div class="min-w-[220px] bg-ink-900 p-3 text-fg">
+              <p
+                class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-secondary-500"
+              >
+                {{ 'STUDIO.IMAGE_GEN.ASPECT_RATIO' | translate }}
+              </p>
+              <ul class="flex flex-col gap-1">
+                @for (opt of aspectRatioOptions; track opt.value) {
+                  @let active = aspectRatio() === opt.value;
+                  <li>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-3 border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg transition-colors hover:border-secondary-500 hover:text-fg-strong"
+                      [class.border-secondary-500]="active"
+                      [class.text-fg-strong]="active"
+                      (click)="setAspectRatio(opt.value, ratioPop)"
+                      [attr.data-testid]="'image-studio-ratio-' + opt.value"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="block border border-fg-muted bg-ink-700"
+                        [class.border-secondary-500]="active"
+                        [style.width.px]="opt.width"
+                        [style.height.px]="opt.height"
+                      ></span>
+                      <span class="flex-1">{{ opt.value }}</span>
+                      <span class="text-[10px] italic text-fg-muted">
+                        {{ opt.labelKey | translate }}
+                      </span>
+                      @if (active) {
+                        <span class="text-secondary-500" aria-hidden="true">●</span>
+                      }
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          </p-popover>
+        </div>
+
+        <!--
+          Output size — three large pills (1K / 2K / 4K). The pill grows
+          subtly when selected to make the click target feel tactile.
+        -->
+        <div class="flex items-center gap-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ 'STUDIO.IMAGE_GEN.OUTPUT_SIZE' | translate }}
+          </span>
+          <div
+            class="inline-flex items-stretch border border-ink-500 bg-ink-800"
+            role="radiogroup"
+            [attr.aria-label]="'STUDIO.IMAGE_GEN.OUTPUT_SIZE' | translate"
+          >
+            @for (s of outputSizes; track s.value) {
+              @let active = outputSize() === s.value;
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="active"
+                class="border-r border-ink-500 px-4 py-1.5 font-mono text-[12px] font-bold uppercase tracking-[0.12em] transition-colors last:border-r-0 focus:outline-none"
+                [class.bg-secondary-500]="active"
+                [class.text-ink-950]="active"
+                [class.text-fg]="!active"
+                [class.hover:text-fg-strong]="!active"
+                (click)="setOutputSize(s.value)"
+                [title]="s.px + 'px'"
+                [attr.data-testid]="'image-studio-size-' + s.value"
+              >
+                {{ s.label }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate action + status -->
+      <div class="flex items-center justify-between gap-3">
+        <p class="font-mono text-[10px] italic text-fg-muted">
+          {{ 'STUDIO.IMAGE_GEN.MODEL_LABEL' | translate }}
+          ·
+          <span class="not-italic text-secondary-500">gemini-3.1-flash-image-preview</span>
+        </p>
+        <p-button
+          severity="secondary"
+          icon="pi pi-sparkles"
+          [label]="
+            generating()
+              ? ('STUDIO.IMAGE_GEN.GENERATING' | translate)
+              : ('STUDIO.IMAGE_GEN.GENERATE' | translate)
+          "
+          [disabled]="!canGenerate()"
+          [loading]="generating()"
+          (onClick)="onGenerate()"
+          data-testid="image-studio-generate"
+        />
+      </div>
+
+      @if (errorMsg(); as err) {
+        <p class="font-mono text-[11px] text-red-400">{{ err }}</p>
+      }
+
+      @if (resultUrls().length) {
+        <div class="mt-1 flex flex-col gap-2">
+          <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ 'STUDIO.IMAGE_GEN.RESULTS' | translate }}
+          </p>
+          <ul class="flex flex-wrap gap-2">
+            @for (url of resultUrls(); track url) {
+              <li
+                class="relative h-24 w-24 overflow-hidden border border-ink-500 bg-ink-800"
+              >
+                <img
+                  [src]="url"
+                  alt=""
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</div>
