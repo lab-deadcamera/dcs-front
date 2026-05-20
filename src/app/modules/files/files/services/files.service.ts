@@ -31,7 +31,7 @@ export class FilesService {
     const cat = this._category();
     this._loading.set(true);
     const source$ =
-      cat === 'trash' ? this.api.listTrash() : this.api.list(cat as FileCategory, 'persistent');
+      cat === 'trash' ? this.api.listTrash() : this.api.list(cat as FileCategory, cat === 'temp' ? 'temp' : 'persistent');
 
     return source$.pipe(
       tap((res) => {
@@ -50,7 +50,7 @@ export class FilesService {
           const landsHere =
             active === 'trash'
               ? false
-              : payload.category === active && payload.storage === 'persistent';
+              : payload.category === active && (payload.storage === 'persistent' || payload.storage === 'temp');
           if (landsHere) {
             this._items.update((list) => [res.data!, ...list]);
           }
