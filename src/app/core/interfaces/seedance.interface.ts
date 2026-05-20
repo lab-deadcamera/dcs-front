@@ -83,14 +83,12 @@ export interface GenerationLogEntry {
   scene_id: string;
   scene_code: string;
   take_number?: number;
-  request: string;
-  ai_response?: string;
-  ai_call_payload?: string;
-  outputs: string;
+  request?: string;
+  outputs?: string;
   status: string;
   error_message: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   // Enriched fields (LEFT JOIN desde el backend)
   user_name?: string;
   user_display_name?: string;

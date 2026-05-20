@@ -426,22 +426,6 @@ imports: [
             <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.request) }}</pre>
           </div>
 
-          <!-- AI Call payload -->
-          @if (d.ai_call_payload) {
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">AI Call Payload</span>
-              <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.ai_call_payload) }}</pre>
-            </div>
-          }
-
-          <!-- AI Response -->
-          @if (d.ai_response) {
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">AI Response</span>
-              <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.ai_response) }}</pre>
-            </div>
-          }
-
           <!-- Outputs -->
           @if (d.outputs && d.outputs !== '[]') {
             <div>
@@ -626,6 +610,7 @@ export class IndexAdmin implements OnInit {
 
   protected showPayload(log: GenerationLogEntry): void {
     try {
+      if (!log.request) { this.toast.add({ severity: 'warn', summary: 'No payload', detail: 'Request payload not loaded', life: 3000 }); return; }
       const parsed = JSON.parse(log.request);
       this.selectedPayload.set(parsed);
       this.selectedPayloadContent.set(parsed.content ?? []);
@@ -642,7 +627,7 @@ export class IndexAdmin implements OnInit {
 
   protected showVideo(log: GenerationLogEntry): void {
     try {
-      const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs || '[]');
+      const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs ?? '[]');
       this.selectedVideos.set(outputs);
       this.videoDialogVisible.set(true);
     } catch {
@@ -673,7 +658,7 @@ export class IndexAdmin implements OnInit {
     });
   }
 
-  protected formatJson(raw: string): string {
+  protected formatJson(raw: string | undefined | null): string {
     if (!raw) return '';
     try {
       return JSON.stringify(JSON.parse(raw), null, 2);
@@ -682,7 +667,8 @@ export class IndexAdmin implements OnInit {
     }
   }
 
-  protected parseOutputs(raw: string): Array<{ url: string; type: string }> {
+  protected parseOutputs(raw: string | undefined | null): Array<{ url: string; type: string }> {
+    if (!raw) return [];
     try {
       return JSON.parse(raw);
     } catch {
