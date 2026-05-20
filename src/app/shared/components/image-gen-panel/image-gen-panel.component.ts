@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
+import { environment } from '@environment/environment';
 import { ModelService, ImageGeneratorService, FilesApiService } from '@app/services';
 import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -287,6 +288,14 @@ export class ImageGenPanelComponent implements OnInit {
     this.referenceImages.update((list) => list.filter((r) => r.id !== id));
   }
 
+  /** Convierte una URL relativa del backend en una URL absoluta usando API_BASE_URL. */
+  private resolveUrl(url: string): string {
+    if (!url) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('/')) return environment.API_BASE_URL + url;
+    return environment.API_BASE_URL + '/outputs/' + url;
+  }
+
   private hasSession(): boolean {
     return !!this.studio.projectId() && !!this.studio.sceneId();
   }
@@ -333,7 +342,7 @@ export class ImageGenPanelComponent implements OnInit {
       }
       const result = res.data;
       if (result.status === 'succeeded' && result.outputs?.length > 0) {
-        this.generatedImage.set({ url: result.outputs[0].url });
+        this.generatedImage.set({ url: this.resolveUrl(result.outputs[0].url) });
       } else if (result.status === 'failed') {
         this.error.set(result.error || 'Generation failed');
       } else {
@@ -354,7 +363,7 @@ export class ImageGenPanelComponent implements OnInit {
         const result = res.data;
         if (result.status === 'succeeded') {
           this.generatedImage.set(
-            result.outputs?.[0]?.url ? { url: result.outputs[0].url } : null,
+            result.outputs?.[0]?.url ? { url: this.resolveUrl(result.outputs[0].url) } : null,
           );
           this.generating.set(false);
           clearInterval(poll);
