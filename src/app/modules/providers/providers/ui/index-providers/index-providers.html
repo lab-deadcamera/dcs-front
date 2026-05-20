@@ -112,6 +112,7 @@
                 <thead>
                   <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
                     <th class="px-4 py-2 font-medium">Model</th>
+                    <th class="px-4 py-2 font-medium">Type</th>
                     <th class="px-4 py-2 font-medium">Status</th>
                     <th class="px-4 py-2 font-medium">Endpoint</th>
                     <th class="px-4 py-2 font-medium">URL</th>
@@ -123,6 +124,21 @@
                   @for (m of item.models; track m.id) {
                     <tr class="border-t" style="border-color: var(--border-color);">
                       <td class="px-4 py-2 font-mono text-[13px]">{{ m.name }}</td>
+                      <td class="px-4 py-2">
+                        <span
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
+                          [class.bg-blue-900/40]="m.model_type === 'video'"
+                          [class.text-blue-400]="m.model_type === 'video'"
+                          [class.bg-purple-900/40]="m.model_type === 'text'"
+                          [class.text-purple-400]="m.model_type === 'text'"
+                          [class.bg-amber-900/40]="m.model_type === 'audio'"
+                          [class.text-amber-400]="m.model_type === 'audio'"
+                          [class.bg-emerald-900/40]="m.model_type === 'image'"
+                          [class.text-emerald-400]="m.model_type === 'image'"
+                        >
+                          {{ m.model_type }}
+                        </span>
+                      </td>
                       <td class="px-4 py-2">
                         <span
                           class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"

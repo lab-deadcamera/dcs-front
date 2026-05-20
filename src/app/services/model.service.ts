@@ -53,14 +53,21 @@ export class ModelService {
       );
   }
 
-  public getAllModels(): Observable<{ error: boolean; msg: string; data?: ModelData[] }> {
+  public getAllModels(
+    modelType?: string,
+  ): Observable<{ error: boolean; msg: string; data?: ModelData[] }> {
     const res = {
       error: true,
       msg: 'Error undefined',
       data: undefined as ModelData[] | undefined,
     };
 
-    return this.http.get<ResponseBase<ModelData[]>>(`${this.apiUrl}/models`).pipe(
+    let url = `${this.apiUrl}/models`;
+    if (modelType) {
+      url += `?model_type=${encodeURIComponent(modelType)}`;
+    }
+
+    return this.http.get<ResponseBase<ModelData[]>>(url).pipe(
       map((r) => {
         res.error = !r.success;
         res.msg = r.message;

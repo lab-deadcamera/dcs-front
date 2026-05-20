@@ -91,6 +91,24 @@ import { Model, Provider } from '../../../interfaces';
         </div>
 
         <div class="flex flex-col gap-1">
+          <label for="model-type" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            {{ 'PROVIDERS.FIELDS.MODEL_TYPE' | translate }}
+          </label>
+          <p-select
+            inputId="model-type"
+            formControlName="model_type"
+            [options]="modelTypeOptions"
+            optionLabel="label"
+            optionValue="value"
+            data-testid="model-type-select"
+          />
+          <validator-errors
+            [control]="form.get('model_type')"
+            [label]="'PROVIDERS.FIELDS.MODEL_TYPE' | translate"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
           <label for="model-api-key" class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'PROVIDERS.FIELDS.API_KEY' | translate }}
           </label>
@@ -175,16 +193,24 @@ export class ModelFormDialogComponent {
   readonly submitting = input(false);
 
   readonly visibleChange = output<boolean>();
+  protected readonly modelTypeOptions = [
+    { label: 'Video', value: 'video' },
+    { label: 'Text', value: 'text' },
+    { label: 'Audio', value: 'audio' },
+    { label: 'Image', value: 'image' },
+  ];
+
   readonly create = output<{
     provider_id: string;
     name: string;
+    model_type: string;
     api_key: string;
     url: string;
     endpoint: string;
   }>();
   readonly update = output<{
     id: string;
-    patch: { name?: string; api_key?: string; url?: string; endpoint?: string };
+    patch: { name?: string; model_type?: string; api_key?: string; url?: string; endpoint?: string };
   }>();
 
   protected readonly isEdit = computed(() => this.model() !== null);
@@ -196,6 +222,7 @@ export class ModelFormDialogComponent {
   protected readonly form: FormGroup = this.fb.group({
     provider_id: ['', [Validators.required]],
     name: ['', [Validators.required, Validators.maxLength(120)]],
+    model_type: ['video', [Validators.required]],
     api_key: ['', [Validators.required]],
     url: ['', [Validators.required]],
     endpoint: ['', [Validators.required]],
@@ -208,6 +235,7 @@ export class ModelFormDialogComponent {
     this.form.reset({
       provider_id: m?.provider_id ?? preSelected ?? '',
       name: m?.name ?? '',
+      model_type: m?.model_type ?? 'video',
       api_key: m?.api_key ?? '',
       url: m?.url ?? '',
       endpoint: m?.endpoint ?? '',
@@ -231,6 +259,7 @@ export class ModelFormDialogComponent {
     const v = this.form.value as {
       provider_id: string;
       name: string;
+      model_type: string;
       api_key: string;
       url: string;
       endpoint: string;

@@ -13,6 +13,7 @@ export interface Model {
   id: string;
   provider_id: string;
   name: string;
+  model_type: string;
   api_key: string;
   url: string;
   endpoint: string;
@@ -45,6 +46,7 @@ export interface UpdateProviderRequest {
 export interface CreateModelRequest {
   provider_id: string;
   name: string;
+  model_type?: string;
   api_key: string;
   url: string;
   endpoint: string;
@@ -53,6 +55,7 @@ export interface CreateModelRequest {
 
 export interface UpdateModelRequest {
   name?: string;
+  model_type?: string;
   api_key?: string;
   url?: string;
   endpoint?: string;

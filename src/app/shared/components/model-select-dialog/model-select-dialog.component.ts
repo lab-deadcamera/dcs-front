@@ -116,7 +116,7 @@ export class ModelSelectDialogComponent {
   private readonly fetchOnOpen = effect(() => {
     if (!this.visible()) return;
     this.loading.set(true);
-    this.modelService.getAllModels().subscribe((res) => {
+    this.modelService.getAllModels('video').subscribe((res) => {
       this.loading.set(false);
       if (res.error || !res.data) return;
 

@@ -457,6 +457,7 @@
       "PROVIDER": "Proveedor",
       "PROVIDER_PLACEHOLDER": "Selecciona un proveedor",
       "MODEL_NAME": "Nombre del modelo",
+      "MODEL_TYPE": "Tipo de modelo",
       "API_KEY": "API Key",
       "URL": "URL",
       "ENDPOINT": "Endpoint"

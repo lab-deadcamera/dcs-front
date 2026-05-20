@@ -164,6 +164,7 @@ export class IndexProviders implements OnInit {
   protected onCreateModel(evt: {
     provider_id: string;
     name: string;
+    model_type: string;
     api_key: string;
     url: string;
     endpoint: string;

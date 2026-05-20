@@ -11,6 +11,7 @@ export interface ModelData {
   id: string;
   provider_id: string;
   name: string;
+  model_type: string;
   api_key: string;
   favorite: boolean;
   url: string;
