@@ -17,6 +17,11 @@ export interface Model {
   api_key: string;
   url: string;
   endpoint: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  default_asset_group_id?: string;
+  project_name?: string;
+  project_number?: string;
   active: boolean;
   favorite: boolean;
   provider_name: string;
@@ -50,6 +55,11 @@ export interface CreateModelRequest {
   api_key: string;
   url: string;
   endpoint: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  default_asset_group_id?: string;
+  project_name?: string;
+  project_number?: string;
   active?: boolean;
 }
 
@@ -59,5 +69,10 @@ export interface UpdateModelRequest {
   api_key?: string;
   url?: string;
   endpoint?: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  default_asset_group_id?: string;
+  project_name?: string;
+  project_number?: string;
   active?: boolean;
 }

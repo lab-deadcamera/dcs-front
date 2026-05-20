@@ -72,7 +72,7 @@ export class ProvidersService {
   }
 
   createModel(
-    payload: { provider_id: string; name: string; model_type: string; api_key: string; url: string; endpoint: string; active?: boolean },
+    payload: { provider_id: string; name: string; model_type: string; api_key: string; url: string; endpoint: string; access_key_id?: string; secret_access_key?: string; default_asset_group_id?: string; project_name?: string; project_number?: string; active?: boolean },
   ): Observable<{ error: boolean; msg: string; data?: Model }> {
     return this.api.createModel(payload).pipe(
       tap((res) => {
@@ -99,7 +99,7 @@ export class ProvidersService {
   updateModel(
     id: string,
     providerId: string,
-    payload: { name?: string; model_type?: string; api_key?: string; url?: string; endpoint?: string; active?: boolean },
+    payload: { name?: string; model_type?: string; api_key?: string; url?: string; endpoint?: string; access_key_id?: string; secret_access_key?: string; default_asset_group_id?: string; project_name?: string; project_number?: string; active?: boolean },
   ): Observable<{ error: boolean; msg: string; data?: Model }> {
     return this.api.updateModel(id, payload).pipe(
       tap((res) => {

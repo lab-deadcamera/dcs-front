@@ -460,11 +460,17 @@
       "MODEL_TYPE": "Tipo de modelo",
       "API_KEY": "API Key",
       "URL": "URL",
-      "ENDPOINT": "Endpoint"
+      "ENDPOINT": "Endpoint",
+      "ACCESS_KEY_ID": "Access Key ID",
+      "SECRET_ACCESS_KEY": "Secret Access Key",
+      "DEFAULT_ASSET_GROUP_ID": "ID de Grupo de Assets",
+      "PROJECT_NAME": "Nombre del Proyecto",
+      "PROJECT_NUMBER": "Número de Proyecto"
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "Nuevo Modelo",
-      "EDIT_TITLE": "Editar Modelo"
+      "EDIT_TITLE": "Editar Modelo",
+      "MORE_OPTIONS": "Más opciones"
     }
   }
 }

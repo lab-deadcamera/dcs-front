@@ -16,6 +16,11 @@ export interface ModelData {
   favorite: boolean;
   url: string;
   endpoint: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  default_asset_group_id?: string;
+  project_name?: string;
+  project_number?: string;
   active: boolean;
   created_at: string;
   updated_at: string;

@@ -168,6 +168,11 @@ export class IndexProviders implements OnInit {
     api_key: string;
     url: string;
     endpoint: string;
+    access_key_id?: string;
+    secret_access_key?: string;
+    default_asset_group_id?: string;
+    project_name?: string;
+    project_number?: string;
   }): void {
     this.submitting.set(true);
     this.service.createModel(evt).subscribe((res) => {
