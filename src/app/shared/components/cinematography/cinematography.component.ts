@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  output,
   signal,
 } from '@angular/core';
 import { Popover } from 'primeng/popover';
@@ -274,6 +275,45 @@ export class CinematographyComponent {
   private readonly presets = inject(PresetsService);
 
   /**
+   * Emitted on every cinematography slot change. `remove` carries the
+   * snippet previously injected for the slot (so the prompt builder can
+   * strip it) and `add` carries the new snippet to append. Either field
+   * may be absent: a deselect emits `remove` only, a fresh pick emits
+   * `add` only, a swap inside the same slot emits both. The parent shell
+   * wires this to the prompt builder's `applyPresetChange`.
+   */
+  readonly presetChanged = output<{ remove?: string; add?: string }>();
+
+  /**
+   * Snippet currently injected into the prompt per slot — used to undo
+   * exactly what was added when the user deselects or swaps. Lives in
+   * the component (not the store) because it's a derived UI side effect
+   * tied to the editor, not part of the canonical session state.
+   */
+  private readonly injectedBySlot = new Map<
+    'lens' | 'cameraBody' | 'cameraMotion' | 'colorGrading' | 'genre',
+    string
+  >();
+
+  /**
+   * Compute the diff for a slot transition and emit the right combination
+   * of remove/add. Centralizes the bookkeeping so each on* handler stays
+   * a one-liner. No-op when the snippet hasn't changed (e.g. clicking the
+   * same variant twice).
+   */
+  private updateSlot(
+    slot: 'lens' | 'cameraBody' | 'cameraMotion' | 'colorGrading' | 'genre',
+    nextSnippet: string | null,
+  ): void {
+    const prev = this.injectedBySlot.get(slot);
+    const next = nextSnippet?.trim() || null;
+    if (prev === next || (!prev && !next)) return;
+    this.presetChanged.emit({ remove: prev, add: next ?? undefined });
+    if (next) this.injectedBySlot.set(slot, next);
+    else this.injectedBySlot.delete(slot);
+  }
+
+  /**
    * Variants per parent grade, generated once and frozen for the session.
    * Map (vs Record) because admin-added custom grades have arbitrary ids
    * outside the original closed union — but only the curated 4 actually
@@ -368,15 +408,19 @@ export class CinematographyComponent {
 
   protected onLens(v: LensId | null) {
     this.studio.patchCinematography({ lens: v });
+    this.updateSlot('lens', this.snippetFor(v));
   }
   protected onBody(v: CameraBodyId | null) {
     this.studio.patchCinematography({ cameraBody: v });
+    this.updateSlot('cameraBody', this.snippetFor(v));
   }
   protected onMotion(v: CameraMotionId | null) {
     this.studio.patchCinematography({ cameraMotion: v });
+    this.updateSlot('cameraMotion', this.snippetFor(v));
   }
   protected onGenre(v: GenreId | null) {
     this.studio.patchCinematography({ genre: v });
+    this.updateSlot('genre', this.snippetFor(v));
   }
 
   protected onPickVariant(
@@ -386,6 +430,13 @@ export class CinematographyComponent {
   ) {
     this.studio.patchCinematography({ colorGrading: parentId as ColorGradingId });
     this.selectedVariant.set(variant.name);
+    // Compose the parent grade's recipe + the picked mood word so the
+    // model gets both the family ("TOKIO") and the variation.
+    const parentPrompt = this.presets.findPreset(parentId)?.prompt ?? '';
+    const composed = parentPrompt
+      ? `${parentPrompt} — ${variant.name.toLowerCase()} mood`
+      : null;
+    this.updateSlot('colorGrading', composed);
     pop.hide();
   }
 
@@ -396,10 +447,20 @@ export class CinematographyComponent {
    */
   protected onPickCustomGrade(id: string): void {
     const cur = this.studio.cinematography().colorGrading;
-    this.studio.patchCinematography({
-      colorGrading: cur === id ? null : (id as ColorGradingId),
-    });
+    const next = cur === id ? null : (id as ColorGradingId);
+    this.studio.patchCinematography({ colorGrading: next });
     if (cur === id) this.selectedVariant.set(null);
+    this.updateSlot('colorGrading', this.snippetFor(next));
+  }
+
+  /**
+   * Look up a preset by id and return its trimmed `prompt` text, or
+   * null when the id is empty / preset is missing / has no prompt.
+   */
+  private snippetFor(id: string | null): string | null {
+    if (!id) return null;
+    const prompt = this.presets.findPreset(id)?.prompt?.trim();
+    return prompt || null;
   }
 
   /**
@@ -429,24 +490,35 @@ export class CinematographyComponent {
     const cine = this.studio.cinematography();
     switch (category) {
       case 'lens':
-        if (cine.lens === id) this.studio.patchCinematography({ lens: null });
+        if (cine.lens === id) {
+          this.studio.patchCinematography({ lens: null });
+          this.updateSlot('lens', null);
+        }
         break;
       case 'camera':
-        if (cine.cameraBody === id)
+        if (cine.cameraBody === id) {
           this.studio.patchCinematography({ cameraBody: null });
+          this.updateSlot('cameraBody', null);
+        }
         break;
       case 'cameraMotion':
-        if (cine.cameraMotion === id)
+        if (cine.cameraMotion === id) {
           this.studio.patchCinematography({ cameraMotion: null });
+          this.updateSlot('cameraMotion', null);
+        }
         break;
       case 'colorGrading':
         if (cine.colorGrading === id) {
           this.studio.patchCinematography({ colorGrading: null });
           this.selectedVariant.set(null);
+          this.updateSlot('colorGrading', null);
         }
         break;
       case 'genre':
-        if (cine.genre === id) this.studio.patchCinematography({ genre: null });
+        if (cine.genre === id) {
+          this.studio.patchCinematography({ genre: null });
+          this.updateSlot('genre', null);
+        }
         break;
     }
     this.presets.removePreset(category, id);
