@@ -55,7 +55,7 @@ export class FilesApiService {
 
   list(
     category?: FileCategory,
-    storage: FileStorage = 'persistent',
+    storage?: FileStorage,
   ): Observable<{ error: boolean; msg: string; data?: FileEntity[] }> {
     const res = {
       error: true,
@@ -65,7 +65,7 @@ export class FilesApiService {
 
     const qs = new URLSearchParams();
     if (category) qs.set('category', category);
-    qs.set('storage', storage);
+    if (storage) qs.set('storage', storage);
 
     return this.http.get<ResponseBase<FileWire[]>>(`${this.apiUrl}?${qs.toString()}`).pipe(
       map((r) => {
