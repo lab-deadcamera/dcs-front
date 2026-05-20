@@ -4,6 +4,7 @@ import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
 import {
+  GenerationLogEntry,
   GenerationLogListResponse,
   ModelAssetSync,
   ResponseBase,
@@ -58,6 +59,21 @@ export class GenerationLogsService {
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<GenerationLogListResponse>),
+      );
+  }
+
+  /**
+   * Get a single generation log by its ID.
+   * GET /studio/logs/generation/:id
+   */
+  getById(
+    id: string,
+  ): Observable<{ error: boolean; msg: string; data?: GenerationLogEntry }> {
+    return this.http
+      .get<ResponseBase<GenerationLogEntry>>(`${this.apiUrl}/logs/generation/${id}`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<GenerationLogEntry>),
       );
   }
 

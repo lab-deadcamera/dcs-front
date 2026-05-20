@@ -168,7 +168,7 @@ imports: [
                 <th class="px-3 py-2 font-medium">Take</th>
                 <th class="px-3 py-2 font-medium">Status</th>
                 <th class="px-3 py-2 font-medium">Date</th>
-                <th class="w-28 px-3 py-2 font-medium">Actions</th>
+                <th class="w-36 px-3 py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -201,7 +201,9 @@ imports: [
                       {{ log.status }}
                     </span>
                     @if (log.error_message) {
-                      <p class="mt-0.5 text-[10px] text-red-400">{{ log.error_message }}</p>
+                      <p class="mt-0.5 truncate text-[10px] text-red-400" [title]="log.error_message">
+                        {{ log.error_message }}
+                      </p>
                     }
                   </td>
                   <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
@@ -234,6 +236,14 @@ imports: [
                         pTooltip="View generated videos"
                         [disabled]="!log.outputs || log.outputs === '[]'"
                         (onClick)="showVideo(log)"
+                      />
+                      <p-button
+                        icon="pi pi-info-circle"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="View full details"
+                        (onClick)="showDetails(log)"
                       />
                     </div>
                   </td>
@@ -314,15 +324,23 @@ imports: [
       <div class="flex flex-col gap-4">
         @for (v of selectedVideos(); track $index) {
           <div class="overflow-hidden rounded border" style="border-color: var(--border-color);">
-            <video
-              [src]="v.url"
-              controls
-              class="w-full max-h-[400px]"
-              preload="metadata"
-              playsinline
-            >
-              Your browser does not support the video tag.
-            </video>
+            @if (v.type === 'video') {
+              <video
+                [src]="v.url"
+                controls
+                class="w-full max-h-[400px]"
+                preload="metadata"
+                playsinline
+              >
+                Your browser does not support the video tag.
+              </video>
+            } @else {
+              <img
+                [src]="v.url"
+                class="w-full max-h-[400px] object-contain"
+                alt="Generated output"
+              />
+            }
             <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
               <span>{{ v.type }}</span>
               <a
@@ -335,6 +353,122 @@ imports: [
           </div>
         }
       </div>
+    </p-dialog>
+
+    <!-- Full details dialog -->
+    <p-dialog
+      [visible]="detailsDialogVisible()"
+      (visibleChange)="detailsDialogVisible.set($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [style]="{ width: '70rem', maxWidth: '95vw' }"
+      header="Generation Details"
+    >
+      @if (detailsLoading()) {
+        <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
+      } @else if (detailsError()) {
+        <p class="text-[12px] text-red-400">{{ detailsError() }}</p>
+      } @else if (detailsData(); as d) {
+        <div class="flex flex-col gap-4 text-[12px]">
+          <!-- Summary -->
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Task ID</span>
+              <span class="font-mono">{{ d.task_id || '—' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Model</span>
+              <span>{{ d.model_name }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Status</span>
+              <span [class.text-green-400]="d.status === 'succeeded'" [class.text-red-400]="d.status === 'failed'">
+                {{ d.status }}
+              </span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">User</span>
+              <span>{{ d.user_display_name || d.user_name || d.user_id || '—' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Project</span>
+              <span>{{ d.project_name || d.project_id || '—' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Scene</span>
+              <span>{{ sceneLabel(d) || d.scene_code || d.scene_id || '—' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Take</span>
+              <span>{{ d.take_number ?? '—' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Created</span>
+              <span>{{ d.created_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
+            </div>
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Updated</span>
+              <span>{{ d.updated_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
+            </div>
+          </div>
+
+          @if (d.error_message) {
+            <div>
+              <span class="block font-bold uppercase text-red-400">Error</span>
+              <pre class="mt-1 whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] text-red-400">{{ d.error_message }}</pre>
+            </div>
+          }
+
+          <!-- Request payload -->
+          <div>
+            <span class="block font-bold uppercase text-fg-muted">Request Payload</span>
+            <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.request) }}</pre>
+          </div>
+
+          <!-- AI Call payload -->
+          @if (d.ai_call_payload) {
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">AI Call Payload</span>
+              <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.ai_call_payload) }}</pre>
+            </div>
+          }
+
+          <!-- AI Response -->
+          @if (d.ai_response) {
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">AI Response</span>
+              <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.ai_response) }}</pre>
+            </div>
+          }
+
+          <!-- Outputs -->
+          @if (d.outputs && d.outputs !== '[]') {
+            <div>
+              <span class="block font-bold uppercase text-fg-muted">Outputs</span>
+              <div class="mt-1 flex flex-wrap gap-3">
+                @for (out of parseOutputs(d.outputs); track $index) {
+                  <div class="overflow-hidden rounded border" style="border-color: var(--border-color);">
+                    @if (out.type === 'video') {
+                      <video [src]="out.url" controls class="w-60 h-36 object-cover" preload="metadata" playsinline>
+                        Your browser does not support the video tag.
+                      </video>
+                    } @else {
+                      <img [src]="out.url" class="w-60 h-36 object-contain bg-ink-900" alt="Output" />
+                    }
+                    <div class="px-2 py-1 text-[10px] text-fg-muted">
+                      <a [href]="out.url" target="_blank" class="text-primary-500 underline">Open</a>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <ng-template pTemplate="footer">
+        <p-button severity="secondary" [text]="true" label="Close" (onClick)="detailsDialogVisible.set(false)" />
+      </ng-template>
     </p-dialog>
 
     <p-toast position="top-right" />
@@ -513,6 +647,46 @@ export class IndexAdmin implements OnInit {
       this.videoDialogVisible.set(true);
     } catch {
       this.toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid outputs JSON', life: 3000 });
+    }
+  }
+
+  // ── Full details dialog ──────────────────────────────────────────
+
+  protected readonly detailsDialogVisible = signal(false);
+  protected readonly detailsLoading = signal(false);
+  protected readonly detailsError = signal<string | null>(null);
+  protected readonly detailsData = signal<GenerationLogEntry | null>(null);
+
+  protected showDetails(log: GenerationLogEntry): void {
+    this.detailsLoading.set(true);
+    this.detailsError.set(null);
+    this.detailsData.set(null);
+    this.detailsDialogVisible.set(true);
+
+    this.genLogs.getById(log.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
+      this.detailsLoading.set(false);
+      if (res.error || !res.data) {
+        this.detailsError.set(res.msg || 'Failed to load details');
+        return;
+      }
+      this.detailsData.set(res.data);
+    });
+  }
+
+  protected formatJson(raw: string): string {
+    if (!raw) return '';
+    try {
+      return JSON.stringify(JSON.parse(raw), null, 2);
+    } catch {
+      return raw;
+    }
+  }
+
+  protected parseOutputs(raw: string): Array<{ url: string; type: string }> {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
     }
   }
 

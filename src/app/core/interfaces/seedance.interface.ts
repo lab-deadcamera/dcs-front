@@ -84,6 +84,8 @@ export interface GenerationLogEntry {
   scene_code: string;
   take_number?: number;
   request: string;
+  ai_response?: string;
+  ai_call_payload?: string;
   outputs: string;
   status: string;
   error_message: string;
@@ -136,15 +138,6 @@ export interface SyncAssetItem {
   asset_group_id: string;
   status: string;
   error_message: string;
-}
-
-/** Paginated wrapper for GET /studio/logs/generation. */
-export interface GenerationLogListResponse {
-  logs: GenerationLogEntry[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
 }
 
 export interface StudioTaskResponse {
