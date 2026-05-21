@@ -295,10 +295,10 @@
           } @else {
             <ul class="flex flex-wrap gap-1.5">
               @for (a of visibleLibrary(); track a.id) {
-                <li>
+                <li class="group relative h-14 w-14">
                   <button
                     type="button"
-                    class="group relative flex h-14 w-14 flex-col overflow-hidden border bg-ink-800 transition-colors hover:border-primary-500 focus:outline-none focus:border-primary-500"
+                    class="relative flex h-full w-full flex-col overflow-hidden border bg-ink-800 transition-colors hover:border-primary-500 focus:outline-none focus:border-primary-500"
                     [class.border-primary-500]="isUsed(a.id)"
                     [class.border-ink-500]="!isUsed(a.id)"
                     [title]="a.name"
@@ -338,15 +338,40 @@
                     @if (isUsed(a.id)) {
                       <span
                         aria-hidden="true"
-                        class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-primary-500 text-ink-950"
+                        class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-primary-500 text-ink-950 group-hover:opacity-0"
                       >
                         <i class="pi pi-check text-[9px]"></i>
                       </span>
                     }
                   </button>
+                  <!--
+                    Hide from quick-pick — view-only, does NOT delete the
+                    asset from the Characters library. Sibling of the pick
+                    button so we never nest <button> elements.
+                  -->
+                  <button
+                    type="button"
+                    class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity hover:text-primary-500 group-hover:opacity-100 focus:opacity-100"
+                    (click)="hideFromLibrary(a.id, $event)"
+                    [attr.aria-label]="'STUDIO.ASSETS.LIBRARY_HIDE' | translate"
+                    [attr.data-testid]="'my-library-hide-' + a.id"
+                  >
+                    ×
+                  </button>
                 </li>
               }
             </ul>
+          }
+
+          @if (hiddenInActiveTab() > 0) {
+            <button
+              type="button"
+              class="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-muted underline transition-colors hover:text-primary-500"
+              (click)="showHiddenLibrary()"
+              data-testid="my-library-show-hidden"
+            >
+              {{ 'STUDIO.ASSETS.LIBRARY_SHOW_HIDDEN' | translate: { n: hiddenInActiveTab() } }}
+            </button>
           }
         </div>
       </div>

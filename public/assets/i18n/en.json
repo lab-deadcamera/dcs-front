@@ -301,7 +301,9 @@
       "CHARACTERS_DIALOG_TITLE": "Characters library",
       "LIBRARY_QUICKPICK": "My library",
       "LIBRARY_QUICKPICK_HINT": "Click to add to the prompt",
-      "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet."
+      "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet.",
+      "LIBRARY_HIDE": "Hide from library",
+      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden"
     },
     "FOOTER": {
       "VERSION": "v1.0",

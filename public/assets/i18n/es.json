@@ -301,7 +301,9 @@
       "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes",
       "LIBRARY_QUICKPICK": "Mi biblioteca",
       "LIBRARY_QUICKPICK_HINT": "Haz clic para añadir al prompt",
-      "LIBRARY_QUICKPICK_EMPTY": "Aún no hay assets en esta categoría."
+      "LIBRARY_QUICKPICK_EMPTY": "Aún no hay assets en esta categoría.",
+      "LIBRARY_HIDE": "Ocultar de la biblioteca",
+      "LIBRARY_SHOW_HIDDEN": "Mostrar {{n}} ocultos"
     },
     "FOOTER": {
       "VERSION": "v1.0",
