@@ -209,7 +209,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
       <div class="flex items-center justify-between gap-2">
         <button
           type="button"
-          class="group flex items-center gap-2 rounded-md bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] text-ink-950 shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-all hover:shadow-[0_4px_14px_rgba(0,0,0,0.5)] focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+          class="group flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] text-fg-strong shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-red/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           [disabled]="!canGenerate()"
           (click)="onGenerate()"
           data-testid="image-gen-generate"

@@ -121,7 +121,9 @@ export class CharacterAssetsComponent {
       const files = (item.files ?? []).map((f) => ({
         fileId: f.file_id,
         filename: f.filename,
-        thumbUrl: f.file_id ? this.filesApi.serveUrl(f.file_id) : null,
+        // Prefer the backend's purpose-built 300×300 thumbnail; fall back
+        // to the full serve URL when the wire payload omits it.
+        thumbUrl: f.thumbnail_url || (f.file_id ? this.filesApi.serveUrl(f.file_id) : null),
       }));
       const firstFile = files[0] ?? null;
       (buckets[t] ?? buckets.character).push({
@@ -165,6 +167,26 @@ export class CharacterAssetsComponent {
     // first paint. Subsequent creates inside the library dialog refresh
     // the same singleton — `libraryByType` updates reactively.
     this.chars.load().subscribe();
+  }
+
+  /**
+   * Ids of thumbnails that failed to load (deleted/trashed files left in a
+   * stale cache, non-image first files, etc.). Tracked so the tile can fall
+   * back to the placeholder icon instead of showing a broken-image glyph.
+   */
+  protected readonly brokenThumbs = signal<ReadonlySet<string>>(new Set());
+
+  protected isThumbBroken(id: string): boolean {
+    return this.brokenThumbs().has(id);
+  }
+
+  protected onThumbError(id: string): void {
+    this.brokenThumbs.update((s) => {
+      if (s.has(id)) return s;
+      const next = new Set(s);
+      next.add(id);
+      return next;
+    });
   }
 
   protected toggleImageGen(): void {

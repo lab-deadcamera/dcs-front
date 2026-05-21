@@ -72,8 +72,8 @@
   },
   "HEADER": {
     "BRAND": {
-      "DEAD_CAMERA": "DEAD CAMERA",
-      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+      "DEAD_CAMERA": "DCS",
+      "SEEDANCE_STUDIO": "MOVIE STUDIO"
     },
     "SUBTITLE": {
       "STUDIOS": "ESTUDIOS",
@@ -84,7 +84,8 @@
       "EXPORT": "EXPORTAR",
       "API": "API"
     },
-    "SELECT_MODEL": "Seleccionar un modelo"
+    "SELECT_MODEL": "Seleccionar un modelo",
+    "EDIT_AVATAR": "Cambiar foto de perfil"
   },
   "STUDIO": {
     "BRAND": {

@@ -163,12 +163,20 @@
                   [attr.data-testid]="'free-asset-pick-' + a.id"
                   (click)="onPickFreeAsset(a)"
                 >
-                  @if (a.kind === 'image') {
+                  @if (a.kind === 'image' && !isThumbBroken(a.id)) {
                     <img
                       [src]="a.id | sourceAsset"
                       [alt]="a.filename"
                       class="h-full w-full object-cover"
+                      (error)="onThumbError(a.id)"
                     />
+                  } @else if (a.kind === 'image') {
+                    <span
+                      aria-hidden="true"
+                      class="absolute inset-0 flex items-center justify-center text-fg-muted"
+                    >
+                      <i class="pi pi-image text-base"></i>
+                    </span>
                   } @else if (a.kind === 'video') {
                     <video
                       [src]="a.id | sourceAsset"
@@ -299,12 +307,13 @@
                     [attr.data-testid]="'my-library-pick-' + a.id"
                     (click)="onPickLibraryAsset(a)"
                   >
-                    @if (a.firstFile?.thumbUrl) {
+                    @if (a.firstFile?.thumbUrl && !isThumbBroken(a.id)) {
                       <img
                         [src]="a.firstFile?.thumbUrl"
                         [alt]="a.name"
                         class="h-full w-full object-cover"
                         loading="lazy"
+                        (error)="onThumbError(a.id)"
                       />
                     } @else {
                       <span
