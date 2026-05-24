@@ -23,6 +23,13 @@ export const DIRECTOR_ROUTES: Routes = [
             (m) => m.SceneAssignmentComponent,
           ),
       },
+      {
+        path: 'presets',
+        loadComponent: () =>
+          import('./director/ui/preset-manager/preset-manager').then(
+            (m) => m.PresetManagerComponent,
+          ),
+      },
     ],
   },
 ];

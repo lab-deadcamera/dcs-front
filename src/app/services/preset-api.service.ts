@@ -11,10 +11,16 @@ export class PresetApiService {
 
   getGroups(includeInactive = false): Observable<PresetGroup[]> {
     return this.http
-      .get<{
-        data: PresetGroup[];
-      }>(`${this.apiUrl}/groups${includeInactive ? '?include_inactive=true' : ''}`)
+      .get<{ data: PresetGroup[] }>(`${this.apiUrl}/groups${includeInactive ? '?include_inactive=true' : ''}`)
       .pipe(map((r) => r.data));
+  }
+
+  createGroup(data: { name: string; slug: string; description?: string }): Observable<PresetGroup> {
+    return this.http.post<{ data: PresetGroup }>(`${this.apiUrl}/groups`, data).pipe(map((r) => r.data));
+  }
+
+  updateGroup(id: string, data: { name?: string; description?: string }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/groups/${id}`, data);
   }
 
   getPresets(groupId?: string, includeInactive = false): Observable<Preset[]> {
@@ -26,19 +32,11 @@ export class PresetApiService {
       .pipe(map((r) => r.data));
   }
 
-  createPreset(data: {
-    group_id: string;
-    code: string;
-    label: string;
-    prompt: string;
-  }): Observable<Preset> {
+  createPreset(data: { group_id: string; code: string; label: string; prompt: string }): Observable<Preset> {
     return this.http.post<{ data: Preset }>(`${this.apiUrl}`, data).pipe(map((r) => r.data));
   }
 
-  updatePreset(
-    id: string,
-    data: { label?: string; prompt?: string; active?: boolean },
-  ): Observable<Preset> {
+  updatePreset(id: string, data: { label?: string; prompt?: string; active?: boolean }): Observable<Preset> {
     return this.http.patch<{ data: Preset }>(`${this.apiUrl}/${id}`, data).pipe(map((r) => r.data));
   }
 

@@ -16,6 +16,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
         >
           Projects & Scenes
         </a>
+        <a
+          routerLink="/director/presets"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        >
+          Presets
+        </a>
       </nav>
       <div class="flex-1">
         <router-outlet />
