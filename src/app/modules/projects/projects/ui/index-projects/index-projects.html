@@ -3,9 +3,7 @@
   <div class="mb-6 flex items-center justify-between">
     <div>
       <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Projects</h1>
-      <p class="mt-1 text-[12px] text-fg-muted">
-        Manage your video projects, scenes, and takes
-      </p>
+      <p class="mt-1 text-[12px] text-fg-muted">Manage your video projects, scenes, and takes</p>
     </div>
     <p-button
       [label]="'PROJECTS.NEW_PROJECT' | translate"
@@ -36,10 +34,7 @@
   @if (projects().length > 0) {
     <div class="flex flex-col gap-3">
       @for (item of projects(); track item.project.id) {
-        <div
-          class="border"
-          style="border-color: var(--border-color);"
-        >
+        <div class="border" style="border-color: var(--border-color)">
           <!-- Project header row -->
           <div class="flex items-center justify-between gap-4 px-4 py-3">
             <div class="flex items-center gap-3 min-w-0">
@@ -66,13 +61,17 @@
                 [class.bg-ink-700]="!item.project.active"
                 [class.text-fg-muted]="!item.project.active"
               >
-                {{ item.project.active ? ('GLOBAL.STATUS.ACTIVE' | translate) : ('GLOBAL.STATUS.INACTIVE' | translate) }}
+                {{
+                  item.project.active
+                    ? ('GLOBAL.STATUS.ACTIVE' | translate)
+                    : ('GLOBAL.STATUS.INACTIVE' | translate)
+                }}
               </span>
             </div>
 
             <div class="flex items-center gap-2 flex-shrink-0">
               <span class="font-mono text-[11px] text-fg-muted">
-                {{ item.scenes.length }} scene{{ item.scenes.length !== 1 ? 's' : '' }}
+                {{ item.project.scene_count }} scene{{ item.scenes.length !== 1 ? 's' : '' }}
               </span>
 
               <p-button
@@ -112,15 +111,13 @@
 
           <!-- Scenes section (expandable) -->
           @if (expandedProjects()[item.project.id]) {
-            <div class="border-t" style="border-color: var(--border-color);">
+            <div class="border-t" style="border-color: var(--border-color)">
               @if (item.scenes.length === 0) {
-                <div class="px-4 py-4 text-center text-[12px] text-fg-muted">
-                  No scenes yet.
-                </div>
+                <div class="px-4 py-4 text-center text-[12px] text-fg-muted">No scenes yet.</div>
               }
 
               @for (swt of item.scenes; track swt.scene.id) {
-                <div class="border-t" style="border-color: var(--border-color);">
+                <div class="border-t" style="border-color: var(--border-color)">
                   <!-- Scene header row -->
                   <div class="flex items-center justify-between gap-4 px-4 py-2.5 pl-10">
                     <div class="flex items-center gap-3 min-w-0">
@@ -133,7 +130,7 @@
                         {{ expandedScenes()[swt.scene.id] ? '▾' : '▸' }}
                       </button>
                       <span class="font-mono text-[12px] font-semibold text-primary-400">
-                        SC{{ swt.scene.number | number:'2.0' }}
+                        SC{{ swt.scene.number | number: '2.0' }}
                       </span>
                       <span class="truncate text-[13px]">
                         {{ swt.scene.name }}
@@ -145,7 +142,11 @@
                         [class.bg-ink-700]="!swt.scene.active"
                         [class.text-fg-muted]="!swt.scene.active"
                       >
-                        {{ swt.scene.active ? ('GLOBAL.STATUS.ACTIVE' | translate) : ('GLOBAL.STATUS.INACTIVE' | translate) }}
+                        {{
+                          swt.scene.active
+                            ? ('GLOBAL.STATUS.ACTIVE' | translate)
+                            : ('GLOBAL.STATUS.INACTIVE' | translate)
+                        }}
                       </span>
                     </div>
 
@@ -191,7 +192,7 @@
 
                   <!-- Takes section (expandable) -->
                   @if (expandedScenes()[swt.scene.id]) {
-                    <div class="border-t" style="border-color: var(--border-color);">
+                    <div class="border-t" style="border-color: var(--border-color)">
                       @if (swt.takes.length === 0) {
                         <div class="px-4 py-4 text-center text-[12px] text-fg-muted">
                           No takes yet.
@@ -201,7 +202,9 @@
                       @if (swt.takes.length > 0) {
                         <table class="w-full text-[12px]">
                           <thead>
-                            <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                            <tr
+                              class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted"
+                            >
                               <th class="px-4 py-2 pl-14 font-medium">Take</th>
                               <th class="px-4 py-2 font-medium">Status</th>
                               <th class="px-4 py-2 font-medium">Video URL</th>
@@ -210,9 +213,9 @@
                           </thead>
                           <tbody>
                             @for (t of swt.takes; track t.id) {
-                              <tr class="border-t" style="border-color: var(--border-color);">
+                              <tr class="border-t" style="border-color: var(--border-color)">
                                 <td class="px-4 py-2 pl-14 font-mono text-[13px]">
-                                  Take {{ t.number | number:'2.0' }}
+                                  Take {{ t.number | number: '2.0' }}
                                 </td>
                                 <td class="px-4 py-2">
                                   <span
@@ -222,7 +225,9 @@
                                     {{ t.status }}
                                   </span>
                                 </td>
-                                <td class="max-w-[250px] truncate px-4 py-2 font-mono text-fg-muted">
+                                <td
+                                  class="max-w-[250px] truncate px-4 py-2 font-mono text-fg-muted"
+                                >
                                   @if (t.video_url) {
                                     <a
                                       [href]="t.video_url"
@@ -244,7 +249,9 @@
                                       [text]="true"
                                       [rounded]="true"
                                       pTooltip="Delete take"
-                                      (onClick)="confirmDeleteTake(t, item.project.id, swt.scene.id)"
+                                      (onClick)="
+                                        confirmDeleteTake(t, item.project.id, swt.scene.id)
+                                      "
                                     />
                                   </div>
                                 </td>

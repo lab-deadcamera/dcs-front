@@ -272,6 +272,7 @@ interface GradeVariant {
 })
 export class CinematographyComponent {
   protected readonly studio = inject(StudioStore);
+  protected readonly session = inject(SessionStore);
   private readonly presets = inject(PresetsService);
 
   /**

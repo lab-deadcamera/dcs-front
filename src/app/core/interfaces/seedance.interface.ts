@@ -153,3 +153,53 @@ export interface StudioTaskResponse {
   /** Backend-set human-readable error when status === 'failed'. */
   error?: string;
 }
+
+export interface PresetGroup {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  active: boolean;
+}
+
+export interface ScenePresetAssignment {
+  id: string;
+  scene_id: string;
+  preset_id: string;
+  code: string;
+  label: string;
+  group_slug: string;
+  created_at: string;
+}
+
+export interface SceneCharacterAssignment {
+  id: string;
+  scene_id: string;
+  character_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface SceneAssetAssignment {
+  id: string;
+  scene_id: string;
+  file_id: string;
+  filename: string;
+  mime_type: string;
+  created_at: string;
+}
+
+export interface SceneAssignments {
+  presets: ScenePresetAssignment[];
+  characters: SceneCharacterAssignment[];
+  assets: SceneAssetAssignment[];
+}
+
+export interface SceneResources {
+  presets: ScenePresetAssignment[];
+  availablePresets: Preset[];
+  characters: SceneCharacterAssignment[];
+  availableCharacters: any[];
+  assets: SceneAssetAssignment[];
+  availableAssets: any[];
+}

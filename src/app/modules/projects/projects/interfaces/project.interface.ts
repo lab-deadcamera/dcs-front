@@ -2,6 +2,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  scene_count: number;
   metadata: Record<string, unknown>;
   active: boolean;
   created_at: string;
