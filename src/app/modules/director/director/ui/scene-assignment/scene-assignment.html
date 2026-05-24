@@ -1,0 +1,224 @@
+<section class="p-6">
+  <div class="mb-6">
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Scene Resources</h1>
+    <p class="mt-1 text-[12px] text-fg-muted">Assign and remove resources for this scene</p>
+  </div>
+
+  <!-- Scene & Project info -->
+  <div class="mb-6 rounded border border-ink-700 bg-ink-800 p-4">
+    <div class="mb-3 flex items-center gap-4">
+      <span class="font-mono text-[11px] text-primary-400"
+        >SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}</span
+      >
+      <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || 'Loading...' }}</span>
+      @if (sceneInfo()?.description) {
+        <span class="text-[12px] text-fg-muted">— {{ sceneInfo()?.description }}</span>
+      }
+    </div>
+    <div class="flex gap-6 text-[11px] text-fg-muted">
+      <span
+        ><span class="font-bold uppercase">Project:</span> {{ projectInfo()?.name || '...' }}</span
+      >
+      <span
+        ><span class="font-bold uppercase">Scene ID:</span>
+        <span class="font-mono">{{ sceneId() }}</span></span
+      >
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="mb-4 flex gap-2 border-b border-ink-600">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="border-b-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors"
+        [class]="
+          activeTab() === tab.key
+            ? 'border-primary-500 !text-fg-strong'
+            : 'border-transparent text-fg-muted'
+        "
+        (click)="activeTab.set(tab.key)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
+  }
+
+  <!-- Presets tab -->
+  @if (!loading() && activeTab() === 'presets') {
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Available Presets
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (p of availablePresets(); track p.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <div class="min-w-0 flex-1">
+                <span class="text-[12px] font-semibold">{{ p.label }}</span>
+                <span class="ml-2 text-[10px] text-fg-muted">{{ p.labelKey | translate }}</span>
+              </div>
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
+                (click)="assignPreset(p.id)"
+              >
+                + Assign
+              </button>
+            </div>
+          }
+          @if (availablePresets().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">All presets assigned.</p>
+          }
+        </div>
+      </div>
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Assigned
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (a of assignedPresets(); track a.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <span class="text-[12px]"
+                >{{ a.label }}
+                <span class="text-[10px] text-fg-muted">({{ a.group_slug }})</span></span
+              >
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
+                (click)="removePreset(a.id)"
+              >
+                Remove
+              </button>
+            </div>
+          }
+          @if (assignedPresets().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">No presets assigned.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Characters tab -->
+  @if (!loading() && activeTab() === 'characters') {
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Available Characters
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (c of availableCharacters(); track c.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <span class="text-[12px]">{{ c.name }}</span>
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
+                (click)="assignCharacter(c.id)"
+              >
+                + Assign
+              </button>
+            </div>
+          }
+          @if (availableCharacters().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">All characters assigned.</p>
+          }
+        </div>
+      </div>
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Assigned
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (a of assignedCharacters(); track a.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <span class="text-[12px]">{{ a.name }}</span>
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
+                (click)="removeCharacter(a.id)"
+              >
+                Remove
+              </button>
+            </div>
+          }
+          @if (assignedCharacters().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">No characters assigned.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Assets tab -->
+  @if (!loading() && activeTab() === 'assets') {
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Available Files
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (f of availableAssets(); track f.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <div class="min-w-0 flex-1">
+                <span class="truncate text-[12px]">{{ f.filename }}</span>
+                <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
+              </div>
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
+                (click)="assignAsset(f.id)"
+              >
+                + Assign
+              </button>
+            </div>
+          }
+          @if (availableAssets().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">All files assigned.</p>
+          }
+        </div>
+      </div>
+      <div>
+        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          Assigned
+        </h2>
+        <div class="flex flex-col gap-1">
+          @for (a of assignedAssets(); track a.id) {
+            <div
+              class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
+            >
+              <div class="min-w-0 flex-1">
+                <span class="truncate text-[12px]">{{ a.filename }}</span>
+                <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
+              </div>
+              <button
+                type="button"
+                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
+                (click)="removeAsset(a.id)"
+              >
+                Remove
+              </button>
+            </div>
+          }
+          @if (assignedAssets().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">No assets assigned.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</section>

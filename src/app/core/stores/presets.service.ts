@@ -2,46 +2,18 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Preset, PresetCategory, SpecOption } from '../interfaces/studio.models';
 import { PresetApiService } from '@app/services/preset-api.service';
 
-const LABEL_KEYS: Readonly<Record<string, string>> = {
-  wide_24mm: 'STUDIO.CINEMATOGRAPHY.LENSES.24MM_WIDE',
-  classic_35mm: 'STUDIO.CINEMATOGRAPHY.LENSES.35MM_CLASSIC',
-  portrait_50mm: 'STUDIO.CINEMATOGRAPHY.LENSES.50MM_PORTRAIT',
-  tele_85mm: 'STUDIO.CINEMATOGRAPHY.LENSES.85MM_TELE',
-  arri_alexa: 'STUDIO.CINEMATOGRAPHY.BODIES.ARRI_ALEXA_65',
-  red_komodo: 'STUDIO.CINEMATOGRAPHY.BODIES.RED_KOMODO_6K',
-  sony_venice: 'STUDIO.CINEMATOGRAPHY.BODIES.SONY_VENICE',
-  film_16mm: 'STUDIO.CINEMATOGRAPHY.BODIES.FILM_16MM',
-  static_lockoff: 'STUDIO.CINEMATOGRAPHY.MOTIONS.STATIC',
-  slow_dolly_in: 'STUDIO.CINEMATOGRAPHY.MOTIONS.DOLLY_IN',
-  orbit: 'STUDIO.CINEMATOGRAPHY.MOTIONS.ORBIT',
-  handheld: 'STUDIO.CINEMATOGRAPHY.MOTIONS.HANDHELD',
-  tokio: 'STUDIO.CINEMATOGRAPHY.GRADES.TOKIO',
-  colombia: 'STUDIO.CINEMATOGRAPHY.GRADES.COLOMBIA',
-  ohio: 'STUDIO.CINEMATOGRAPHY.GRADES.OHIO',
-  bank: 'STUDIO.CINEMATOGRAPHY.GRADES.BANK',
-  drama: 'STUDIO.CINEMATOGRAPHY.GENRES.DRAMA',
-  action: 'STUDIO.CINEMATOGRAPHY.GENRES.ACTION',
-  noir: 'STUDIO.CINEMATOGRAPHY.GENRES.NOIR',
-  horror: 'STUDIO.CINEMATOGRAPHY.GENRES.HORROR',
-  '16:9': 'STUDIO.OUTPUT.ASPECT_16_9',
-  '9:16': 'STUDIO.OUTPUT.ASPECT_9_16',
-  '21:9': 'STUDIO.OUTPUT.ASPECT_21_9',
-  '1:1': 'STUDIO.OUTPUT.ASPECT_1_1',
-  '480p': 'STUDIO.OUTPUT.RES_480P',
-  '720p': 'STUDIO.OUTPUT.RES_720P',
-  '1080p': 'STUDIO.OUTPUT.RES_1080P',
-};
+const LABEL_KEYS: Record<string, string> = {};
 
-function keyOf(id: string): string {
-  return LABEL_KEYS[id] ?? id;
+function keyOf(code: string, apiLabelKey: string): string {
+  return apiLabelKey || LABEL_KEYS[code] || '';
 }
 
-/** Raw preset shape returned by the backend API. */
 interface ApiPreset {
   id: string;
   group_id: string;
   code: string;
   label: string;
+  label_key: string;
   prompt: string;
 }
 
@@ -86,6 +58,7 @@ export class PresetsService {
             group_id: p.group_id,
             code: p.code,
             label: p.label,
+            label_key: p.label_key || '',
             prompt: p.prompt,
           })),
         );
@@ -103,7 +76,7 @@ export class PresetsService {
         id: p.id,
         label: p.label,
         prompt: p.prompt,
-        labelKey: keyOf(p.code),
+        labelKey: keyOf(p.code, p.label_key),
       }));
   }
 
@@ -111,7 +84,7 @@ export class PresetsService {
     if (!id) return null;
     for (const p of this._presets()) {
       if (p.id === id) {
-        return { id: p.id, label: p.label, prompt: p.prompt, labelKey: keyOf(p.code) };
+        return { id: p.id, label: p.label, prompt: p.prompt, labelKey: keyOf(p.code, p.label_key) };
       }
     }
     return null;
@@ -129,18 +102,12 @@ export class PresetsService {
         prompt: input.prompt.trim(),
       })
       .subscribe({
-        next: () => {
-          this.load();
-        },
+        next: () => this.load(),
         error: (err) => console.warn('[presets] create failed:', err),
       });
   }
 
-  updatePreset(
-    category: PresetCategory,
-    id: string,
-    patch: { label?: string; prompt?: string },
-  ): void {
+  updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): void {
     this.api
       .updatePreset(id, patch)
       .subscribe({
