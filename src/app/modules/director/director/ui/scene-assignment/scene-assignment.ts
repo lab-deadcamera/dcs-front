@@ -6,7 +6,6 @@ import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -16,7 +15,7 @@ import { SceneAssignments } from '@core/interfaces/seedance.interface';
 @Component({
   selector: 'app-scene-assignment',
   standalone: true,
-  imports: [DatePipe, ButtonModule, TableModule, SelectModule, ToastModule],
+  imports: [DatePipe, ButtonModule, SelectModule, ToastModule],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -25,8 +24,19 @@ import { SceneAssignments } from '@core/interfaces/seedance.interface';
         Scene Resources
       </h1>
       <p class="mb-6 text-[12px] text-fg-muted">
-        Assign presets, characters and assets to scene {{ sceneId() }}
+        Assign presets, characters and assets to this scene
       </p>
+
+      <div class="mb-6 grid grid-cols-3 gap-3 text-[12px]">
+        <div>
+          <span class="block font-bold uppercase text-fg-muted">Project ID</span>
+          <span class="font-mono">{{ projectId() }}</span>
+        </div>
+        <div>
+          <span class="block font-bold uppercase text-fg-muted">Scene ID</span>
+          <span class="font-mono">{{ sceneId() }}</span>
+        </div>
+      </div>
 
       <!-- Tabs -->
       <div class="mb-4 flex gap-2 border-b border-ink-600">
@@ -43,38 +53,31 @@ import { SceneAssignments } from '@core/interfaces/seedance.interface';
         }
       </div>
 
-      <!-- Content -->
-      @switch (activeTab()) {
-        @case ('presets') {
-          <p class="mb-4 text-[12px] text-fg-muted">
-            Presets assigned to this scene appear in the Studio.
+      <!-- Presets tab -->
+      @if (activeTab() === 'presets') {
+        <div class="rounded border border-ink-700 bg-ink-800 p-6 text-center">
+          <p class="text-[13px] text-fg-muted">
+            Preset assignment coming soon.
           </p>
-          <div class="rounded border border-ink-700 bg-ink-800 p-8 text-center">
-            <p class="text-[13px] text-fg-muted">
-              Preset assignment coming soon. Use the Studio to manage presets.
-            </p>
-          </div>
-        }
-        @case ('characters') {
-          <p class="mb-4 text-[12px] text-fg-muted">
-            Characters assigned to this scene appear in the Studio asset selector.
+        </div>
+      }
+
+      <!-- Characters tab -->
+      @if (activeTab() === 'characters') {
+        <div class="rounded border border-ink-700 bg-ink-800 p-6 text-center">
+          <p class="text-[13px] text-fg-muted">
+            Character assignment coming soon.
           </p>
-          <div class="rounded border border-ink-700 bg-ink-800 p-8 text-center">
-            <p class="text-[13px] text-fg-muted">
-              Character assignment coming soon.
-            </p>
-          </div>
-        }
-        @case ('assets') {
-          <p class="mb-4 text-[12px] text-fg-muted">
-            Files assigned to this scene appear in the Studio asset selector.
+        </div>
+      }
+
+      <!-- Assets tab -->
+      @if (activeTab() === 'assets') {
+        <div class="rounded border border-ink-700 bg-ink-800 p-6 text-center">
+          <p class="text-[13px] text-fg-muted">
+            Asset assignment coming soon.
           </p>
-          <div class="rounded border border-ink-700 bg-ink-800 p-8 text-center">
-            <p class="text-[13px] text-fg-muted">
-              Asset assignment coming soon.
-            </p>
-          </div>
-        }
+        </div>
       }
     </section>
   `,
@@ -86,6 +89,10 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly apiUrl = environment.API_URL;
 
+  protected readonly projectId = toSignal(
+    this.route.params.pipe(map((p) => p['projectId'])),
+    { initialValue: '' },
+  );
   protected readonly sceneId = toSignal(
     this.route.params.pipe(map((p) => p['sceneId'])),
     { initialValue: '' },
@@ -97,29 +104,9 @@ export class SceneAssignmentComponent implements OnInit {
     { key: 'assets', label: 'Assets' },
   ];
   protected readonly activeTab = signal<string>('presets');
-
-  protected readonly assignments = signal<SceneAssignments | null>(null);
   protected readonly loading = signal(false);
 
   ngOnInit(): void {
-    this.route.params.pipe(
-      map((p) => p['sceneId']),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((sceneId) => {
-      if (sceneId) this.loadAssignments(sceneId);
-    });
-  }
-
-  private loadAssignments(sceneId: string): void {
-    this.loading.set(true);
-    this.http.get<{ data: SceneAssignments }>(
-      `${this.apiUrl}/projects/null/scenes/${sceneId}/assignments`,
-    ).pipe(
-      catchError(() => of({ data: { presets: [], characters: [], assets: [] } })),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((res) => {
-      this.assignments.set(res.data);
-      this.loading.set(false);
-    });
+    // Load assignments when route params are available
   }
 }

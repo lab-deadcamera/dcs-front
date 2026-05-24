@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DecimalPipe } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
+import { RouterLink } from '@angular/router'
+import { ButtonModule } from .primeng.button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -19,6 +20,7 @@ import { TakeFormDialogComponent } from '../components/take-form-dialog/take-for
     ButtonModule,
     DecimalPipe,
     TooltipModule,
+    RouterLink,
     ConfirmDialogModule,
     ToastModule,
     ProjectFormDialogComponent,

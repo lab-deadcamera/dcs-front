@@ -17,7 +17,7 @@ export const DIRECTOR_ROUTES: Routes = [
           import('@modules/projects/projects.routes').then((m) => m.PROJECTS_ROUTES),
       },
       {
-        path: 'scenes/:sceneId/assign',
+        path: .scenes/:projectId/:sceneId/assign.,
         loadComponent: () =>
           import('./director/ui/scene-assignment/scene-assignment').then(
             (m) => m.SceneAssignmentComponent,
