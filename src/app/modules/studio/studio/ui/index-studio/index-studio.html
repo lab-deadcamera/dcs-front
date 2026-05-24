@@ -26,7 +26,7 @@
     <!-- Steps 01 → 03 — Inputs (LEFT on lg+) -->
     <section class="flex flex-col lg:flex-1 lg:min-w-0">
       <app-character-assets (assetPicked)="promptBuilder.addReferenceForKind($event)" />
-      <app-cinematography />
+      <app-cinematography (presetChanged)="promptBuilder.applyPresetChange($event)" />
       <app-output-format />
     </section>
 
@@ -52,7 +52,6 @@
         />
       </div>
       <app-rating />
-      <app-image-gen-panel />
       <app-prompt-builder
         #promptBuilder
         (generate)="onGenerate()"

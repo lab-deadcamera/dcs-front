@@ -220,6 +220,77 @@ export class PromptBuilderComponent {
   }
 
   /**
+   * Append a free-form text snippet (e.g. a cinematography preset's
+   * `prompt` field) to the very end of the document, separated from the
+   * previous word by a single space. Unlike `addReference`, this does NOT
+   * follow the cursor — presets are meta-instructions for the model, so
+   * they should always end up at the tail of the prompt regardless of
+   * where the user happens to be editing.
+   *
+   * Empty or whitespace-only input is a no-op so a deselect path that
+   * accidentally calls in with "" can't corrupt the editor.
+   */
+  appendText(snippet: string): void {
+    const text = (snippet ?? '').trim();
+    if (!text) return;
+    if (!this.editorRef) return;
+    const quill = this.editorRef.getQuill();
+    if (!quill) return;
+    // Length-1 strips Quill's trailing newline so the insert point is the
+    // tail of the visible text, not the start of the next paragraph.
+    const end = Math.max(0, quill.getLength() - 1);
+    const existing = quill.getText(0, end);
+    const needsSpace = existing.length > 0 && !/\s$/.test(existing);
+    const payload = (needsSpace ? ' ' : '') + text;
+    quill.insertText(end, payload);
+    quill.setSelection(end + payload.length, 0);
+  }
+
+  /**
+   * Remove the first occurrence of `snippet` from the editor, absorbing a
+   * single leading space if present (mirrors how `appendText` adds one).
+   * Used to revert a cinematography preset when the user deselects the
+   * chip or swaps to a different one inside the same slot.
+   *
+   * If the user has manually edited the injected text the exact substring
+   * won't match — we silently no-op rather than touch their edits.
+   */
+  removeText(snippet: string): void {
+    const needle = (snippet ?? '').trim();
+    if (!needle) return;
+    if (!this.editorRef) return;
+    const quill = this.editorRef.getQuill();
+    if (!quill) return;
+    const text = quill.getText();
+    let index = text.indexOf(needle);
+    if (index < 0) return;
+    let length = needle.length;
+    // Absorb a single space directly before the snippet so we don't
+    // leave a stray gap behind. Skip when the match is at index 0
+    // (no leading space could have been added in that case).
+    if (index > 0 && text[index - 1] === ' ') {
+      index -= 1;
+      length += 1;
+    }
+    quill.deleteText(index, length);
+    // Quill's text-change event normally syncs back to the store via
+    // (onTextChange), but flag it explicitly in case the source path
+    // is treated as `api` instead of `user`.
+    this.skipStoreSync = true;
+    this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
+  }
+
+  /**
+   * Atomic remove-then-append used when a cinematography slot's value
+   * changes: the previous preset snippet is stripped, the new one
+   * (if any) appended. Either field may be absent.
+   */
+  applyPresetChange(change: { remove?: string; add?: string }): void {
+    if (change.remove) this.removeText(change.remove);
+    if (change.add) this.appendText(change.add);
+  }
+
+  /**
    * Canonical English label for a chip kind. Hardcoded (not translated)
    * because the token also ships to the model in the payload and must
    * match the frame hint vocabulary ("Image 1", "Video 1", "Audio 1").

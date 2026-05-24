@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { DropZoneComponent } from '@shared/components/drop-zone/drop-zone.component';
+import { ImageGenPanelComponent } from '@shared/components/image-gen-panel/image-gen-panel.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ReferenceAsset } from '@core/interfaces/studio.models';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
@@ -40,6 +41,7 @@ interface LibraryItem {
   imports: [
     SectionHeaderComponent,
     DropZoneComponent,
+    ImageGenPanelComponent,
     TranslatePipe,
     SourceAssetPipe,
     ButtonModule,
@@ -64,6 +66,14 @@ export class CharacterAssetsComponent {
    */
   readonly assetPicked = output<UsedAssetKind>();
 
+
+  /**
+   * Whether the "Image Generation" band acts as an open disclosure — its
+   * body mounts <app-image-gen-panel> only when expanded. Defaults to
+   * collapsed so the heavier-weight panel doesn't load until the user
+   * opts in.
+   */
+  protected readonly imageGenExpanded = signal(false);
 
   /**
    * Whether the "My Assets" band acts as an open disclosure — its body
@@ -111,7 +121,9 @@ export class CharacterAssetsComponent {
       const files = (item.files ?? []).map((f) => ({
         fileId: f.file_id,
         filename: f.filename,
-        thumbUrl: f.file_id ? this.filesApi.serveUrl(f.file_id) : null,
+        // Prefer the backend's purpose-built 300×300 thumbnail; fall back
+        // to the full serve URL when the wire payload omits it.
+        thumbUrl: f.thumbnail_url || (f.file_id ? this.filesApi.serveUrl(f.file_id) : null),
       }));
       const firstFile = files[0] ?? null;
       (buckets[t] ?? buckets.character).push({
@@ -125,13 +137,34 @@ export class CharacterAssetsComponent {
     return buckets;
   });
 
-  protected readonly visibleLibrary = computed(
-    () => this.libraryByType()[this.activeLibraryType()] ?? [],
-  );
+  /**
+   * Ids the user has hidden from the quick-pick. This is a view-only
+   * preference (the asset stays in the Characters library) persisted to
+   * localStorage so it survives reloads on this browser.
+   */
+  protected readonly hiddenIds = signal<ReadonlySet<string>>(loadHiddenLibraryIds());
 
+  protected readonly visibleLibrary = computed(() => {
+    const hidden = this.hiddenIds();
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter(
+      (a) => !hidden.has(a.id),
+    );
+  });
+
+  /** Counts reflect what's actually shown (hidden items excluded). */
   protected readonly libraryCounts = computed<Record<AssetType, number>>(() => {
     const b = this.libraryByType();
-    return { character: b.character.length, location: b.location.length, prop: b.prop.length };
+    const hidden = this.hiddenIds();
+    const count = (arr: LibraryItem[]) => arr.filter((a) => !hidden.has(a.id)).length;
+    return { character: count(b.character), location: count(b.location), prop: count(b.prop) };
+  });
+
+  /** How many items are hidden in the active tab — drives the "show hidden" link. */
+  protected readonly hiddenInActiveTab = computed(() => {
+    const hidden = this.hiddenIds();
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) =>
+      hidden.has(a.id),
+    ).length;
   });
 
   protected readonly usedAssetIds = computed(
@@ -157,6 +190,30 @@ export class CharacterAssetsComponent {
     this.chars.load().subscribe();
   }
 
+  /**
+   * Ids of thumbnails that failed to load (deleted/trashed files left in a
+   * stale cache, non-image first files, etc.). Tracked so the tile can fall
+   * back to the placeholder icon instead of showing a broken-image glyph.
+   */
+  protected readonly brokenThumbs = signal<ReadonlySet<string>>(new Set());
+
+  protected isThumbBroken(id: string): boolean {
+    return this.brokenThumbs().has(id);
+  }
+
+  protected onThumbError(id: string): void {
+    this.brokenThumbs.update((s) => {
+      if (s.has(id)) return s;
+      const next = new Set(s);
+      next.add(id);
+      return next;
+    });
+  }
+
+  protected toggleImageGen(): void {
+    this.imageGenExpanded.update((v) => !v);
+  }
+
   protected toggleMyAssets(): void {
     this.myAssetsExpanded.update((v) => !v);
   }
@@ -167,10 +224,36 @@ export class CharacterAssetsComponent {
 
   protected onCharactersDialogVisibility(v: boolean): void {
     this.charactersDialogVisible.set(v);
+    // Refresh the quick-pick when the dialog closes so any assets created
+    // or deleted inside it (and their files) are reflected immediately.
+    if (!v) this.chars.load().subscribe();
   }
 
   protected setLibraryType(t: AssetType): void {
     this.activeLibraryType.set(t);
+  }
+
+  /**
+   * Hide an asset from the quick-pick without deleting it from the
+   * Characters library. Also drops it from the prompt's used list so the
+   * prompt stays consistent with what's visible.
+   */
+  protected hideFromLibrary(id: string, event: Event): void {
+    event.stopPropagation();
+    this.hiddenIds.update((s) => {
+      if (s.has(id)) return s;
+      const next = new Set(s);
+      next.add(id);
+      return next;
+    });
+    saveHiddenLibraryIds(this.hiddenIds());
+    if (this.isUsed(id)) this.studio.unuseAsset(id);
+  }
+
+  /** Restore every hidden asset back into the quick-pick. */
+  protected showHiddenLibrary(): void {
+    this.hiddenIds.set(new Set());
+    saveHiddenLibraryIds(this.hiddenIds());
   }
 
   protected isUsed(id: string): boolean {
@@ -320,4 +403,26 @@ export class CharacterAssetsComponent {
 function resolveUsedKind(raw: unknown): UsedAssetKind {
   if (raw === 'image' || raw === 'video' || raw === 'audio' || raw === 'mixed') return raw;
   return 'image';
+}
+
+/** localStorage slot for the per-browser "hidden from quick-pick" ids. */
+const HIDDEN_LIBRARY_KEY = 'dcs-hidden-library-assets';
+
+function loadHiddenLibraryIds(): ReadonlySet<string> {
+  try {
+    const raw = localStorage.getItem(HIDDEN_LIBRARY_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? (arr as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveHiddenLibraryIds(ids: ReadonlySet<string>): void {
+  try {
+    localStorage.setItem(HIDDEN_LIBRARY_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* quota / disabled storage — ignore */
+  }
 }

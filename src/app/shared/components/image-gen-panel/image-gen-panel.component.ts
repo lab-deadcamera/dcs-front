@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -11,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
+import { Popover } from 'primeng/popover';
 import { environment } from '@environment/environment';
 import { ModelService, ImageGeneratorService, FilesApiService } from '@app/services';
 import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
@@ -23,94 +25,207 @@ import { StudioStore } from '@app/core/stores/studio.store';
     ButtonModule,
     DialogModule,
     SelectModule,
+    Popover,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-3 border-t pt-4" style="border-color: var(--border-color);">
-      <h2 class="text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-        Image Generation
-      </h2>
-
-      <!-- Model selector -->
-      <div class="flex flex-col gap-1">
-        <label class="text-[12px] font-bold uppercase tracking-[0.12em]">
-          Model
-        </label>
-        @if (imageModels().length > 0) {
-          <p-select
-            [options]="imageModels()"
-            optionLabel="name"
-            optionValue="id"
-            [ngModel]="selectedModelId()"
-            (ngModelChange)="onModelChange($event)"
-            class="w-full"
-          />
-        } @else if (loading()) {
-          <p class="text-[12px] italic text-fg-muted">Loading models…</p>
-        } @else {
-          <p class="text-[12px] text-fg-muted">
-            No image models available. Configure one in the Providers section.
-          </p>
-        }
-      </div>
-
-      <!-- Reference images -->
-      <div class="flex flex-col gap-1">
-        <label class="text-[12px] font-bold uppercase tracking-[0.12em]">
-          Reference Images
-        </label>
-        <div class="flex flex-wrap gap-2">
-          @for (ref of referenceImages(); track ref.id) {
-            <div class="relative h-16 w-16 overflow-hidden rounded border" style="border-color: var(--border-color);">
-              <img [src]="ref.url" class="h-full w-full object-cover" alt="Reference" />
-              <button
-                type="button"
-                class="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-bl bg-black/60 text-[10px] text-white hover:bg-black/80"
-                (click)="removeReference(ref.id)"
-              >✕</button>
-            </div>
-          }
-          <label
-            class="flex h-16 w-16 cursor-pointer items-center justify-center rounded border text-[20px] text-fg-muted transition-colors hover:bg-ink-800"
-            style="border-color: var(--border-color);"
-          >
-            <input
-              type="file"
-              accept="image/*"
-              class="hidden"
-              (change)="onReferencePicked($event)"
-            />
-            +
+    <div class="flex flex-col gap-2.5">
+      <!--
+        Controls bar — Model | Aspect Ratio | Resolution on one row so
+        the panel stays short. Each chip carries its own accent so the
+        block reads as a colored toolbar rather than a stack of selects.
+      -->
+      <div class="flex flex-wrap items-stretch gap-2">
+        <!-- Model selector (grows) -->
+        <div class="flex min-w-[160px] flex-1 flex-col gap-1">
+          <label class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-500">
+            <i class="pi pi-sparkles text-[10px]"></i> Model
           </label>
+          @if (imageModels().length > 0) {
+            <p-select
+              [options]="imageModels()"
+              optionLabel="name"
+              optionValue="id"
+              [ngModel]="selectedModelId()"
+              (ngModelChange)="onModelChange($event)"
+              styleClass="w-full image-gen-select"
+            />
+          } @else if (loading()) {
+            <p class="text-[11px] italic text-fg-muted">Loading models…</p>
+          } @else {
+            <p class="text-[11px] text-fg-muted">No image models available.</p>
+          }
+        </div>
+
+        <!-- Aspect ratio chip -->
+        <div class="flex flex-col gap-1">
+          <label class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500">
+            <i class="pi pi-clone text-[10px]"></i> Ratio
+          </label>
+          <button
+            type="button"
+            class="group relative flex h-[38px] items-center gap-2 overflow-hidden rounded-md border border-secondary-500/40 bg-gradient-to-br from-secondary-500/15 to-secondary-500/5 px-3 text-[12px] font-bold text-secondary-500 transition-all hover:border-secondary-500 hover:from-secondary-500/30 hover:to-secondary-500/10 focus:outline-none focus:ring-2 focus:ring-secondary-500/40"
+            (click)="ratioPop.toggle($event)"
+            data-testid="image-gen-ratio-toggle"
+          >
+            <span
+              aria-hidden="true"
+              class="inline-block rounded-sm border border-secondary-500/60 bg-secondary-500/30"
+              [style.width.px]="ratioPreview().w"
+              [style.height.px]="ratioPreview().h"
+            ></span>
+            <span class="font-mono tracking-wide">{{ selectedRatio() }}</span>
+            <i class="pi pi-angle-down text-[10px] opacity-70 transition-transform group-hover:translate-y-0.5"></i>
+          </button>
+        </div>
+
+        <!-- Resolution chip -->
+        <div class="flex flex-col gap-1">
+          <label class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500">
+            <i class="pi pi-th-large text-[10px]"></i> Quality
+          </label>
+          <button
+            type="button"
+            class="group relative flex h-[38px] items-center gap-2 overflow-hidden rounded-md border border-accent-500/40 bg-gradient-to-br from-accent-500/15 to-accent-500/5 px-3 text-[12px] font-bold text-accent-500 transition-all hover:border-accent-500 hover:from-accent-500/30 hover:to-accent-500/10 focus:outline-none focus:ring-2 focus:ring-accent-500/40"
+            (click)="resPop.toggle($event)"
+            data-testid="image-gen-resolution-toggle"
+          >
+            <span
+              aria-hidden="true"
+              class="flex h-5 w-5 items-center justify-center rounded-sm bg-accent-500/20 font-mono text-[9px] font-extrabold leading-none"
+            >★</span>
+            <span class="font-mono tracking-wider">{{ selectedResolution() }}</span>
+            <i class="pi pi-angle-down text-[10px] opacity-70 transition-transform group-hover:translate-y-0.5"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Prompt textarea -->
-      <div class="flex flex-col gap-1">
-        <label class="text-[12px] font-bold uppercase tracking-[0.12em]">
-          Prompt
+      <!-- Ratio popover — every aspect ratio supported by the model -->
+      <p-popover #ratioPop [dismissable]="true">
+        <div class="w-72 p-2">
+          <p class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500">
+            <i class="pi pi-clone text-[10px]"></i> Aspect Ratio
+          </p>
+          <ul class="grid grid-cols-4 gap-1.5">
+            @for (r of ratioOptions; track r.value) {
+              <li>
+                <button
+                  type="button"
+                  class="flex h-16 w-full flex-col items-center justify-center gap-1 rounded-md border transition-all hover:scale-[1.03] focus:outline-none"
+                  [class]="
+                    selectedRatio() === r.value
+                      ? 'border-secondary-500 bg-gradient-to-br from-secondary-500/25 to-secondary-500/5 text-secondary-500 shadow-[0_0_12px_rgba(0,0,0,0.4)]'
+                      : 'border-ink-600 bg-ink-900 text-fg-muted hover:border-secondary-500/60 hover:text-secondary-500'
+                  "
+                  (click)="onPickRatio(r.value); ratioPop.hide()"
+                  [attr.aria-pressed]="selectedRatio() === r.value"
+                  [attr.aria-label]="'Aspect ratio ' + r.value"
+                  [attr.data-testid]="'image-gen-ratio-' + r.value"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="inline-block rounded-sm border"
+                    [class.border-secondary-500]="selectedRatio() === r.value"
+                    [class.bg-secondary-500\/40]="selectedRatio() === r.value"
+                    [class.border-fg-muted\/40]="selectedRatio() !== r.value"
+                    [class.bg-fg-muted\/30]="selectedRatio() !== r.value"
+                    [style.width.px]="r.w"
+                    [style.height.px]="r.h"
+                  ></span>
+                  <span class="font-mono text-[10px] font-bold">{{ r.value }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </p-popover>
+
+      <!-- Resolution popover — 1K / 2K / 4K tiers -->
+      <p-popover #resPop [dismissable]="true">
+        <div class="w-56 p-2">
+          <p class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500">
+            <i class="pi pi-th-large text-[10px]"></i> Quality
+          </p>
+          <ul class="grid grid-cols-3 gap-1.5">
+            @for (r of resolutionOptions; track r.value) {
+              <li>
+                <button
+                  type="button"
+                  class="flex w-full flex-col items-center justify-center gap-0.5 rounded-md border px-2 py-2.5 transition-all hover:scale-[1.04] focus:outline-none"
+                  [class]="
+                    selectedResolution() === r.value
+                      ? 'border-accent-500 bg-gradient-to-br from-accent-500/30 to-accent-500/5 text-accent-500 shadow-[0_0_12px_rgba(0,0,0,0.4)]'
+                      : 'border-ink-600 bg-ink-900 text-fg-muted hover:border-accent-500/60 hover:text-accent-500'
+                  "
+                  (click)="onPickResolution(r.value); resPop.hide()"
+                  [attr.aria-pressed]="selectedResolution() === r.value"
+                  [attr.data-testid]="'image-gen-resolution-' + r.value"
+                >
+                  <span class="font-mono text-[15px] font-extrabold leading-none">{{ r.value }}</span>
+                  <span class="text-[9px] italic opacity-80">{{ r.hint }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </p-popover>
+
+      <!--
+        References strip — inline, single row, scrolls horizontally so
+        the panel never grows tall. The "+" tile shares the row to keep
+        the upload action visually paired with its results.
+      -->
+      <div class="flex items-center gap-2 overflow-x-auto py-1">
+        <span class="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted">Refs</span>
+        @for (ref of referenceImages(); track ref.id) {
+          <div class="group relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-ink-600">
+            <img [src]="ref.url" class="h-full w-full object-cover" alt="Reference" />
+            <button
+              type="button"
+              class="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/70 text-[9px] text-white opacity-0 transition-opacity hover:bg-red-500 group-hover:opacity-100"
+              (click)="removeReference(ref.id)"
+            >✕</button>
+          </div>
+        }
+        <label
+          class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-dashed border-primary-500/50 bg-primary-500/5 text-primary-500 transition-colors hover:border-primary-500 hover:bg-primary-500/15"
+          title="Add reference image"
+        >
+          <i class="pi pi-plus text-[14px]"></i>
+          <input type="file" accept="image/*" class="hidden" (change)="onReferencePicked($event)" />
         </label>
-        <textarea
-          [ngModel]="prompt()"
-          (ngModelChange)="prompt.set($event)"
-          rows="4"
-          class="w-full resize-none rounded border px-3 py-2 text-[13px]"
-          style="background: var(--ink-800); border-color: var(--border-color); color: var(--text-primary);"
-          placeholder="Describe the image you want to generate…"
-        ></textarea>
       </div>
 
-      <!-- Generate button -->
-      <div class="flex items-center gap-2">
-        <p-button
-          label="Generate Image"
-          icon="pi pi-image"
-          [loading]="generating()"
+      <!-- Prompt textarea (2 rows — auto-expands on focus via resize) -->
+      <textarea
+        [ngModel]="prompt()"
+        (ngModelChange)="prompt.set($event)"
+        rows="2"
+        class="w-full resize-y rounded-md border border-ink-600 bg-ink-800 px-3 py-2 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/40"
+        placeholder="Describe the image you want to generate…"
+      ></textarea>
+
+      <!-- Generate CTA — gradient button + meta on the same row -->
+      <div class="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          class="group flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] text-fg-strong shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-red/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           [disabled]="!canGenerate()"
-          (onClick)="onGenerate()"
-        />
+          (click)="onGenerate()"
+          data-testid="image-gen-generate"
+        >
+          @if (generating()) {
+            <i class="pi pi-spin pi-spinner text-[12px]"></i>
+            <span>Generating…</span>
+          } @else {
+            <i class="pi pi-bolt text-[12px] transition-transform group-hover:scale-110"></i>
+            <span>Generate</span>
+          }
+        </button>
         @if (selectedModelName(); as name) {
-          <span class="text-[11px] text-fg-muted">{{ name }}</span>
+          <span class="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted" [title]="name">
+            ▸ {{ name }}
+          </span>
         }
       </div>
 
@@ -236,6 +351,43 @@ export class ImageGenPanelComponent implements OnInit {
 
   protected readonly referenceImages = signal<Array<{ id: string; url: string; fileId: string }>>([]);
 
+  // ── Aspect ratio + resolution (gemini-3-pro-image-preview & friends) ──
+  //
+  // The icon swatches in the trigger button are scaled from a 24×24 cell
+  // so the preview matches the chosen ratio without doing math in the
+  // template. Source of truth lives in signals; the payload reads them at
+  // submit time so changes apply immediately.
+
+  /** All aspect ratios supported by the latest Gemini image preview model. */
+  protected readonly ratioOptions: ReadonlyArray<{ value: string; w: number; h: number }> = [
+    { value: '1:1', w: 24, h: 24 },
+    { value: '4:3', w: 24, h: 18 },
+    { value: '3:4', w: 18, h: 24 },
+    { value: '3:2', w: 24, h: 16 },
+    { value: '2:3', w: 16, h: 24 },
+    { value: '16:9', w: 32, h: 18 },
+    { value: '9:16', w: 14, h: 24 },
+    { value: '21:9', w: 42, h: 18 },
+    { value: '4:5', w: 19, h: 24 },
+    { value: '5:4', w: 24, h: 19 },
+  ];
+
+  /** Output tiers — backend resolves the actual pixel dimensions per ratio. */
+  protected readonly resolutionOptions: ReadonlyArray<{ value: '1K' | '2K' | '4K'; hint: string }> = [
+    { value: '1K', hint: '~1024 px' },
+    { value: '2K', hint: '~2048 px' },
+    { value: '4K', hint: '~4096 px' },
+  ];
+
+  protected readonly selectedRatio = signal<string>('1:1');
+  protected readonly selectedResolution = signal<'1K' | '2K' | '4K'>('1K');
+
+  /** Live swatch dimensions for the ratio trigger button. */
+  protected readonly ratioPreview = computed(() => {
+    const r = this.ratioOptions.find((o) => o.value === this.selectedRatio());
+    return r ?? this.ratioOptions[0];
+  });
+
   protected readonly canGenerate = (): boolean =>
     !this.generating() &&
     !!this.selectedModelId() &&
@@ -264,6 +416,14 @@ export class ImageGenPanelComponent implements OnInit {
     this.selectedModelId.set(id);
     const model = this.imageModels().find((m) => m.id === id);
     this.selectedModelName.set(model?.name ?? null);
+  }
+
+  protected onPickRatio(value: string): void {
+    this.selectedRatio.set(value);
+  }
+
+  protected onPickResolution(value: '1K' | '2K' | '4K'): void {
+    this.selectedResolution.set(value);
   }
 
   protected onReferencePicked(event: Event): void {
@@ -327,8 +487,8 @@ export class ImageGenPanelComponent implements OnInit {
     const payload = {
       model: model.name,
       content,
-      ratio: '1:1',
-      resolution: '1K',
+      ratio: this.selectedRatio(),
+      resolution: this.selectedResolution(),
       project_id: this.studio.projectId() ?? '',
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),

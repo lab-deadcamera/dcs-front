@@ -44,19 +44,38 @@ import { ModelSelectDialogComponent } from '@shared/components/model-select-dial
             {{ 'HEADER.BRAND.SEEDANCE_STUDIO' | translate }}
           </p>
           <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-fg-muted">
-            {{ 'HEADER.SUBTITLE.STUDIOS' | translate }}
-            <span class="mx-1 text-primary-500">//</span>
             {{ 'HEADER.SUBTITLE.AI_LAB' | translate }}
           </p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <ui-icon-button
-          icon="👤"
-          [label]="session.user()?.handle ?? 'User'"
-          iconColor="purple"
-          labelColor="green"
+        <!--
+          User chip doubles as the avatar editor: click anywhere on it to
+          pick an image, which is downscaled to a 96×96 data URL and stored
+          in the session. Shows the photo when set, the 👤 glyph otherwise.
+        -->
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 border border-ink-500 bg-ink-850 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-fg-strong transition-colors hover:border-fg-muted focus:outline-none focus:border-fg-muted"
+          (click)="avatarInput.click()"
+          [attr.aria-label]="'HEADER.EDIT_AVATAR' | translate"
+          [title]="'HEADER.EDIT_AVATAR' | translate"
+          data-testid="header-user-avatar"
+        >
+          @if (session.avatarUrl(); as url) {
+            <img [src]="url" alt="" class="h-5 w-5 rounded-full object-cover" />
+          } @else {
+            <span class="text-sm text-[color:var(--color-brand-purple)]">👤</span>
+          }
+          <span class="text-secondary-500">{{ session.user()?.handle ?? 'User' }}</span>
+        </button>
+        <input
+          #avatarInput
+          type="file"
+          accept="image/*"
+          class="hidden"
+          (change)="onAvatarPick($event)"
         />
         <ui-icon-button
           icon="🎬"
@@ -129,7 +148,43 @@ export class HeaderComponent {
 
   protected readonly modelDialogVisible = signal(false);
 
+  /** Largest edge (px) of the stored avatar — kept small for the session snapshot. */
+  private static readonly AVATAR_SIZE = 96;
+
   protected onChangeModel(): void {
     this.modelDialogVisible.set(true);
+  }
+
+  /**
+   * Read the picked image, center-crop + downscale it to a square 96×96
+   * PNG data URL via a canvas, and persist it on the session. Keeping it
+   * tiny avoids bloating the IndexedDB-backed session snapshot.
+   */
+  protected onAvatarPick(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const size = HeaderComponent.AVATAR_SIZE;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        // Cover-fit: scale so the shorter edge fills the square, center the rest.
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        this.session.setAvatar(canvas.toDataURL('image/png'));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 }

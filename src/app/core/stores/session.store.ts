@@ -19,6 +19,8 @@ interface SessionSnapshot {
   primaryName: string;
   secondaryName: string;
   accentName: string;
+  /** Optional user avatar as a small data URL (96×96 PNG). */
+  avatarUrl?: string | null;
 }
 
 function resolveInitialLanguage(translate: TranslateService): SupportedLanguage {
@@ -70,6 +72,7 @@ export class SessionStore {
   private readonly _user = signal<SessionUser | null>(null);
   private readonly _authUser = signal<AuthUser | null>(null);
   private readonly _token = signal<string | null>(null);
+  private readonly _avatarUrl = signal<string | null>(null);
   private readonly _language = signal<SupportedLanguage>('en');
   private readonly _mode = signal<'light' | 'dark'>('light');
   private readonly _primaryName = signal<string>('blue');
@@ -82,6 +85,7 @@ export class SessionStore {
   readonly user = this._user.asReadonly();
   readonly authUser = this._authUser.asReadonly();
   readonly token = this._token.asReadonly();
+  readonly avatarUrl = this._avatarUrl.asReadonly();
   readonly language = this._language.asReadonly();
   readonly mode = this._mode.asReadonly();
   readonly primaryName = this._primaryName.asReadonly();
@@ -137,6 +141,7 @@ export class SessionStore {
         primaryName: this._primaryName(),
         secondaryName: this._secondaryName(),
         accentName: this._accentName(),
+        avatarUrl: this._avatarUrl(),
       };
       if (this.hydrated) {
         void this.storage.set('session', snap);
@@ -175,6 +180,7 @@ export class SessionStore {
         this._primaryName.set(snap.primaryName ?? storedTheme.primaryName ?? 'blue');
         this._secondaryName.set(snap.secondaryName ?? storedTheme.secondaryName ?? 'purple');
         this._accentName.set(snap.accentName ?? storedTheme.accentName ?? 'amber');
+        this._avatarUrl.set(snap.avatarUrl ?? null);
       } else {
         this._language.set(resolveInitialLanguage(this.translate));
         this._mode.set((storedTheme.mode as 'light' | 'dark') ?? 'light');
@@ -197,6 +203,15 @@ export class SessionStore {
     this._token.set(token);
   }
 
+  /**
+   * Set (or clear) the user avatar. Expects a small data URL — the header
+   * downscales the picked image to 96×96 before calling this so the value
+   * stays tiny in the persisted session snapshot.
+   */
+  setAvatar(url: string | null) {
+    this._avatarUrl.set(url);
+  }
+
   initSession(input: { email: string; handle: string }) {
     this._user.set({ email: input.email.trim(), handle: input.handle.trim() });
   }
@@ -217,6 +232,7 @@ export class SessionStore {
     this._token.set(null);
     this._authUser.set(null);
     this._user.set(null);
+    this._avatarUrl.set(null);
     localStorage.removeItem('dcs-token');
     void this.storage.delete('session');
   }
@@ -225,6 +241,7 @@ export class SessionStore {
     this._user.set(null);
     this._token.set(null);
     this._authUser.set(null);
+    this._avatarUrl.set(null);
     localStorage.removeItem('dcs-token');
   }
 

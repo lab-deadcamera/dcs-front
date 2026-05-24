@@ -72,8 +72,8 @@
   },
   "HEADER": {
     "BRAND": {
-      "DEAD_CAMERA": "DEAD CAMERA",
-      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+      "DEAD_CAMERA": "DCS",
+      "SEEDANCE_STUDIO": "MOVIE STUDIO"
     },
     "SUBTITLE": {
       "STUDIOS": "STUDIOS",
@@ -84,7 +84,8 @@
       "EXPORT": "EXPORT",
       "API": "API"
     },
-    "SELECT_MODEL": "Select a model"
+    "SELECT_MODEL": "Select a model",
+    "EDIT_AVATAR": "Change profile photo"
   },
   "STUDIO": {
     "BRAND": {
@@ -283,6 +284,8 @@
       "TITLE": "Character & Assets",
       "CHARACTER_STUDIO": "Character Studio",
       "CHARACTER_STUDIO_HINT": "Generate trusted reference images · powered by Seedream",
+      "IMAGE_GENERATION": "Image Generation",
+      "IMAGE_GENERATION_HINT": "Generate new images from a prompt and references",
       "MY_ASSETS": "My Assets",
       "MY_ASSETS_HINT": "Private trusted library · BytePlus",
       "REFERENCE": "Reference Assets",
@@ -298,7 +301,9 @@
       "CHARACTERS_DIALOG_TITLE": "Characters library",
       "LIBRARY_QUICKPICK": "My library",
       "LIBRARY_QUICKPICK_HINT": "Click to add to the prompt",
-      "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet."
+      "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet.",
+      "LIBRARY_HIDE": "Hide from library",
+      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden"
     },
     "FOOTER": {
       "VERSION": "v1.0",
