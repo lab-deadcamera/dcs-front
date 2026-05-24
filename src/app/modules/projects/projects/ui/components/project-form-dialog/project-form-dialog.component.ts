@@ -72,6 +72,10 @@ import { TextareaModule } from 'primeng/textarea';
             rows="3"
             data-testid="project-description-input"
           ></textarea>
+          <validator-errors
+            [control]="form.get('description')"
+            [label]="'PROJECTS.FIELDS.DESCRIPTION' | translate"
+          />
         </div>
       </form>
 
@@ -128,8 +132,8 @@ export class ProjectFormDialogComponent {
   }
 
   protected onSubmit(): void {
+    this.form.markAllAsTouched();
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
       return;
     }
 
