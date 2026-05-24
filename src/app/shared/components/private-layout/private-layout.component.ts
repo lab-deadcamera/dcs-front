@@ -12,9 +12,7 @@ import { HeaderComponent } from '@shared/components/header/header.component';
       uses the same true-black ink-950 so the gutter and the content
       blend into a single seamless surface.
     -->
-    <div
-      class="min-h-dvh flex flex-col bg-ink-950 text-fg md:px-8 lg:px-16 xl:px-[200px]"
-    >
+    <div class="min-h-dvh flex flex-col bg-ink-950 text-fg md:px-8 lg:px-16 3xl:px-[200px]">
       <app-header />
 
       <main class="flex-1 flex flex-col">

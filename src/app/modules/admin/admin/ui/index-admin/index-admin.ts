@@ -1,5 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -29,7 +36,7 @@ interface UserOption {
 
 @Component({
   selector: 'app-index-admin',
-imports: [
+  imports: [
     DatePipe,
     FormsModule,
     ButtonModule,
@@ -42,421 +49,7 @@ imports: [
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MessageService],
-  template: `
-    <section class="px-6 py-6">
-      <div class="mb-6">
-        <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Generation Logs</h1>
-        <p class="mt-1 text-[12px] text-fg-muted">
-          All generation requests submitted to models — filterable and paginated.
-        </p>
-      </div>
-
-      <!-- Filters -->
-      <div class="mb-4 flex flex-wrap items-end gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Model</label>
-          <p-select
-            [options]="modelOptions()"
-            [ngModel]="filters().modelName"
-            (ngModelChange)="filters.set({ ...filters(), modelName: $event ?? '' })"
-            [filter]="true"
-            filterBy="label"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Any model"
-            [showClear]="true"
-            styleClass="w-48"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">User</label>
-          <p-select
-            [options]="userOptions()"
-            [ngModel]="filters().userId"
-            (ngModelChange)="filters.set({ ...filters(), userId: $event ?? null })"
-            [filter]="true"
-            filterBy="label"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Any user"
-            [showClear]="true"
-            styleClass="w-48"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Project</label>
-          <p-select
-            [options]="projectOptions()"
-            [ngModel]="filters().projectId"
-            (ngModelChange)="onProjectChange($event ?? '')"
-            [filter]="true"
-            filterBy="label"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Any project"
-            [showClear]="true"
-            styleClass="w-48"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Scene</label>
-          <p-select
-            [options]="sceneOptions()"
-            [ngModel]="filters().sceneId"
-            (ngModelChange)="filters.set({ ...filters(), sceneId: $event ?? '' })"
-            [filter]="true"
-            filterBy="label"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Any scene"
-            [showClear]="true"
-            styleClass="w-48"
-            [disabled]="!filters().projectId"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Status</label>
-          <p-select
-            [options]="statusOptions"
-            [ngModel]="filters().status"
-            (ngModelChange)="filters.set({ ...filters(), status: $event ?? null })"
-            placeholder="Any"
-            [showClear]="true"
-            styleClass="w-32"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">From</label>
-          <input
-            pInputText
-            type="date"
-            [ngModel]="filters().dateFrom"
-            (ngModelChange)="filters.set({ ...filters(), dateFrom: $event })"
-            class="w-36"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">To</label>
-          <input
-            pInputText
-            type="date"
-            [ngModel]="filters().dateTo"
-            (ngModelChange)="filters.set({ ...filters(), dateTo: $event })"
-            class="w-36"
-          />
-        </div>
-        <p-button label="Search" icon="pi pi-search" (onClick)="search()" />
-        <p-button label="Clear" severity="secondary" [text]="true" (onClick)="clearFilters()" />
-      </div>
-
-      <!-- Loading -->
-      @if (loading()) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
-      }
-
-      <!-- Table -->
-      @if (!loading() && logs().length > 0) {
-        <div class="overflow-x-auto rounded border" style="border-color: var(--border-color);">
-          <table class="w-full text-[12px]">
-            <thead>
-              <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                <th class="px-3 py-2 font-medium">Task ID</th>
-                <th class="px-3 py-2 font-medium">Model</th>
-                <th class="px-3 py-2 font-medium">User</th>
-                <th class="px-3 py-2 font-medium">Project</th>
-                <th class="px-3 py-2 font-medium">Scene</th>
-                <th class="px-3 py-2 font-medium">Take</th>
-                <th class="px-3 py-2 font-medium">Status</th>
-                <th class="px-3 py-2 font-medium">Date</th>
-                <th class="w-36 px-3 py-2 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (log of logs(); track log.id) {
-                <tr class="border-t" style="border-color: var(--border-color);">
-                  <td class="max-w-[140px] truncate px-3 py-2 font-mono" [title]="log.task_id">
-                    {{ log.task_id }}
-                  </td>
-                  <td class="px-3 py-2 font-mono">{{ log.model_name }}</td>
-                  <td class="px-3 py-2 font-mono" [title]="'id: ' + (log.user_id ?? '')">
-                    {{ log.user_display_name || log.user_name || (log.user_id ?? '—') }}
-                  </td>
-                  <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.project_id">
-                    {{ log.project_name || log.project_id || '—' }}
-                  </td>
-                  <td class="max-w-[160px] truncate px-3 py-2 font-mono" [title]="log.scene_id">
-                    {{ sceneLabel(log) || log.scene_id || '—' }}
-                  </td>
-                  <td class="px-3 py-2 font-mono">{{ log.take_number ?? '—' }}</td>
-                  <td class="px-3 py-2">
-                    <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                      [class.bg-green-900/40]="log.status === 'succeeded'"
-                      [class.text-green-400]="log.status === 'succeeded'"
-                      [class.bg-yellow-900/40]="log.status === 'queued' || log.status === 'running'"
-                      [class.text-yellow-400]="log.status === 'queued' || log.status === 'running'"
-                      [class.bg-red-900/40]="log.status === 'failed'"
-                      [class.text-red-400]="log.status === 'failed'"
-                    >
-                      {{ log.status }}
-                    </span>
-                    @if (log.error_message) {
-                      <p class="mt-0.5 truncate text-[10px] text-red-400" [title]="log.error_message">
-                        {{ log.error_message }}
-                      </p>
-                    }
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
-                    {{ log.created_at | date: 'dd/MM/yy HH:mm' }}
-                  </td>
-                  <td class="px-3 py-2">
-                    <div class="flex items-center gap-1">
-                      <p-button
-                        icon="pi pi-refresh"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="Refresh task status"
-                        [loading]="refreshingId() === log.task_id"
-                        (onClick)="refreshTask(log)"
-                      />
-                      <p-button
-                        icon="pi pi-eye"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="View request payload"
-                        (onClick)="showPayload(log)"
-                      />
-                      <p-button
-                        icon="pi pi-video"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="View generated videos"
-                        [disabled]="!log.outputs || log.outputs === '[]'"
-                        (onClick)="showVideo(log)"
-                      />
-                      <p-button
-                        icon="pi pi-info-circle"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="View full details"
-                        (onClick)="showDetails(log)"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <p-paginator
-          [totalRecords]="totalRecords()"
-          [rows]="limit()"
-          [rowsPerPageOptions]="[10, 20, 50]"
-          (onPageChange)="onPageChange($event)"
-          class="mt-3"
-        />
-      }
-
-      @if (!loading() && logs().length === 0) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">
-          No generation logs match the current filters.
-        </p>
-      }
-    </section>
-
-    <!-- Payload dialog -->
-    <p-dialog
-      [visible]="payloadDialogVisible()"
-      (visibleChange)="payloadDialogVisible.set($event)"
-      [modal]="true"
-      [closable]="true"
-      [draggable]="false"
-      [style]="{ width: '40rem' }"
-      header="Request Payload"
-    >
-      <div class="flex flex-col gap-3 text-[12px]">
-        <div><span class="font-bold uppercase">Model:</span> {{ selectedPayload()?.model }}</div>
-        <div><span class="font-bold uppercase">Ratio:</span> {{ selectedPayload()?.ratio }}</div>
-        <div><span class="font-bold uppercase">Duration:</span> {{ selectedPayload()?.duration }}s</div>
-        <div><span class="font-bold uppercase">Resolution:</span> {{ selectedPayload()?.resolution }}</div>
-        <div><span class="font-bold uppercase">Quality:</span> {{ selectedPayload()?.quality }}</div>
-        <div><span class="font-bold uppercase">Seed:</span> {{ selectedPayload()?.seed || 'random' }}</div>
-        <div><span class="font-bold uppercase">Audio:</span> {{ selectedPayload()?.generate_audio ? 'Yes' : 'No' }}</div>
-        @if (selectedPayload()?.project_id) {
-          <div><span class="font-bold uppercase">Project:</span> {{ selectedPayload()?.project_id }}</div>
-          <div><span class="font-bold uppercase">Scene:</span> {{ selectedPayload()?.scene_code }}</div>
-          <div><span class="font-bold uppercase">Take:</span> {{ selectedPayload()?.take_number }}</div>
-        }
-        @if (selectedPayloadContent().length > 0) {
-          <div class="mt-2">
-            <span class="font-bold uppercase">Content:</span>
-            <ul class="mt-1 list-inside list-disc">
-              @for (item of selectedPayloadContent(); track $index) {
-                <li class="truncate text-fg-muted" [title]="item.text">
-                  <span class="font-mono text-[10px] uppercase">{{ item.type }}</span>:
-                  {{ item.text || item.name || item.id }}
-                </li>
-              }
-            </ul>
-          </div>
-        }
-      </div>
-    </p-dialog>
-
-    <!-- Video dialog -->
-    <p-dialog
-      [visible]="videoDialogVisible()"
-      (visibleChange)="videoDialogVisible.set($event)"
-      [modal]="true"
-      [closable]="true"
-      [draggable]="false"
-      [style]="{ width: '44rem' }"
-      header="Generated Videos"
-    >
-      @if (selectedVideos().length === 0) {
-        <p class="py-4 text-center text-[13px] italic text-fg-muted">No videos available.</p>
-      }
-      <div class="flex flex-col gap-4">
-        @for (v of selectedVideos(); track $index) {
-          <div class="overflow-hidden rounded border" style="border-color: var(--border-color);">
-            @if (v.type === 'video') {
-              <video
-                [src]="v.url"
-                controls
-                class="w-full max-h-[400px]"
-                preload="metadata"
-                playsinline
-              >
-                Your browser does not support the video tag.
-              </video>
-            } @else {
-              <img
-                [src]="v.url"
-                class="w-full max-h-[400px] object-contain"
-                alt="Generated output"
-              />
-            }
-            <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
-              <span>{{ v.type }}</span>
-              <a
-                [href]="v.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-primary-500 underline hover:text-primary-400"
-              >Open in new tab</a>
-            </div>
-          </div>
-        }
-      </div>
-    </p-dialog>
-
-    <!-- Full details dialog -->
-    <p-dialog
-      [visible]="detailsDialogVisible()"
-      (visibleChange)="detailsDialogVisible.set($event)"
-      [modal]="true"
-      [closable]="true"
-      [draggable]="false"
-      [style]="{ width: '70rem', maxWidth: '95vw' }"
-      header="Generation Details"
-    >
-      @if (detailsLoading()) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
-      } @else if (detailsError()) {
-        <p class="text-[12px] text-red-400">{{ detailsError() }}</p>
-      } @else if (detailsData(); as d) {
-        <div class="flex flex-col gap-4 text-[12px]">
-          <!-- Summary -->
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Task ID</span>
-              <span class="font-mono">{{ d.task_id || '—' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Model</span>
-              <span>{{ d.model_name }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Status</span>
-              <span [class.text-green-400]="d.status === 'succeeded'" [class.text-red-400]="d.status === 'failed'">
-                {{ d.status }}
-              </span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">User</span>
-              <span>{{ d.user_display_name || d.user_name || d.user_id || '—' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Project</span>
-              <span>{{ d.project_name || d.project_id || '—' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Scene</span>
-              <span>{{ sceneLabel(d) || d.scene_code || d.scene_id || '—' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Take</span>
-              <span>{{ d.take_number ?? '—' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Created</span>
-              <span>{{ d.created_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
-            </div>
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Updated</span>
-              <span>{{ d.updated_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
-            </div>
-          </div>
-
-          @if (d.error_message) {
-            <div>
-              <span class="block font-bold uppercase text-red-400">Error</span>
-              <pre class="mt-1 whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] text-red-400">{{ d.error_message }}</pre>
-            </div>
-          }
-
-          <!-- Request payload -->
-          <div>
-            <span class="block font-bold uppercase text-fg-muted">Request Payload</span>
-            <pre class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg">{{ formatJson(d.request) }}</pre>
-          </div>
-
-          <!-- Outputs -->
-          @if (d.outputs && d.outputs !== '[]') {
-            <div>
-              <span class="block font-bold uppercase text-fg-muted">Outputs</span>
-              <div class="mt-1 flex flex-wrap gap-3">
-                @for (out of parseOutputs(d.outputs); track $index) {
-                  <div class="overflow-hidden rounded border" style="border-color: var(--border-color);">
-                    @if (out.type === 'video') {
-                      <video [src]="out.url" controls class="w-60 h-36 object-cover" preload="metadata" playsinline>
-                        Your browser does not support the video tag.
-                      </video>
-                    } @else {
-                      <img [src]="out.url" class="w-60 h-36 object-contain bg-ink-900" alt="Output" />
-                    }
-                    <div class="px-2 py-1 text-[10px] text-fg-muted">
-                      <a [href]="out.url" target="_blank" class="text-primary-500 underline">Open</a>
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      }
-      <ng-template pTemplate="footer">
-        <p-button severity="secondary" [text]="true" label="Close" (onClick)="detailsDialogVisible.set(false)" />
-      </ng-template>
-    </p-dialog>
-
-    <p-toast position="top-right" />
-  `,
+  templateUrl: './index-admin.html',
 })
 export class IndexAdmin implements OnInit {
   private readonly http = inject(HttpClient);
@@ -464,6 +57,13 @@ export class IndexAdmin implements OnInit {
   private readonly genLogs = inject(GenerationLogsService);
   private readonly toast = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+
+  protected readonly resourceTypeOptions: SelectOption[] = [
+    { label: 'Video', value: 'video' },
+    { label: 'Image', value: 'image' },
+    { label: 'Audio', value: 'audio' },
+    { label: 'Text', value: 'text' },
+  ];
 
   protected readonly statusOptions = [
     { label: 'Succeeded', value: 'succeeded' },
@@ -484,6 +84,7 @@ export class IndexAdmin implements OnInit {
     projectId: '',
     sceneId: '',
     status: null as string | null,
+    resourceType: null as string | null,
     dateFrom: '',
     dateTo: '',
   });
@@ -502,24 +103,25 @@ export class IndexAdmin implements OnInit {
   private loadDropdowns(): void {
     // Models
     this.http
-      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(`${environment.API_URL}/models`)
+      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(
+        `${environment.API_URL}/models`,
+      )
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),
         catchError(() => [{ error: true, data: undefined }]),
       )
       .subscribe((res) => {
         if (!res.error && res.data) {
-          this.modelOptions.set(
-            res.data.map((m) => ({ label: m.name, value: m.name })),
-          );
+          this.modelOptions.set(res.data.map((m) => ({ label: m.name, value: m.name })));
         }
       });
 
     // Users
     this.http
-      .get<{ success: boolean; data?: Array<{ id: number; username: string; name: string; surname: string }> }>(
-        `${environment.API_URL}/admin/users`,
-      )
+      .get<{
+        success: boolean;
+        data?: Array<{ id: number; username: string; name: string; surname: string }>;
+      }>(`${environment.API_URL}/admin/users`)
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),
         catchError(() => [{ error: true, data: undefined }]),
@@ -537,16 +139,16 @@ export class IndexAdmin implements OnInit {
 
     // Projects
     this.http
-      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(`${environment.API_URL}/projects`)
+      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(
+        `${environment.API_URL}/projects`,
+      )
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),
         catchError(() => [{ error: true, data: undefined }]),
       )
       .subscribe((res) => {
         if (!res.error && res.data) {
-          this.projectOptions.set(
-            res.data.map((p) => ({ label: p.name, value: p.id })),
-          );
+          this.projectOptions.set(res.data.map((p) => ({ label: p.name, value: p.id })));
         }
       });
   }
@@ -582,7 +184,16 @@ export class IndexAdmin implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.filters.set({ modelName: '', userId: null, projectId: '', sceneId: '', status: null, dateFrom: '', dateTo: '' });
+    this.filters.set({
+      modelName: '',
+      userId: null,
+      projectId: '',
+      sceneId: '',
+      status: null,
+      resourceType: null,
+      dateFrom: '',
+      dateTo: '',
+    });
     this.sceneOptions.set([]);
     this.search();
   }
@@ -602,36 +213,74 @@ export class IndexAdmin implements OnInit {
     return '';
   }
 
+  /** Returns the PrimeNG icon for a given resource type. */
+  protected typeIcon(type: string | undefined | null): string {
+    switch (type) {
+      case 'video':
+        return 'pi pi-video';
+      case 'image':
+        return 'pi pi-image';
+      case 'audio':
+        return 'pi pi-volume-up';
+      case 'text':
+        return 'pi pi-file';
+      default:
+        return 'pi pi-play';
+    }
+  }
+
   // ── Payload dialog ───────────────────────────────────────────────
 
   protected readonly payloadDialogVisible = signal(false);
   protected readonly selectedPayload = signal<any>(null);
-  protected readonly selectedPayloadContent = signal<Array<{ type: string; text?: string; name?: string; id?: string }>>([]);
+  protected readonly selectedPayloadContent = signal<
+    Array<{ type: string; text?: string; name?: string; id?: string }>
+  >([]);
 
   protected showPayload(log: GenerationLogEntry): void {
     try {
-      if (!log.request) { this.toast.add({ severity: 'warn', summary: 'No payload', detail: 'Request payload not loaded', life: 3000 }); return; }
+      if (!log.request) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'No payload',
+          detail: 'Request payload not loaded',
+          life: 3000,
+        });
+        return;
+      }
       const parsed = JSON.parse(log.request);
       this.selectedPayload.set(parsed);
       this.selectedPayloadContent.set(parsed.content ?? []);
       this.payloadDialogVisible.set(true);
     } catch {
-      this.toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid payload JSON', life: 3000 });
+      this.toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Invalid payload JSON',
+        life: 3000,
+      });
     }
   }
 
-  // ── Video dialog ─────────────────────────────────────────────────
+  // ── Output preview dialog (type-aware) ────────────────────────────
 
-  protected readonly videoDialogVisible = signal(false);
-  protected readonly selectedVideos = signal<Array<{ url: string; type: string }>>([]);
+  protected readonly outputDialogVisible = signal(false);
+  protected readonly selectedOutputs = signal<Array<{ url: string; type: string }>>([]);
+  protected readonly selectedOutputType = signal<string>('');
 
-  protected showVideo(log: GenerationLogEntry): void {
+  protected showOutput(log: GenerationLogEntry): void {
     try {
       const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs ?? '[]');
-      this.selectedVideos.set(outputs);
-      this.videoDialogVisible.set(true);
+      this.selectedOutputs.set(outputs);
+      this.selectedOutputType.set(log.resource_type || 'output');
+      this.outputDialogVisible.set(true);
     } catch {
-      this.toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid outputs JSON', life: 3000 });
+      this.toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Invalid outputs JSON',
+        life: 3000,
+      });
     }
   }
 
@@ -648,14 +297,17 @@ export class IndexAdmin implements OnInit {
     this.detailsData.set(null);
     this.detailsDialogVisible.set(true);
 
-    this.genLogs.getById(log.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
-      this.detailsLoading.set(false);
-      if (res.error || !res.data) {
-        this.detailsError.set(res.msg || 'Failed to load details');
-        return;
-      }
-      this.detailsData.set(res.data);
-    });
+    this.genLogs
+      .getById(log.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.detailsLoading.set(false);
+        if (res.error || !res.data) {
+          this.detailsError.set(res.msg || 'Failed to load details');
+          return;
+        }
+        this.detailsData.set(res.data);
+      });
   }
 
   protected formatJson(raw: string | undefined | null): string {
@@ -685,7 +337,12 @@ export class IndexAdmin implements OnInit {
     this.videoGenerator.status(log.task_id).subscribe((res) => {
       this.refreshingId.set(null);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Refresh failed', detail: res.msg, life: 3000 });
+        this.toast.add({
+          severity: 'error',
+          summary: 'Refresh failed',
+          detail: res.msg,
+          life: 3000,
+        });
         return;
       }
       this.toast.add({
@@ -701,24 +358,28 @@ export class IndexAdmin implements OnInit {
   private loadPage(): void {
     const f = this.filters();
     this.loading.set(true);
-    this.genLogs.getLogs({
-      model_name: f.modelName || undefined,
-      user_id: f.userId ?? undefined,
-      project_id: f.projectId || undefined,
-      scene_id: f.sceneId || undefined,
-      status: f.status ?? undefined,
-      date_from: f.dateFrom || undefined,
-      date_to: f.dateTo || undefined,
-      page: this.page() + 1,
-      limit: this.limit(),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
-      this.loading.set(false);
-      if (res.error || !res.data) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
-        return;
-      }
-      this.logs.set(res.data.logs);
-      this.totalRecords.set(res.data.total);
-    });
+    this.genLogs
+      .getLogs({
+        model_name: f.modelName || undefined,
+        user_id: f.userId ?? undefined,
+        project_id: f.projectId || undefined,
+        scene_id: f.sceneId || undefined,
+        status: f.status ?? undefined,
+        resource_type: f.resourceType ?? undefined,
+        date_from: f.dateFrom || undefined,
+        date_to: f.dateTo || undefined,
+        page: this.page() + 1,
+        limit: this.limit(),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.loading.set(false);
+        if (res.error || !res.data) {
+          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
+          return;
+        }
+        this.logs.set(res.data.logs);
+        this.totalRecords.set(res.data.total);
+      });
   }
 }

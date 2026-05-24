@@ -35,6 +35,7 @@ export class GenerationLogsService {
     status?: string;
     model_name?: string;
     user_id?: number;
+    resource_type?: string;
     date_from?: string;
     date_to?: string;
     page?: number;
@@ -46,6 +47,7 @@ export class GenerationLogsService {
     if (filters.status) params.set('status', filters.status);
     if (filters.model_name) params.set('model_name', filters.model_name);
     if (filters.user_id) params.set('user_id', String(filters.user_id));
+    if (filters.resource_type) params.set('resource_type', filters.resource_type);
     if (filters.date_from) params.set('date_from', filters.date_from);
     if (filters.date_to) params.set('date_to', filters.date_to);
     if (filters.page) params.set('page', String(filters.page));

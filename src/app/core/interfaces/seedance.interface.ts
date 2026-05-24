@@ -89,6 +89,14 @@ export interface GenerationLogEntry {
   error_message: string;
   created_at: string;
   updated_at?: string;
+  // Tipo de recurso generado: video, image, audio, text
+  resource_type?: string;
+  // Tipos de contenido enviados en la solicitud (ej. "text,image")
+  content_types?: string;
+  // Costo estimado en USD
+  estimated_cost?: number;
+  // Fuente del costo: api_response, calculator, pending
+  cost_source?: string;
   // Enriched fields (LEFT JOIN desde el backend)
   user_name?: string;
   user_display_name?: string;
