@@ -174,7 +174,11 @@
                       @if (isDirectorOrAdmin()) {
                         <a
                           [routerLink]="
-                            '/director/scenes/' + item.project.id + '/' + swt.scene.id + '/assign'
+                            '/director/projects/' +
+                            item.project.id +
+                            '/scenes/' +
+                            swt.scene.id +
+                            '/assign'
                           "
                           class="inline-flex items-center rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary-400 transition-colors hover:bg-ink-800"
                           pTooltip="Assign resources to this scene"

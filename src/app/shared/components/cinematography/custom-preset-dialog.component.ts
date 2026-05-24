@@ -256,15 +256,7 @@ export class CustomPresetDialogComponent {
         detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.UPDATED', { label }),
       });
     } else {
-      this.presets.addCustomPreset(category, { label, prompt }).then((r) => {
-        this.toast.add({
-          severity: 'success',
-          summary: 'OK',
-          detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.CREATED', {
-            label: r?.label,
-          }),
-        });
-      });
+      this.presets.addCustomPreset(category, { label, prompt });
     }
     this.visibleChange.emit(false);
   }

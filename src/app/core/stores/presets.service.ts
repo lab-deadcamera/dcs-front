@@ -80,13 +80,15 @@ export class PresetsService {
 
     this.api.getPresets().subscribe({
       next: (presets) => {
-        this._presets.set(presets.map((p: any) => ({
-          id: p.id,
-          group_id: p.group_id,
-          code: p.code,
-          label: p.label,
-          prompt: p.prompt,
-        })));
+        this._presets.set(
+          presets.map((p: any) => ({
+            id: p.id,
+            group_id: p.group_id,
+            code: p.code,
+            label: p.label,
+            prompt: p.prompt,
+          })),
+        );
       },
       error: (err) => console.warn('[presets] failed to load presets:', err),
     });
@@ -119,18 +121,41 @@ export class PresetsService {
     const group = this._groups().find((g) => g.slug === category);
     if (!group) return;
     const code = 'custom_' + Date.now().toString(36);
-    this.api.createPreset({ group_id: group.id, code, label: input.label.trim(), prompt: input.prompt.trim() })
-      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] create failed:', err) });
+    this.api
+      .createPreset({
+        group_id: group.id,
+        code,
+        label: input.label.trim(),
+        prompt: input.prompt.trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.load();
+        },
+        error: (err) => console.warn('[presets] create failed:', err),
+      });
   }
 
-  updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): void {
-    this.api.updatePreset(id, patch)
-      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] update failed:', err) });
+  updatePreset(
+    category: PresetCategory,
+    id: string,
+    patch: { label?: string; prompt?: string },
+  ): void {
+    this.api
+      .updatePreset(id, patch)
+      .subscribe({
+        next: () => this.load(),
+        error: (err) => console.warn('[presets] update failed:', err),
+      });
   }
 
   removePreset(category: PresetCategory, id: string): void {
-    this.api.deletePreset(id)
-      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] delete failed:', err) });
+    this.api
+      .deletePreset(id)
+      .subscribe({
+        next: () => this.load(),
+        error: (err) => console.warn('[presets] delete failed:', err),
+      });
   }
 
   removeCustomPreset(category: PresetCategory, id: string): void {
