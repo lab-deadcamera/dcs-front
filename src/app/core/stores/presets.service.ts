@@ -1,7 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Preset, PresetCategory, SpecOption } from '../interfaces/studio.models';
 import { PresetApiService } from '@app/services/preset-api.service';
-import { firstValueFrom } from 'rxjs';
 
 const LABEL_KEYS: Readonly<Record<string, string>> = {
   wide_24mm: 'STUDIO.CINEMATOGRAPHY.LENSES.24MM_WIDE',
@@ -37,20 +36,8 @@ function keyOf(id: string): string {
   return LABEL_KEYS[id] ?? id;
 }
 
-const slugToCategory: Record<string, PresetCategory> = {
-  lens: 'lens',
-  camera: 'camera',
-  cameraMotion: 'cameraMotion',
-  colorGrading: 'colorGrading',
-  genre: 'genre',
-};
-
-interface GroupInfo {
-  id: string;
-  slug: string;
-}
-
-interface ApiPresetLink {
+/** Raw preset shape returned by the backend API. */
+interface ApiPreset {
   id: string;
   group_id: string;
   code: string;
@@ -58,11 +45,16 @@ interface ApiPresetLink {
   prompt: string;
 }
 
+interface GroupInfo {
+  id: string;
+  slug: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PresetsService {
   private readonly api = inject(PresetApiService);
 
-  private readonly _presets = signal<ApiPresetLink[]>([]);
+  private readonly _presets = signal<ApiPreset[]>([]);
   private readonly _groups = signal<GroupInfo[]>([]);
   readonly loaded = computed(() => this._groups().length > 0);
 
@@ -75,19 +67,29 @@ export class PresetsService {
   readonly resolution = computed<SpecOption[]>(() => []);
 
   constructor() {
-    void this.load();
+    this.load();
   }
 
-  private async load() {
-    try {
-      const groups = await firstValueFrom(this.api.getGroups());
-      this._groups.set(groups.map((g) => ({ id: g.id, slug: g.slug })));
+  private load(): void {
+    this.api.getGroups().subscribe({
+      next: (groups) => {
+        this._groups.set(groups.map((g: any) => ({ id: g.id, slug: g.slug })));
+      },
+      error: (err) => console.warn('[presets] failed to load groups:', err),
+    });
 
-      const presets = await firstValueFrom(this.api.getPresets());
-      this._presets.set(presets);
-    } catch (err) {
-      console.warn('[presets] failed to load from API:', err);
-    }
+    this.api.getPresets().subscribe({
+      next: (presets) => {
+        this._presets.set(presets.map((p: any) => ({
+          id: p.id,
+          group_id: p.group_id,
+          code: p.code,
+          label: p.label,
+          prompt: p.prompt,
+        })));
+      },
+      error: (err) => console.warn('[presets] failed to load presets:', err),
+    });
   }
 
   private bySlug(slug: string): Preset[] {
@@ -113,32 +115,25 @@ export class PresetsService {
     return null;
   }
 
-  async addCustomPreset(category: PresetCategory, input: { label: string; prompt: string }): Promise<Preset | null> {
+  addCustomPreset(category: PresetCategory, input: { label: string; prompt: string }): void {
     const group = this._groups().find((g) => g.slug === category);
-    if (!group) return null;
+    if (!group) return;
     const code = 'custom_' + Date.now().toString(36);
-    try {
-      const created = await firstValueFrom(
-        this.api.createPreset({ group_id: group.id, code, label: input.label.trim(), prompt: input.prompt.trim() }),
-      );
-      await this.load();
-      return created ?? null;
-    } catch {
-      return null;
-    }
+    this.api.createPreset({ group_id: group.id, code, label: input.label.trim(), prompt: input.prompt.trim() })
+      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] create failed:', err) });
   }
 
-  async updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): Promise<void> {
-    await firstValueFrom(this.api.updatePreset(id, patch));
-    await this.load();
+  updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): void {
+    this.api.updatePreset(id, patch)
+      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] update failed:', err) });
   }
 
-  async removePreset(category: PresetCategory, id: string): Promise<void> {
-    await firstValueFrom(this.api.deletePreset(id));
-    await this.load();
+  removePreset(category: PresetCategory, id: string): void {
+    this.api.deletePreset(id)
+      .subscribe({ next: () => this.load(), error: (err) => console.warn('[presets] delete failed:', err) });
   }
 
   removeCustomPreset(category: PresetCategory, id: string): void {
-    void this.removePreset(category, id);
+    this.removePreset(category, id);
   }
 }
