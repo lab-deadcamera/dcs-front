@@ -24,7 +24,8 @@ import {
 import { CharacterFormDialogComponent } from '../components/character-form-dialog/character-form-dialog.component';
 import { CharacterFilesDialogComponent } from '../components/character-files-dialog/character-files-dialog.component';
 import { AssetCreateDialogComponent } from '../components/asset-create-dialog/asset-create-dialog.component';
-import { PromptStateService, UsedAssetKind } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
 
@@ -61,7 +62,7 @@ export class IndexCharacters implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
   private readonly filesApi = inject(FilesApiService);
-  private readonly prompt = inject(PromptStateService);
+  private readonly studio = inject(StudioStore);
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
@@ -72,16 +73,20 @@ export class IndexCharacters implements OnInit {
   /**
    * Per-asset preview metadata used by the card grid.
    *
-   *   fileId       — first linked file, used to build the `<img src>`.
-   *   count        — total number of linked files (drives the +N badge).
-   *   imageBroken  — set when `<img>` errors out; the card falls back to
-   *                  the type/kind icon but the +N badge stays so the
-   *                  user still sees there are files attached.
+   *   fileIds      — up to PREVIEW_GRID_MAX linked files rendered as a
+   *                  thumbnail mosaic inside the card.
+   *   count        — total number of linked files (drives the +N overlay
+   *                  on the last tile when more files exist than tiles).
+   *   brokenIds    — file ids whose `<img>` errored out; the fallback
+   *                  icon shows through for those tiles only.
    *
    * Populated lazily after `load()` completes. Cached for the session —
    * `onAssetCreated` only refetches for the new asset, not the whole list.
    */
   protected readonly previewMap = signal<Record<string, PreviewInfo>>({});
+
+  /** Max thumbnails rendered in the card preview mosaic. */
+  protected readonly PREVIEW_GRID_MAX = 4;
 
   protected readonly tabs: {
     id: AssetType;
@@ -132,7 +137,11 @@ export class IndexCharacters implements OnInit {
         if (!r.error && r.data && r.data.length > 0) {
           this.previewMap.update((m) => ({
             ...m,
-            [c.id]: { fileId: r.data![0].file_id, count: r.data!.length },
+            [c.id]: {
+              fileIds: r.data!.slice(0, this.PREVIEW_GRID_MAX).map((f) => f.file_id),
+              count: r.data!.length,
+              brokenIds: new Set<string>(),
+            },
           }));
         }
       });
@@ -145,8 +154,9 @@ export class IndexCharacters implements OnInit {
         this.previewMap.update((m) => ({
           ...m,
           [characterId]: {
-            fileId: r.data![0].file_id,
+            fileIds: r.data!.slice(0, this.PREVIEW_GRID_MAX).map((f) => f.file_id),
             count: r.data!.length,
+            brokenIds: new Set<string>(),
           },
         }));
       }
@@ -159,16 +169,30 @@ export class IndexCharacters implements OnInit {
   }
 
   /**
-   * Mark this card's image as broken without dropping the file metadata.
-   * The +N badge still renders from `count`; only the `<img>` is hidden
-   * and the fallback icon shows through.
+   * Mark one tile's image as broken without dropping the file metadata.
+   * The +N overlay still renders from `count`; only that single `<img>`
+   * is hidden so the fallback icon shows through for that tile.
    */
-  protected onPreviewError(characterId: string): void {
+  protected onPreviewError(characterId: string, fileId: string): void {
     this.previewMap.update((m) => {
       const cur = m[characterId];
-      if (!cur || cur.imageBroken) return m;
-      return { ...m, [characterId]: { ...cur, imageBroken: true } };
+      if (!cur || cur.brokenIds.has(fileId)) return m;
+      const brokenIds = new Set(cur.brokenIds);
+      brokenIds.add(fileId);
+      return { ...m, [characterId]: { ...cur, brokenIds } };
     });
+  }
+
+  /**
+   * Tailwind grid-template classes for the thumbnail mosaic:
+   *   1 file → single full tile
+   *   2 files → 2 cols × 1 row
+   *   3-4 files → 2 × 2
+   */
+  protected gridClass(count: number): string {
+    if (count <= 1) return 'grid-cols-1 grid-rows-1';
+    if (count === 2) return 'grid-cols-2 grid-rows-1';
+    return 'grid-cols-2 grid-rows-2';
   }
 
   /**
@@ -207,22 +231,38 @@ export class IndexCharacters implements OnInit {
   }
 
   /**
-   * Push the asset into the Prompt Builder's reference list. The token
-   * shows up as `@asset_name` in the compiled prompt and as a typed chip
-   * above the textarea. Emits `assetUsed` so the parent can dismiss the
-   * library dialog and let the user see the prompt update.
+   * Push the asset into the Prompt Builder's reference list. The chip is
+   * surfaced above the prompt textarea and the file id travels to the
+   * Seedance API in the generation payload's `content[]`. Emits
+   * `assetUsed` so the parent can dismiss the library dialog and let the
+   * user see the prompt update.
+   *
+   * If the asset has no uploaded file yet, we can't reference it — warn
+   * the user instead of queueing an unusable entry.
    */
   protected useAsset(asset: Character): void {
+    const preview = this.previewMap()[asset.id];
+    const fileId = preview?.fileIds?.[0];
+    if (!fileId) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'No file',
+        detail: `"${asset.name}" has no file uploaded yet — add one before referencing it.`,
+      });
+      return;
+    }
     const kind = resolveKind(asset.metadata?.['fileKind']);
-    this.prompt.useAsset({
-      id: asset.id,
+    this.studio.useAsset({
+      fileId,
+      characterId: asset.id,
       name: asset.name,
+      filename: asset.name,
       kind,
     });
     this.toast.add({
       severity: 'success',
-      summary: 'OK',
-      detail: `@${asset.name.replace(/\s+/g, '_')} added to prompt`,
+      summary: 'Reference added',
+      detail: asset.name,
     });
     this.assetUsed.emit(asset.id);
   }
@@ -331,10 +371,10 @@ function resolveKind(raw: unknown): UsedAssetKind {
 }
 
 interface PreviewInfo {
-  /** First linked file id — used to construct the `<img src>`. */
-  fileId: string;
-  /** Total number of linked files (drives the +N badge). */
+  /** First N linked file ids (capped at PREVIEW_GRID_MAX) for the mosaic. */
+  fileIds: string[];
+  /** Total number of linked files (drives the +N overlay on the last tile). */
   count: number;
-  /** True after the `<img>` element emitted (error). */
-  imageBroken?: boolean;
+  /** File ids whose `<img>` emitted an error and should hide. */
+  brokenIds: Set<string>;
 }

@@ -1,0 +1,293 @@
+<section class="px-6 py-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Projects</h1>
+      <p class="mt-1 text-[12px] text-fg-muted">
+        Manage your video projects, scenes, and takes
+      </p>
+    </div>
+    <p-button
+      [label]="'PROJECTS.NEW_PROJECT' | translate"
+      icon="pi pi-plus"
+      data-testid="new-project-btn"
+      (onClick)="openCreateProject()"
+    />
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'COMMON.LOADING' | translate }}
+    </p>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && projects().length === 0) {
+    <div class="flex flex-col items-center gap-4 py-16">
+      <i class="pi pi-video text-4xl text-fg-muted"></i>
+      <p class="text-[13px] text-fg-muted">
+        No projects yet. Create your first project to get started.
+      </p>
+    </div>
+  }
+
+  <!-- Project list -->
+  @if (projects().length > 0) {
+    <div class="flex flex-col gap-3">
+      @for (item of projects(); track item.project.id) {
+        <div
+          class="border"
+          style="border-color: var(--border-color);"
+        >
+          <!-- Project header row -->
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                class="flex h-6 w-6 items-center justify-center rounded text-[11px] transition-colors hover:bg-ink-800"
+                (click)="toggleProjectExpand(item.project.id)"
+                [attr.aria-expanded]="expandedProjects()[item.project.id]"
+              >
+                {{ expandedProjects()[item.project.id] ? '▾' : '▸' }}
+              </button>
+              <span class="truncate text-[14px] font-semibold">
+                {{ item.project.name }}
+              </span>
+              @if (item.project.description) {
+                <span class="hidden truncate text-[12px] text-fg-muted sm:inline">
+                  — {{ item.project.description }}
+                </span>
+              }
+              <span
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                [class.bg-green-900/40]="item.project.active"
+                [class.text-green-400]="item.project.active"
+                [class.bg-ink-700]="!item.project.active"
+                [class.text-fg-muted]="!item.project.active"
+              >
+                {{ item.project.active ? ('GLOBAL.STATUS.ACTIVE' | translate) : ('GLOBAL.STATUS.INACTIVE' | translate) }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="font-mono text-[11px] text-fg-muted">
+                {{ item.scenes.length }} scene{{ item.scenes.length !== 1 ? 's' : '' }}
+              </span>
+
+              <p-button
+                icon="pi pi-plus"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Add scene"
+                (onClick)="openCreateScene(item.project.id)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Edit project"
+                (onClick)="openEditProject(item.project)"
+              />
+              <p-button
+                icon="pi pi-power-off"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [pTooltip]="item.project.active ? 'Deactivate' : 'Activate'"
+                (onClick)="toggleProjectActive(item.project)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                pTooltip="Delete project"
+                (onClick)="confirmDeleteProject(item.project)"
+              />
+            </div>
+          </div>
+
+          <!-- Scenes section (expandable) -->
+          @if (expandedProjects()[item.project.id]) {
+            <div class="border-t" style="border-color: var(--border-color);">
+              @if (item.scenes.length === 0) {
+                <div class="px-4 py-4 text-center text-[12px] text-fg-muted">
+                  No scenes yet.
+                </div>
+              }
+
+              @for (swt of item.scenes; track swt.scene.id) {
+                <div class="border-t" style="border-color: var(--border-color);">
+                  <!-- Scene header row -->
+                  <div class="flex items-center justify-between gap-4 px-4 py-2.5 pl-10">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <button
+                        type="button"
+                        class="flex h-5 w-5 items-center justify-center rounded text-[10px] transition-colors hover:bg-ink-800"
+                        (click)="toggleSceneExpand(item.project.id, swt.scene.id)"
+                        [attr.aria-expanded]="expandedScenes()[swt.scene.id]"
+                      >
+                        {{ expandedScenes()[swt.scene.id] ? '▾' : '▸' }}
+                      </button>
+                      <span class="font-mono text-[12px] font-semibold text-primary-400">
+                        SC{{ swt.scene.number | number:'2.0' }}
+                      </span>
+                      <span class="truncate text-[13px]">
+                        {{ swt.scene.name }}
+                      </span>
+                      <span
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                        [class.bg-green-900/40]="swt.scene.active"
+                        [class.text-green-400]="swt.scene.active"
+                        [class.bg-ink-700]="!swt.scene.active"
+                        [class.text-fg-muted]="!swt.scene.active"
+                      >
+                        {{ swt.scene.active ? ('GLOBAL.STATUS.ACTIVE' | translate) : ('GLOBAL.STATUS.INACTIVE' | translate) }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      <span class="font-mono text-[11px] text-fg-muted">
+                        {{ swt.takes.length }} take{{ swt.takes.length !== 1 ? 's' : '' }}
+                      </span>
+
+                      <p-button
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="Add take"
+                        (onClick)="openCreateTake(item.project.id, swt.scene.id)"
+                      />
+                      <p-button
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="Edit scene"
+                        (onClick)="openEditScene(swt.scene)"
+                      />
+                      <p-button
+                        icon="pi pi-power-off"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="swt.scene.active ? 'Deactivate' : 'Activate'"
+                        (onClick)="toggleSceneActive(swt.scene)"
+                      />
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        [rounded]="true"
+                        pTooltip="Delete scene"
+                        (onClick)="confirmDeleteScene(swt.scene)"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Takes section (expandable) -->
+                  @if (expandedScenes()[swt.scene.id]) {
+                    <div class="border-t" style="border-color: var(--border-color);">
+                      @if (swt.takes.length === 0) {
+                        <div class="px-4 py-4 text-center text-[12px] text-fg-muted">
+                          No takes yet.
+                        </div>
+                      }
+
+                      @if (swt.takes.length > 0) {
+                        <table class="w-full text-[12px]">
+                          <thead>
+                            <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                              <th class="px-4 py-2 pl-14 font-medium">Take</th>
+                              <th class="px-4 py-2 font-medium">Status</th>
+                              <th class="px-4 py-2 font-medium">Video URL</th>
+                              <th class="w-32 px-4 py-2"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (t of swt.takes; track t.id) {
+                              <tr class="border-t" style="border-color: var(--border-color);">
+                                <td class="px-4 py-2 pl-14 font-mono text-[13px]">
+                                  Take {{ t.number | number:'2.0' }}
+                                </td>
+                                <td class="px-4 py-2">
+                                  <span
+                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                                    [class]="statusClass(t.status)"
+                                  >
+                                    {{ t.status }}
+                                  </span>
+                                </td>
+                                <td class="max-w-[250px] truncate px-4 py-2 font-mono text-fg-muted">
+                                  @if (t.video_url) {
+                                    <a
+                                      [href]="t.video_url"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      class="underline hover:text-primary-400"
+                                    >
+                                      {{ t.video_url }}
+                                    </a>
+                                  } @else {
+                                    <span class="italic">—</span>
+                                  }
+                                </td>
+                                <td class="px-4 py-2">
+                                  <div class="flex items-center gap-1">
+                                    <p-button
+                                      icon="pi pi-trash"
+                                      severity="danger"
+                                      [text]="true"
+                                      [rounded]="true"
+                                      pTooltip="Delete take"
+                                      (onClick)="confirmDeleteTake(t, item.project.id, swt.scene.id)"
+                                    />
+                                  </div>
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Dialogs -->
+  <app-project-form-dialog
+    [visible]="projectDialogVisible()"
+    [project]="projectDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="projectDialogVisible.set($event)"
+    (create)="onCreateProject($event)"
+    (update)="onUpdateProject($event)"
+  />
+
+  <app-scene-form-dialog
+    [visible]="sceneDialogVisible()"
+    [scene]="sceneDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="sceneDialogVisible.set($event)"
+    (create)="onCreateScene($event)"
+    (update)="onUpdateScene($event)"
+  />
+
+  <app-take-form-dialog
+    [visible]="takeDialogVisible()"
+    [take]="takeDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="takeDialogVisible.set($event)"
+    (create)="onCreateTake($event)"
+  />
+</section>

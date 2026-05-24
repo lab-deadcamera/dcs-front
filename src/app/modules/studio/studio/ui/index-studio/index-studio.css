@@ -2,3 +2,36 @@
   display: block;
   width: 100%;
 }
+
+/* Floating sync button — arrastrable */
+.sync-fab {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color, #444);
+  background: var(--surface-card, #1e1e2e);
+  color: var(--text-color, #ccc);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: box-shadow 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.sync-fab:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  color: var(--primary-500, #60a5fa);
+}
+
+.sync-fab:active {
+  cursor: grabbing;
+}

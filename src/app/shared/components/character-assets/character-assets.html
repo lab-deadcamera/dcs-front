@@ -1,7 +1,12 @@
 <section class="px-6 py-6">
   <ui-section-header number="01" labelKey="STUDIO.ASSETS.TITLE" />
 
-  <div
+  <!--
+    Character Studio (Seedream) — temporarily hidden from the UI. The
+    section is kept in source because we'll re-enable it shortly to
+    plug in a different generation service. Do not delete.
+  -->
+  <!-- <div
     class="mt-5 flex items-center justify-between border-l-2 border-secondary-500 bg-ink-850 px-4 py-3"
   >
     <div class="flex items-center gap-3">
@@ -22,6 +27,46 @@
       class="text-fg-muted"
       [attr.aria-label]="'STUDIO.ASSETS.EXPAND' | translate"
     >▾</button>
+  </div> -->
+
+  <!--
+    Image Generation disclosure — mirrors the My Assets pattern so both
+    bands read as a single grouped surface inside step 01. Body mounts
+    the existing <app-image-gen-panel> only when expanded.
+  -->
+  <div class="mt-3">
+    <button
+      type="button"
+      class="flex w-full items-center justify-between border-l-2 border-secondary-500 bg-ink-850 px-4 py-3 text-left transition-colors hover:bg-ink-800 focus:outline-none"
+      (click)="toggleImageGen()"
+      [attr.aria-expanded]="imageGenExpanded()"
+      aria-controls="image-generation-panel"
+      data-testid="image-generation-toggle"
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-secondary-500">✦</span>
+        <div>
+          <p class="text-[12px] font-bold uppercase tracking-[0.18em] text-secondary-500">
+            {{ 'STUDIO.ASSETS.IMAGE_GENERATION' | translate }}
+          </p>
+          <p class="text-[11px] italic text-fg-muted">
+            {{ 'STUDIO.ASSETS.IMAGE_GENERATION_HINT' | translate }}
+          </p>
+        </div>
+      </div>
+      <span
+        aria-hidden="true"
+        class="inline-block text-fg-muted transition-transform duration-150"
+        [class.rotate-180]="imageGenExpanded()"
+        >▾</span
+      >
+    </button>
+
+    @if (imageGenExpanded()) {
+      <div id="image-generation-panel" class="border border-t-0 border-ink-600 bg-ink-900 p-4">
+        <app-image-gen-panel />
+      </div>
+    }
   </div>
 
   <!--
@@ -42,9 +87,7 @@
       <div class="flex items-center gap-3">
         <span class="text-accent-500">◆</span>
         <div>
-          <p
-            class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500"
-          >
+          <p class="text-[12px] font-bold uppercase tracking-[0.18em] text-accent-500">
             {{ 'STUDIO.ASSETS.MY_ASSETS' | translate }}
           </p>
           <p class="text-[11px] italic text-fg-muted">
@@ -56,21 +99,19 @@
         aria-hidden="true"
         class="inline-block text-fg-muted transition-transform duration-150"
         [class.rotate-180]="myAssetsExpanded()"
-      >▾</span>
+        >▾</span
+      >
     </button>
 
     @if (myAssetsExpanded()) {
-      <div
-        id="my-assets-panel"
-        class="border border-t-0 border-ink-600 bg-ink-900 p-4"
-      >
+      <div id="my-assets-panel" class="border border-t-0 border-ink-600 bg-ink-900 p-4">
         <div class="mb-3 flex items-center justify-between gap-3">
           <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
             ▸ {{ 'STUDIO.ASSETS.REFERENCE' | translate }}
           </p>
           <div class="flex items-center gap-3">
             <p class="font-mono text-[11px] text-fg-muted">
-              {{ 'STUDIO.ASSETS.COUNT' | translate: { n: assets.totalCount() } }}
+              {{ 'STUDIO.ASSETS.COUNT' | translate: { n: studio.totalCount() } }}
             </p>
             <p-button
               [label]="'STUDIO.ASSETS.CREATE_ASSETS' | translate"
@@ -87,47 +128,58 @@
             labelKey="STUDIO.ASSETS.FIRST_FRAME"
             placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
             [small]="true"
-            [preview]="assets.firstFrame()?.thumbnailUrl ?? null"
-            [previewAlt]="assets.firstFrame()?.filename ?? ''"
+            [preview]="studio.firstFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="studio.firstFrame()?.filename ?? ''"
             (filesDropped)="onFirstFrame($event)"
-            (cleared)="assets.setFirstFrame(null)"
+            (cleared)="studio.setFirstFrame(null)"
           />
           <ui-drop-zone
             labelKey="STUDIO.ASSETS.LAST_FRAME"
             placeholderKey="STUDIO.ASSETS.DROP_OR_CLICK"
             [small]="true"
-            [preview]="assets.lastFrame()?.thumbnailUrl ?? null"
-            [previewAlt]="assets.lastFrame()?.filename ?? ''"
+            [preview]="studio.lastFrame()?.thumbnailUrl ?? null"
+            [previewAlt]="studio.lastFrame()?.filename ?? ''"
             (filesDropped)="onLastFrame($event)"
-            (cleared)="assets.setLastFrame(null)"
+            (cleared)="studio.setLastFrame(null)"
           />
         </div>
 
         <div class="mt-3">
-          <ui-drop-zone
-            [compact]="true"
-            [multiple]="true"
-            (filesDropped)="onFreeAssets($event)"
-          />
+          <ui-drop-zone [compact]="true" [multiple]="true" (filesDropped)="onFreeAssets($event)" />
         </div>
 
-        @if (assets.freeAssets().length) {
+        @if (studio.freeAssets().length) {
           <ul class="mt-3 flex flex-wrap gap-1.5">
-            @for (a of assets.freeAssets(); track a.id) {
-              <li
-                class="group relative flex h-14 w-14 flex-col overflow-hidden border border-ink-500 bg-ink-800"
-                [title]="a.tag + ' · ' + a.filename"
-              >
-                <div class="relative h-full w-full bg-ink-900">
-                  @if (a.kind === 'image' && a.thumbnailUrl) {
+            @for (a of studio.freeAssets(); track a.id) {
+              <li class="group relative h-14 w-14">
+                <button
+                  type="button"
+                  class="relative flex h-full w-full flex-col overflow-hidden border bg-ink-800 transition-colors hover:border-primary-500 focus:outline-none focus:border-primary-500"
+                  [class.border-primary-500]="isUsed(a.id)"
+                  [class.border-ink-500]="!isUsed(a.id)"
+                  [title]="a.filename"
+                  [attr.aria-pressed]="isUsed(a.id)"
+                  [attr.aria-label]="a.filename"
+                  [attr.data-testid]="'free-asset-pick-' + a.id"
+                  (click)="onPickFreeAsset(a)"
+                >
+                  @if (a.kind === 'image' && !isThumbBroken(a.id)) {
                     <img
-                      [src]="a.thumbnailUrl"
+                      [src]="a.id | sourceAsset"
                       [alt]="a.filename"
                       class="h-full w-full object-cover"
+                      (error)="onThumbError(a.id)"
                     />
-                  } @else if (a.kind === 'video' && a.thumbnailUrl) {
+                  } @else if (a.kind === 'image') {
+                    <span
+                      aria-hidden="true"
+                      class="absolute inset-0 flex items-center justify-center text-fg-muted"
+                    >
+                      <i class="pi pi-image text-base"></i>
+                    </span>
+                  } @else if (a.kind === 'video') {
                     <video
-                      [src]="a.thumbnailUrl"
+                      [src]="a.id | sourceAsset"
                       class="h-full w-full object-cover"
                       muted
                       playsinline
@@ -135,29 +187,48 @@
                     <span
                       aria-hidden="true"
                       class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
-                    >▶</span>
-                  } @else {
+                      >▶</span
+                    >
+                  } @else if (a.kind === 'audio') {
+                    <audio
+                      [src]="a.id | sourceAsset"
+                      class="h-full w-full object-cover"
+                      muted
+                      playsinline
+                    ></audio>
                     <span
                       aria-hidden="true"
-                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-muted"
+                      class="absolute inset-0 flex items-center justify-center text-sm text-fg-strong/80"
+                      >🎧</span
                     >
-                      @switch (a.kind) {
-                        @case ('audio') { ♪ }
-                        @case ('video') { ▶ }
-                        @default { ◇ }
-                      }
-                    </span>
                   }
                   <span
                     class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
-                  >{{ a.tag }}</span>
-                  <button
-                    type="button"
-                    class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
-                    (click)="assets.removeFreeAsset(a.id)"
-                    [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
-                  >×</button>
-                </div>
+                  >
+                    {{ a.filename }}
+                  </span>
+                  @if (isUsed(a.id)) {
+                    <span
+                      aria-hidden="true"
+                      class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-primary-500 text-ink-950"
+                    >
+                      <i class="pi pi-check text-[9px]"></i>
+                    </span>
+                  }
+                </button>
+                <!--
+                  × deletes the upload entirely (and unpicks it if it was a
+                  reference). Lives as a sibling of the pick button so we
+                  don't nest <button> elements.
+                -->
+                <button
+                  type="button"
+                  class="absolute top-0 left-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
+                  (click)="onRemoveFreeAsset(a.id)"
+                  [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
+                >
+                  ×
+                </button>
               </li>
             }
           </ul>
@@ -167,15 +238,142 @@
           {{ 'STUDIO.ASSETS.REFERENCE_HINT_LEAD' | translate }}
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Image 1</span>,
+            >Image1</span
+          >,
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Video 1</span>,
+            >Video1</span
+          >,
           <span
             class="mx-1 inline-block bg-ink-800 px-1.5 py-0.5 font-mono not-italic text-secondary-500"
-          >Audio 1</span>
+            >Audio1</span
+          >
           {{ 'STUDIO.ASSETS.REFERENCE_HINT_TAIL' | translate }}
         </p>
+
+        <!--
+          ▸ MY LIBRARY quick-pick — every already-created character / location
+          / prop shown as a clickable tile. Tap to drop the @asset_name token
+          into the prompt without leaving the studio; tap again to remove it.
+        -->
+        <div class="mt-4 border-t border-ink-700 pt-3">
+          <div class="mb-2 flex items-end justify-between gap-3">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
+              ▸ {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK' | translate }}
+            </p>
+            <p class="font-mono text-[10px] italic text-fg-muted">
+              {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK_HINT' | translate }}
+            </p>
+          </div>
+
+          <div class="mb-2 flex flex-wrap gap-1 border-b border-ink-700" role="tablist">
+            @for (t of libraryTabs; track t.id) {
+              <button
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeLibraryType() === t.id"
+                class="-mb-px border-b-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors hover:text-primary-500"
+                [class.border-primary-500]="activeLibraryType() === t.id"
+                [class.text-primary-500]="activeLibraryType() === t.id"
+                [class.border-transparent]="activeLibraryType() !== t.id"
+                [attr.data-testid]="'my-library-tab-' + t.id"
+                (click)="setLibraryType(t.id)"
+              >
+                <i class="pi mr-1" [class]="t.icon"></i>
+                {{ t.labelKey | translate }}
+                <span class="ml-1 font-mono text-[10px] text-fg-muted">
+                  ({{ libraryCounts()[t.id] }})
+                </span>
+              </button>
+            }
+          </div>
+
+          @if (visibleLibrary().length === 0) {
+            <p class="py-3 text-center text-[11px] italic text-fg-muted">
+              {{ 'STUDIO.ASSETS.LIBRARY_QUICKPICK_EMPTY' | translate }}
+            </p>
+          } @else {
+            <ul class="flex flex-wrap gap-1.5">
+              @for (a of visibleLibrary(); track a.id) {
+                <li class="group relative h-14 w-14">
+                  <button
+                    type="button"
+                    class="relative flex h-full w-full flex-col overflow-hidden border bg-ink-800 transition-colors hover:border-primary-500 focus:outline-none focus:border-primary-500"
+                    [class.border-primary-500]="isUsed(a.id)"
+                    [class.border-ink-500]="!isUsed(a.id)"
+                    [title]="a.name"
+                    [attr.aria-pressed]="isUsed(a.id)"
+                    [attr.aria-label]="a.name"
+                    [attr.data-testid]="'my-library-pick-' + a.id"
+                    (click)="onPickLibraryAsset(a)"
+                  >
+                    @if (a.firstFile?.thumbUrl && !isThumbBroken(a.id)) {
+                      <img
+                        [src]="a.firstFile?.thumbUrl"
+                        [alt]="a.name"
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                        (error)="onThumbError(a.id)"
+                      />
+                    } @else {
+                      <span
+                        aria-hidden="true"
+                        class="flex h-full w-full items-center justify-center text-fg-muted"
+                      >
+                        <i class="pi text-base" [class]="libraryFallbackIcon()"></i>
+                      </span>
+                    }
+                    <span
+                      class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-secondary-500"
+                    >
+                      {{ a.name }}
+                    </span>
+                    @if (a.files.length > 1) {
+                      <span
+                        class="absolute top-0 left-0 flex h-4 min-w-[1rem] items-center justify-center bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-fg-muted"
+                        title="{{ a.files.length }} files"
+                        >{{ a.files.length }}</span
+                      >
+                    }
+                    @if (isUsed(a.id)) {
+                      <span
+                        aria-hidden="true"
+                        class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-primary-500 text-ink-950 group-hover:opacity-0"
+                      >
+                        <i class="pi pi-check text-[9px]"></i>
+                      </span>
+                    }
+                  </button>
+                  <!--
+                    Hide from quick-pick — view-only, does NOT delete the
+                    asset from the Characters library. Sibling of the pick
+                    button so we never nest <button> elements.
+                  -->
+                  <button
+                    type="button"
+                    class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity hover:text-primary-500 group-hover:opacity-100 focus:opacity-100"
+                    (click)="hideFromLibrary(a.id, $event)"
+                    [attr.aria-label]="'STUDIO.ASSETS.LIBRARY_HIDE' | translate"
+                    [attr.data-testid]="'my-library-hide-' + a.id"
+                  >
+                    ×
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+
+          @if (hiddenInActiveTab() > 0) {
+            <button
+              type="button"
+              class="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-muted underline transition-colors hover:text-primary-500"
+              (click)="showHiddenLibrary()"
+              data-testid="my-library-show-hidden"
+            >
+              {{ 'STUDIO.ASSETS.LIBRARY_SHOW_HIDDEN' | translate: { n: hiddenInActiveTab() } }}
+            </button>
+          }
+        </div>
       </div>
     }
   </div>

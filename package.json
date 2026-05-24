@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:dev": "ng build --configuration dev",
+    "build:prod": "ng build --configuration prod",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -28,6 +30,7 @@
     "@primeuix/themes": "^2.0.3",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.6",
+    "quill": "^2.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

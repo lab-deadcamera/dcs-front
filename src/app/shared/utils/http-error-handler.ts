@@ -12,6 +12,7 @@ import { Observable, of } from 'rxjs';
 export function httpErrorHandler<T>(
   err: HttpErrorResponse,
 ): Observable<{ error: true; msg: string; data?: T }> {
+  console.log({ err });
   const msg =
     (typeof err.error === 'object' && err.error && 'message' in err.error
       ? String((err.error as { message: unknown }).message)

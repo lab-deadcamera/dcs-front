@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import { TranslatePipe } from '@ngx-translate/core'
-import { TranslationService } from '@services/translation.service'
+import { SessionStore } from '@app/core/stores/session.store'
 
 @Component({
   selector: 'app-language-picker',
@@ -9,5 +9,5 @@ import { TranslationService } from '@services/translation.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguagePicker {
-  protected readonly i18n = inject(TranslationService)
+  protected readonly session = inject(SessionStore)
 }

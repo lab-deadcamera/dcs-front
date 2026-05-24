@@ -13,7 +13,10 @@
     "STUDIO": "Estudio",
     "CHARACTERS": "Personajes",
     "FILES": "Archivos",
-    "PROVIDERS": "Proveedores"
+    "PROJECTS": "Proyectos",
+    "PROVIDERS": "Proveedores",
+    "ADMIN": "Admin",
+    "LOGOUT": "Cerrar Sesión"
   },
   "GLOBAL": {
     "SETTINGS": {
@@ -69,8 +72,8 @@
   },
   "HEADER": {
     "BRAND": {
-      "DEAD_CAMERA": "DEAD CAMERA",
-      "SEEDANCE_STUDIO": "SEEDANCE STUDIO"
+      "DEAD_CAMERA": "DCS",
+      "SEEDANCE_STUDIO": "MOVIE STUDIO"
     },
     "SUBTITLE": {
       "STUDIOS": "ESTUDIOS",
@@ -81,7 +84,8 @@
       "EXPORT": "EXPORTAR",
       "API": "API"
     },
-    "SELECT_MODEL": "Seleccionar un modelo"
+    "SELECT_MODEL": "Seleccionar un modelo",
+    "EDIT_AVATAR": "Cambiar foto de perfil"
   },
   "STUDIO": {
     "BRAND": {
@@ -115,17 +119,43 @@
       "DELETE": "Del",
       "ACTIVATE_ARIA": "Activar esta clave"
     },
+    "SESSION_GATE": {
+      "TITLE": "Abrir sesión de escena",
+      "HINT": "Identifícate y declara la escena que vas a grabar. Cada clip generado se nombrará con la escena + toma que marques abajo.",
+      "EMAIL": "Correo electrónico",
+      "EMAIL_PLACEHOLDER": "tu@estudio.com",
+      "HANDLE": "Nombre de usuario",
+      "HANDLE_PLACEHOLDER": "ej. drako",
+      "SCENE": "Nombre o número de escena",
+      "SCENE_PLACEHOLDER": "ej. SC03 o 37",
+      "TAKES": "Cantidad de tomas",
+      "TAKES_HINT": "Cuántas tomas esperas grabar para esta escena (1-99). Aparecerá un checkmark por toma al lado del visor.",
+      "SUBMIT": "Abrir escena"
+    },
+    "TAKE_CHECKLIST": {
+      "TITLE": "Tomas",
+      "TAKE_ARIA": "Toma {{n}} — {{status}}",
+      "STATUS_PENDING": "pendiente",
+      "STATUS_CURRENT": "actual",
+      "STATUS_DONE": "completada",
+      "STATUS_CONFIRMED": "confirmada",
+      "LOCKED_TOOLTIP": "Selecciona una escena primero"
+    },
     "VIEWER": {
       "TITLE": "Visor",
       "HINT": "Clip final · evalúa calidad, lip sync, sonido, color",
       "EMPTY_TITLE": "Sin Clip Cargado",
       "EMPTY_HINT": "La salida generada aparece aquí",
+      "NO_SCENE_TITLE": "Selecciona una escena para continuar",
+      "NO_SCENE_HINT": "Abre un proyecto y escena desde el diálogo superior",
       "FULLSCREEN_ENTER": "Pantalla completa",
       "FULLSCREEN_EXIT": "Salir de pantalla completa",
       "HD_ARIA_OFF": "1080p HD desactivado — doble clic para activar",
       "HD_ARIA_PENDING": "Haz clic de nuevo para confirmar 1080p HD",
       "HD_ARIA_ON": "1080p HD activado — clic para volver a 720p",
-      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor"
+      "REUSE_PROMPT": "Reusar este prompt — repuebla el editor",
+      "DOWNLOAD": "Descargar video",
+      "GENERATING_COUNT": "Generando {{n}} video(s)…"
     },
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
@@ -135,16 +165,29 @@
       "CHARS": "{{n}} caracteres",
       "EMPTY_PREVIEW": "_",
       "GENERATE": "Generar",
+      "REGENERATE": "Volver a Generar",
+      "PREVIEW": "Vista previa",
+      "PREVIEW_DIALOG_TITLE": "Vista previa del payload",
+      "PREVIEW_LOADING": "Cargando…",
+      "PREVIEW_EMPTY": "Sin datos en la respuesta.",
       "REFERENCES": "Referencias",
+      "REFERENCES_IMAGES": "Imágenes",
+      "REFERENCES_VIDEO": "Video",
+      "REFERENCES_AUDIO": "Audio",
+      "IMAGE_LABEL": "Imagen",
+      "VIDEO_LABEL": "Video",
+      "AUDIO_LABEL": "Audio",
       "EDIT_COMPILED": "Editar prompt compilado",
       "EDITED_BADGE": "editado",
       "RESET_COMPILED": "Restablecer",
       "SAVE_EDIT": "Guardar",
       "CANCEL_EDIT": "Cancelar"
     },
-    "SESSION_REEL": {
-      "TITLE": "Carrete de Sesión",
-      "EMPTY": "Tus clips generados se apilarán aquí"
+    "TAKES_REEL": {
+      "TITLE": "Carrete de Tomas",
+      "EMPTY": "Tus tomas generadas aparecerán aquí",
+      "DISCARDED": "Tomas descartadas",
+      "REACTIVATE": "Reactivar"
     },
     "RATING": {
       "TITLE": "Calificación",
@@ -231,12 +274,18 @@
       "RES_720P": "720p",
       "RES_1080P": "1080p HD",
       "HD_CONFIRM": "haz clic de nuevo para confirmar",
-      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse."
+      "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse.",
+      "BATCH_COUNT": "Videos por generación",
+      "BATCH_COUNT_HINT": "Hasta 4 — se envía una llamada independiente por cada video.",
+      "BATCH_INC": "Aumentar cantidad",
+      "BATCH_DEC": "Disminuir cantidad"
     },
     "ASSETS": {
       "TITLE": "Personajes y Assets",
       "CHARACTER_STUDIO": "Character Studio",
       "CHARACTER_STUDIO_HINT": "Genera imágenes de referencia confiables · powered by Seedream",
+      "IMAGE_GENERATION": "Image Generation",
+      "IMAGE_GENERATION_HINT": "Genera nuevas imágenes a partir de un prompt y referencias",
       "MY_ASSETS": "Mis Assets",
       "MY_ASSETS_HINT": "Biblioteca privada confiable · BytePlus",
       "REFERENCE": "Assets de Referencia",
@@ -249,7 +298,12 @@
       "EXPAND": "Expandir",
       "REMOVE": "Eliminar asset",
       "CREATE_ASSETS": "Crear assets",
-      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes"
+      "CHARACTERS_DIALOG_TITLE": "Biblioteca de personajes",
+      "LIBRARY_QUICKPICK": "Mi biblioteca",
+      "LIBRARY_QUICKPICK_HINT": "Haz clic para añadir al prompt",
+      "LIBRARY_QUICKPICK_EMPTY": "Aún no hay assets en esta categoría.",
+      "LIBRARY_HIDE": "Ocultar de la biblioteca",
+      "LIBRARY_SHOW_HIDDEN": "Mostrar {{n}} ocultos"
     },
     "FOOTER": {
       "VERSION": "v1.0",
@@ -376,6 +430,27 @@
     "WARNING": "Advertencia",
     "INFO": "Información"
   },
+  "PROJECTS": {
+    "NEW_PROJECT": "Nuevo Proyecto",
+    "DIALOG": {
+      "CREATE_TITLE": "Nuevo Proyecto",
+      "EDIT_TITLE": "Editar Proyecto"
+    },
+    "SCENE_DIALOG": {
+      "CREATE_TITLE": "Nueva Escena",
+      "EDIT_TITLE": "Editar Escena"
+    },
+    "TAKE_DIALOG": {
+      "CREATE_TITLE": "Nueva Toma",
+      "EDIT_TITLE": "Editar Toma"
+    },
+    "FIELDS": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "SCENE_NUMBER": "Escena #",
+      "TAKE_NUMBER": "Toma #"
+    }
+  },
   "PROVIDERS": {
     "NEW_PROVIDER": "Nuevo Proveedor",
     "DIALOG": {
@@ -387,13 +462,20 @@
       "PROVIDER": "Proveedor",
       "PROVIDER_PLACEHOLDER": "Selecciona un proveedor",
       "MODEL_NAME": "Nombre del modelo",
+      "MODEL_TYPE": "Tipo de modelo",
       "API_KEY": "API Key",
       "URL": "URL",
-      "ENDPOINT": "Endpoint"
+      "ENDPOINT": "Endpoint",
+      "ACCESS_KEY_ID": "Access Key ID",
+      "SECRET_ACCESS_KEY": "Secret Access Key",
+      "DEFAULT_ASSET_GROUP_ID": "ID de Grupo de Assets",
+      "PROJECT_NAME": "Nombre del Proyecto",
+      "PROJECT_NUMBER": "Número de Proyecto"
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "Nuevo Modelo",
-      "EDIT_TITLE": "Editar Modelo"
+      "EDIT_TITLE": "Editar Modelo",
+      "MORE_OPTIONS": "Más opciones"
     }
   }
 }

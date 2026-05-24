@@ -4,7 +4,7 @@ const DB_NAME = 'dcs-videos-studio';
 const STORE_NAME = 'studio';
 const DB_VERSION = 1;
 
-export type StudioStorageKey = 'studio' | 'prompt' | 'assets' | 'keys';
+export type StudioStorageKey = 'studio' | 'prompt' | 'assets' | 'keys' | 'session';
 
 /**
  * IndexedDB-backed key/value storage for studio state slices.

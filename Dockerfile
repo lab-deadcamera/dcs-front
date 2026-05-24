@@ -1,18 +1,17 @@
-FROM node:22-alpine AS build
+FROM node:22.20.0-alpine AS build-env
+
+ARG BUILD=production
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY . ./
 
-COPY . .
-RUN npm run build
+RUN npm install
+RUN npm run build:${BUILD}
 
-FROM nginx:alpine
+FROM nginx:1.13.9-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/dcs-videos/browser /usr/share/nginx/html
-
-EXPOSE 80
+COPY --from=build-env /app/dist/dcs-videos/browser /usr/share/nginx/html
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 CMD ["nginx", "-g", "daemon off;"]

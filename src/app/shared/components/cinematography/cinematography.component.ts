@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  output,
   signal,
 } from '@angular/core';
 import { Popover } from 'primeng/popover';
@@ -22,7 +23,7 @@ import {
   PresetCategory,
 } from '@core/interfaces/studio.models';
 import { PresetsService } from '@app/core/stores/presets.service';
-import { PromptStateService } from '@app/core/stores/prompt.state';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 /**
  * Pool of mood adjectives used to seed the random Color-Grading variants
@@ -92,7 +93,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.LENS"
           [options]="lensOptions()"
-          [value]="prompt.cinematography().lens"
+          [value]="studio.cinematography().lens"
           (valueChange)="onLens($event)"
           (edit)="onEditPreset('lens', $event)"
           (remove)="onRemovePreset('lens', $event)"
@@ -101,7 +102,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_BODY"
           [options]="bodyOptions()"
-          [value]="prompt.cinematography().cameraBody"
+          [value]="studio.cinematography().cameraBody"
           (valueChange)="onBody($event)"
           (edit)="onEditPreset('camera', $event)"
           (remove)="onRemovePreset('camera', $event)"
@@ -110,7 +111,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.CAMERA_MOTION"
           [options]="motionOptions()"
-          [value]="prompt.cinematography().cameraMotion"
+          [value]="studio.cinematography().cameraMotion"
           (valueChange)="onMotion($event)"
           (edit)="onEditPreset('cameraMotion', $event)"
           (remove)="onRemovePreset('cameraMotion', $event)"
@@ -126,7 +127,7 @@ interface GradeVariant {
           </p>
           <div class="flex flex-wrap gap-2">
             @for (grade of gradeOptions(); track grade.id) {
-              @let active = prompt.cinematography().colorGrading === grade.id;
+              @let active = studio.cinematography().colorGrading === grade.id;
 
               @if (grade.isCustom) {
                 <!--
@@ -251,7 +252,7 @@ interface GradeVariant {
         <ui-toggle-group
           labelKey="STUDIO.CINEMATOGRAPHY.GENRE"
           [options]="genreOptions()"
-          [value]="prompt.cinematography().genre"
+          [value]="studio.cinematography().genre"
           (valueChange)="onGenre($event)"
           (edit)="onEditPreset('genre', $event)"
           (remove)="onRemovePreset('genre', $event)"
@@ -270,8 +271,47 @@ interface GradeVariant {
   `,
 })
 export class CinematographyComponent {
-  protected readonly prompt = inject(PromptStateService);
+  protected readonly studio = inject(StudioStore);
   private readonly presets = inject(PresetsService);
+
+  /**
+   * Emitted on every cinematography slot change. `remove` carries the
+   * snippet previously injected for the slot (so the prompt builder can
+   * strip it) and `add` carries the new snippet to append. Either field
+   * may be absent: a deselect emits `remove` only, a fresh pick emits
+   * `add` only, a swap inside the same slot emits both. The parent shell
+   * wires this to the prompt builder's `applyPresetChange`.
+   */
+  readonly presetChanged = output<{ remove?: string; add?: string }>();
+
+  /**
+   * Snippet currently injected into the prompt per slot — used to undo
+   * exactly what was added when the user deselects or swaps. Lives in
+   * the component (not the store) because it's a derived UI side effect
+   * tied to the editor, not part of the canonical session state.
+   */
+  private readonly injectedBySlot = new Map<
+    'lens' | 'cameraBody' | 'cameraMotion' | 'colorGrading' | 'genre',
+    string
+  >();
+
+  /**
+   * Compute the diff for a slot transition and emit the right combination
+   * of remove/add. Centralizes the bookkeeping so each on* handler stays
+   * a one-liner. No-op when the snippet hasn't changed (e.g. clicking the
+   * same variant twice).
+   */
+  private updateSlot(
+    slot: 'lens' | 'cameraBody' | 'cameraMotion' | 'colorGrading' | 'genre',
+    nextSnippet: string | null,
+  ): void {
+    const prev = this.injectedBySlot.get(slot);
+    const next = nextSnippet?.trim() || null;
+    if (prev === next || (!prev && !next)) return;
+    this.presetChanged.emit({ remove: prev, add: next ?? undefined });
+    if (next) this.injectedBySlot.set(slot, next);
+    else this.injectedBySlot.delete(slot);
+  }
 
   /**
    * Variants per parent grade, generated once and frozen for the session.
@@ -367,16 +407,20 @@ export class CinematographyComponent {
   }
 
   protected onLens(v: LensId | null) {
-    this.prompt.patchCinematography({ lens: v });
+    this.studio.patchCinematography({ lens: v });
+    this.updateSlot('lens', this.snippetFor(v));
   }
   protected onBody(v: CameraBodyId | null) {
-    this.prompt.patchCinematography({ cameraBody: v });
+    this.studio.patchCinematography({ cameraBody: v });
+    this.updateSlot('cameraBody', this.snippetFor(v));
   }
   protected onMotion(v: CameraMotionId | null) {
-    this.prompt.patchCinematography({ cameraMotion: v });
+    this.studio.patchCinematography({ cameraMotion: v });
+    this.updateSlot('cameraMotion', this.snippetFor(v));
   }
   protected onGenre(v: GenreId | null) {
-    this.prompt.patchCinematography({ genre: v });
+    this.studio.patchCinematography({ genre: v });
+    this.updateSlot('genre', this.snippetFor(v));
   }
 
   protected onPickVariant(
@@ -384,8 +428,15 @@ export class CinematographyComponent {
     variant: GradeVariant,
     pop: Popover,
   ) {
-    this.prompt.patchCinematography({ colorGrading: parentId as ColorGradingId });
+    this.studio.patchCinematography({ colorGrading: parentId as ColorGradingId });
     this.selectedVariant.set(variant.name);
+    // Compose the parent grade's recipe + the picked mood word so the
+    // model gets both the family ("TOKIO") and the variation.
+    const parentPrompt = this.presets.findPreset(parentId)?.prompt ?? '';
+    const composed = parentPrompt
+      ? `${parentPrompt} — ${variant.name.toLowerCase()} mood`
+      : null;
+    this.updateSlot('colorGrading', composed);
     pop.hide();
   }
 
@@ -395,16 +446,26 @@ export class CinematographyComponent {
    * grades have no popover variants to drive the selection.
    */
   protected onPickCustomGrade(id: string): void {
-    const cur = this.prompt.cinematography().colorGrading;
-    this.prompt.patchCinematography({
-      colorGrading: cur === id ? null : (id as ColorGradingId),
-    });
+    const cur = this.studio.cinematography().colorGrading;
+    const next = cur === id ? null : (id as ColorGradingId);
+    this.studio.patchCinematography({ colorGrading: next });
     if (cur === id) this.selectedVariant.set(null);
+    this.updateSlot('colorGrading', this.snippetFor(next));
+  }
+
+  /**
+   * Look up a preset by id and return its trimmed `prompt` text, or
+   * null when the id is empty / preset is missing / has no prompt.
+   */
+  private snippetFor(id: string | null): string | null {
+    if (!id) return null;
+    const prompt = this.presets.findPreset(id)?.prompt?.trim();
+    return prompt || null;
   }
 
   /**
    * Open the wizard in edit mode pre-filled with this preset's current
-   * label and prompt. The category is locked once the dialog opens —
+   * label and studio. The category is locked once the dialog opens —
    * moving a preset to a different row is treated as delete-then-create.
    */
   protected onEditPreset(category: PresetCategory, id: string): void {
@@ -426,27 +487,38 @@ export class CinematographyComponent {
    * was pointing at the removed preset.
    */
   protected onRemovePreset(category: PresetCategory, id: string): void {
-    const cine = this.prompt.cinematography();
+    const cine = this.studio.cinematography();
     switch (category) {
       case 'lens':
-        if (cine.lens === id) this.prompt.patchCinematography({ lens: null });
+        if (cine.lens === id) {
+          this.studio.patchCinematography({ lens: null });
+          this.updateSlot('lens', null);
+        }
         break;
       case 'camera':
-        if (cine.cameraBody === id)
-          this.prompt.patchCinematography({ cameraBody: null });
+        if (cine.cameraBody === id) {
+          this.studio.patchCinematography({ cameraBody: null });
+          this.updateSlot('cameraBody', null);
+        }
         break;
       case 'cameraMotion':
-        if (cine.cameraMotion === id)
-          this.prompt.patchCinematography({ cameraMotion: null });
+        if (cine.cameraMotion === id) {
+          this.studio.patchCinematography({ cameraMotion: null });
+          this.updateSlot('cameraMotion', null);
+        }
         break;
       case 'colorGrading':
         if (cine.colorGrading === id) {
-          this.prompt.patchCinematography({ colorGrading: null });
+          this.studio.patchCinematography({ colorGrading: null });
           this.selectedVariant.set(null);
+          this.updateSlot('colorGrading', null);
         }
         break;
       case 'genre':
-        if (cine.genre === id) this.prompt.patchCinematography({ genre: null });
+        if (cine.genre === id) {
+          this.studio.patchCinematography({ genre: null });
+          this.updateSlot('genre', null);
+        }
         break;
     }
     this.presets.removePreset(category, id);

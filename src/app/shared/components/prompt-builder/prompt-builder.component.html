@@ -1,0 +1,219 @@
+<section class="border-t border-ink-600 px-6 py-6">
+  <ui-section-header number="06" labelKey="STUDIO.PROMPT.TITLE" hintKey="STUDIO.PROMPT.HINT" />
+
+  <!--
+        Reference chips — files attached as generation references, now
+        grouped by kind: images, video, audio. Each chip has a × to
+        remove the reference; the API payload picks them up automatically.
+      -->
+  @if (studio.usedAssets().length > 0) {
+    <div class="mt-4 flex flex-col gap-3 border border-ink-500 bg-ink-900 px-3 py-3">
+      <!-- Images (includes mixed) -->
+      @if (imageAssets().length > 0) {
+        <div class="flex flex-col gap-2">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ sectionLabels.image | translate }}
+          </span>
+          <div class="flex flex-wrap items-center gap-2">
+            @for (a of imageAssets(); track a.fileId; let i = $index) {
+              <span
+                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                [attr.data-testid]="'used-asset-' + a.fileId"
+                [title]="a.filename"
+              >
+                @if (a.kind === 'image' || a.kind === 'mixed') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <img
+                      [src]="a.fileId | sourceAsset"
+                      class="h-auto w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      alt=""
+                      loading="lazy"
+                    />
+                  </div>
+                }
+                @if (a.kind === 'video') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <video
+                      [src]="a.fileId | sourceAsset"
+                      class="h-40 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      muted
+                      preload="metadata"
+                    ></video>
+                  </div>
+                }
+                <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
+                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <button
+                  type="button"
+                  class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
+                  [attr.aria-label]="'COMMON.DELETE' | translate"
+                  (click)="studio.unuseAsset(a.fileId)"
+                >
+                  ×
+                </button>
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Video -->
+      @if (videoAssets().length > 0) {
+        <div class="flex flex-col gap-2">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ sectionLabels.video | translate }}
+          </span>
+          <div class="flex flex-wrap items-center gap-2">
+            @for (a of videoAssets(); track a.fileId; let i = $index) {
+              <span
+                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                [attr.data-testid]="'used-asset-' + a.fileId"
+                [title]="a.filename"
+              >
+                @if (a.kind === 'image' || a.kind === 'mixed') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <img
+                      [src]="a.fileId | sourceAsset"
+                      class="h-40 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      alt=""
+                      loading="lazy"
+                    />
+                  </div>
+                }
+                @if (a.kind === 'video') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <video
+                      [src]="a.fileId | sourceAsset"
+                      class="h-40 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      muted
+                      preload="metadata"
+                    ></video>
+                  </div>
+                }
+                <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
+                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <button
+                  type="button"
+                  class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
+                  [attr.aria-label]="'COMMON.DELETE' | translate"
+                  (click)="studio.unuseAsset(a.fileId)"
+                >
+                  ×
+                </button>
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Audio -->
+      @if (audioAssets().length > 0) {
+        <div class="flex flex-col gap-2">
+          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+            {{ sectionLabels.audio | translate }}
+          </span>
+          <div class="flex flex-wrap items-center gap-2">
+            @for (a of audioAssets(); track a.fileId; let i = $index) {
+              <span
+                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                [attr.data-testid]="'used-asset-' + a.fileId"
+                [title]="a.filename"
+              >
+                @if (a.kind === 'image' || a.kind === 'mixed') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <img
+                      [src]="a.fileId | sourceAsset"
+                      class="h-40 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      alt=""
+                      loading="lazy"
+                    />
+                  </div>
+                }
+                @if (a.kind === 'video') {
+                  <div
+                    class="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover/chip:block"
+                  >
+                    <video
+                      [src]="a.fileId | sourceAsset"
+                      class="h-40 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
+                      muted
+                      preload="metadata"
+                    ></video>
+                  </div>
+                }
+                <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
+                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <button
+                  type="button"
+                  class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
+                  [attr.aria-label]="'COMMON.DELETE' | translate"
+                  (click)="studio.unuseAsset(a.fileId)"
+                >
+                  ×
+                </button>
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="mt-4">
+    <p-editor
+      #editor
+      [(ngModel)]="editorContent"
+      (onTextChange)="onTextChange($event)"
+      [modules]="{ toolbar: false }"
+      [style]="{ height: '340px', border: '1px solid #3a3a4c', borderRadius: '0' }"
+      [placeholder]="placeholder()"
+      data-testid="prompt-editor"
+    ></p-editor>
+    <div class="mt-1 flex items-center justify-end">
+      <span class="font-mono text-[11px] text-fg-muted">
+        {{ 'STUDIO.PROMPT.CHARS' | translate: { n: studio.rawLength() } }}
+      </span>
+    </div>
+  </div>
+
+  <!--
+        Generate action — spans the full Prompt Builder column width
+        (matches the viewer width above) for a confident submit affordance.
+        Preview sits next to it as a secondary action: same payload, dry-run
+        only, surfaces the backend's resolved request in a modal so the user
+        can inspect what would be sent before paying for the generation.
+      -->
+  <div class="mt-3 flex gap-2">
+    <button
+      type="button"
+      class="flex flex-1 items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+      [disabled]="!studio.canGenerate() || !takeSelected()"
+      (click)="onGenerate()"
+    >
+      {{ generateLabel() }}
+      <span aria-hidden="true">→</span>
+    </button>
+    @if (canPreview()) {
+      <button
+        type="button"
+        class="flex items-center justify-center gap-2 border border-primary-500 bg-transparent px-4 py-3 text-sm font-bold uppercase tracking-[0.28em] text-primary-500 transition-colors hover:bg-primary-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!studio.canGenerate() || !takeSelected()"
+        (click)="onPreview()"
+        data-testid="prompt-preview-button"
+      >
+        <i class="pi pi-eye" aria-hidden="true"></i>
+        {{ 'STUDIO.PROMPT.PREVIEW' | translate }}
+      </button>
+    }
+  </div>
+</section>

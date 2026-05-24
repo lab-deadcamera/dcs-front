@@ -72,15 +72,22 @@ export class ProvidersService {
   }
 
   createModel(
-    payload: { provider_id: string; name: string; api_key: string; url: string; endpoint: string; active?: boolean },
+    payload: { provider_id: string; name: string; model_type: string; api_key: string; url: string; endpoint: string; access_key_id?: string; secret_access_key?: string; default_asset_group_id?: string; project_name?: string; project_number?: string; active?: boolean },
   ): Observable<{ error: boolean; msg: string; data?: Model }> {
     return this.api.createModel(payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
+          // El backend devuelve Model sin provider_name; lo parcheamos
+          // con el nombre del provider desde el store local.
+          const provider = this._providers().find((p) => p.provider.id === payload.provider_id);
+          const model: Model = {
+            ...res.data!,
+            provider_name: provider?.provider.name ?? '',
+          };
           this._providers.update((list) =>
             list.map((p) =>
               p.provider.id === payload.provider_id
-                ? { ...p, models: [...p.models, res.data!] }
+                ? { ...p, models: [...p.models, model] }
                 : p,
             ),
           );
@@ -92,17 +99,22 @@ export class ProvidersService {
   updateModel(
     id: string,
     providerId: string,
-    payload: { name?: string; api_key?: string; url?: string; endpoint?: string; active?: boolean },
+    payload: { name?: string; model_type?: string; api_key?: string; url?: string; endpoint?: string; access_key_id?: string; secret_access_key?: string; default_asset_group_id?: string; project_name?: string; project_number?: string; active?: boolean },
   ): Observable<{ error: boolean; msg: string; data?: Model }> {
     return this.api.updateModel(id, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
+          const provider = this._providers().find((p) => p.provider.id === providerId);
+          const model: Model = {
+            ...res.data!,
+            provider_name: provider?.provider.name ?? '',
+          };
           this._providers.update((list) =>
             list.map((p) =>
               p.provider.id === providerId
                 ? {
                     ...p,
-                    models: p.models.map((m) => (m.id === id ? res.data! : m)),
+                    models: p.models.map((m) => (m.id === id ? model : m)),
                   }
                 : p,
             ),
