@@ -8,12 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -72,14 +67,11 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
       [header]="
         (editTarget()
           ? 'STUDIO.CINEMATOGRAPHY.CUSTOM.EDIT_TITLE'
-          : 'STUDIO.CINEMATOGRAPHY.CUSTOM.DIALOG_TITLE') | translate
+          : 'STUDIO.CINEMATOGRAPHY.CUSTOM.DIALOG_TITLE'
+        ) | translate
       "
     >
-      <form
-        [formGroup]="form"
-        (ngSubmit)="onSubmit()"
-        class="flex flex-col gap-4"
-      >
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label
             for="custom-preset-category"
@@ -94,9 +86,7 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
             optionLabel="label"
             optionValue="value"
             data-testid="custom-preset-category"
-            [placeholder]="
-              'STUDIO.CINEMATOGRAPHY.CUSTOM.CATEGORY_PLACEHOLDER' | translate
-            "
+            [placeholder]="'STUDIO.CINEMATOGRAPHY.CUSTOM.CATEGORY_PLACEHOLDER' | translate"
           />
           <validator-errors
             [control]="form.get('category')"
@@ -117,9 +107,7 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
             pInputText
             formControlName="label"
             data-testid="custom-preset-label"
-            [placeholder]="
-              'STUDIO.CINEMATOGRAPHY.CUSTOM.LABEL_PLACEHOLDER' | translate
-            "
+            [placeholder]="'STUDIO.CINEMATOGRAPHY.CUSTOM.LABEL_PLACEHOLDER' | translate"
           />
           <validator-errors
             [control]="form.get('label')"
@@ -140,18 +128,13 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
             rows="6"
             formControlName="prompt"
             data-testid="custom-preset-prompt"
-            [placeholder]="
-              'STUDIO.CINEMATOGRAPHY.CUSTOM.PROMPT_PLACEHOLDER' | translate
-            "
+            [placeholder]="'STUDIO.CINEMATOGRAPHY.CUSTOM.PROMPT_PLACEHOLDER' | translate"
           ></textarea>
           <validator-errors
             [control]="form.get('prompt')"
             [label]="'STUDIO.CINEMATOGRAPHY.CUSTOM.PROMPT' | translate"
           />
-          <p
-            class="font-mono text-[10px]"
-            style="color: var(--text-muted);"
-          >
+          <p class="font-mono text-[10px]" style="color: var(--text-muted);">
             {{ 'STUDIO.CINEMATOGRAPHY.CUSTOM.PROMPT_HINT' | translate }}
           </p>
         </div>
@@ -169,9 +152,7 @@ import { ValidatorErrors } from '@shared/components/validation-errors/validator-
           <p-button
             [icon]="editTarget() ? 'pi pi-check' : 'pi pi-plus'"
             [label]="
-              (editTarget()
-                ? 'COMMON.SAVE'
-                : 'STUDIO.CINEMATOGRAPHY.CUSTOM.SUBMIT') | translate
+              (editTarget() ? 'COMMON.SAVE' : 'STUDIO.CINEMATOGRAPHY.CUSTOM.SUBMIT') | translate
             "
             [disabled]="form.invalid"
             data-testid="custom-preset-submit"
@@ -213,11 +194,11 @@ export class CustomPresetDialogComponent {
   });
 
   protected readonly categoryOptions = computed(() => [
-    { value: 'lens',         label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.LENS') },
-    { value: 'camera',       label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CAMERA_BODY') },
+    { value: 'lens', label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.LENS') },
+    { value: 'camera', label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CAMERA_BODY') },
     { value: 'cameraMotion', label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CAMERA_MOTION') },
     { value: 'colorGrading', label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.COLOR_GRADING') },
-    { value: 'genre',        label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.GENRE') },
+    { value: 'genre', label: this.i18n.instant('STUDIO.CINEMATOGRAPHY.GENRE') },
   ]);
 
   /**
@@ -272,19 +253,17 @@ export class CustomPresetDialogComponent {
       this.toast.add({
         severity: 'success',
         summary: 'OK',
-        detail: this.i18n.instant(
-          'STUDIO.CINEMATOGRAPHY.CUSTOM.UPDATED',
-          { label },
-        ),
+        detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.UPDATED', { label }),
       });
     } else {
-      const created = this.presets.addCustomPreset(category, { label, prompt });
-      this.toast.add({
-        severity: 'success',
-        summary: 'OK',
-        detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.CREATED', {
-          label: created.label,
-        }),
+      this.presets.addCustomPreset(category, { label, prompt }).then((r) => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'OK',
+          detail: this.i18n.instant('STUDIO.CINEMATOGRAPHY.CUSTOM.CREATED', {
+            label: r?.label,
+          }),
+        });
       });
     }
     this.visibleChange.emit(false);

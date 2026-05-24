@@ -1,15 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import {
-  Preset,
-  PresetCategory,
-  PresetGroup,
-  SpecOption,
-} from '../interfaces/studio.models';
+import { Preset, PresetCategory, SpecOption } from '../interfaces/studio.models';
 import { PresetApiService } from '@app/services/preset-api.service';
+import { firstValueFrom } from 'rxjs';
 
-/**
- * Maps preset ids to i18n keys.
- */
 const LABEL_KEYS: Readonly<Record<string, string>> = {
   wide_24mm: 'STUDIO.CINEMATOGRAPHY.LENSES.24MM_WIDE',
   classic_35mm: 'STUDIO.CINEMATOGRAPHY.LENSES.35MM_CLASSIC',
@@ -52,17 +45,25 @@ const slugToCategory: Record<string, PresetCategory> = {
   genre: 'genre',
 };
 
-/**
- * Loads presets from the backend API (`/api/v1/presets`) grouped by slug,
- * and exposes them as signals. Create/update/delete are delegated to the
- * PresetApiService so changes persist across sessions.
- */
+interface GroupInfo {
+  id: string;
+  slug: string;
+}
+
+interface ApiPresetLink {
+  id: string;
+  group_id: string;
+  code: string;
+  label: string;
+  prompt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PresetsService {
   private readonly api = inject(PresetApiService);
 
-  private readonly _presetsByGroup = signal<Map<string, Preset[]>>(new Map());
-  private readonly _groups = signal<PresetGroup[]>([]);
+  private readonly _presets = signal<ApiPresetLink[]>([]);
+  private readonly _groups = signal<GroupInfo[]>([]);
   readonly loaded = computed(() => this._groups().length > 0);
 
   readonly lens = computed<Preset[]>(() => this.bySlug('lens'));
@@ -79,20 +80,11 @@ export class PresetsService {
 
   private async load() {
     try {
-      const groups = await this.api.getGroups().toPromise();
-      if (!groups) return;
-      this._groups.set(groups);
+      const groups = await firstValueFrom(this.api.getGroups());
+      this._groups.set(groups.map((g) => ({ id: g.id, slug: g.slug })));
 
-      const allPresets = await this.api.getPresets().toPromise();
-      if (!allPresets) return;
-
-      const byGroup = new Map<string, Preset[]>();
-      for (const p of allPresets) {
-        const list = byGroup.get(p.group_id) || [];
-        list.push({ ...p, labelKey: keyOf(p.code) });
-        byGroup.set(p.group_id, list);
-      }
-      this._presetsByGroup.set(byGroup);
+      const presets = await firstValueFrom(this.api.getPresets());
+      this._presets.set(presets);
     } catch (err) {
       console.warn('[presets] failed to load from API:', err);
     }
@@ -101,57 +93,51 @@ export class PresetsService {
   private bySlug(slug: string): Preset[] {
     const group = this._groups().find((g) => g.slug === slug);
     if (!group) return [];
-    return this._presetsByGroup().get(group.id) || [];
+    return this._presets()
+      .filter((p) => p.group_id === group.id)
+      .map((p) => ({
+        id: p.id,
+        label: p.label,
+        prompt: p.prompt,
+        labelKey: keyOf(p.code),
+      }));
   }
 
-  /** Look up a single preset by id from any category. */
   findPreset(id: string | null): Preset | null {
     if (!id) return null;
-    for (const presets of this._presetsByGroup().values()) {
-      const found = presets.find((p) => p.id === id);
-      if (found) return found;
+    for (const p of this._presets()) {
+      if (p.id === id) {
+        return { id: p.id, label: p.label, prompt: p.prompt, labelKey: keyOf(p.code) };
+      }
     }
     return null;
   }
 
-  /** Create a new preset via API. */
-  async addCustomPreset(
-    category: PresetCategory,
-    input: { label: string; prompt: string },
-  ): Promise<Preset | null> {
+  async addCustomPreset(category: PresetCategory, input: { label: string; prompt: string }): Promise<Preset | null> {
     const group = this._groups().find((g) => g.slug === category);
     if (!group) return null;
-
     const code = 'custom_' + Date.now().toString(36);
-    const created = await this.api.createPreset({
-      group_id: group.id,
-      code,
-      label: input.label.trim(),
-      prompt: input.prompt.trim(),
-    }).toPromise();
-    if (created) {
-      await this.load(); // refresh
+    try {
+      const created = await firstValueFrom(
+        this.api.createPreset({ group_id: group.id, code, label: input.label.trim(), prompt: input.prompt.trim() }),
+      );
+      await this.load();
+      return created ?? null;
+    } catch {
+      return null;
     }
-    return created ?? null;
   }
 
-  /** Update an existing preset via API. */
-  async updatePreset(
-    category: PresetCategory,
-    id: string,
-    patch: { label?: string; prompt?: string },
-  ): Promise<void> {
-    await this.api.updatePreset(id, patch).toPromise();
+  async updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): Promise<void> {
+    await firstValueFrom(this.api.updatePreset(id, patch));
     await this.load();
   }
 
-  /** Delete (soft) a preset via API. */
   async removePreset(category: PresetCategory, id: string): Promise<void> {
-    await this.api.deletePreset(id).toPromise();
+    await firstValueFrom(this.api.deletePreset(id));
     await this.load();
   }
 
-  /** Alias kept for backwards compatibility. */
   removeCustomPreset(category: PresetCategory, id: string): void {
     void this.removePreset(category, id);
   }

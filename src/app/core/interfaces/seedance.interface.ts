@@ -8,6 +8,8 @@
  * ModelArk and handles AK/SK signing internally.
  */
 
+import { Preset } from './studio.models';
+
 /** Type discriminator for items in the `content[]` array. */
 export type StudioContentType = 'text' | 'image' | 'video' | 'audio';
 

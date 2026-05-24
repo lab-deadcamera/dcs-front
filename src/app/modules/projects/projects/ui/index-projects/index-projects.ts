@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router'
-import { ButtonModule } from .primeng.button';
+import { RouterLink } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -12,6 +11,9 @@ import { ProjectsService } from '../../services';
 import { ProjectFormDialogComponent } from '../components/project-form-dialog/project-form-dialog.component';
 import { SceneFormDialogComponent } from '../components/scene-form-dialog/scene-form-dialog.component';
 import { TakeFormDialogComponent } from '../components/take-form-dialog/take-form-dialog.component';
+import { ButtonModule } from 'primeng/button';
+import { SessionStore } from '@app/core/stores/session.store';
+import { LEVEL_ROL } from '@app/core/constants';
 
 @Component({
   selector: 'app-index-projects',
@@ -36,7 +38,7 @@ export class IndexProjects implements OnInit {
   private readonly service = inject(ProjectsService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
-
+  private readonly session = inject(SessionStore);
   protected readonly projects = this.service.projects;
   protected readonly loading = this.service.loading;
 
@@ -61,9 +63,11 @@ export class IndexProjects implements OnInit {
   protected readonly takePreSelectedProjectId = signal<string | null>(null);
 
   protected readonly submitting = signal(false);
+  isDirectorOrAdmin = signal(false);
 
   ngOnInit(): void {
     this.service.load().subscribe();
+    this.isDirectorOrAdmin.set(this.session.roleLevel() <= LEVEL_ROL.DIRECTOR);
   }
 
   protected toggleProjectExpand(projectId: string): void {

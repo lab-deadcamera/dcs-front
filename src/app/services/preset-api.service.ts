@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@environment/environment';
-import { Preset, PresetGroup } from '@core/interfaces/seedance.interface';
+import { Preset, PresetGroup } from '@core/interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class PresetApiService {
@@ -11,7 +11,9 @@ export class PresetApiService {
 
   getGroups(includeInactive = false): Observable<PresetGroup[]> {
     return this.http
-      .get<{ data: PresetGroup[] }>(`${this.apiUrl}/groups${includeInactive ? '?include_inactive=true' : ''}`)
+      .get<{
+        data: PresetGroup[];
+      }>(`${this.apiUrl}/groups${includeInactive ? '?include_inactive=true' : ''}`)
       .pipe(map((r) => r.data));
   }
 
@@ -24,11 +26,19 @@ export class PresetApiService {
       .pipe(map((r) => r.data));
   }
 
-  createPreset(data: { group_id: string; code: string; label: string; prompt: string }): Observable<Preset> {
+  createPreset(data: {
+    group_id: string;
+    code: string;
+    label: string;
+    prompt: string;
+  }): Observable<Preset> {
     return this.http.post<{ data: Preset }>(`${this.apiUrl}`, data).pipe(map((r) => r.data));
   }
 
-  updatePreset(id: string, data: { label?: string; prompt?: string; active?: boolean }): Observable<Preset> {
+  updatePreset(
+    id: string,
+    data: { label?: string; prompt?: string; active?: boolean },
+  ): Observable<Preset> {
     return this.http.patch<{ data: Preset }>(`${this.apiUrl}/${id}`, data).pipe(map((r) => r.data));
   }
 
