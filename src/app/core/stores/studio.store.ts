@@ -82,8 +82,8 @@ export class StudioStore {
   private readonly _projectId = signal<string | null>(null);
   private readonly _sceneId = signal<string | null>(null);
   private readonly _sceneCode = signal<string>('');
-  private readonly _projectName = signal<string>();
-  private readonly _sceneName = signal<string>();
+  private readonly _projectName = signal<string>('');
+  private readonly _sceneName = signal<string>('');
   readonly projectName = this._projectName.asReadonly();
   readonly sceneName = this._sceneName.asReadonly();
   private readonly _userHandle = signal<string>('');
@@ -118,9 +118,7 @@ export class StudioStore {
     return !!take?.video_url;
   });
 
-  readonly activeTakes = computed(() =>
-    this._takes().filter((t) => t.active !== false),
-  );
+  readonly activeTakes = computed(() => this._takes().filter((t) => t.active !== false));
 
   readonly discardedTakes = computed(() =>
     this._takes().filter((t) => t.video_url && t.active === false),
@@ -194,7 +192,10 @@ export class StudioStore {
    */
   startGeneration(label?: string, takeIndex?: number): string {
     const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    this._pendingGenerations.update((list) => [...list, { id, taskId: '', progress: 0, label, takeIndex }]);
+    this._pendingGenerations.update((list) => [
+      ...list,
+      { id, taskId: '', progress: 0, label, takeIndex },
+    ]);
     return id;
   }
 
@@ -347,7 +348,7 @@ export class StudioStore {
         const backend = input.backendTakes!.find((bt) => bt.number === number);
         return {
           index: number,
-          status: backend && backend.video_url ? 'confirmed' as const : 'pending' as const,
+          status: backend && backend.video_url ? ('confirmed' as const) : ('pending' as const),
           id: backend?.id,
           video_url: backend?.video_url,
           active: backend?.active ?? true,
@@ -397,7 +398,13 @@ export class StudioStore {
     this._takes.update((list) =>
       list.map((t) =>
         t.index === takeIndex
-          ? { ...t, id: backendTake.id, video_url: backendTake.video_url, active: true, status: 'confirmed' as const }
+          ? {
+              ...t,
+              id: backendTake.id,
+              video_url: backendTake.video_url,
+              active: true,
+              status: 'confirmed' as const,
+            }
           : t,
       ),
     );
@@ -411,7 +418,13 @@ export class StudioStore {
     this._takes.set([]);
     this._currentTakeIndex.set(0);
     this._rawDescription.set(PROMPT_TEMPLATE);
-    this._cinematography.set({ lens: null, cameraBody: null, cameraMotion: null, colorGrading: null, genre: null });
+    this._cinematography.set({
+      lens: null,
+      cameraBody: null,
+      cameraMotion: null,
+      colorGrading: null,
+      genre: null,
+    });
     this._sessionClips.set([]);
     this._activeClipId.set(null);
     this._usedAssets.set([]);
@@ -444,7 +457,9 @@ export class StudioStore {
 
   // ── Model ────────────────────────────────────────────────────────
 
-  set model(value: ModelData | null) { this._modelCode.set(value); }
+  set model(value: ModelData | null) {
+    this._modelCode.set(value);
+  }
 
   // ── Prompt ───────────────────────────────────────────────────────
 
@@ -542,12 +557,8 @@ export class StudioStore {
   addFreeAsset(asset: ReferenceAsset) {
     this._freeAssets.update((list) => {
       const sameKind = list.filter((a) => a.kind === asset.kind).length;
-      const tagBase =
-        asset.kind === 'image' ? 'Image' : asset.kind === 'video' ? 'Video' : 'Audio';
-      return [
-        ...list,
-        { ...asset, slot: 'free', tag: `${tagBase} ${sameKind + 1}` },
-      ];
+      const tagBase = asset.kind === 'image' ? 'Image' : asset.kind === 'video' ? 'Video' : 'Audio';
+      return [...list, { ...asset, slot: 'free', tag: `${tagBase} ${sameKind + 1}` }];
     });
   }
 
@@ -580,15 +591,23 @@ export class StudioStore {
   }
 
   setSceneAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
-    this._scenePresetIds.set(new Set(assignments.presets.map((a: any) => a.preset_id).filter(Boolean)));
-    this._sceneCharacterIds.set(new Set(assignments.characters.map((a: any) => a.character_id).filter(Boolean)));
+    this._scenePresetIds.set(
+      new Set(assignments.presets.map((a: any) => a.preset_id).filter(Boolean)),
+    );
+    this._sceneCharacterIds.set(
+      new Set(assignments.characters.map((a: any) => a.character_id).filter(Boolean)),
+    );
     this._sceneAssetIds.set(new Set(assignments.assets.map((a: any) => a.file_id).filter(Boolean)));
 
     const freeAssets: ReferenceAsset[] = assignments.assets
       .filter((a: any) => a.file_id)
       .map((a: any) => ({
         id: a.file_id,
-        kind: (a.mime_type || '').startsWith('video') ? 'video' : (a.mime_type || '').startsWith('audio') ? 'audio' : 'image',
+        kind: (a.mime_type || '').startsWith('video')
+          ? 'video'
+          : (a.mime_type || '').startsWith('audio')
+            ? 'audio'
+            : 'image',
         filename: a.filename || 'asset',
         thumbnailUrl: '',
         tag: '',
