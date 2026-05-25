@@ -193,9 +193,17 @@
     (visibleChange)="linkDialogVisible.set($event)"
   />
 
-  <p-dialog [(visible)]="characterDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: "90vw", maxWidth: "1200px" }" header="Characters">
-    <app-index-characters />
-  </p-dialog>
   <p-confirmDialog />
-  <p-toast position="bottom-right" />
 </section>
+
+<p-toast position="bottom-right" />
+<p-dialog
+  [(visible)]="characterDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  header="Characters"
+>
+  <app-index-characters />
+</p-dialog>

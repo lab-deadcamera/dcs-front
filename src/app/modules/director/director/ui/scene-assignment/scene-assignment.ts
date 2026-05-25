@@ -9,7 +9,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, of } from 'rxjs';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
@@ -42,6 +42,7 @@ interface SceneInfo {
     SelectModule,
     ToastModule,
     DecimalPipe,
+    JsonPipe,
     TranslateModule,
     SourceThumbnailAssetPipe,
   ],
@@ -193,7 +194,17 @@ export class SceneAssignmentComponent implements OnInit {
 
   private computeAvailableCharacters(): void {
     const assignedIds = new Set(this.assignedCharacters().map((a) => a.character_id));
-    this.availableCharacters.set(this.allCharacters().filter((c: any) => !assignedIds.has(c.id)));
+    this.availableCharacters.set(
+      this.allCharacters()
+        .filter((c: any) => !assignedIds.has(c.character?.id || c.id))
+        .map((c: any) => ({
+          id: c.character?.id || c.id,
+          name: c.character?.name || c.name,
+          thumbnailUrl: c.files?.find((f: any) => f.role === .portrait.)?.thumbnail_url || c.files?.[0]?.thumbnail_url || .
+,.
+,.
+        })),
+    );
   }
 
   private computeAvailableAssets(): void {

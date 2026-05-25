@@ -120,7 +120,13 @@
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <span class="text-[12px]">{{ c.name }}</span>
+              <div class="flex min-w-0 items-center gap-2">
+                @if (c.thumbnailUrl) { <img
+                  [src]="c.thumbnailUrl"
+                  class="h-12 w-12 rounded object-cover"
+                /> } @else { <span class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted">☺</span> }
+                <span class="text-[12px]">{{ c.name }}</span>
+              </div>
               <button
                 type="button"
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
