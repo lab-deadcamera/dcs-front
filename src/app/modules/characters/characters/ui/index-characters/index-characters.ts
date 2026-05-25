@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   OnInit,
+  Output,
   computed,
   inject,
   output,
@@ -58,6 +60,8 @@ import { FilesApiService } from '@app/services';
   styleUrl: './index-characters.css',
 })
 export class IndexCharacters implements OnInit {
+  @Output() charactersChanged = new EventEmitter<void>();
+
   protected readonly characters = inject(CharactersService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
@@ -330,6 +334,7 @@ export class IndexCharacters implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Created' });
       this.editDialogVisible.set(false);
+      this.charactersChanged.emit();
     });
   }
 

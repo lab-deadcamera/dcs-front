@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, catchError, of } from 'rxjs';
-import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
+import { map, catchError, of, forkJoin } from 'rxjs';
+import { DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +22,11 @@ import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedanc
 import { Preset } from '@core/interfaces/studio.models';
 import { TranslateModule } from '@ngx-translate/core';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { FileUploadEvent, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { DialogModule } from 'primeng/dialog';
+import { IndexCharacters } from '@app/modules/characters/characters/ui/index-characters/index-characters';
+import { FilesApiService } from '@app/services';
+import { UploadParams } from '@app/core/interfaces';
 
 interface ProjectInfo {
   name: string;
@@ -34,17 +39,28 @@ interface SceneInfo {
   description: string;
 }
 
+interface SceneAssignmentItem {
+  id: string;
+  preset_id?: string;
+  character_id?: string;
+  name?: string;
+  label?: string;
+  group_slug?: string;
+}
+
 @Component({
   selector: 'app-scene-assignment',
   standalone: true,
   imports: [
     ButtonModule,
     SelectModule,
+    DialogModule,
     ToastModule,
     DecimalPipe,
-    JsonPipe,
+    FileUploadModule,
     TranslateModule,
     SourceThumbnailAssetPipe,
+    IndexCharacters,
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +72,7 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly presetsSvc = inject(PresetsService);
+  private readonly fileSvc = inject(FilesApiService);
   private readonly apiUrl = environment.API_URL;
 
   protected readonly projectId = toSignal(this.route.params.pipe(map((p) => p['projectId'])), {
@@ -72,6 +89,7 @@ export class SceneAssignmentComponent implements OnInit {
   ];
   protected readonly activeTab = signal<string>('presets');
   protected readonly loading = signal(false);
+  protected readonly fileUploadLoading = signal(false);
 
   protected readonly projectInfo = signal<ProjectInfo | null>(null);
   protected readonly sceneInfo = signal<SceneInfo | null>(null);
@@ -89,6 +107,8 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly availablePresets = signal<Preset[]>([]);
   protected readonly availableCharacters = signal<any[]>([]);
   protected readonly availableAssets = signal<any[]>([]);
+
+  protected readonly characterDialogVisible = signal(false);
 
   ngOnInit(): void {
     this.route.params
@@ -200,9 +220,10 @@ export class SceneAssignmentComponent implements OnInit {
         .map((c: any) => ({
           id: c.character?.id || c.id,
           name: c.character?.name || c.name,
-          thumbnailUrl: c.files?.find((f: any) => f.role === .portrait.)?.thumbnail_url || c.files?.[0]?.thumbnail_url || .
-,.
-,.
+          thumbnailUrl:
+            c.files?.find((f: any) => f.role === 'portrait')?.thumbnail_url ||
+            c.files?.[0]?.thumbnail_url ||
+            '',
         })),
     );
   }
@@ -309,17 +330,48 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   private reload(): void {
+  onCharactersChanged(): void {
+    const pid = this.projectId();
+    const sid = this.sceneId();
+    if (pid && sid) this.loadAll(pid, sid);
+  }
     const pid = this.projectId();
     const sid = this.sceneId();
     if (pid && sid) this.loadAssignments(pid, sid);
   }
-}
 
-interface SceneAssignmentItem {
-  id: string;
-  preset_id?: string;
-  character_id?: string;
-  name?: string;
-  label?: string;
-  group_slug?: string;
+  uploadFile(ev: FileUploadHandlerEvent) {
+    console.log('file selected');
+    this.fileUploadLoading.set(true);
+
+    if (!ev.files.length) {
+      this.fileUploadLoading.set(false);
+      return;
+    }
+
+    const requests = forkJoin(
+      ev.files.map((file) => {
+        const payload: UploadParams = {
+          file,
+          category: 'images',
+          storage: 'persistent',
+        };
+        return this.fileSvc.upload(payload);
+      }),
+    );
+
+    requests.subscribe({
+      next: (res) => {
+        this.toast.add({ severity: 'success', summary: 'Files uploaded', life: 2000 });
+        this.reload();
+        this.loadAll(this.projectId(), this.sceneId());
+      },
+      error: () => this.toast.add({ severity: 'error', summary: 'Failed to upload', life: 3000 }),
+    });
+    this.fileUploadLoading.set(false);
+  }
+
+  onCharactersChanged() {
+    this.loadAll(this.projectId(), this.sceneId());
+  }
 }
