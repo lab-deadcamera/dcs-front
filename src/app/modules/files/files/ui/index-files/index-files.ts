@@ -40,7 +40,6 @@ type ViewTab = FileCategory | 'trash';
     ConfirmDialogModule,
     TabsModule,
     SourceThumbnailAssetPipe,
-    JsonPipe,
     ToastModule,
     FileLinkDialogComponent,
     IndexCharacters,

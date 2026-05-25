@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
-import {
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
+import {
   ChangeDetectionStrategy,
   Component,
   effect,
@@ -65,7 +65,10 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
           <span class="text-[12px] font-bold uppercase tracking-[0.12em]">
             {{ 'STUDIO.SESSION_GATE.HANDLE' | translate }}
           </span>
-          <span class="rounded px-3 py-2 text-[14px]" style="background: var(--surface-ground); border: 1px solid var(--border-color);">
+          <span
+            class="rounded px-3 py-2 text-[14px]"
+            style="background: var(--surface-ground); border: 1px solid var(--border-color);"
+          >
             {{ user()?.handle || user()?.email || '—' }}
           </span>
         </div>
@@ -137,12 +140,7 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
           @if (adminClosable()) {
-            <p-button
-              severity="secondary"
-              [text]="true"
-              label="Cancel"
-              (onClick)="close()"
-            />
+            <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="close()" />
           }
           <p-button
             [icon]="'pi pi-play'"
@@ -318,20 +316,23 @@ export class SessionGateDialogComponent {
     });
     this.sessionStore.initSession({
       email: currentUser?.email ?? '',
-      userHandle: handle,
-      totalTakes,
-      backendTakes: this.takes(),
+    this.sessionStore.initSession({
+      email: currentUser?.email ?? '',
+      handle,
     });
-
     // Load scene assignments for filtering
-    this.http.get<{ data: any }>(
-      `${this.environment.API_URL}/projects/${raw.projectId}/scenes/${raw.sceneId}/assignments`,
-    ).subscribe({
-      next: (res) => {
-        if (res.data) this.studio.setSceneAssignments(res.data);
-      },
-      error: () => { /* assignments not critical */ },
-    });
+    this.http
+      .get<{
+        data: any;
+      }>(`${this.environment.API_URL}/projects/${raw.projectId}/scenes/${raw.sceneId}/assignments`)
+      .subscribe({
+        next: (res) => {
+          if (res.data) this.studio.setSceneAssignments(res.data);
+        },
+        error: () => {
+          /* assignments not critical */
+        },
+      });
 
     this.submitting.set(false);
     this.visibleChange.emit(false);
