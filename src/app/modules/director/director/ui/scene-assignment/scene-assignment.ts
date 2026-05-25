@@ -336,6 +336,8 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   onCharactersChanged(): void {
+    console.log('onCharactersChanged');
+
     const pid = this.projectId();
     const sid = this.sceneId();
     if (pid && sid) this.loadAll(pid, sid);
@@ -370,9 +372,5 @@ export class SceneAssignmentComponent implements OnInit {
       error: () => this.toast.add({ severity: 'error', summary: 'Failed to upload', life: 3000 }),
     });
     this.fileUploadLoading.set(false);
-  }
-
-  onCharactersChanged() {
-    this.loadAll(this.projectId(), this.sceneId());
   }
 }

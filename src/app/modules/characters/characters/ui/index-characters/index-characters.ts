@@ -314,6 +314,7 @@ export class IndexCharacters implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Updated' });
       this.editDialogVisible.set(false);
+      this.charactersChanged.emit();
       this.fetchPreviewFor(evt.id);
     });
   }
