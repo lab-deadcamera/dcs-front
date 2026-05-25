@@ -25,6 +25,13 @@ export const DIRECTOR_ROUTES: Routes = [
       },
       {
         path: 'presets',
+  {
+    path: 'takes',
+    loadComponent: () =>
+      import('./director/ui/takes-review/takes-review').then(
+        (m) => m.TakesReviewComponent,
+      ),
+  },
         loadComponent: () =>
           import('./director/ui/preset-manager/preset-manager').then(
             (m) => m.PresetManagerComponent,
