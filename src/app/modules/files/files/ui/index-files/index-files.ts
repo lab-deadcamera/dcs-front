@@ -15,7 +15,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FilesService } from '../../services';
 import { FileCategory, FileEntity, UploadParams } from '../../interfaces';
 import { FileLinkDialogComponent } from '../components/file-link-dialog/file-link-dialog.component';
-import { CharacterFormDialogComponent } from '@modules/characters/characters/ui/components/character-form-dialog/character-form-dialog.component';
+import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
+import { DialogModule } from 'primeng/dialog';
 import { JsonPipe } from '@angular/common';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
@@ -42,7 +43,8 @@ type ViewTab = FileCategory | 'trash';
     JsonPipe,
     ToastModule,
     FileLinkDialogComponent,
-    CharacterFormDialogComponent,
+    IndexCharacters,
+    DialogModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -65,7 +67,7 @@ export class IndexFiles implements OnInit {
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly uploading = signal(false);
   protected readonly linkDialogVisible = signal(false);
-  a  protected readonly characterDialogVisible = signal(false);
+  protected readonly characterDialogVisible = signal(false);
 
   protected readonly linkDialogTarget = signal<FileEntity | null>(null);
 

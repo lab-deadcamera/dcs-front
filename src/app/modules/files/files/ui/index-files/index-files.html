@@ -8,7 +8,12 @@
         {{ 'FILES.HINT' | translate }}
       </p>
     </div>
-      <p-button label="Create Character" icon="pi pi-user-plus" severity="secondary" (onClick)="characterDialogVisible.set(true)" />
+    <p-button
+      label="Create Character"
+      icon="pi pi-user-plus"
+      severity="secondary"
+      (onClick)="characterDialogVisible.set(true)"
+    />
   </header>
 
   <!-- Category tabs -->
@@ -188,7 +193,9 @@
     (visibleChange)="linkDialogVisible.set($event)"
   />
 
-  <app-character-form-dialog [(visible)]="characterDialogVisible" />
+  <p-dialog [(visible)]="characterDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: "90vw", maxWidth: "1200px" }" header="Characters">
+    <app-index-characters />
+  </p-dialog>
   <p-confirmDialog />
   <p-toast position="bottom-right" />
 </section>
