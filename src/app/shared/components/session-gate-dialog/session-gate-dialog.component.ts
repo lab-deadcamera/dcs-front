@@ -1,5 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import {
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@environment/environment';
   ChangeDetectionStrategy,
   Component,
   effect,
@@ -159,6 +161,8 @@ export class SessionGateDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly sessionStore = inject(SessionStore);
   private readonly studio = inject(StudioStore);
+  private readonly http = inject(HttpClient);
+  private readonly environment = environment;
   private readonly projectsApi = inject(ProjectsApiService);
 
   readonly visible = input(false);
@@ -304,10 +308,6 @@ export class SessionGateDialogComponent {
     const totalTakes = Math.max(1, this.takes().length);
 
     this.submitting.set(true);
-    this.sessionStore.initSession({
-      email: currentUser?.email ?? '',
-      handle,
-    });
     this.studio.initStudioSession({
       projectId: raw.projectId,
       sceneId: raw.sceneId,
@@ -316,6 +316,23 @@ export class SessionGateDialogComponent {
       totalTakes,
       backendTakes: this.takes(),
     });
+    this.sessionStore.initSession({
+      email: currentUser?.email ?? '',
+      userHandle: handle,
+      totalTakes,
+      backendTakes: this.takes(),
+    });
+
+    // Load scene assignments for filtering
+    this.http.get<{ data: any }>(
+      `${this.environment.API_URL}/projects/${raw.projectId}/scenes/${raw.sceneId}/assignments`,
+    ).subscribe({
+      next: (res) => {
+        if (res.data) this.studio.setSceneAssignments(res.data);
+      },
+      error: () => { /* assignments not critical */ },
+    });
+
     this.submitting.set(false);
     this.visibleChange.emit(false);
   }

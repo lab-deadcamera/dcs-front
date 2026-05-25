@@ -395,7 +395,7 @@ export class CinematographyComponent {
   }
 
   protected readonly lensOptions = computed<ChipOption<LensId>[]>(() =>
-    this.presets.lens().map((p) => ({
+    this.filterPresets(this.presets.lens()).map((p) => ({
       value: p.id as LensId,
       labelKey: p.labelKey,
       label: p.isCustom || p.isOverridden ? p.label : undefined,

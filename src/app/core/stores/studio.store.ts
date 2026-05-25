@@ -90,6 +90,15 @@ export class StudioStore {
 
   // ── Takes ────────────────────────────────────────────────────────
 
+  // Scene assignment filters
+  private readonly _scenePresetIds = signal<Set<string>>(new Set());
+  private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
+  private readonly _sceneAssetIds = signal<Set<string>>(new Set());
+
+  readonly scenePresetIds = this._scenePresetIds.asReadonly();
+  readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
+  readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
+
   private readonly _takes = signal<Take[]>([]);
   private readonly _currentTakeIndex = signal<number>(0);
 
@@ -554,6 +563,11 @@ export class StudioStore {
     }
   }
 
+  setSceneAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
+    this._scenePresetIds.set(new Set(assignments.presets.map((a: any) => a.preset_id).filter(Boolean)));
+    this._sceneCharacterIds.set(new Set(assignments.characters.map((a: any) => a.character_id).filter(Boolean)));
+    this._sceneAssetIds.set(new Set(assignments.assets.map((a: any) => a.file_id).filter(Boolean)));
+  }
   // ── Clip reuse ───────────────────────────────────────────────────
 
   reuseClip(clipId: string) {

@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -109,6 +110,14 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly availableAssets = signal<any[]>([]);
 
   protected readonly characterDialogVisible = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.characterDialogVisible() != undefined) {
+        this.onCharactersChanged();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.route.params
@@ -336,8 +345,6 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   onCharactersChanged(): void {
-    console.log('onCharactersChanged');
-
     const pid = this.projectId();
     const sid = this.sceneId();
     if (pid && sid) this.loadAll(pid, sid);
