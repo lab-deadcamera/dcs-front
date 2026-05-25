@@ -394,8 +394,15 @@ export class CinematographyComponent {
     this._variants.set('bank', this.pickVariants('bank', 4));
   }
 
+  /** Filter presets by scene assignment IDs from StudioStore. */
+  private assignedPresets(all: Preset[]): Preset[] {
+    const ids = this.studio.scenePresetIds();
+    if (ids.size === 0) return all;
+    return all.filter((p) => ids.has(p.id));
+  }
+
   protected readonly lensOptions = computed<ChipOption<LensId>[]>(() =>
-    this.presets.lens().map((p) => ({
+    this.assignedPresets(this.presets.lens()).map((p) => ({
       value: p.id as LensId,
       labelKey: p.labelKey,
       label: p.isCustom || p.isOverridden ? p.label : undefined,
@@ -404,7 +411,7 @@ export class CinematographyComponent {
     })),
   );
   protected readonly bodyOptions = computed<ChipOption<CameraBodyId>[]>(() =>
-    this.presets.camera().map((p) => ({
+    this.assignedPresets(this.presets.camera()).map((p) => ({
       value: p.id as CameraBodyId,
       labelKey: p.labelKey,
       label: p.isCustom || p.isOverridden ? p.label : undefined,
@@ -413,7 +420,7 @@ export class CinematographyComponent {
     })),
   );
   protected readonly motionOptions = computed<ChipOption<CameraMotionId>[]>(() =>
-    this.presets.cameraMotion().map((p) => ({
+    this.assignedPresets(this.presets.cameraMotion()).map((p) => ({
       value: p.id as CameraMotionId,
       labelKey: p.labelKey,
       label: p.isCustom || p.isOverridden ? p.label : undefined,
@@ -421,9 +428,9 @@ export class CinematographyComponent {
       editable: true,
     })),
   );
-  protected readonly gradeOptions = computed<Preset[]>(() => this.presets.colorGrading());
+  protected readonly gradeOptions = computed<Preset[]>(() => this.assignedPresets(this.presets.colorGrading()));
   protected readonly genreOptions = computed<ChipOption<GenreId>[]>(() =>
-    this.presets.genre().map((p) => ({
+    this.assignedPresets(this.presets.genre()).map((p) => ({
       value: p.id as GenreId,
       labelKey: p.labelKey,
       label: p.isCustom || p.isOverridden ? p.label : undefined,

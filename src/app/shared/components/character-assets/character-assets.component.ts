@@ -109,8 +109,10 @@ export class CharacterAssetsComponent {
   ];
 
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
+    const assignedIds = this.studio.sceneCharacterIds();
     const buckets: Record<AssetType, LibraryItem[]> = { character: [], location: [], prop: [] };
     for (const item of this.chars.items()) {
+      if (assignedIds.size > 0 && !assignedIds.has(item.character.id)) continue;
       let metadata: CharacterMetadata = {};
       try {
         metadata = item.character.metadata ? JSON.parse(item.character.metadata) : {};

@@ -314,8 +314,7 @@ export class SessionGateDialogComponent {
       totalTakes,
       backendTakes: this.takes(),
     });
-    this.sessionStore.initSession({
-      email: currentUser?.email ?? '',
+
     this.sessionStore.initSession({
       email: currentUser?.email ?? '',
       handle,
