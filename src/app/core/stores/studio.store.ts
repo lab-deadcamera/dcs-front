@@ -82,6 +82,10 @@ export class StudioStore {
   private readonly _projectId = signal<string | null>(null);
   private readonly _sceneId = signal<string | null>(null);
   private readonly _sceneCode = signal<string>('');
+  private readonly _projectName = signal<string>();
+  private readonly _sceneName = signal<string>();
+  readonly projectName = this._projectName.asReadonly();
+  readonly sceneName = this._sceneName.asReadonly();
   private readonly _userHandle = signal<string>('');
 
   readonly projectId = this._projectId.asReadonly();
@@ -316,6 +320,8 @@ export class StudioStore {
 
   initStudioSession(input: {
     projectId: string;
+    projectName?: string;
+    sceneName?: string;
     sceneId: string;
     sceneCode: string;
     userHandle: string;
@@ -331,6 +337,8 @@ export class StudioStore {
     this._projectId.set(input.projectId);
     this._sceneId.set(input.sceneId);
     this._sceneCode.set(input.sceneCode);
+    if (input.projectName) this._projectName.set(input.projectName);
+    if (input.sceneName) this._sceneName.set(input.sceneName);
     this._userHandle.set(input.userHandle);
 
     if (input.backendTakes && input.backendTakes.length > 0) {
@@ -421,9 +429,17 @@ export class StudioStore {
   private buildFilename(takeIndex: number): string {
     const code = this._sceneCode();
     const handle = this._userHandle();
+    const proj = this._projectName();
+    const scName = this._sceneName();
     if (!code || !handle) return `clip-take${takeIndex}.mp4`;
     const safe = (s: string) => s.replace(/[^a-zA-Z0-9_-]+/g, '_');
-    return `${safe(code)}_T${takeIndex}_${safe(handle)}.mp4`;
+    const now = new Date();
+    const ts =
+      `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_` +
+      `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const projPart = proj ? `${safe(proj)}_` : '';
+    const scenePart = scName ? `${safe(scName)}_` : `${safe(code)}_`;
+    return `${projPart}${scenePart}T${takeIndex}_${safe(handle)}_${ts}.mp4`;
   }
 
   // ── Model ────────────────────────────────────────────────────────
