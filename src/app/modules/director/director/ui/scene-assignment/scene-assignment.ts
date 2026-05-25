@@ -330,14 +330,15 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   private reload(): void {
+    const pid = this.projectId();
+    const sid = this.sceneId();
+    if (pid && sid) this.loadAssignments(pid, sid);
+  }
+
   onCharactersChanged(): void {
     const pid = this.projectId();
     const sid = this.sceneId();
     if (pid && sid) this.loadAll(pid, sid);
-  }
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (pid && sid) this.loadAssignments(pid, sid);
   }
 
   uploadFile(ev: FileUploadHandlerEvent) {
