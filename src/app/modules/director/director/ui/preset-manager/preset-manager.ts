@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { PresetApiService } from '@app/services/preset-api.service';
 import { PresetsService } from '@core/stores/presets.service';
-import { environment } from '@environment/environment';
 
 interface PresetGroup {
   id: string;
@@ -33,18 +32,16 @@ interface PresetItem {
   standalone: true,
   imports: [
     ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule,
-    SelectModule, ToastModule, ConfirmDialogModule, DatePipe,
+    DialogModule, TooltipModule, SelectModule, ToastModule,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="p-6">
       <div class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Preset Manager</h1>
-          <p class="mt-1 text-[12px] text-fg-muted">
-            Create, edit and deactivate preset groups and presets
-          </p>
+          <p class="mt-1 text-[12px] text-fg-muted">Create, edit and deactivate preset groups and presets</p>
         </div>
         <div class="flex gap-2">
           <p-button label="New Group" icon="pi pi-plus" severity="secondary" (onClick)="openCreateGroup()" />
@@ -52,7 +49,6 @@ interface PresetItem {
         </div>
       </div>
 
-      <!-- Groups section -->
       <div class="mb-8">
         <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Groups</h2>
         <div class="flex flex-wrap gap-2">
@@ -67,23 +63,15 @@ interface PresetItem {
               <span>{{ g.name }}</span>
               <span class="text-[10px] text-fg-muted">({{ g.slug }})</span>
               @if (!g.active) { <span class="text-[10px] text-red-400">inactive</span> }
-              <button
-                type="button"
-                class="ml-1 text-fg-muted hover:text-primary-400"
-                (click)="editGroup($event, g)"
-                pTooltip="Edit group"
-              >✎</button>
+              <button type="button" class="ml-1 text-fg-muted hover:text-primary-400" (click)="editGroup($event, g)" pTooltip="Edit group">✎</button>
             </div>
           }
         </div>
       </div>
 
-      <!-- Presets table -->
       @if (selectedGroupId()) {
         <div>
-          <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-            Presets — {{ selectedGroupName() }}
-          </h2>
+          <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Presets — {{ selectedGroupName() }}</h2>
           <div class="overflow-x-auto rounded border border-ink-700">
             <table class="w-full text-[12px]">
               <thead>
@@ -102,21 +90,17 @@ interface PresetItem {
                     <td class="px-3 py-2 font-semibold">{{ p.label }}</td>
                     <td class="max-w-xs truncate px-3 py-2 text-fg-muted" [title]="p.prompt">{{ p.prompt }}</td>
                     <td class="px-3 py-2">
-                      <span
-                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                        [class.bg-green-900/40]="p.active"
-                        [class.text-green-400]="p.active"
-                        [class.bg-red-900/40]="!p.active"
-                        [class.text-red-400]="!p.active"
+                      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                        [class.bg-green-900/40]="p.active" [class.text-green-400]="p.active"
+                        [class.bg-red-900/40]="!p.active" [class.text-red-400]="!p.active"
                       >{{ p.active ? 'Active' : 'Inactive' }}</span>
                     </td>
                     <td class="px-3 py-2">
                       <div class="flex gap-1">
                         <p-button icon="pi pi-pencil" severity="secondary" [text]="true" [rounded]="true" pTooltip="Edit" (onClick)="openEditPreset(p)" />
-                        <p-button
-                          [icon]="p.active ? 'pi pi-pause-circle' : 'pi pi-play-circle'"
+                        <p-button [icon]="p.active ? 'pi pi-pause-circle' : 'pi pi-play-circle'"
                           severity="secondary" [text]="true" [rounded]="true"
-                          [pTooltip]="p.active ? 'Deactivate' : 'Activate'"
+                          pTooltip="{{ p.active ? 'Deactivate' : 'Activate' }}"
                           (onClick)="togglePresetActive(p)"
                         />
                       </div>
@@ -133,22 +117,15 @@ interface PresetItem {
       }
     </section>
 
-    <!-- Group Dialog -->
-    <p-dialog
-      [visible]="groupDialogVisible()"
-      (visibleChange)="groupDialogVisible.set($event)"
-      [modal]="true" [closable]="true" [draggable]="false"
-      [style]="{ width: '32rem' }"
-      [header]="editingGroup() ? 'Edit Group' : 'New Group'"
-    >
-      <form [formGroup]="groupForm" (ngSubmit)="saveGroup()" class="flex flex-col gap-4">
+    <p-dialog [(visible)]="groupDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '32rem' }" header="{{ editingGroup() ? 'Edit Group' : 'New Group' }}">
+      <form [formGroup]="groupForm" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Name</label>
           <input pInputText formControlName="name" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Slug</label>
-          <input pInputText formControlName="slug" [disabled]="editingGroup()" />
+          <input pInputText formControlName="slug" [disabled]="!!editingGroup()" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Description</label>
@@ -161,27 +138,15 @@ interface PresetItem {
       </ng-template>
     </p-dialog>
 
-    <!-- Preset Dialog -->
-    <p-dialog
-      [visible]="presetDialogVisible()"
-      (visibleChange)="presetDialogVisible.set($event)"
-      [modal]="true" [closable]="true" [draggable]="false"
-      [style]="{ width: '36rem' }"
-      [header]="editingPreset() ? 'Edit Preset' : 'New Preset'"
-    >
-      <form [formGroup]="presetForm" (ngSubmit)="savePreset()" class="flex flex-col gap-4">
+    <p-dialog [(visible)]="presetDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '36rem' }" header="{{ editingPreset() ? 'Edit Preset' : 'New Preset' }}">
+      <form [formGroup]="presetForm" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Group</label>
-          <p-select
-            [options]="groupOptions()"
-            formControlName="group_id"
-            optionLabel="name" optionValue="id"
-            placeholder="Select group"
-          />
+          <p-select [options]="groupOptions()" formControlName="group_id" optionLabel="name" optionValue="id" placeholder="Select group" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Code</label>
-          <input pInputText formControlName="code" [disabled]="editingPreset()" />
+          <input pInputText formControlName="code" [disabled]="!!editingPreset()" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase">Label</label>
@@ -206,38 +171,24 @@ export class PresetManagerComponent implements OnInit {
   private readonly api = inject(PresetApiService);
   private readonly presetsSvc = inject(PresetsService);
   private readonly toast = inject(MessageService);
-  private readonly confirmation = inject(ConfirmationService);
-
-  private readonly apiUrl = environment.API_URL + '/presets';
 
   protected readonly groups = signal<PresetGroup[]>([]);
   protected readonly presets = signal<PresetItem[]>([]);
   protected readonly selectedGroupId = signal<string>('');
-  protected readonly selectedGroupName = computed(() => {
-    const g = this.groups().find((x) => x.id === this.selectedGroupId());
-    return g?.name || '';
-  });
+  protected readonly selectedGroupName = signal('');
+  protected readonly filteredPresets = signal<PresetItem[]>([]);
+  protected readonly groupOptions = signal<Array<{ name: string; id: string }>>([]);
 
-  protected readonly filteredPresets = computed(() =>
-    this.presets().filter((p) => p.group_id === this.selectedGroupId()),
-  );
-
-  protected readonly groupOptions = computed(() =>
-    this.groups().map((g) => ({ name: g.name, id: g.id })),
-  );
-
-  // Group dialog
   protected readonly groupDialogVisible = signal(false);
-  protected readonly editingGroup = signal<any>(null);
+  protected readonly editingGroup = signal<PresetGroup | null>(null);
   protected readonly groupForm = this.fb.group({
     name: ['', Validators.required],
     slug: ['', Validators.required],
     description: [''],
   });
 
-  // Preset dialog
   protected readonly presetDialogVisible = signal(false);
-  protected readonly editingPreset = signal<any>(null);
+  protected readonly editingPreset = signal<PresetItem | null>(null);
   protected readonly presetForm = this.fb.group({
     group_id: ['', Validators.required],
     code: ['', Validators.required],
@@ -249,35 +200,42 @@ export class PresetManagerComponent implements OnInit {
     this.loadAll();
   }
 
+  private updateDerived(): void {
+    const g = this.groups().find((x) => x.id === this.selectedGroupId());
+    this.selectedGroupName.set(g?.name || '');
+    this.filteredPresets.set(this.presets().filter((p) => p.group_id === this.selectedGroupId()));
+    this.groupOptions.set(this.groups().map((grp) => ({ name: grp.name, id: grp.id })));
+  }
+
   private loadAll(): void {
-    // Load groups
     this.api.getGroups(true).subscribe({
       next: (gs: any) => {
         this.groups.set(gs);
         if (!this.selectedGroupId() && gs.length > 0) {
           this.selectedGroupId.set(gs[0].id);
         }
+        this.updateDerived();
       },
       error: () => this.toast.add({ severity: 'error', summary: 'Failed to load groups', life: 3000 }),
     });
 
-    // Load all presets
     this.api.getPresets().subscribe({
-      next: (ps: any) => this.presets.set(ps),
+      next: (ps: any) => {
+        this.presets.set(ps);
+        this.updateDerived();
+      },
       error: () => this.toast.add({ severity: 'error', summary: 'Failed to load presets', life: 3000 }),
     });
   }
 
   private reloadPresetsStore(): void {
-    // Force the PresetsService to reload so studio reflects changes immediately
     (this.presetsSvc as any).load();
   }
 
   protected selectGroup(id: string): void {
     this.selectedGroupId.set(id);
+    this.updateDerived();
   }
-
-  // ─── Group CRUD ───────────────────────────────────────────────
 
   protected openCreateGroup(): void {
     this.editingGroup.set(null);
@@ -294,33 +252,27 @@ export class PresetManagerComponent implements OnInit {
 
   protected saveGroup(): void {
     if (this.groupForm.invalid) return;
-    const data = this.groupForm.getRawValue();
-
+    const raw = this.groupForm.getRawValue();
     const target = this.editingGroup();
-    if (target) {
-      this.api.updateGroup(target.id, data).subscribe({
-        next: () => {
-          this.toast.add({ severity: 'success', summary: 'Group updated', life: 2000 });
-          this.groupDialogVisible.set(false);
-          this.loadAll();
-          this.reloadPresetsStore();
-        },
-        error: (err: any) => this.toast.add({ severity: 'error', summary: err.error?.message || 'Error', life: 3000 }),
-      });
-    } else {
-      this.api.createGroup(data).subscribe({
-        next: () => {
-          this.toast.add({ severity: 'success', summary: 'Group created', life: 2000 });
-          this.groupDialogVisible.set(false);
-          this.loadAll();
-          this.reloadPresetsStore();
-        },
-        error: (err: any) => this.toast.add({ severity: 'error', summary: err.error?.message || 'Error', life: 3000 }),
-      });
-    }
-  }
 
-  // ─── Preset CRUD ──────────────────────────────────────────────
+    const payload: any = {
+      name: raw.name || '',
+      slug: raw.slug || '',
+      description: raw.description || '',
+    };
+
+    const obs = target ? this.api.updateGroup(target.id, payload) : this.api.createGroup(payload);
+
+    obs.subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: target ? 'Group updated' : 'Group created', life: 2000 });
+        this.groupDialogVisible.set(false);
+        this.loadAll();
+        this.reloadPresetsStore();
+      },
+      error: () => this.toast.add({ severity: 'error', summary: 'Operation failed', life: 3000 }),
+    });
+  }
 
   protected openCreatePreset(): void {
     this.editingPreset.set(null);
@@ -336,28 +288,36 @@ export class PresetManagerComponent implements OnInit {
 
   protected savePreset(): void {
     if (this.presetForm.invalid) return;
-    const data = this.presetForm.getRawValue();
-
+    const raw = this.presetForm.getRawValue();
     const target = this.editingPreset();
+
     if (target) {
-      this.api.updatePreset(target.id, { label: data.label, prompt: data.prompt }).subscribe({
+      this.api.updatePreset(target.id, {
+        label: raw.label || undefined,
+        prompt: raw.prompt || undefined,
+      }).subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Preset updated', life: 2000 });
           this.presetDialogVisible.set(false);
           this.loadAll();
           this.reloadPresetsStore();
         },
-        error: (err: any) => this.toast.add({ severity: 'error', summary: err.error?.message || 'Error', life: 3000 }),
+        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
       });
     } else {
-      this.api.createPreset({ group_id: data.group_id, code: data.code, label: data.label, prompt: data.prompt }).subscribe({
+      this.api.createPreset({
+        group_id: raw.group_id || '',
+        code: raw.code || '',
+        label: raw.label || '',
+        prompt: raw.prompt || '',
+      }).subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Preset created', life: 2000 });
           this.presetDialogVisible.set(false);
           this.loadAll();
           this.reloadPresetsStore();
         },
-        error: (err: any) => this.toast.add({ severity: 'error', summary: err.error?.message || 'Error', life: 3000 }),
+        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
       });
     }
   }
@@ -369,7 +329,7 @@ export class PresetManagerComponent implements OnInit {
         this.loadAll();
         this.reloadPresetsStore();
       },
-      error: (err: any) => this.toast.add({ severity: 'error', summary: err.error?.message || 'Error', life: 3000 }),
+      error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
     });
   }
 }

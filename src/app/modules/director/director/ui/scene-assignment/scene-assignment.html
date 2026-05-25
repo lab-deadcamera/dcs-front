@@ -174,8 +174,13 @@
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="min-w-0 flex-1">
+              <div class="flex min-w-0 items-center gap-2">
                 <span class="truncate text-[12px]">{{ f.filename }}</span>
+                <img
+                  [src]="f.id | sourceThumbnailAsset"
+                  alt="{{ f.filename }}"
+                  class="h-6 w-auto object-cover"
+                />
                 <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
               </div>
               <button

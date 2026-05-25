@@ -21,6 +21,7 @@ import { PresetsService } from '@core/stores/presets.service';
 import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedance.interface';
 import { Preset } from '@core/interfaces/studio.models';
 import { TranslateModule } from '@ngx-translate/core';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 interface ProjectInfo {
   name: string;
@@ -36,7 +37,14 @@ interface SceneInfo {
 @Component({
   selector: 'app-scene-assignment',
   standalone: true,
-  imports: [ButtonModule, SelectModule, ToastModule, DecimalPipe, TranslateModule],
+  imports: [
+    ButtonModule,
+    SelectModule,
+    ToastModule,
+    DecimalPipe,
+    TranslateModule,
+    SourceThumbnailAssetPipe,
+  ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scene-assignment.html',
