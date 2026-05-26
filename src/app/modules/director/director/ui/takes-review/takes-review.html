@@ -67,7 +67,7 @@
               <td class="px-3 py-2">
                 @if (t.video_local_url || t.video_url) {
                   <video
-                    [src]="t.video_local_url || t.video_url"
+                    [src]="videoUrl(t.video_local_url || t.video_url)"
                     class="h-20 w-36 rounded object-cover"
                     preload="metadata"
                     playsinline
@@ -131,7 +131,7 @@
                   }
                   @if (t.video_local_url) {
                     <a
-                      [href]="t.video_local_url"
+                      [href]="videoUrl(t.video_local_url)"
                       target="_blank"
                       class="inline-flex items-center rounded bg-ink-700 px-2 py-1 text-[10px] text-primary-400 transition-colors hover:bg-ink-600"
                       >Open</a

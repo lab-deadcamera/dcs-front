@@ -43,6 +43,14 @@ export class TakesReviewComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(MessageService);
   private readonly apiUrl = environment.API_URL;
+  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
+
+  /** Returns the full URL for a local video path (/outputs/...). */
+  protected videoUrl(path: string | undefined): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return this.baseUrl + path;
+  }
 
   protected readonly projects = signal<ProjectOption[]>([]);
   protected readonly scenes = signal<Array<{ id: string; label: string }>>([]);
