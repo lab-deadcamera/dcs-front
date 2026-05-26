@@ -31,6 +31,7 @@ export type StudioTaskStatus = 'queued' | 'running' | 'succeeded' | 'failed';
 /** Single produced artifact — usually a video URL. */
 export interface StudioOutput {
   url: string;
+  localUrl?: string;
   type: 'video' | 'image';
 }
 

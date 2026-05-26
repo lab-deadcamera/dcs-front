@@ -146,7 +146,7 @@ export class ProjectsApiService {
   saveGeneration(
     projectId: string,
     sceneId: string,
-    payload: { number: number; video_url: string },
+    payload: { number: number; video_url: string; task_id?: string },
   ): Observable<{ error: boolean; msg: string; data?: SaveGenerationResponse }> {
     return this.http
       .post<ResponseBase<SaveGenerationResponse>>(

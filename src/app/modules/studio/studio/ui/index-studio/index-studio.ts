@@ -542,7 +542,7 @@ export class IndexStudio implements OnInit {
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
       prompt: this.studio.rawDescription(),
-      videoUrl: out.url,
+      videoUrl: out.localUrl || out.url,
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
       resolution: output.resolution,
@@ -551,7 +551,7 @@ export class IndexStudio implements OnInit {
     this.studio.completeGeneration(localId, clip);
 
     // Associate the generated video with the current scene+take
-    this.persistGeneration(clip);
+    this.persistGeneration(clip, task.taskId);
 
     this.toast.add({
       summary: 'Generación completada',
@@ -566,7 +566,7 @@ export class IndexStudio implements OnInit {
    * current session's project, scene, and take. The backend discards
    * (deactivates) any previous generation for the same take number.
    */
-  private persistGeneration(clip: GeneratedClip): void {
+  private persistGeneration(clip: GeneratedClip, taskId?: string): void {
     const projectId = this.studio.projectId();
     const sceneId = this.studio.sceneId();
     const take = this.studio.currentTake();
@@ -576,6 +576,7 @@ export class IndexStudio implements OnInit {
       .saveGeneration(projectId, sceneId, {
         number: take.index,
         video_url: clip.videoUrl,
+        task_id: taskId,
       })
       .subscribe((res) => {
         if (!res.error && res.data) {
