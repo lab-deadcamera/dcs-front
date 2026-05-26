@@ -628,6 +628,7 @@ export class IndexStudio implements OnInit {
       generate_audio: output.sound,
       image_mode: 'PIL',
       project_id: this.studio.projectId() ?? '',
+      project_name: this.studio.projectName(),
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),
       take_number: takeIndex,

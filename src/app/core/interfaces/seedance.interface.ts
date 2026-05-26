@@ -65,6 +65,7 @@ export interface StudioGenerateRequest {
 
   /** Session tracking — obligatorio para registrar la generación y recuperar estado. */
   project_id: string;
+  project_name: string;
   scene_id: string;
   scene_code: string;
   take_number: number;
