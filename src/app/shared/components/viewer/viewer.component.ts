@@ -12,6 +12,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { environment } from '@environment/environment';
 
 /**
  * Section 01 — VIEWER.
@@ -134,7 +135,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
         @if (studio.activeClip(); as clip) {
           <video
             class="h-full w-full object-contain"
-            [src]="clip.videoUrl"
+            [src]="clipUrl(clip.videoUrl)"
             controls
           ></video>
         } @else if (!studio.isReady()) {
@@ -284,6 +285,14 @@ export class ViewerComponent implements OnDestroy {
   protected readonly hdPending = signal(false);
   private hdTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
+  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
+
+  /** Returns the full URL, prepending the API base for relative paths. */
+  protected clipUrl(path: string | undefined): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return this.baseUrl + path;
+  }
 
   protected readonly isHd = computed(
     () => this.studio.output().resolution === '1080p',
@@ -292,7 +301,7 @@ export class ViewerComponent implements OnDestroy {
   /** Disable the download icon when there's no playable clip URL. */
   protected readonly canDownload = computed(() => {
     const clip = this.studio.activeClip();
-    return !!clip?.videoUrl;
+    return !!clip?.videoUrl && !!this.clipUrl(clip.videoUrl);
   });
 
   protected onReuse(): void {
@@ -312,17 +321,18 @@ export class ViewerComponent implements OnDestroy {
    */
   protected async onDownload(): Promise<void> {
     const clip = this.studio.activeClip();
-    if (!clip?.videoUrl) return;
+    const url = this.clipUrl(clip?.videoUrl);
+    if (!url) return;
     const filename = this.studio.filenameForClip(clip);
     try {
-      const res = await fetch(clip.videoUrl);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, filename);
-      URL.revokeObjectURL(url);
+      const blobUrl = URL.createObjectURL(blob);
+      triggerDownload(blobUrl, filename);
+      URL.revokeObjectURL(blobUrl);
     } catch {
-      triggerDownload(clip.videoUrl, filename, '_blank');
+      triggerDownload(url, filename, '_blank');
     }
   }
 
