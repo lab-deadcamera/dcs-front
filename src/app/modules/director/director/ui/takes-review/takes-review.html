@@ -130,12 +130,21 @@
                     />
                   }
                   @if (t.video_local_url) {
-                    <a
-                      [href]="videoUrl(t.video_local_url)"
-                      target="_blank"
-                      class="inline-flex items-center rounded bg-ink-700 px-2 py-1 text-[10px] text-primary-400 transition-colors hover:bg-ink-600"
-                      >Open</a
-                    >
+                    <p-button
+                      label="Open"
+                      icon="pi pi-eye"
+                      severity="contrast"
+                      size="small"
+                      (onClick)="openPreview(t)"
+                    />
+                    <p-button
+                      label="Download"
+                      icon="pi pi-download"
+                      severity="info"
+                      size="small"
+                      [loading]="downloadingId() === t.id"
+                      (onClick)="downloadVideo(t)"
+                    />
                   }
                 </div>
               </td>
@@ -149,4 +158,28 @@
   @if (!loading() && takes().length === 0 && selectedSceneId()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">No takes found for this scene.</p>
   }
+
+  <p-dialog
+    [(visible)]="previewVisible"
+    [modal]="true"
+    [style]="{ width: '80vw', height: '80vh' }"
+    [dismissableMask]="true"
+    [closable]="true"
+    (onHide)="closePreview()"
+  >
+    <ng-template pTemplate="header">
+      <span class="text-sm font-bold uppercase tracking-wider">
+        Take {{ previewTake()?.number }}
+      </span>
+    </ng-template>
+    @if (previewTake(); as take) {
+      <video
+        [src]="videoUrl(take.video_local_url)"
+        controls
+        autoplay
+        class="h-full w-full rounded object-contain"
+        style="max-height: calc(80vh - 8rem)"
+      ></video>
+    }
+  </p-dialog>
 </section>

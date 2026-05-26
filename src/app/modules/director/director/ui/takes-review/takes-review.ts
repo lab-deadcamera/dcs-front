@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -35,7 +36,7 @@ interface TakeItem {
   selector: 'app-takes-review',
   templateUrl: './takes-review.html',
   standalone: true,
-  imports: [DatePipe, FormsModule, ButtonModule, SelectModule, ToastModule],
+  imports: [DatePipe, FormsModule, ButtonModule, DialogModule, SelectModule, ToastModule],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -60,6 +61,9 @@ export class TakesReviewComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly loadingId = signal<string | null>(null);
   protected readonly savingId = signal<string | null>(null);
+  protected readonly previewVisible = signal(false);
+  protected readonly previewTake = signal<TakeItem | null>(null);
+  protected readonly downloadingId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.http
@@ -129,6 +133,35 @@ export class TakesReviewComponent implements OnInit {
           this.toast.add({ severity: 'error', summary: 'Failed to save video', life: 3000 });
         },
       });
+  }
+
+  protected openPreview(take: TakeItem): void {
+    this.previewTake.set(take);
+    this.previewVisible.set(true);
+  }
+
+  protected closePreview(): void {
+    this.previewVisible.set(false);
+    this.previewTake.set(null);
+  }
+
+  protected downloadVideo(take: TakeItem): void {
+    const url = this.videoUrl(take.video_local_url);
+    if (!url) return;
+    this.downloadingId.set(take.id);
+    this.http.get(url, { responseType: 'blob' }).pipe(catchError(() => of(null))).subscribe((blob) => {
+      this.downloadingId.set(null);
+      if (!blob) {
+        this.toast.add({ severity: 'error', summary: 'Failed to download', life: 3000 });
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = url.split('/').pop() || 'video.mp4';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      this.toast.add({ severity: 'success', summary: 'Download started', life: 2000 });
+    });
   }
 
   protected setFinal(take: TakeItem): void {
