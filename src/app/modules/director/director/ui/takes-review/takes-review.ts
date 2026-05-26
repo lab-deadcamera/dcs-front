@@ -9,6 +9,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface ProjectOption {
   id: string;
@@ -36,7 +37,15 @@ interface TakeItem {
   selector: 'app-takes-review',
   templateUrl: './takes-review.html',
   standalone: true,
-  imports: [DatePipe, FormsModule, ButtonModule, DialogModule, SelectModule, ToastModule],
+  imports: [
+    DatePipe,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    SelectModule,
+    ToastModule,
+    TooltipModule,
+  ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -116,7 +125,10 @@ export class TakesReviewComponent implements OnInit {
   protected saveLocal(take: TakeItem): void {
     this.savingId.set(take.id);
     this.http
-      .post(`${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}/download`, {})
+      .post(
+        `${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}/download`,
+        {},
+      )
       .pipe(catchError(() => of(null)))
       .subscribe({
         next: (res: any) => {
@@ -149,25 +161,28 @@ export class TakesReviewComponent implements OnInit {
     const url = this.videoUrl(take.video_local_url);
     if (!url) return;
     this.downloadingId.set(take.id);
-    this.http.get(url, { responseType: 'blob' }).pipe(catchError(() => of(null))).subscribe((blob) => {
-      this.downloadingId.set(null);
-      if (!blob) {
-        this.toast.add({ severity: 'error', summary: 'Failed to download', life: 3000 });
-        return;
-      }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = url.split('/').pop() || 'video.mp4';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      this.toast.add({ severity: 'success', summary: 'Download started', life: 2000 });
-    });
+    this.http
+      .get(url, { responseType: 'blob' })
+      .pipe(catchError(() => of(null)))
+      .subscribe((blob) => {
+        this.downloadingId.set(null);
+        if (!blob) {
+          this.toast.add({ severity: 'error', summary: 'Failed to download', life: 3000 });
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = url.split('/').pop() || 'video.mp4';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        this.toast.add({ severity: 'success', summary: 'Download started', life: 2000 });
+      });
   }
 
   protected setFinal(take: TakeItem): void {
     this.loadingId.set(take.id);
     this.http
-      .patch(`${this.apiUrl}/takes/${take.id}`, { final: true })
+      .patch(`${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}`, { final: true })
       .pipe(catchError(() => of(null)))
       .subscribe({
         next: () => {
