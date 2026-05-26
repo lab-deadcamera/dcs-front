@@ -632,6 +632,7 @@ export class IndexStudio implements OnInit {
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),
       take_number: takeIndex,
+      user_name: this.sessionStore.user()?.handle ?? '',
       user_id: this.sessionStore.authUser()?.id ?? 0,
     };
   }

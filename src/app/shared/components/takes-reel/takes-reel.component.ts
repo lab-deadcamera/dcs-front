@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
+import { environment } from '@environment/environment';
 
 /**
  * "CARRETE DE TOMAS" — horizontal strip of take thumbnails.
@@ -144,12 +145,21 @@ export class TakesReelComponent {
 
   /** Accordion open state for discarded section. */
   protected readonly discardOpen = signal(false);
+  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
+
+  /** Resolves a possibly-relative video URL (/outputs/...) to an absolute one. */
+  protected videoUrl(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return this.baseUrl + path;
+  }
 
   /**
    * Append `#t=0.1` to the video URL so the browser seeks to ~100ms and
    * paints that frame as the visible poster.
    */
   protected posterUrl(url: string): string {
-    return url.includes('#') ? url : `${url}#t=0.1`;
+    const full = this.videoUrl(url);
+    return full.includes('#') ? full : `${full}#t=0.1`;
   }
 }
