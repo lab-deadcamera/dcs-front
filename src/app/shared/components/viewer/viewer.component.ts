@@ -322,7 +322,7 @@ export class ViewerComponent implements OnDestroy {
   protected async onDownload(): Promise<void> {
     const clip = this.studio.activeClip();
     const url = this.clipUrl(clip?.videoUrl);
-    if (!url) return;
+    if (!url || !clip) return;
     const filename = this.studio.filenameForClip(clip);
     try {
       const res = await fetch(url);
