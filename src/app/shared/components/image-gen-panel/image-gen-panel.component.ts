@@ -20,10 +20,18 @@ import { ModelService, ImageGeneratorService, FilesApiService } from '@app/servi
 import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 @Component({
   selector: 'app-image-gen-panel',
-  imports: [FormsModule, ButtonModule, DialogModule, SelectModule, Popover],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    SelectModule,
+    Popover,
+    SourceThumbnailAssetPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './image-gen-panel.component.html',
 })

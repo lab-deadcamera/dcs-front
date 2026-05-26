@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
@@ -119,5 +119,32 @@ export class ProvidersApiService {
       map((r) => ({ error: !r.success, msg: r.message })),
       catchError((err) => httpErrorHandler<void>(err)),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // CSV Export / Import
+  // ---------------------------------------------------------------------------
+
+  exportCSV(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/providers/export`, {
+      responseType: 'blob',
+      headers: new HttpHeaders({ Accept: 'text/csv' }),
+    });
+  }
+
+  importCSV(
+    file: File,
+  ): Observable<{ error: boolean; msg: string; data?: { providers_created: number; models_created: number; models_updated: number; errors?: string[] } }> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http
+      .post<ResponseBase<{ providers_created: number; models_created: number; models_updated: number; errors?: string[] }>>(
+        `${this.apiUrl}/providers/import`,
+        fd,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ providers_created: number; models_created: number; models_updated: number; errors?: string[] }>),
+      );
   }
 }

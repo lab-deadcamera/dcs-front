@@ -109,9 +109,10 @@
               </td>
               <td class="px-3 py-2 w-56">
                 <div class="flex gap-1">
-                  @if (!t.final) {
+                  @if (!t.final && t.video_local_url) {
                     <p-button
-                      label="Select as Final"
+                      pTooltip="Select this take as the best take for this scene."
+                      tooltipPosition="top"
                       icon="pi pi-star"
                       severity="contrast"
                       size="small"
@@ -121,8 +122,9 @@
                   }
                   @if (t.video_url && !t.video_local_url) {
                     <p-button
-                      label="Save local"
-                      icon="pi pi-download"
+                      pTooltip="Save this take on server."
+                      tooltipPosition="top"
+                      icon="pi pi-cloud-upload"
                       severity="info"
                       size="small"
                       [loading]="savingId() === t.id"
@@ -131,14 +133,16 @@
                   }
                   @if (t.video_local_url) {
                     <p-button
-                      label="Open"
+                      pTooltip="View this take in a full-screen video player."
+                      tooltipPosition="top"
                       icon="pi pi-eye"
                       severity="contrast"
                       size="small"
                       (onClick)="openPreview(t)"
                     />
                     <p-button
-                      label="Download"
+                      pTooltip="Download this take to your local machine for offline editing."
+                      tooltipPosition="top"
                       icon="pi pi-download"
                       severity="info"
                       size="small"
