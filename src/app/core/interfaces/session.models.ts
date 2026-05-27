@@ -35,6 +35,8 @@ export interface Take {
   video_url?: string;
   /** Whether this take is the active one for its scene+number. */
   active?: boolean;
+
+  number: number;
 }
 
 /**

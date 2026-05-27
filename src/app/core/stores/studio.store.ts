@@ -354,6 +354,7 @@ export class StudioStore {
           id: backend?.id,
           video_url: backend?.video_url,
           active: backend?.active ?? true,
+          number: backend?.number ?? 0,
         };
       });
       this._takes.set(merged);
@@ -362,6 +363,7 @@ export class StudioStore {
         Array.from({ length: total }, (_, i) => ({
           index: i + 1,
           status: 'pending' as const,
+          number: i + 1,
         })),
       );
     }

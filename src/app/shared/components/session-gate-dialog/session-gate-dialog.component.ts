@@ -4,6 +4,7 @@ import { environment } from '@environment/environment';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -132,7 +133,7 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
             SC{{ selectedScene()!.number | number: '2.0' }} — {{ selectedScene()!.name }}
             <br />
             <span class="font-semibold">Takes:</span>
-            {{ takes().length }} take{{ takes().length !== 1 ? 's' : '' }}
+            {{ takesLen() }} take{{ takesLen() !== 1 ? 's' : '' }}
           </div>
         }
       </form>
@@ -182,6 +183,14 @@ export class SessionGateDialogComponent {
   protected readonly loadingScenes = signal(false);
   protected readonly submitting = signal(false);
   protected readonly user = this.sessionStore.user;
+
+  protected readonly takesLen = computed(() => {
+    const takeMap: Map<number, number> = new Map();
+    this.takes().forEach((take) => {
+      takeMap.set(take.number, (takeMap.get(take.number) || 0) + 1);
+    });
+    return takeMap.size;
+  });
 
   /** Derived scene object for the info panel. */
   protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(

@@ -64,7 +64,7 @@ import { environment } from '@environment/environment';
                   <span
                     class="pointer-events-none absolute bottom-1 left-1 rounded bg-ink-950/70 px-1.5 font-mono text-[10px] text-fg-strong"
                   >
-                    T{{ take.index | number: '2.0' }}
+                    T{{ take.number | number: '2.0' }}
                   </span>
                   <!-- Active indicator -->
                   <span

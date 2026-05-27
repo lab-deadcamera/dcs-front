@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 
@@ -31,9 +24,7 @@ import { Take } from '@core/interfaces/session.models';
       role="group"
       [attr.aria-label]="ariaGroupLabel()"
     >
-      <p
-        class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted"
-      >
+      <p class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted">
         {{ scenePrefix() || '–––' }}
       </p>
 
@@ -60,11 +51,13 @@ import { Take } from '@core/interfaces/session.models';
             <path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7" />
           </svg>
         </div>
-        <span class="mt-1 max-w-[3rem] text-center font-mono text-[7px] leading-tight text-fg-muted">
+        <span
+          class="mt-1 max-w-[3rem] text-center font-mono text-[7px] leading-tight text-fg-muted"
+        >
           {{ tooltipText() }}
         </span>
       } @else {
-        @for (take of takes(); track take.index) {
+        @for (take of takesLen(); track take.index) {
           @let state = stateFor(take);
           <button
             type="button"
@@ -114,6 +107,16 @@ export class TakeChecklistComponent {
   private readonly i18n = inject(TranslateService);
 
   readonly takes = input<readonly Take[]>([]);
+
+  protected readonly takesLen = computed(() => {
+    const takeMap: Map<number, Take> = new Map();
+    this.takes().forEach((take) => {
+      if (take.number <= 0) return;
+      takeMap.set(take.number, take);
+    });
+    return takeMap.values();
+  });
+
   /** 0-based pointer into `takes`. */
   readonly currentIndex = input<number>(0);
   /** Optional short prefix shown above the column (e.g. scene code). */
