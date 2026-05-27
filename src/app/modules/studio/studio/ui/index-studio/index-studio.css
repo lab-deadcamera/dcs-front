@@ -3,6 +3,16 @@
   width: 100%;
 }
 
+/* Studio splitter — gives the PrimeNG <p-splitter> a defined height so
+   each panel stretches and its inner content can scroll independently.
+   Only rendered in lg+ via @if (isLargeScreen); mobile keeps the
+   original stacked flow. 7rem matches the sticky header offset the
+   previous `lg:max-h-[calc(100dvh-7rem)]` used. */
+.studio-splitter {
+  display: flex;
+  min-height: calc(100dvh - 7rem);
+}
+
 /* Floating sync button — arrastrable */
 .sync-fab {
   position: fixed;
