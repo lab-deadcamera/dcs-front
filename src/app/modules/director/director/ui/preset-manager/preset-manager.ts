@@ -51,19 +51,19 @@ interface PresetItem {
 
       <div class="mb-8">
         <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Groups</h2>
-        <div class="flex flex-wrap gap-2">
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2">
           @for (g of groups(); track g.id) {
             <div
-              class="flex items-center gap-2 rounded border px-3 py-1.5 text-[12px] cursor-pointer transition-colors"
+              class="flex min-w-0 max-w-full items-center gap-2 rounded border px-3 py-1.5 text-[12px] cursor-pointer transition-colors"
               [class.border-primary-500]="selectedGroupId() === g.id"
               [class.border-ink-700]="selectedGroupId() !== g.id"
               [class.opacity-50]="!g.active"
               (click)="selectGroup(g.id)"
             >
-              <span>{{ g.name }}</span>
-              <span class="text-[10px] text-fg-muted">({{ g.slug }})</span>
-              @if (!g.active) { <span class="text-[10px] text-red-400">inactive</span> }
-              <button type="button" class="ml-1 text-fg-muted hover:text-primary-400" (click)="editGroup($event, g)" pTooltip="Edit group">✎</button>
+              <span class="min-w-0 flex-1 truncate" [title]="g.name">{{ g.name }}</span>
+              <span class="shrink-0 whitespace-nowrap text-[10px] text-fg-muted">({{ g.slug }})</span>
+              @if (!g.active) { <span class="shrink-0 whitespace-nowrap text-[10px] text-red-400">inactive</span> }
+              <button type="button" class="ml-1 shrink-0 text-fg-muted hover:text-primary-400" (click)="editGroup($event, g)" pTooltip="Edit group">✎</button>
             </div>
           }
         </div>
@@ -73,22 +73,31 @@ interface PresetItem {
         <div>
           <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Presets — {{ selectedGroupName() }}</h2>
           <div class="overflow-x-auto rounded border border-ink-700">
-            <table class="w-full text-[12px]">
+            <table class="w-full table-fixed text-[12px]">
+              <colgroup>
+                <col class="w-[18%]" />
+                <col class="w-[22%]" />
+                <col />
+                <col class="w-[10%]" />
+                <col class="w-24" />
+              </colgroup>
               <thead>
                 <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
                   <th class="px-3 py-2 font-medium">Code</th>
                   <th class="px-3 py-2 font-medium">Label</th>
                   <th class="px-3 py-2 font-medium">Prompt</th>
                   <th class="px-3 py-2 font-medium">Status</th>
-                  <th class="w-24 px-3 py-2 font-medium">Actions</th>
+                  <th class="px-3 py-2 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @for (p of filteredPresets(); track p.id) {
-                  <tr class="border-t border-ink-700" [class.opacity-50]="!p.active">
-                    <td class="px-3 py-2 font-mono text-[11px]">{{ p.code }}</td>
-                    <td class="px-3 py-2 font-semibold">{{ p.label }}</td>
-                    <td class="max-w-xs truncate px-3 py-2 text-fg-muted" [title]="p.prompt">{{ p.prompt }}</td>
+                  <tr class="border-t border-ink-700 align-top" [class.opacity-50]="!p.active">
+                    <td class="break-words px-3 py-2 font-mono text-[11px]">{{ p.code }}</td>
+                    <td class="break-words px-3 py-2 font-semibold" [title]="p.label">{{ p.label }}</td>
+                    <td class="px-3 py-2 text-fg-muted">
+                      <span class="line-clamp-2 break-words" [title]="p.prompt">{{ p.prompt }}</span>
+                    </td>
                     <td class="px-3 py-2">
                       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                         [class.bg-green-900/40]="p.active" [class.text-green-400]="p.active"
