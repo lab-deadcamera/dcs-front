@@ -197,11 +197,16 @@
     <button
       type="button"
       class="flex flex-1 items-center justify-center gap-3 bg-primary-500 py-3 text-sm font-bold uppercase tracking-[0.28em] text-fg-strong transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-      [disabled]="!studio.canGenerate() || !takeSelected()"
+      [disabled]="!studio.canGenerate() || !takeSelected() || studio.isGenerating()"
       (click)="onGenerate()"
     >
       {{ generateLabel() }}
-      <span aria-hidden="true">→</span>
+      <!-- loading -->
+      @if (studio.isGenerating()) {
+        <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+      } @else {
+        <span aria-hidden="true">→</span>
+      }
     </button>
     @if (canPreview()) {
       <button

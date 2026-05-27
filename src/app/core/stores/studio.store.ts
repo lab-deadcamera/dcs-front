@@ -78,7 +78,7 @@ export class StudioStore {
   private hydrated = false;
 
   // ── Core session/project state ───────────────────────────────────
-
+  // private readonly _isGenerating = signal<boolean>(false);
   private readonly _projectId = signal<string | null>(null);
   private readonly _sceneId = signal<string | null>(null);
   private readonly _sceneCode = signal<string>('');
@@ -102,6 +102,7 @@ export class StudioStore {
   readonly scenePresetIds = this._scenePresetIds.asReadonly();
   readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
   readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
+  // readonly isGenerating = this._isGenerating.asReadonly();
 
   private readonly _takes = signal<Take[]>([]);
   private readonly _currentTakeIndex = signal<number>(0);
@@ -157,6 +158,7 @@ export class StudioStore {
   readonly cinematography = this._cinematography.asReadonly();
 
   // ── Output format ────────────────────────────────────────────────
+  // readonly setGenerating = (v: boolean) => this._isGenerating.set(v);
 
   private readonly _output = signal<OutputFormatConfig>({
     aspectRatio: '16:9',

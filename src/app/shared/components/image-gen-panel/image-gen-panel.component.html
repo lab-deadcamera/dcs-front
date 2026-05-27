@@ -280,6 +280,15 @@
           label="Clear"
           (onClick)="generatedImage.set(null)"
         />
+        @if (savedAssetUrl()) {
+          <p-button
+            severity="secondary"
+            [text]="true"
+            icon="pi pi-plus"
+            label="Use"
+            (onClick)="saveAsFreeAssets()"
+          />
+        }
       </div>
       @if (savedAssetUrl(); as url) {
         <p class="text-[11px] text-green-400">

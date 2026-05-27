@@ -114,7 +114,12 @@ export class IndexStudio implements OnInit {
     this.moved = false;
     const pos = this.syncBtnPos();
     if ('touches' in e) {
-      this.dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, btnX: pos.x, btnY: pos.y };
+      this.dragStart = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        btnX: pos.x,
+        btnY: pos.y,
+      };
     } else {
       this.dragStart = { x: e.clientX, y: e.clientY, btnX: pos.x, btnY: pos.y };
     }
@@ -143,7 +148,12 @@ export class IndexStudio implements OnInit {
   protected openSyncDialog(): void {
     const model = this.studio.modelCode();
     if (!model?.id) {
-      this.toast.add({ severity: 'warn', summary: 'Sync', detail: 'Select a model first', life: 3000 });
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Sync',
+        detail: 'Select a model first',
+        life: 3000,
+      });
       return;
     }
     this.syncLoading.set(true);
@@ -210,9 +220,10 @@ export class IndexStudio implements OnInit {
           return;
         }
         const task = res.data;
-        const source = p.takeIndex != null
-          ? { rawDescription: '', cinematography: {} as any, output: {} as any }
-          : undefined;
+        const source =
+          p.takeIndex != null
+            ? { rawDescription: '', cinematography: {} as any, output: {} as any }
+            : undefined;
         if (task.status === 'succeeded') {
           this.finishWithClip(p.id, task, source as any);
         } else if (task.status === 'failed') {
@@ -237,31 +248,33 @@ export class IndexStudio implements OnInit {
     //    asegurar que ningún clip completado se perdió en el olvido.
     if (!projectId || !sceneId) return;
 
-    this.genLogs.getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 }).subscribe((res) => {
-      if (res.error || !res.data) return;
-      const existingUrls = new Set(this.studio.sessionClips().map((c) => c.videoUrl));
-      for (const log of res.data.logs) {
-        if (log.status !== 'succeeded') continue;
-        if (!log.outputs) continue;
-        try {
-          const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs);
-          const video = outputs.find((o) => o.type === 'video');
-          if (!video?.url || existingUrls.has(video.url)) continue;
+    this.genLogs
+      .getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 })
+      .subscribe((res) => {
+        if (res.error || !res.data) return;
+        const existingUrls = new Set(this.studio.sessionClips().map((c) => c.videoUrl));
+        for (const log of res.data.logs) {
+          if (log.status !== 'succeeded') continue;
+          if (!log.outputs) continue;
+          try {
+            const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs);
+            const video = outputs.find((o) => o.type === 'video');
+            if (!video?.url || existingUrls.has(video.url)) continue;
 
-          this.studio.pushClip({
-            id: crypto.randomUUID(),
-            prompt: '',
-            videoUrl: video.url,
-            createdAt: new Date(log.created_at).getTime(),
-            durationSeconds: 5,
-            resolution: '480p',
-          });
-          existingUrls.add(video.url);
-        } catch {
-          // JSON parse error — skip this log entry
+            this.studio.pushClip({
+              id: crypto.randomUUID(),
+              prompt: '',
+              videoUrl: video.url,
+              createdAt: new Date(log.created_at).getTime(),
+              durationSeconds: 5,
+              resolution: '480p',
+            });
+            existingUrls.add(video.url);
+          } catch {
+            // JSON parse error — skip this log entry
+          }
         }
-      }
-    });
+      });
   }
 
   /** Forwarded from the take-checklist's `(toggle)` output. */
@@ -410,13 +423,10 @@ export class IndexStudio implements OnInit {
     // be "reused" later even if the user has since edited the editor.
     const source = this.buildSourceSnapshot(prompt);
     const payload = this.buildPayload(prompt);
-
     this.videoGenerator
       .generate(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
-        console.log({ res });
-
         this.toast.add({
           summary: 'Respuesta del servidor',
           detail: res.msg,

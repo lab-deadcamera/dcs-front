@@ -17,7 +17,13 @@ import { SelectModule } from 'primeng/select';
 import { Popover } from 'primeng/popover';
 import { environment } from '@environment/environment';
 import { ModelService, ImageGeneratorService, FilesApiService } from '@app/services';
-import { ModelData, ImageGenerateRequest } from '@app/core/interfaces';
+import {
+  ModelData,
+  ImageGenerateRequest,
+  ImageSize,
+  ImageAspectRatio,
+  FileEntity,
+} from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
@@ -70,6 +76,8 @@ export class ImageGenPanelComponent implements OnInit {
     [],
   );
 
+  private newFile: FileEntity | null = null;
+
   // ── Aspect ratio + resolution (gemini-3-pro-image-preview & friends) ──
   //
   // The icon swatches in the trigger button are scaled from a 24×24 cell
@@ -78,29 +86,33 @@ export class ImageGenPanelComponent implements OnInit {
   // submit time so changes apply immediately.
 
   /** All aspect ratios supported by the latest Gemini image preview model. */
-  protected readonly ratioOptions: ReadonlyArray<{ value: string; w: number; h: number }> = [
-    { value: '1:1', w: 24, h: 24 },
-    { value: '4:3', w: 24, h: 18 },
-    { value: '3:4', w: 18, h: 24 },
-    { value: '3:2', w: 24, h: 16 },
-    { value: '2:3', w: 16, h: 24 },
-    { value: '16:9', w: 32, h: 18 },
-    { value: '9:16', w: 14, h: 24 },
-    { value: '21:9', w: 42, h: 18 },
-    { value: '4:5', w: 19, h: 24 },
-    { value: '5:4', w: 24, h: 19 },
+  protected readonly ratioOptions: ReadonlyArray<{
+    value: ImageAspectRatio;
+    w: number;
+    h: number;
+  }> = [
+    { value: ImageAspectRatio.SQUARE, w: 24, h: 24 },
+    { value: ImageAspectRatio.PORTRAIT_4_3, w: 24, h: 18 },
+    { value: ImageAspectRatio.PORTRAIT_3_4, w: 18, h: 24 },
+    { value: ImageAspectRatio.PORTRAIT_3_2, w: 24, h: 16 },
+    { value: ImageAspectRatio.PORTRAIT_2_3, w: 16, h: 24 },
+    // { value: ImageAspectRatio.LANDSCAPE_16_9, w: 32, h: 18 },
+    // { value: ImageAspectRatio.LANDSCAPE_9_16, w: 14, h: 24 },
+    // { value: ImageAspectRatio.LANDSCAPE_21_9, w: 42, h: 18 },
+    { value: ImageAspectRatio.PORTRAIT_4_5, w: 19, h: 24 },
+    { value: ImageAspectRatio.PORTRAIT_5_4, w: 24, h: 19 },
   ];
 
   /** Output tiers — backend resolves the actual pixel dimensions per ratio. */
-  protected readonly resolutionOptions: ReadonlyArray<{ value: '1K' | '2K' | '4K'; hint: string }> =
-    [
-      { value: '1K', hint: '~1024 px' },
-      { value: '2K', hint: '~2048 px' },
-      { value: '4K', hint: '~4096 px' },
-    ];
+  protected readonly resolutionOptions: ReadonlyArray<{ value: ImageSize; hint: string }> = [
+    { value: '512px', hint: '~512 px' },
+    { value: '1K', hint: '~1024 px' },
+    { value: '2K', hint: '~2048 px' },
+    { value: '4K', hint: '~4096 px' },
+  ];
 
-  protected readonly selectedRatio = signal<string>('1:1');
-  protected readonly selectedResolution = signal<'1K' | '2K' | '4K'>('1K');
+  protected readonly selectedRatio = signal<string>(ImageAspectRatio.SQUARE);
+  protected readonly selectedResolution = signal<ImageSize>('1K');
 
   /** Live swatch dimensions for the ratio trigger button. */
   protected readonly ratioPreview = computed(() => {
@@ -157,7 +169,7 @@ export class ImageGenPanelComponent implements OnInit {
     this.selectedRatio.set(value);
   }
 
-  protected onPickResolution(value: '1K' | '2K' | '4K'): void {
+  protected onPickResolution(value: ImageSize): void {
     this.selectedResolution.set(value);
   }
 
@@ -329,6 +341,7 @@ export class ImageGenPanelComponent implements OnInit {
               this.error.set('Failed to save asset: ' + (res.msg || 'Unknown error'));
               return;
             }
+            this.newFile = res.data;
             this.savedAssetUrl.set(res.data.url);
           });
       })
@@ -336,5 +349,18 @@ export class ImageGenPanelComponent implements OnInit {
         this.saving.set(false);
         this.error.set('Failed to fetch image: ' + err.message);
       });
+  }
+
+  saveAsFreeAssets() {
+    if (this.newFile) {
+      this.studio.addFreeAsset({
+        id: this.newFile.id,
+        kind: 'image',
+        filename: this.newFile.filename,
+        thumbnailUrl: this.filesApi.serveUrl(this.newFile.id),
+        tag: '',
+        slot: 'free',
+      });
+    }
   }
 }
