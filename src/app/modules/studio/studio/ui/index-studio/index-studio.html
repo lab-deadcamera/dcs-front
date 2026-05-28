@@ -73,7 +73,11 @@
   <app-footer />
 </div>
 
-<app-session-gate-dialog [visible]="gateOpen()" [adminClosable]="canBypassGate()" (visibleChange)="gateOpen.set($event)" />
+<app-session-gate-dialog
+  [visible]="gateOpen()"
+  [adminClosable]="canBypassGate()"
+  (visibleChange)="gateOpen.set($event)"
+/>
 
 <p-toast position="top-right" />
 
@@ -123,18 +127,18 @@
         </thead>
         <tbody>
           @for (a of syncedAssets(); track a.id) {
-            <tr class="border-t" style="border-color: var(--border-color);">
+            <tr class="border-t" style="border-color: var(--border-color)">
               <td class="max-w-[200px] truncate px-3 py-2 font-mono text-[13px]">
                 {{ a.file_id }}
               </td>
               <td class="px-3 py-2">
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                  [class.bg-green-900/40]="a.status === 'active'"
+                  [class.bg-green-900]="a.status === 'active'"
                   [class.text-green-400]="a.status === 'active'"
-                  [class.bg-yellow-900/40]="a.status === 'syncing'"
+                  [class.bg-yellow-900]="a.status === 'syncing'"
                   [class.text-yellow-400]="a.status === 'syncing'"
-                  [class.bg-red-900/40]="a.status === 'failed'"
+                  [class.bg-red-900]="a.status === 'failed'"
                   [class.text-red-400]="a.status === 'failed'"
                 >
                   {{ a.status }}
@@ -160,11 +164,7 @@
         label="Close"
         (onClick)="syncDialogVisible.set(false)"
       />
-      <p-button
-        icon="pi pi-refresh"
-        label="Refresh"
-        (onClick)="openSyncDialog()"
-      />
+      <p-button icon="pi pi-refresh" label="Refresh" (onClick)="openSyncDialog()" />
     </div>
   </ng-template>
 </p-dialog>
@@ -188,7 +188,8 @@
   } @else {
     <pre
       class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
-    >{{ previewDataPretty() }}</pre>
+      >{{ previewDataPretty() }}</pre
+    >
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end">

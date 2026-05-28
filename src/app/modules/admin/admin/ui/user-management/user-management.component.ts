@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -82,9 +89,9 @@ interface AdminRole {
                   <td class="px-3 py-2">
                     <span
                       class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                      [class.bg-purple-900/40]="u.role.level <= 1"
+                      [class.bg-purple-900]="u.role.level <= 1"
                       [class.text-purple-400]="u.role.level <= 1"
-                      [class.bg-blue-900/40]="u.role.level === 2"
+                      [class.bg-blue-900]="u.role.level === 2"
                       [class.text-blue-400]="u.role.level === 2"
                       [class.bg-ink-700]="u.role.level >= 3"
                       [class.text-fg-muted]="u.role.level >= 3"
@@ -95,9 +102,9 @@ interface AdminRole {
                   <td class="px-3 py-2">
                     <span
                       class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                      [class.bg-green-900/40]="u.active"
+                      [class.bg-green-900]="u.active"
                       [class.text-green-400]="u.active"
-                      [class.bg-red-900/40]="!u.active"
+                      [class.bg-red-900]="!u.active"
                       [class.text-red-400]="!u.active"
                     >
                       {{ u.active ? 'Active' : 'Inactive' }}
@@ -131,7 +138,14 @@ interface AdminRole {
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Password</label>
-          <p-password formControlName="password" placeholder="min 6 characters" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+          <p-password
+            formControlName="password"
+            placeholder="min 6 characters"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+          />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Name</label>
@@ -164,8 +178,18 @@ interface AdminRole {
 
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
-          <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="dialogVisible.set(false)" />
-          <p-button label="Create" [disabled]="form.invalid || submitting()" [loading]="submitting()" (onClick)="onSubmit()" />
+          <p-button
+            severity="secondary"
+            [text]="true"
+            label="Cancel"
+            (onClick)="dialogVisible.set(false)"
+          />
+          <p-button
+            label="Create"
+            [disabled]="form.invalid || submitting()"
+            [loading]="submitting()"
+            (onClick)="onSubmit()"
+          />
         </div>
       </ng-template>
     </p-dialog>
@@ -201,7 +225,15 @@ export class UserManagementComponent implements OnInit {
   }
 
   protected openCreate(): void {
-    this.form.reset({ username: '', password: '', name: '', surname: '', email: '', user_name: '', role_id: null });
+    this.form.reset({
+      username: '',
+      password: '',
+      name: '',
+      surname: '',
+      email: '',
+      user_name: '',
+      role_id: null,
+    });
     this.dialogVisible.set(true);
   }
 
@@ -218,7 +250,9 @@ export class UserManagementComponent implements OnInit {
       )
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-        catchError((err) => [{ error: true, msg: err.error?.message || err.message, data: undefined }]),
+        catchError((err) => [
+          { error: true, msg: err.error?.message || err.message, data: undefined },
+        ]),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((res) => {
@@ -245,7 +279,12 @@ export class UserManagementComponent implements OnInit {
       .subscribe((res) => {
         this.loading.set(false);
         if (res.error || !res.data) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load users', life: 3000 });
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load users',
+            life: 3000,
+          });
           return;
         }
         this.users.set(res.data);
@@ -262,15 +301,29 @@ export class UserManagementComponent implements OnInit {
       )
       .subscribe((res: any) => {
         if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load roles: ' + (res.msg || 'unknown'), life: 5000 });
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load roles: ' + (res.msg || 'unknown'),
+            life: 5000,
+          });
           return;
         }
         if (!res.data || res.data.length === 0) {
-          this.toast.add({ severity: 'warn', summary: 'Warning', detail: 'No roles returned from server', life: 5000 });
+          this.toast.add({
+            severity: 'warn',
+            summary: 'Warning',
+            detail: 'No roles returned from server',
+            life: 5000,
+          });
           return;
         }
         // SUPER_ADMIN (level 0) no se muestra — es único, creado desde .env
-        this.roles.set(res.data.filter((r: AdminRole) => r.level > 0).map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
+        this.roles.set(
+          res.data
+            .filter((r: AdminRole) => r.level > 0)
+            .map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })),
+        );
       });
   }
 }

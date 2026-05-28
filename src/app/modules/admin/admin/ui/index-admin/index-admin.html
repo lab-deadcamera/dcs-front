@@ -152,13 +152,13 @@
               <td class="px-3 py-2">
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                  [class.bg-blue-900/40]="log.resource_type === 'video'"
+                  [class.bg-blue-900]="log.resource_type === 'video'"
                   [class.text-blue-400]="log.resource_type === 'video'"
-                  [class.bg-purple-900/40]="log.resource_type === 'image'"
+                  [class.bg-purple-900]="log.resource_type === 'image'"
                   [class.text-purple-400]="log.resource_type === 'image'"
-                  [class.bg-green-900/40]="log.resource_type === 'audio'"
+                  [class.bg-green-900]="log.resource_type === 'audio'"
                   [class.text-green-400]="log.resource_type === 'audio'"
-                  [class.bg-orange-900/40]="log.resource_type === 'text'"
+                  [class.bg-orange-900]="log.resource_type === 'text'"
                   [class.text-orange-400]="log.resource_type === 'text'"
                   [class.bg-ink-700]="!log.resource_type"
                   [class.text-fg-muted]="!log.resource_type"
@@ -180,11 +180,11 @@
               <td class="px-3 py-2">
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                  [class.bg-green-900/40]="log.status === 'succeeded'"
+                  [class.bg-green-900]="log.status === 'succeeded'"
                   [class.text-green-400]="log.status === 'succeeded'"
-                  [class.bg-yellow-900/40]="log.status === 'queued' || log.status === 'running'"
+                  [class.bg-yellow-900]="log.status === 'queued' || log.status === 'running'"
                   [class.text-yellow-400]="log.status === 'queued' || log.status === 'running'"
-                  [class.bg-red-900/40]="log.status === 'failed'"
+                  [class.bg-red-900]="log.status === 'failed'"
                   [class.text-red-400]="log.status === 'failed'"
                 >
                   {{ log.status }}

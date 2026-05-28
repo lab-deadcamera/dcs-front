@@ -80,11 +80,11 @@
               <td class="px-3 py-2">
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                  [class.bg-green-900/40]="t.status === 'succeeded'"
+                  [class.bg-green-900]="t.status === 'succeeded'"
                   [class.text-green-400]="t.status === 'succeeded'"
-                  [class.bg-yellow-900/40]="t.status === 'running'"
+                  [class.bg-yellow-900]="t.status === 'running'"
                   [class.text-yellow-400]="t.status === 'running'"
-                  [class.bg-red-900/40]="t.status === 'failed'"
+                  [class.bg-red-900]="t.status === 'failed'"
                   [class.text-red-400]="t.status === 'failed'"
                   >{{ t.status }}</span
                 >

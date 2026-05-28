@@ -91,8 +91,8 @@ interface PresetItem {
                     <td class="max-w-xs truncate px-3 py-2 text-fg-muted" [title]="p.prompt">{{ p.prompt }}</td>
                     <td class="px-3 py-2">
                       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                        [class.bg-green-900/40]="p.active" [class.text-green-400]="p.active"
-                        [class.bg-red-900/40]="!p.active" [class.text-red-400]="!p.active"
+                        [class.bg-green-900]="p.active" [class.text-green-400]="p.active"
+                        [class.bg-red-900]="!p.active" [class.text-red-400]="!p.active"
                       >{{ p.active ? 'Active' : 'Inactive' }}</span>
                     </td>
                     <td class="px-3 py-2">

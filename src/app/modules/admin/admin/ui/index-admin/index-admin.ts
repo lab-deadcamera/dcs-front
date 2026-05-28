@@ -22,7 +22,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { map, catchError } from 'rxjs';
-import { httpErrorHandler } from '@shared/utils';
 
 interface SelectOption {
   label: string;
