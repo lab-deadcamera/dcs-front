@@ -299,7 +299,6 @@ export class SessionGateDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
-
     const raw = this.form.getRawValue() as {
       projectId: string;
       sceneId: string;

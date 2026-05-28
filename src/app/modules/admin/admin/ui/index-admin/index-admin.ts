@@ -16,12 +16,13 @@ import { SelectModule } from 'primeng/select';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { GenerationLogsService, VideoGeneratorService } from '@app/services';
+import { FilesApiService, GenerationLogsService, VideoGeneratorService } from '@app/services';
 import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { map, catchError } from 'rxjs';
+import { GENERATE_URL_FILE, RESOLVE_URL } from '@app/shared/utils';
 
 interface SelectOption {
   label: string;
@@ -56,6 +57,7 @@ export class IndexAdmin implements OnInit {
   private readonly genLogs = inject(GenerationLogsService);
   private readonly toast = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly fileSvc = inject(FilesApiService);
 
   protected readonly resourceTypeOptions: SelectOption[] = [
     { label: 'Video', value: 'video' },
@@ -236,31 +238,6 @@ export class IndexAdmin implements OnInit {
     Array<{ type: string; text?: string; name?: string; id?: string }>
   >([]);
 
-  protected showPayload(log: GenerationLogEntry): void {
-    try {
-      if (!log.request) {
-        this.toast.add({
-          severity: 'warn',
-          summary: 'No payload',
-          detail: 'Request payload not loaded',
-          life: 3000,
-        });
-        return;
-      }
-      const parsed = JSON.parse(log.request);
-      this.selectedPayload.set(parsed);
-      this.selectedPayloadContent.set(parsed.content ?? []);
-      this.payloadDialogVisible.set(true);
-    } catch {
-      this.toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Invalid payload JSON',
-        life: 3000,
-      });
-    }
-  }
-
   // ── Output preview dialog (type-aware) ────────────────────────────
 
   protected readonly outputDialogVisible = signal(false);
@@ -269,8 +246,15 @@ export class IndexAdmin implements OnInit {
 
   protected showOutput(log: GenerationLogEntry): void {
     try {
-      const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs ?? '[]');
-      this.selectedOutputs.set(outputs);
+      const o = log.outputs.map((out) => {
+        console.log(RESOLVE_URL(out.localUrl || out.url));
+
+        return {
+          url: RESOLVE_URL(out.localUrl || out.url),
+          type: out.type || 'output',
+        };
+      });
+      this.selectedOutputs.set(o);
       this.selectedOutputType.set(log.resource_type || 'output');
       this.outputDialogVisible.set(true);
     } catch {

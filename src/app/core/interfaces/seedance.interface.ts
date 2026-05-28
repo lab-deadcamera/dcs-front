@@ -89,7 +89,7 @@ export interface GenerationLogEntry {
   scene_code: string;
   take_number?: number;
   request?: string;
-  outputs?: string;
+  outputs: [{ localUrl?: string; url: string; name: string; type: string }];
   status: string;
   error_message: string;
   created_at: string;

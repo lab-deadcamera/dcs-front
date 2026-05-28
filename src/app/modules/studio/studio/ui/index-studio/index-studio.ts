@@ -292,7 +292,7 @@ export class IndexStudio implements OnInit {
           if (log.status !== 'succeeded') continue;
           if (!log.outputs) continue;
           try {
-            const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs);
+            const outputs = log.outputs;
             const video = outputs.find((o) => o.type === 'video');
             if (!video?.url || existingUrls.has(video.url)) continue;
 

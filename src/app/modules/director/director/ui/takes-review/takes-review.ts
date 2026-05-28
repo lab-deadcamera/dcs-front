@@ -10,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
+import { RESOLVE_URL } from '@app/shared/utils';
 
 interface ProjectOption {
   id: string;
@@ -57,9 +58,7 @@ export class TakesReviewComponent implements OnInit {
 
   /** Returns the full URL for a local video path (/outputs/...). */
   protected videoUrl(path: string | undefined): string {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return this.baseUrl + path;
+    return RESOLVE_URL(path);
   }
 
   protected readonly projects = signal<ProjectOption[]>([]);
@@ -182,7 +181,10 @@ export class TakesReviewComponent implements OnInit {
   protected setFinal(take: TakeItem): void {
     this.loadingId.set(take.id);
     this.http
-      .patch(`${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}`, { final: true })
+      .patch(
+        `${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}`,
+        { final: true },
+      )
       .pipe(catchError(() => of(null)))
       .subscribe({
         next: () => {

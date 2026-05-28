@@ -88,7 +88,7 @@ interface AdminRole {
                   <td class="px-3 py-2 font-mono">{{ u.email }}</td>
                   <td class="px-3 py-2">
                     <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                       [class.bg-purple-900]="u.role.level <= 1"
                       [class.text-purple-400]="u.role.level <= 1"
                       [class.bg-blue-900]="u.role.level === 2"
@@ -101,7 +101,7 @@ interface AdminRole {
                   </td>
                   <td class="px-3 py-2">
                     <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                       [class.bg-green-900]="u.active"
                       [class.text-green-400]="u.active"
                       [class.bg-red-900]="!u.active"

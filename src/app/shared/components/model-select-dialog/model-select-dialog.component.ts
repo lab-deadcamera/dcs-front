@@ -76,7 +76,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
                   </div>
                   @if (m.favorite) {
                     <span
-                      class="flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                      class="flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                       style="background: var(--primary-500); color: var(--ink-950);"
                     >
                       fav

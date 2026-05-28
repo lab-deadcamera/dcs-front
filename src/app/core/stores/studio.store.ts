@@ -414,10 +414,22 @@ export class StudioStore {
     );
   }
 
+  /** Limpia el store y también el storage persistente. */
+  async clear(): Promise<void> {
+    this.resetStudio();
+    this._lastInjections.set({});
+    await Promise.all([
+      this.storage.delete('studio'),
+      this.storage.delete('assets'),
+    ]);
+  }
+
   resetStudio(): void {
     this._projectId.set(null);
+    this._projectName.set('');
     this._sceneId.set(null);
     this._sceneCode.set('');
+    this._sceneName.set('');
     this._userHandle.set('');
     this._takes.set([]);
     this._currentTakeIndex.set(0);
@@ -436,6 +448,10 @@ export class StudioStore {
     this._firstFrame.set(null);
     this._lastFrame.set(null);
     this._freeAssets.set([]);
+    this._modelCode.set(null);
+    this._scenePresetIds.set(new Set());
+    this._sceneCharacterIds.set(new Set());
+    this._sceneAssetIds.set(new Set());
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {

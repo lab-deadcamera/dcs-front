@@ -73,7 +73,7 @@
                 {{ item.provider.name }}
               </span>
               <span
-                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                 [class.bg-green-900]="item.provider.active"
                 [class.text-green-400]="item.provider.active"
                 [class.bg-ink-700]="!item.provider.active"
@@ -144,7 +144,7 @@
                       <td class="px-4 py-2 font-mono text-[13px]">{{ m.name }}</td>
                       <td class="px-4 py-2">
                         <span
-                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest"
                           [class.bg-blue-900]="m.model_type === 'video'"
                           [class.text-blue-400]="m.model_type === 'video'"
                           [class.bg-purple-900]="m.model_type === 'text'"
@@ -159,7 +159,7 @@
                       </td>
                       <td class="px-4 py-2">
                         <span
-                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                           [class.bg-green-900]="m.active"
                           [class.text-green-400]="m.active"
                           [class.bg-ink-700]="!m.active"

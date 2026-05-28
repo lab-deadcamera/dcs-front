@@ -146,12 +146,12 @@
         <tbody>
           @for (log of logs(); track log.id) {
             <tr class="border-t" style="border-color: var(--border-color)">
-              <td class="max-w-[120px] truncate px-3 py-2 font-mono" [title]="log.task_id">
+              <td class="max-w-30 truncate px-3 py-2 font-mono" [title]="log.task_id">
                 {{ log.task_id }}
               </td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                   [class.bg-blue-900]="log.resource_type === 'video'"
                   [class.text-blue-400]="log.resource_type === 'video'"
                   [class.bg-purple-900]="log.resource_type === 'image'"
@@ -179,7 +179,7 @@
               <td class="px-3 py-2 font-mono">{{ log.take_number ?? '—' }}</td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                   [class.bg-green-900]="log.status === 'succeeded'"
                   [class.text-green-400]="log.status === 'succeeded'"
                   [class.bg-yellow-900]="log.status === 'queued' || log.status === 'running'"
@@ -223,20 +223,11 @@
                     (onClick)="refreshTask(log)"
                   />
                   <p-button
-                    icon="pi pi-eye"
-                    severity="secondary"
-                    [text]="true"
-                    [rounded]="true"
-                    pTooltip="View request payload"
-                    (onClick)="showPayload(log)"
-                  />
-                  <p-button
                     [icon]="typeIcon(log.resource_type)"
                     severity="secondary"
                     [text]="true"
                     [rounded]="true"
                     [pTooltip]="'View generated ' + (log.resource_type || 'output')"
-                    [disabled]="!log.outputs || log.outputs === '[]'"
                     (onClick)="showOutput(log)"
                   />
                   <p-button
@@ -337,13 +328,7 @@
     @for (out of selectedOutputs(); track $index) {
       <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
         @if (out.type === 'video') {
-          <video
-            [src]="out.url"
-            controls
-            class="w-full max-h-[400px]"
-            preload="metadata"
-            playsinline
-          >
+          <video [src]="out.url" controls class="w-full max-h-100" preload="metadata" playsinline>
             Your browser does not support the video tag.
           </video>
         } @else if (out.type === 'audio') {
@@ -353,7 +338,7 @@
             </audio>
           </div>
         } @else {
-          <img [src]="out.url" class="w-full max-h-[400px] object-contain" alt="Generated output" />
+          <img [src]="out.url" class="w-full max-h-100 object-contain" alt="Generated output" />
         }
         <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
           <span>{{ out.type }}</span>
@@ -472,11 +457,11 @@
       </div>
 
       <!-- Outputs -->
-      @if (d.outputs && d.outputs !== '[]') {
+      @if (d.outputs.length > 0) {
         <div>
           <span class="block font-bold uppercase text-fg-muted">Outputs</span>
           <div class="mt-1 flex flex-wrap gap-3">
-            @for (out of parseOutputs(d.outputs); track $index) {
+            @for (out of d.outputs; track $index) {
               <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
                 @if (out.type === 'video') {
                   <video
