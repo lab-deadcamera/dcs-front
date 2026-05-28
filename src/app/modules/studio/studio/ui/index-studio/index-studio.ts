@@ -6,6 +6,7 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
@@ -27,7 +28,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePipe } from '@angular/common';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
-import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
+import { MAX_BATCH_COUNT, UsedAssetKind } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { GenerationLogsService, ModelService, VideoGeneratorService } from '@app/services';
 import { ProjectsApiService } from '@modules/projects/projects/services';
@@ -39,6 +40,7 @@ import {
 } from '@app/core/interfaces';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Splitter } from 'primeng/splitter';
 
 /** Visual progress per status — backend reports no % during running, so we fake it. */
 const PROGRESS_QUEUED = 10;
@@ -68,6 +70,7 @@ const POLL_INTERVAL_MS = 3000;
     DialogModule,
     TooltipModule,
     DatePipe,
+    Splitter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
@@ -83,6 +86,38 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
+
+  // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
+
+  /** True when viewport ≥ Tailwind `lg` breakpoint (64rem). Drives the
+   *  @if in the template that swaps between the draggable splitter and
+   *  the stacked layout. Same media query the original `lg:` classes use. */
+  protected readonly isLargeScreen = signal(false);
+
+  /** Whichever PromptBuilder instance is currently rendered (only ONE is
+   *  alive at a time thanks to @if). Forwarders below use it to relay
+   *  events from character-assets/cinematography into the prompt builder,
+   *  since template ref vars don't cross <ng-template pTemplate> scopes. */
+  private readonly promptBuilder = viewChild(PromptBuilderComponent);
+
+  constructor() {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 64rem)');
+    this.isLargeScreen.set(mq.matches);
+    const handler = (e: MediaQueryListEvent) => this.isLargeScreen.set(e.matches);
+    mq.addEventListener('change', handler);
+    this.destroyRef.onDestroy(() => mq.removeEventListener('change', handler));
+  }
+
+  /** Forwarder for <app-character-assets (assetPicked)>. Trivial pass-through. */
+  protected onAssetPickedFromCharacters(kind: UsedAssetKind): void {
+    this.promptBuilder()?.addReferenceForKind(kind);
+  }
+
+  /** Forwarder for <app-cinematography (presetChanged)>. Trivial pass-through. */
+  protected onPresetChangedFromCinematography(change: { remove?: string; add?: string }): void {
+    this.promptBuilder()?.applyPresetChange(change);
+  }
 
   // ── Preview dialog ──────────────────────────────────────────────────
 

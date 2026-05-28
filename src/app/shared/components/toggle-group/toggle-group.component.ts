@@ -52,19 +52,19 @@ import { ChipOption } from '@core/interfaces/studio.models';
         >
           @if (selected) {
             <span
-              class="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle"
+              class="mr-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full align-middle"
               [class.bg-secondary-500]="variant() === 'default'"
               [class.bg-fg-strong]="variant() === 'accent'"
             ></span>
           }
-          <span class="whitespace-nowrap">
+          <span class="min-w-0 whitespace-normal text-left [overflow-wrap:anywhere] [word-break:break-word]">
             {{ opt.label ?? (opt.labelKey | translate) }}
           </span>
           @if (opt.editable) {
             <span
               role="button"
               tabindex="-1"
-              class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+              class="ml-2 inline-block shrink-0 text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
               [attr.aria-label]="'COMMON.EDIT' | translate"
               (click)="onEdit($event, opt.value)"
             >✎</span>
@@ -73,7 +73,7 @@ import { ChipOption } from '@core/interfaces/studio.models';
             <span
               role="button"
               tabindex="-1"
-              class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+              class="ml-1 inline-block shrink-0 leading-none text-fg-muted transition-colors hover:text-primary-500"
               [attr.aria-label]="'COMMON.DELETE' | translate"
               (click)="onRemove($event, opt.value)"
             >×</span>
@@ -126,7 +126,7 @@ export class ToggleGroupComponent<V extends string = string> {
 
   protected chipClasses(selected: boolean): string {
     const base =
-      'inline-flex items-center rounded-[3px] border px-3 py-1.5 ' +
+      'inline-flex max-w-full items-center rounded-[3px] border px-3 py-1.5 text-left ' +
       'text-[11px] font-semibold uppercase tracking-[0.12em] ' +
       'transition-colors duration-150';
 

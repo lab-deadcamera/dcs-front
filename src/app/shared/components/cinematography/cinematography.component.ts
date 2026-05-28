@@ -170,14 +170,14 @@ interface GradeVariant {
                   >
                     @if (active) {
                       <span
-                        class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
+                        class="mr-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-secondary-500 align-middle"
                       ></span>
                     }
-                    <span class="whitespace-nowrap">{{ grade.label }}</span>
+                    <span class="min-w-0 whitespace-normal text-left [overflow-wrap:anywhere] [word-break:break-word]">{{ grade.label }}</span>
                     <span
                       role="button"
                       tabindex="-1"
-                      class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+                      class="ml-2 inline-block shrink-0 text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
                       [attr.aria-label]="'COMMON.EDIT' | translate"
                       (click)="onEditPresetEvent($event, 'colorGrading', grade.id)"
                       >✎</span
@@ -185,7 +185,7 @@ interface GradeVariant {
                     <span
                       role="button"
                       tabindex="-1"
-                      class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+                      class="ml-1 inline-block shrink-0 leading-none text-fg-muted transition-colors hover:text-primary-500"
                       [attr.aria-label]="'COMMON.DELETE' | translate"
                       (click)="onRemovePresetEvent($event, 'colorGrading', grade.id)"
                       >×</span
@@ -197,7 +197,7 @@ interface GradeVariant {
                   Popover with 4 random mood variants. ✎ and × on the chip
                   also let the admin rewrite or hide the curated entry.
                 -->
-                  <div class="flex flex-col">
+                  <div class="flex min-w-0 max-w-full flex-col">
                     <button
                       type="button"
                       [class]="chipClasses(active)"
@@ -207,17 +207,17 @@ interface GradeVariant {
                     >
                       @if (active) {
                         <span
-                          class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-secondary-500 align-middle"
+                          class="mr-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-secondary-500 align-middle"
                         ></span>
                       }
-                      <span class="whitespace-nowrap">
+                      <span class="min-w-0 whitespace-normal text-left [overflow-wrap:anywhere] [word-break:break-word]">
                         {{ grade.isOverridden ? grade.label : (grade.labelKey | translate) }}
                       </span>
-                      <span aria-hidden="true" class="ml-1.5 text-fg-muted">▾</span>
+                      <span aria-hidden="true" class="ml-1.5 shrink-0 text-fg-muted">▾</span>
                       <span
                         role="button"
                         tabindex="-1"
-                        class="ml-2 inline-block text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
+                        class="ml-2 inline-block shrink-0 text-[10px] leading-none text-fg-muted transition-colors hover:text-primary-500"
                         [attr.aria-label]="'COMMON.EDIT' | translate"
                         (click)="onEditPresetEvent($event, 'colorGrading', grade.id)"
                         >✎</span
@@ -225,7 +225,7 @@ interface GradeVariant {
                       <span
                         role="button"
                         tabindex="-1"
-                        class="ml-1 inline-block leading-none text-fg-muted transition-colors hover:text-primary-500"
+                        class="ml-1 inline-block shrink-0 leading-none text-fg-muted transition-colors hover:text-primary-500"
                         [attr.aria-label]="'COMMON.DELETE' | translate"
                         (click)="onRemovePresetEvent($event, 'colorGrading', grade.id)"
                         >×</span
@@ -574,7 +574,7 @@ export class CinematographyComponent {
 
   protected chipClasses(active: boolean): string {
     const base =
-      'inline-flex items-center rounded-[3px] border px-3 py-1.5 ' +
+      'inline-flex max-w-full items-center rounded-[3px] border px-3 py-1.5 text-left ' +
       'text-[11px] font-semibold uppercase tracking-[0.12em] ' +
       'transition-colors duration-150 focus:outline-none';
     return active

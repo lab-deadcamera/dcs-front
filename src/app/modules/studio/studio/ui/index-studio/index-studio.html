@@ -22,53 +22,98 @@
     · The takes checklist sits as a narrow right rail next to the viewer
       so the user can tick a take done without leaving the preview.
   -->
-  <div class="flex flex-1 flex-col lg:flex-row lg:items-start">
-    <!-- Steps 01 → 03 — Inputs (LEFT on lg+) -->
-    <section class="flex flex-col lg:flex-1 lg:min-w-0">
-      <app-character-assets (assetPicked)="promptBuilder.addReferenceForKind($event)" />
-      <app-cinematography (presetChanged)="promptBuilder.applyPresetChange($event)" />
-      <app-output-format />
-    </section>
-
+  @if (isLargeScreen()) {
     <!--
-      Steps 04 → 06 — Preview, Rating, Prompt (RIGHT on lg+, sticky).
-      `top-28` (7rem) clears the sticky brand + nav header above; the
-      `max-h` mirror keeps the rail's scroll area from spilling past the
-      viewport once the header takes its slice.
+      lg+ : layout horizontal con <p-splitter> arrastrable. El aside
+      pierde sus utilidades sticky/max-h/overflow porque el splitter
+      ya aporta esa funcionalidad (cada panel scrollea internamente).
     -->
-    <aside
-      class="flex flex-col lg:flex-1 lg:min-w-0 lg:border-l lg:border-ink-700 lg:sticky lg:top-28 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto"
+    <p-splitter
+      class="studio-splitter"
+      layout="horizontal"
+      [panelSizes]="[50, 50]"
+      [minSizes]="[25, 35]"
+      [gutterSize]="6"
+      panelStyleClass="flex flex-col overflow-hidden"
     >
-      <div class="flex items-start">
-        <div class="min-w-0 flex-1">
-          <app-viewer />
+      <ng-template pTemplate>
+        <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
+          <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" />
+          <app-output-format />
+        </section>
+      </ng-template>
+      <ng-template pTemplate>
+        <aside class="flex min-h-0 flex-1 flex-col overflow-y-auto lg:border-l lg:border-ink-700">
+          <div class="flex items-start">
+            <div class="min-w-0 flex-1">
+              <app-viewer />
+            </div>
+            <app-take-checklist
+              [takes]="studio.takes()"
+              [currentIndex]="studio.currentTakeIndex()"
+              [scenePrefix]="scenePrefix()"
+              [locked]="!studio.isReady()"
+              (toggle)="onToggleTake($event)"
+            />
+          </div>
+          <app-rating />
+          <app-prompt-builder
+            (generate)="onGenerate()"
+            (preview)="onPreview()"
+            [isRegenerating]="isRegenerating()"
+            [takeSelected]="studio.isReady()"
+            [canPreview]="isSuperAdmin()"
+          />
+          <app-takes-reel
+            [takes]="studio.activeTakes()"
+            [discardedTakes]="studio.discardedTakes()"
+            [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+            (selectTake)="onSelectTake($event)"
+            (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
+          />
+        </aside>
+      </ng-template>
+    </p-splitter>
+  } @else {
+    <!-- < lg : layout apilado original. Sin splitter ni sticky. -->
+    <div class="flex flex-1 flex-col">
+      <section class="flex flex-col">
+        <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
+        <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" />
+        <app-output-format />
+      </section>
+      <aside class="flex flex-col">
+        <div class="flex items-start">
+          <div class="min-w-0 flex-1">
+            <app-viewer />
+          </div>
+          <app-take-checklist
+            [takes]="studio.takes()"
+            [currentIndex]="studio.currentTakeIndex()"
+            [scenePrefix]="scenePrefix()"
+            [locked]="!studio.isReady()"
+            (toggle)="onToggleTake($event)"
+          />
         </div>
-        <app-take-checklist
-          [takes]="studio.takes()"
-          [currentIndex]="studio.currentTakeIndex()"
-          [scenePrefix]="scenePrefix()"
-          [locked]="!studio.isReady()"
-          (toggle)="onToggleTake($event)"
+        <app-rating />
+        <app-prompt-builder
+          (generate)="onGenerate()"
+          (preview)="onPreview()"
+          [isRegenerating]="isRegenerating()"
+          [takeSelected]="studio.isReady()"
+          [canPreview]="isSuperAdmin()"
         />
-      </div>
-      <app-rating />
-      <app-prompt-builder
-        #promptBuilder
-        (generate)="onGenerate()"
-        (preview)="onPreview()"
-        [isRegenerating]="isRegenerating()"
-        [takeSelected]="studio.isReady()"
-        [canPreview]="isSuperAdmin()"
-      />
-      <app-takes-reel
-        [takes]="studio.activeTakes()"
-        [discardedTakes]="studio.discardedTakes()"
-        [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
-        (selectTake)="onSelectTake($event)"
-        (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
-      />
-    </aside>
-  </div>
+        <app-takes-reel
+          [takes]="studio.activeTakes()"
+          [discardedTakes]="studio.discardedTakes()"
+          [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+          (selectTake)="onSelectTake($event)"
+          (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
+        />
+      </aside>
+    </div>
+  }
 
   <app-footer />
 </div>

@@ -17,11 +17,13 @@ import { environment } from '@environment/environment';
 /**
  * Section 01 — VIEWER.
  *
- * Resizable horizontally (drag bottom-right). Height auto-tracks
- * width via `aspect-video` so the 16:9 ratio is locked.
- * A fullscreen toggle lives in the top-right corner; the video uses
- * `object-contain` so the 16:9 ratio is preserved (letterboxed if the
- * screen ratio differs).
+ * Resizable horizontally (drag bottom-right). Height auto-tracks width
+ * via CSS `aspect-ratio`, which mirrors `studio.output().aspectRatio`
+ * so the viewer flips between 16:9, 9:16, 21:9, 1:1 as the user picks
+ * a format in Output Format. The video element uses `object-contain`
+ * so the chosen ratio is preserved (letterboxed if the source differs).
+ * Fullscreen overrides this with `aspect-ratio: auto` to fill the
+ * viewport regardless of the selected ratio.
  */
 @Component({
   selector: 'app-viewer',
@@ -40,7 +42,9 @@ import { environment } from '@environment/environment';
 
       <div
         #box
-        class="viewer-box relative mt-4 aspect-video w-full bg-ink-900"
+        class="viewer-box relative mx-auto mt-4 w-full bg-ink-900"
+        [style.aspect-ratio]="aspectRatioStyle()"
+        [style.max-width]="viewerMaxWidth()"
       >
         <ui-corner-frame position="top-left" />
         <ui-corner-frame position="top-right" />
@@ -297,6 +301,30 @@ export class ViewerComponent implements OnDestroy {
   protected readonly isHd = computed(
     () => this.studio.output().resolution === '1080p',
   );
+
+  /** CSS `aspect-ratio` value derived from the studio's selected aspect
+   *  (e.g. '16:9' → '16 / 9'). Bound on `.viewer-box` so the preview
+   *  reshapes when the user picks a different format in Output Format. */
+  protected readonly aspectRatioStyle = computed(() =>
+    this.studio.output().aspectRatio.replace(':', ' / '),
+  );
+
+  /** Caps the viewer-box width so its computed height (via `aspect-ratio`)
+   *  never overflows the viewport. For wide aspects (16:9 / 21:9) this
+   *  evaluates to `100%` in practice — the panel width is the binding
+   *  constraint. For tall aspects (9:16) it shrinks the width to
+   *  `available_height × ratio`, so the viewer fits without page scroll.
+   *  14rem ≈ space reserved for hero + section header chrome.
+   *
+   *  Tall aspects (h > w) get an extra 0.5 factor so the vertical preview
+   *  takes ~half the available height (proportionally narrower too, so
+   *  the 9:16 ratio is preserved exactly). Wide/square aspects are left
+   *  at full size — their cap was already harmless in normal viewports. */
+  protected readonly viewerMaxWidth = computed(() => {
+    const [w, h] = this.studio.output().aspectRatio.split(':').map(Number);
+    const heightFactor = h > w ? 0.5 : 1;
+    return `min(100%, calc((100dvh - 14rem) * ${(w / h) * heightFactor}))`;
+  });
 
   /** Disable the download icon when there's no playable clip URL. */
   protected readonly canDownload = computed(() => {
