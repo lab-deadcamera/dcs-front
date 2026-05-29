@@ -328,22 +328,32 @@
     @for (out of selectedOutputs(); track $index) {
       <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
         @if (out.type === 'video') {
-          <video [src]="out.url" controls class="w-full max-h-100" preload="metadata" playsinline>
-            Your browser does not support the video tag.
+          <video
+            [src]="out.url | resolveUrl"
+            controls
+            class="w-full max-h-100"
+            preload="metadata"
+            playsinline
+          >
+            Your browser does not support the video tag x.
           </video>
         } @else if (out.type === 'audio') {
           <div class="flex items-center justify-center bg-ink-900 p-8">
-            <audio [src]="out.url" controls class="w-full max-w-md">
+            <audio [src]="out.url | resolveUrl" controls class="w-full max-w-md">
               Your browser does not support the audio tag.
             </audio>
           </div>
         } @else {
-          <img [src]="out.url" class="w-full max-h-100 object-contain" alt="Generated output" />
+          <img
+            [src]="out.url | resolveUrl"
+            class="w-full max-h-100 object-contain"
+            alt="Generated output"
+          />
         }
         <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
           <span>{{ out.type }}</span>
           <a
-            [href]="out.url"
+            [href]="out.url | resolveUrl"
             target="_blank"
             rel="noopener noreferrer"
             class="text-primary-500 underline hover:text-primary-400"
@@ -465,7 +475,7 @@
               <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
                 @if (out.type === 'video') {
                   <video
-                    [src]="out.url"
+                    [src]="out.localUrl || out.url | resolveUrl"
                     controls
                     class="w-60 h-36 object-cover"
                     preload="metadata"
@@ -475,15 +485,24 @@
                   </video>
                 } @else if (out.type === 'audio') {
                   <div class="flex h-36 w-60 items-center justify-center bg-ink-900 p-4">
-                    <audio [src]="out.url" controls class="w-full">
+                    <audio [src]="out.localUrl || out.url | resolveUrl" controls class="w-full">
                       Your browser does not support the audio tag.
                     </audio>
                   </div>
                 } @else {
-                  <img [src]="out.url" class="w-60 h-36 object-contain bg-ink-900" alt="Output" />
+                  <img
+                    [src]="out.localUrl || out.url | resolveUrl"
+                    class="w-60 h-36 object-contain bg-ink-900"
+                    alt="Output"
+                  />
                 }
                 <div class="px-2 py-1 text-[10px] text-fg-muted">
-                  <a [href]="out.url" target="_blank" class="text-primary-500 underline">Open</a>
+                  <a
+                    [href]="out.localUrl || out.url | resolveUrl"
+                    target="_blank"
+                    class="text-primary-500 underline"
+                    >Open</a
+                  >
                 </div>
               </div>
             }

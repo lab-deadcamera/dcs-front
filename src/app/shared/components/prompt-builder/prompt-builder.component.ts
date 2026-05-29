@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  OnInit,
   output,
   signal,
   ViewChild,
@@ -17,6 +18,7 @@ import { SectionHeaderComponent } from '@shared/components/section-header/sectio
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
+import { Tooltip } from 'primeng/tooltip';
 
 /**
  * Section 06 — PROMPT BUILDER.
@@ -31,7 +33,14 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
   selector: 'app-prompt-builder',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './prompt-builder.component.html',
-  imports: [SectionHeaderComponent, SourceAssetPipe, EditorModule, FormsModule, TranslatePipe],
+  imports: [
+    SectionHeaderComponent,
+    SourceAssetPipe,
+    EditorModule,
+    FormsModule,
+    TranslatePipe,
+    Tooltip,
+  ],
   styles: [
     `
       :host ::ng-deep .p-editor-toolbar {
@@ -48,7 +57,7 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
     `,
   ],
 })
-export class PromptBuilderComponent {
+export class PromptBuilderComponent implements OnInit {
   @ViewChild('editor') private editorRef!: Editor;
   protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
@@ -106,10 +115,10 @@ export class PromptBuilderComponent {
     video: string;
     audio: string;
   } = {
-      image: 'STUDIO.PROMPT.REFERENCES_IMAGES',
-      video: 'STUDIO.PROMPT.REFERENCES_VIDEO',
-      audio: 'STUDIO.PROMPT.REFERENCES_AUDIO',
-    };
+    image: 'STUDIO.PROMPT.REFERENCES_IMAGES',
+    video: 'STUDIO.PROMPT.REFERENCES_VIDEO',
+    audio: 'STUDIO.PROMPT.REFERENCES_AUDIO',
+  };
 
   // ── Editor content ───────────────────────────────────────────────
 
@@ -165,6 +174,20 @@ export class PromptBuilderComponent {
         if (shrunk.audio) this.pruneStaleTokens('Audio', next.audio);
       });
     });
+  }
+  ngOnInit(): void {
+    console.log(
+      this.studio.canGenerate(),
+      this.takeSelected(),
+      this.studio.isGenerating(),
+      this.studio.modelCode(),
+    );
+    console.log(
+      !this.studio.canGenerate(),
+      !this.takeSelected(),
+      this.studio.isGenerating(),
+      !this.studio.modelCode(),
+    );
   }
 
   /** Called by the editor on every user keystroke. Syncs plain text to the store. */
@@ -348,4 +371,3 @@ export class PromptBuilderComponent {
     this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
   }
 }
-

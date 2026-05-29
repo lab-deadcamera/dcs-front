@@ -1,8 +1,10 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 import { environment } from '@environment/environment';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { RESOLVE_URL } from '@app/shared/utils';
 
 /**
  * "CARRETE DE TOMAS" — horizontal strip of take thumbnails.
@@ -43,7 +45,7 @@ import { environment } from '@environment/environment';
                   class="relative h-20 w-32 flex-none overflow-hidden border bg-ink-900 transition-colors"
                   [class.border-primary-500]="take.index === selectedTakeIndex()"
                   [class.border-ink-500]="take.index !== selectedTakeIndex()"
-                  (click)="selectTake.emit(take.index)"
+                  (click)="onTakeSeleted(take)"
                 >
                   @if (take.video_url) {
                     <video
@@ -131,6 +133,7 @@ import { environment } from '@environment/environment';
   `,
 })
 export class TakesReelComponent {
+  protected readonly studio = inject(StudioStore);
   /** Active (current generation) takes. */
   readonly takes = input<readonly Take[]>([]);
   /** Discarded (older generation) takes. */
@@ -161,5 +164,10 @@ export class TakesReelComponent {
   protected posterUrl(url: string): string {
     const full = this.videoUrl(url);
     return full.includes('#') ? full : `${full}#t=0.1`;
+  }
+
+  public onTakeSeleted(take: Take) {
+    this.selectTake.emit(take.index);
+    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? '');
   }
 }

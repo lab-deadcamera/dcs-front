@@ -9,20 +9,23 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { FilesApiService, GenerationLogsService, VideoGeneratorService } from '@app/services';
-import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+
+import { FilesApiService, GenerationLogsService, VideoGeneratorService } from '@app/services';
+import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { environment } from '@environment/environment';
-import { map, catchError } from 'rxjs';
-import { GENERATE_URL_FILE, RESOLVE_URL } from '@app/shared/utils';
+import { RESOLVE_URL } from '@app/shared/utils';
+import { ResolveUrlPipe } from '@app/core/pipes';
 
 interface SelectOption {
   label: string;
@@ -44,6 +47,7 @@ interface UserOption {
     SelectModule,
     PaginatorModule,
     ToastModule,
+    ResolveUrlPipe,
     DialogModule,
     TooltipModule,
   ],
@@ -247,8 +251,6 @@ export class IndexAdmin implements OnInit {
   protected showOutput(log: GenerationLogEntry): void {
     try {
       const o = log.outputs.map((out) => {
-        console.log(RESOLVE_URL(out.localUrl || out.url));
-
         return {
           url: RESOLVE_URL(out.localUrl || out.url),
           type: out.type || 'output',

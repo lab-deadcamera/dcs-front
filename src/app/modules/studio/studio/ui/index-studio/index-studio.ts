@@ -617,20 +617,20 @@ export class IndexStudio implements OnInit {
     const take = this.studio.currentTake();
     if (!projectId || !sceneId || !take || !clip.videoUrl) return;
 
-    this.projectsApi
-      .saveGeneration(projectId, sceneId, {
-        number: take.index,
-        video_url: clip.videoUrl,
-        task_id: taskId,
-      })
-      .subscribe((res) => {
-        if (!res.error && res.data) {
-          this.studio.saveGenerationResponse(take.index, {
-            id: res.data.id,
-            video_url: res.data.video_url,
-          });
-        }
-      });
+    // this.projectsApi
+    //   .saveGeneration(projectId, sceneId, {
+    //     number: take.index,
+    //     video_url: clip.videoUrl,
+    //     task_id: taskId,
+    //   })
+    //   .subscribe((res) => {
+    //     if (!res.error && res.data) {
+    //       this.studio.saveGenerationResponse(take.index, {
+    //         id: res.data.id,
+    //         video_url: res.data.video_url,
+    //       });
+    //     }
+    //   });
   }
 
   /**

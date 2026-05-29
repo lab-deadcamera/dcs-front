@@ -34,11 +34,7 @@ import { environment } from '@environment/environment';
   },
   template: `
     <section class="px-6 py-6">
-      <ui-section-header
-        number="04"
-        labelKey="STUDIO.VIEWER.TITLE"
-        hintKey="STUDIO.VIEWER.HINT"
-      />
+      <ui-section-header number="04" labelKey="STUDIO.VIEWER.TITLE" hintKey="STUDIO.VIEWER.HINT" />
 
       <div
         #box
@@ -106,9 +102,8 @@ import { environment } from '@environment/environment';
           class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-primary-500 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
           (click)="toggleFullscreen()"
           [attr.aria-label]="
-            (isFullscreen()
-              ? 'STUDIO.VIEWER.FULLSCREEN_EXIT'
-              : 'STUDIO.VIEWER.FULLSCREEN_ENTER') | translate
+            (isFullscreen() ? 'STUDIO.VIEWER.FULLSCREEN_EXIT' : 'STUDIO.VIEWER.FULLSCREEN_ENTER')
+              | translate
           "
         >
           @if (isFullscreen()) {
@@ -139,15 +134,24 @@ import { environment } from '@environment/environment';
         @if (studio.activeClip(); as clip) {
           <video
             class="h-full w-full object-contain"
-            [src]="clipUrl(clip.videoUrl)"
+            [src]="studio.imagePreview() || clipUrl(clip.videoUrl)"
             controls
           ></video>
         } @else if (!studio.isReady()) {
-          <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-3"
-          >
-            <svg viewBox="0 0 24 24" class="h-8 w-8 text-fg-faint" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <svg
+              viewBox="0 0 24 24"
+              class="h-8 w-8 text-fg-faint"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+              />
             </svg>
             <p class="text-lg font-light italic text-fg-strong">
               {{ 'STUDIO.VIEWER.NO_SCENE_TITLE' | translate }}
@@ -157,9 +161,7 @@ import { environment } from '@environment/environment';
             </p>
           </div>
         } @else {
-          <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-3"
-          >
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <div class="flex items-center gap-1.5">
               <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
@@ -255,7 +257,9 @@ import { environment } from '@environment/environment';
   `,
   styles: [
     `
-      :host { display: block; }
+      :host {
+        display: block;
+      }
 
       .viewer-box {
         resize: horizontal;
@@ -298,9 +302,7 @@ export class ViewerComponent implements OnDestroy {
     return this.baseUrl + path;
   }
 
-  protected readonly isHd = computed(
-    () => this.studio.output().resolution === '1080p',
-  );
+  protected readonly isHd = computed(() => this.studio.output().resolution === '1080p');
 
   /** CSS `aspect-ratio` value derived from the studio's selected aspect
    *  (e.g. '16:9' → '16 / 9'). Bound on `.viewer-box` so the preview
