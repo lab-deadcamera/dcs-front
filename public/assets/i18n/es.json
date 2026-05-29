@@ -253,6 +253,12 @@
         "HORROR": "Terror"
       }
     },
+    "PRONCER": {
+      "TITLE": "Proncer",
+      "HINT": "Asistente IA para mejorar tu prompt",
+      "BODY": "Pronto podrás pedirle a Claude que mejore tu prompt directamente desde este panel. Mantente atento para la próxima beta.",
+      "STATUS_SOON": "Próximamente"
+    },
     "OUTPUT": {
       "TITLE": "Formato de Salida",
       "MODEL": "Modelo",
