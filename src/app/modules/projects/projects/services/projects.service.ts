@@ -1,10 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
+  Chapter,
+  ChapterWithScenes,
   Project,
-  ProjectWithScenes,
+  ProjectWithChapters,
   Scene,
-  SceneWithTakes,
+  SceneWithShots,
+  Shot,
+  ShotWithTakes,
   Take,
 } from '../interfaces';
 import { ProjectsApiService } from './projects-api.service';
@@ -13,14 +17,18 @@ import { ProjectsApiService } from './projects-api.service';
 export class ProjectsService {
   private readonly api = inject(ProjectsApiService);
 
-  private readonly _projects = signal<ProjectWithScenes[]>([]);
+  private readonly _projects = signal<ProjectWithChapters[]>([]);
   private readonly _loading = signal(false);
+  private readonly _loadingChapters = signal<Record<string, boolean>>({});
   private readonly _loadingScenes = signal<Record<string, boolean>>({});
+  private readonly _loadingShots = signal<Record<string, boolean>>({});
   private readonly _loadingTakes = signal<Record<string, boolean>>({});
 
   readonly projects = this._projects.asReadonly();
   readonly loading = this._loading.asReadonly();
+  readonly loadingChapters = this._loadingChapters.asReadonly();
   readonly loadingScenes = this._loadingScenes.asReadonly();
+  readonly loadingShots = this._loadingShots.asReadonly();
   readonly loadingTakes = this._loadingTakes.asReadonly();
   readonly count = computed(() => this._projects().length);
 
@@ -30,7 +38,7 @@ export class ProjectsService {
       tap((res) => {
         if (!res.error && res.data) {
           this._projects.set(
-            res.data.map((p) => ({ project: p, scenes: [] })),
+            res.data.map((p) => ({ project: p, chapters: [] })),
           );
         }
         this._loading.set(false);
@@ -38,18 +46,18 @@ export class ProjectsService {
     );
   }
 
-  /** Lazy-load scenes for a project when the user expands it. */
-  loadProjectScenes(projectId: string): void {
-    if (this._loadingScenes()[projectId]) return;
+  /** Lazy-load chapters for a project when the user expands it. */
+  loadProjectChapters(projectId: string): void {
+    if (!projectId || this._loadingChapters()[projectId]) return;
 
-    this._loadingScenes.update((m) => ({ ...m, [projectId]: true }));
-    this.api.listScenes(projectId).subscribe((res) => {
-      this._loadingScenes.update((m) => ({ ...m, [projectId]: false }));
+    this._loadingChapters.update((m) => ({ ...m, [projectId]: true }));
+    this.api.listChapters(projectId).subscribe((res) => {
+      this._loadingChapters.update((m) => ({ ...m, [projectId]: false }));
       if (!res.error && res.data) {
         this._projects.update((list) =>
           list.map((p) =>
             p.project.id === projectId
-              ? { ...p, scenes: res.data!.map((s) => ({ scene: s, takes: [] })) }
+              ? { ...p, chapters: res.data!.map((c) => ({ chapter: c, scenes: [] })) }
               : p,
           ),
         );
@@ -57,23 +65,23 @@ export class ProjectsService {
     });
   }
 
-  /** Lazy-load takes for a scene when the user expands it. */
-  loadSceneTakes(projectId: string, sceneId: string): void {
-    if (this._loadingTakes()[sceneId]) return;
+  /** Lazy-load scenes for a chapter when the user expands it. */
+  loadChapterScenes(projectId: string, chapterId: string): void {
+    if (!chapterId || this._loadingScenes()[chapterId]) return;
 
-    this._loadingTakes.update((m) => ({ ...m, [sceneId]: true }));
-    this.api.listTakes(projectId, sceneId).subscribe((res) => {
-      this._loadingTakes.update((m) => ({ ...m, [sceneId]: false }));
+    this._loadingScenes.update((m) => ({ ...m, [chapterId]: true }));
+    this.api.listScenes(projectId, chapterId).subscribe((res) => {
+      this._loadingScenes.update((m) => ({ ...m, [chapterId]: false }));
       if (!res.error && res.data) {
         this._projects.update((list) =>
           list.map((p) =>
             p.project.id === projectId
               ? {
                   ...p,
-                  scenes: p.scenes.map((s) =>
-                    s.scene.id === sceneId
-                      ? { ...s, takes: res.data! }
-                      : s,
+                  chapters: p.chapters.map((c) =>
+                    c.chapter.id === chapterId
+                      ? { ...c, scenes: res.data!.map((s) => ({ scene: s, shots: [] })) }
+                      : c,
                   ),
                 }
               : p,
@@ -83,9 +91,77 @@ export class ProjectsService {
     });
   }
 
-  getScenesForProject(projectId: string): SceneWithTakes[] {
-    const p = this._projects().find((p) => p.project.id === projectId);
-    return p?.scenes ?? [];
+  /** Lazy-load shots for a scene when the user expands it. */
+  loadSceneShots(projectId: string, chapterId: string, sceneId: string): void {
+    if (!sceneId || this._loadingShots()[sceneId]) return;
+
+    this._loadingShots.update((m) => ({ ...m, [sceneId]: true }));
+    this.api.listShots(projectId, chapterId, sceneId).subscribe((res) => {
+      this._loadingShots.update((m) => ({ ...m, [sceneId]: false }));
+      if (!res.error && res.data) {
+        this._projects.update((list) =>
+          list.map((p) =>
+            p.project.id === projectId
+              ? {
+                  ...p,
+                  chapters: p.chapters.map((c) =>
+                    c.chapter.id === chapterId
+                      ? {
+                          ...c,
+                          scenes: c.scenes.map((s) =>
+                            s.scene.id === sceneId
+                              ? { ...s, shots: res.data!.map((sh) => ({ shot: sh, takes: [] })) }
+                              : s,
+                          ),
+                        }
+                      : c,
+                  ),
+                }
+              : p,
+          ),
+        );
+      }
+    });
+  }
+
+  /** Lazy-load takes for a shot when the user expands it. */
+  loadShotTakes(projectId: string, chapterId: string, sceneId: string, shotId: string): void {
+    if (!shotId || this._loadingTakes()[shotId]) return;
+
+    this._loadingTakes.update((m) => ({ ...m, [shotId]: true }));
+    this.api.listTakes(projectId, chapterId, sceneId, shotId).subscribe((res) => {
+      this._loadingTakes.update((m) => ({ ...m, [shotId]: false }));
+      if (!res.error && res.data) {
+        this._projects.update((list) =>
+          list.map((p) =>
+            p.project.id === projectId
+              ? {
+                  ...p,
+                  chapters: p.chapters.map((c) =>
+                    c.chapter.id === chapterId
+                      ? {
+                          ...c,
+                          scenes: c.scenes.map((s) =>
+                            s.scene.id === sceneId
+                              ? {
+                                  ...s,
+                                  shots: s.shots.map((sh) =>
+                                    sh.shot.id === shotId
+                                      ? { ...sh, takes: res.data! }
+                                      : sh,
+                                  ),
+                                }
+                              : s,
+                          ),
+                        }
+                      : c,
+                  ),
+                }
+              : p,
+          ),
+        );
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -97,7 +173,7 @@ export class ProjectsService {
       tap((res) => {
         if (!res.error && res.data) {
           this._projects.update((list) => [
-            { project: res.data!, scenes: [] },
+            { project: res.data!, chapters: [] },
             ...list,
           ]);
         }
@@ -111,7 +187,7 @@ export class ProjectsService {
         if (!res.error && res.data) {
           this._projects.update((list) =>
             list.map((p) =>
-              p.project.id === id ? { project: res.data!, scenes: p.scenes } : p,
+              p.project.id === id ? { project: res.data!, chapters: p.chapters } : p,
             ),
           );
         }
@@ -130,17 +206,20 @@ export class ProjectsService {
   }
 
   // ---------------------------------------------------------------------------
-  // Scenes
+  // Chapters
   // ---------------------------------------------------------------------------
 
-  createScene(projectId: string, payload: { number: number; name: string; description?: string }): Observable<{ error: boolean; msg: string; data?: Scene }> {
-    return this.api.createScene(projectId, payload).pipe(
+  createChapter(
+    projectId: string,
+    payload: { number: number; name: string; description?: string },
+  ): Observable<{ error: boolean; msg: string; data?: Chapter }> {
+    return this.api.createChapter(projectId, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
           this._projects.update((list) =>
             list.map((p) =>
               p.project.id === projectId
-                ? { ...p, scenes: [...p.scenes, { scene: res.data!, takes: [] }] }
+                ? { ...p, chapters: [...p.chapters, { chapter: res.data!, scenes: [] }] }
                 : p,
             ),
           );
@@ -149,8 +228,12 @@ export class ProjectsService {
     );
   }
 
-  updateScene(projectId: string, sceneId: string, payload: { number?: number; name?: string; description?: string; active?: boolean }): Observable<{ error: boolean; msg: string; data?: Scene }> {
-    return this.api.updateScene(projectId, sceneId, payload).pipe(
+  updateChapter(
+    projectId: string,
+    chapterId: string,
+    payload: { number?: number; name?: string; description?: string; active?: boolean },
+  ): Observable<{ error: boolean; msg: string; data?: Chapter }> {
+    return this.api.updateChapter(projectId, chapterId, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
           this._projects.update((list) =>
@@ -158,8 +241,8 @@ export class ProjectsService {
               p.project.id === projectId
                 ? {
                     ...p,
-                    scenes: p.scenes.map((s) =>
-                      s.scene.id === sceneId ? { scene: res.data!, takes: s.takes } : s,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId ? { chapter: res.data!, scenes: c.scenes } : c,
                     ),
                   }
                 : p,
@@ -170,14 +253,220 @@ export class ProjectsService {
     );
   }
 
-  deleteScene(projectId: string, sceneId: string): Observable<{ error: boolean; msg: string }> {
-    return this.api.deleteScene(projectId, sceneId).pipe(
+  deleteChapter(projectId: string, chapterId: string): Observable<{ error: boolean; msg: string }> {
+    return this.api.deleteChapter(projectId, chapterId).pipe(
       tap((res) => {
         if (!res.error) {
           this._projects.update((list) =>
             list.map((p) =>
               p.project.id === projectId
-                ? { ...p, scenes: p.scenes.filter((s) => s.scene.id !== sceneId) }
+                ? { ...p, chapters: p.chapters.filter((c) => c.chapter.id !== chapterId) }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scenes
+  // ---------------------------------------------------------------------------
+
+  createScene(
+    projectId: string,
+    chapterId: string,
+    payload: { number: number; name: string; description?: string },
+  ): Observable<{ error: boolean; msg: string; data?: Scene }> {
+    return this.api.createScene(projectId, chapterId, payload).pipe(
+      tap((res) => {
+        if (!res.error && res.data) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? { ...c, scenes: [...c.scenes, { scene: res.data!, shots: [] }] }
+                        : c,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  updateScene(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    payload: { number?: number; name?: string; description?: string; active?: boolean },
+  ): Observable<{ error: boolean; msg: string; data?: Scene }> {
+    return this.api.updateScene(projectId, chapterId, sceneId, payload).pipe(
+      tap((res) => {
+        if (!res.error && res.data) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? {
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId ? { scene: res.data!, shots: s.shots } : s,
+                            ),
+                          }
+                        : c,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  deleteScene(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.api.deleteScene(projectId, chapterId, sceneId).pipe(
+      tap((res) => {
+        if (!res.error) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? { ...c, scenes: c.scenes.filter((s) => s.scene.id !== sceneId) }
+                        : c,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Shots
+  // ---------------------------------------------------------------------------
+
+  createShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    payload: { number: number; name: string; description?: string },
+  ): Observable<{ error: boolean; msg: string; data?: Shot }> {
+    return this.api.createShot(projectId, chapterId, sceneId, payload).pipe(
+      tap((res) => {
+        if (!res.error && res.data) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? {
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId
+                                ? { ...s, shots: [...s.shots, { shot: res.data!, takes: [] }] }
+                                : s,
+                            ),
+                          }
+                        : c,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  updateShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+    payload: { number?: number; name?: string; description?: string; active?: boolean },
+  ): Observable<{ error: boolean; msg: string; data?: Shot }> {
+    return this.api.updateShot(projectId, chapterId, sceneId, shotId, payload).pipe(
+      tap((res) => {
+        if (!res.error && res.data) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? {
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId
+                                ? {
+                                    ...s,
+                                    shots: s.shots.map((sh) =>
+                                      sh.shot.id === shotId ? { shot: res.data!, takes: sh.takes } : sh,
+                                    ),
+                                  }
+                                : s,
+                            ),
+                          }
+                        : c,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  deleteShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.api.deleteShot(projectId, chapterId, sceneId, shotId).pipe(
+      tap((res) => {
+        if (!res.error) {
+          this._projects.update((list) =>
+            list.map((p) =>
+              p.project.id === projectId
+                ? {
+                    ...p,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? {
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId
+                                ? { ...s, shots: s.shots.filter((sh) => sh.shot.id !== shotId) }
+                                : s,
+                            ),
+                          }
+                        : c,
+                    ),
+                  }
                 : p,
             ),
           );
@@ -190,36 +479,14 @@ export class ProjectsService {
   // Takes
   // ---------------------------------------------------------------------------
 
-  createTake(projectId: string, sceneId: string, payload: { number: number }): Observable<{ error: boolean; msg: string; data?: Take }> {
-    return this.api.createTake(projectId, sceneId, payload).pipe(
-      tap((res) => {
-        if (!res.error && res.data) {
-          this._projects.update((list) =>
-            list.map((p) =>
-              p.project.id === projectId
-                ? {
-                    ...p,
-                    scenes: p.scenes.map((s) =>
-                      s.scene.id === sceneId
-                        ? { ...s, takes: [...s.takes, res.data!] }
-                        : s,
-                    ),
-                  }
-                : p,
-            ),
-          );
-        }
-      }),
-    );
-  }
-
-  updateTake(
+  createTake(
     projectId: string,
+    chapterId: string,
     sceneId: string,
-    takeId: string,
-    payload: { video_url?: string; video_local_url?: string; status?: 'pending' | 'processing' | 'completed' | 'failed' },
+    shotId: string,
+    payload: { number: number },
   ): Observable<{ error: boolean; msg: string; data?: Take }> {
-    return this.api.updateTake(projectId, sceneId, takeId, payload).pipe(
+    return this.api.createTake(projectId, chapterId, sceneId, shotId, payload).pipe(
       tap((res) => {
         if (!res.error && res.data) {
           this._projects.update((list) =>
@@ -227,15 +494,24 @@ export class ProjectsService {
               p.project.id === projectId
                 ? {
                     ...p,
-                    scenes: p.scenes.map((s) =>
-                      s.scene.id === sceneId
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
                         ? {
-                            ...s,
-                            takes: s.takes.map((t) =>
-                              t.id === takeId ? res.data! : t,
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId
+                                ? {
+                                    ...s,
+                                    shots: s.shots.map((sh) =>
+                                      sh.shot.id === shotId
+                                        ? { ...sh, takes: [...sh.takes, res.data!] }
+                                        : sh,
+                                    ),
+                                  }
+                                : s,
                             ),
                           }
-                        : s,
+                        : c,
                     ),
                   }
                 : p,
@@ -246,8 +522,14 @@ export class ProjectsService {
     );
   }
 
-  deleteTake(projectId: string, sceneId: string, takeId: string): Observable<{ error: boolean; msg: string }> {
-    return this.api.deleteTake(projectId, sceneId, takeId).pipe(
+  deleteTake(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+    takeId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.api.deleteTake(projectId, chapterId, sceneId, shotId, takeId).pipe(
       tap((res) => {
         if (!res.error) {
           this._projects.update((list) =>
@@ -255,10 +537,24 @@ export class ProjectsService {
               p.project.id === projectId
                 ? {
                     ...p,
-                    scenes: p.scenes.map((s) =>
-                      s.scene.id === sceneId
-                        ? { ...s, takes: s.takes.filter((t) => t.id !== takeId) }
-                        : s,
+                    chapters: p.chapters.map((c) =>
+                      c.chapter.id === chapterId
+                        ? {
+                            ...c,
+                            scenes: c.scenes.map((s) =>
+                              s.scene.id === sceneId
+                                ? {
+                                    ...s,
+                                    shots: s.shots.map((sh) =>
+                                      sh.shot.id === shotId
+                                        ? { ...sh, takes: sh.takes.filter((t) => t.id !== takeId) }
+                                        : sh,
+                                    ),
+                                  }
+                                : s,
+                            ),
+                          }
+                        : c,
                     ),
                   }
                 : p,

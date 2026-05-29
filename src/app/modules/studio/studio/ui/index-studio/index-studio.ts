@@ -334,10 +334,12 @@ export class IndexStudio implements OnInit {
    */
   protected onToggleTakeActive(takeId: string, takeIndex: number): void {
     const projectId = this.studio.projectId();
+    const chapterId = this.studio.chapterId();
     const sceneId = this.studio.sceneId();
-    if (!projectId || !sceneId) return;
+    const shotId = this.studio.shotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
 
-    this.projectsApi.toggleTakeActive(projectId, sceneId, takeId).subscribe((res) => {
+    this.projectsApi.toggleTakeActive(projectId, chapterId, sceneId, shotId, takeId).subscribe((res) => {
       if (!res.error && res.data) {
         // Reload the session's backend takes to reflect the toggle
         this.studio.selectTake(takeIndex);
