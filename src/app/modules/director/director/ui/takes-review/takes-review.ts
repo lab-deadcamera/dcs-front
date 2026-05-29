@@ -11,27 +11,22 @@ import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
 import { RESOLVE_URL } from '@app/shared/utils';
+import { ProjectsApiService } from '@modules/projects/projects/services';
+import { Take } from '@modules/projects/projects/interfaces';
 
-interface ProjectOption {
+/**
+ * Takes Review — director-side panel that lets the user drill down through
+ * Project → Chapter → Scene → Shot to inspect every Take generated for a
+ * given shot. Mirrors the cascade flow used by the session-gate-dialog
+ * (so the user picks the same hierarchy in both screens) and reuses
+ * `ProjectsApiService` for every list / take action. Local actions like
+ * "save server video to local disk" hit a download endpoint that is not
+ * exposed by the API service, so they keep using HttpClient directly with
+ * the new chapter+shot path.
+ */
+interface PickerOption {
   id: string;
-  name: string;
-}
-interface SceneOption {
-  id: string;
-  number: number;
-  name: string;
-}
-interface TakeItem {
-  id: string;
-  number: number;
-  scene_id: string;
-  video_url: string;
-  video_local_url: string;
-  status: string;
-  active: boolean;
-  final: boolean;
-  finalized_at: string | null;
-  created_at: string;
+  label: string;
 }
 
 @Component({
@@ -53,79 +48,155 @@ interface TakeItem {
 export class TakesReviewComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(MessageService);
+  private readonly projectsApi = inject(ProjectsApiService);
   private readonly apiUrl = environment.API_URL;
-  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
 
   /** Returns the full URL for a local video path (/outputs/...). */
   protected videoUrl(path: string | undefined): string {
     return RESOLVE_URL(path);
   }
 
-  protected readonly projects = signal<ProjectOption[]>([]);
-  protected readonly scenes = signal<Array<{ id: string; label: string }>>([]);
+  // ── Cascade pickers (Project → Chapter → Scene → Shot) ───────────────
+
+  protected readonly projects = signal<PickerOption[]>([]);
+  protected readonly chapters = signal<PickerOption[]>([]);
+  protected readonly scenes = signal<PickerOption[]>([]);
+  protected readonly shots = signal<PickerOption[]>([]);
+
   protected readonly selectedProjectId = signal<string>('');
+  protected readonly selectedChapterId = signal<string>('');
   protected readonly selectedSceneId = signal<string>('');
-  protected readonly takes = signal<TakeItem[]>([]);
+  protected readonly selectedShotId = signal<string>('');
+
+  protected readonly loadingChapters = signal(false);
+  protected readonly loadingScenes = signal(false);
+  protected readonly loadingShots = signal(false);
+
+  // ── Takes (list + per-row action state) ──────────────────────────────
+
+  protected readonly takes = signal<Take[]>([]);
   protected readonly loading = signal(false);
   protected readonly loadingId = signal<string | null>(null);
   protected readonly savingId = signal<string | null>(null);
   protected readonly previewVisible = signal(false);
-  protected readonly previewTake = signal<TakeItem | null>(null);
+  protected readonly previewTake = signal<Take | null>(null);
   protected readonly downloadingId = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.http
-      .get<{ data: any[] }>(`${this.apiUrl}/projects`)
-      .pipe(catchError(() => of({ data: [] })))
-      .subscribe((res) => {
-        this.projects.set(
-          (res.data || []).map((p) => ({
-            id: p.id || p.project?.id,
-            name: p.name || p.project?.name || '',
-          })),
-        );
-      });
+    this.projectsApi.listProjects().subscribe((res) => {
+      if (!res.error && res.data) {
+        this.projects.set(res.data.map((p) => ({ id: p.id, label: p.name })));
+      }
+    });
   }
 
-  protected onProjectChange(id: string): void {
-    this.selectedProjectId.set(id);
+  // ── Cascade handlers ─────────────────────────────────────────────────
+
+  protected onProjectChange(id: string | null): void {
+    this.selectedProjectId.set(id ?? '');
+    this.selectedChapterId.set('');
     this.selectedSceneId.set('');
+    this.selectedShotId.set('');
+    this.chapters.set([]);
     this.scenes.set([]);
+    this.shots.set([]);
     this.takes.set([]);
     if (!id) return;
-    this.http
-      .get<{ data: any[] }>(`${this.apiUrl}/projects/${id}/scenes`)
-      .pipe(catchError(() => of({ data: [] })))
-      .subscribe((res) => {
+    this.loadingChapters.set(true);
+    this.projectsApi.listChapters(id).subscribe((res) => {
+      this.loadingChapters.set(false);
+      if (!res.error && res.data) {
+        this.chapters.set(
+          res.data.map((c) => ({
+            id: c.id,
+            label: `CH${String(c.number).padStart(2, '0')} — ${c.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected onChapterChange(id: string | null): void {
+    this.selectedChapterId.set(id ?? '');
+    this.selectedSceneId.set('');
+    this.selectedShotId.set('');
+    this.scenes.set([]);
+    this.shots.set([]);
+    this.takes.set([]);
+    const projectId = this.selectedProjectId();
+    if (!id || !projectId) return;
+    this.loadingScenes.set(true);
+    this.projectsApi.listScenes(projectId, id).subscribe((res) => {
+      this.loadingScenes.set(false);
+      if (!res.error && res.data) {
         this.scenes.set(
-          (res.data || []).map((s) => ({
+          res.data.map((s) => ({
             id: s.id,
             label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
           })),
         );
-      });
+      }
+    });
   }
+
+  protected onSceneChange(id: string | null): void {
+    this.selectedSceneId.set(id ?? '');
+    this.selectedShotId.set('');
+    this.shots.set([]);
+    this.takes.set([]);
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    if (!id || !projectId || !chapterId) return;
+    this.loadingShots.set(true);
+    this.projectsApi.listShots(projectId, chapterId, id).subscribe((res) => {
+      this.loadingShots.set(false);
+      if (!res.error && res.data) {
+        this.shots.set(
+          res.data.map((sh) => ({
+            id: sh.id,
+            label: `S${String(sh.number).padStart(2, '0')} — ${sh.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected onShotChange(id: string | null): void {
+    this.selectedShotId.set(id ?? '');
+    this.takes.set([]);
+    if (!id) return;
+    this.loadTakes();
+  }
+
+  // ── Takes loading & actions ──────────────────────────────────────────
 
   protected loadTakes(): void {
-    const sid = this.selectedSceneId();
-    if (!sid) return;
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
     this.loading.set(true);
-    this.http
-      .get<{ data: any }>(`${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${sid}`)
-      .pipe(catchError(() => of({ data: { takes: [] } })))
-      .subscribe((res) => {
-        this.takes.set(
-          (res.data?.takes || []).sort((a: TakeItem, b: TakeItem) => b.number - a.number),
-        );
-        this.loading.set(false);
-      });
+    this.projectsApi.listTakes(projectId, chapterId, sceneId, shotId).subscribe((res) => {
+      this.loading.set(false);
+      if (!res.error && res.data) {
+        this.takes.set([...res.data].sort((a, b) => b.number - a.number));
+      } else {
+        this.takes.set([]);
+      }
+    });
   }
 
-  protected saveLocal(take: TakeItem): void {
+  protected saveLocal(take: Take): void {
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
     this.savingId.set(take.id);
     this.http
       .post(
-        `${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}/download`,
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${take.id}/download`,
         {},
       )
       .pipe(catchError(() => of(null)))
@@ -146,7 +217,7 @@ export class TakesReviewComponent implements OnInit {
       });
   }
 
-  protected openPreview(take: TakeItem): void {
+  protected openPreview(take: Take): void {
     this.previewTake.set(take);
     this.previewVisible.set(true);
   }
@@ -156,7 +227,7 @@ export class TakesReviewComponent implements OnInit {
     this.previewTake.set(null);
   }
 
-  protected downloadVideo(take: TakeItem): void {
+  protected downloadVideo(take: Take): void {
     const url = this.videoUrl(take.video_local_url);
     if (!url) return;
     this.downloadingId.set(take.id);
@@ -178,23 +249,28 @@ export class TakesReviewComponent implements OnInit {
       });
   }
 
-  protected setFinal(take: TakeItem): void {
+  protected setFinal(take: Take): void {
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
     this.loadingId.set(take.id);
-    this.http
-      .patch(
-        `${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${this.selectedSceneId()}/takes/${take.id}`,
-        { final: true },
-      )
-      .pipe(catchError(() => of(null)))
+    this.projectsApi
+      .updateTake(projectId, chapterId, sceneId, shotId, take.id, { final: true })
       .subscribe({
-        next: () => {
-          this.toast.add({ severity: 'success', summary: 'Take selected as final', life: 2000 });
+        next: (res) => {
           this.loadingId.set(null);
+          if (res.error) {
+            this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
+            return;
+          }
+          this.toast.add({ severity: 'success', summary: 'Take selected as final', life: 2000 });
           this.loadTakes();
         },
         error: () => {
-          this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
           this.loadingId.set(null);
+          this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
         },
       });
   }
