@@ -15,7 +15,11 @@ import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
 import { TakesReelComponent } from '@shared/components/takes-reel/takes-reel.component';
-import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
+// Cinematography is hidden for this beta. Uncomment the import + the entry
+// in the @Component `imports` array below to reactivate, then uncomment the
+// <app-cinematography> tags in index-studio.html.
+// import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
+import { ProncerComponent } from '@shared/components/proncer/proncer.component';
 import { OutputFormatComponent } from '@shared/components/output-format/output-format.component';
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
 import { RatingComponent } from '@shared/components/rating/rating.component';
@@ -58,7 +62,8 @@ const POLL_INTERVAL_MS = 3000;
     ViewerComponent,
     PromptBuilderComponent,
     TakesReelComponent,
-    CinematographyComponent,
+    // CinematographyComponent,  // hidden for this beta — see import comment above
+    ProncerComponent,
     OutputFormatComponent,
     CharacterAssetsComponent,
     RatingComponent,

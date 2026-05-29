@@ -2,18 +2,28 @@
   <app-hero />
 
   <!--
-    Layout follows the numbered workflow 01 → 06:
+    Layout follows the numbered workflow:
       LEFT (settings, lg+):
         01 Character & Assets
-        02 Cinematography
+        02 Proncer                (AI prompt assistant — placeholder for next beta)
         03 Output Format
       RIGHT (preview + critique + prompt, sticky on lg+):
-        04 Viewer  +  Takes checklist (right rail)
-        05 Rating
-        06 Prompt Builder
+        05 Viewer  +  Takes checklist (right rail)
+           Rating                  (no number — stars-only strip)
+        04 Prompt Builder
         · Session Reel (history)
 
-    · Mobile / tablet (< lg): single column, sections stacked 01 → 06.
+    NOTE on numbering: the visual order of the RIGHT column is kept
+    intentionally (Viewer above Prompt Builder) but the numerical
+    workflow goes 04 Prompt Builder → 05 Viewer so the chosen prompt
+    is conceptually authored before the preview is rendered. Numbers
+    therefore don't follow visual order on the right side.
+
+    Cinematography (was 02) is intentionally hidden via comment for
+    this beta and slated to come back in a follow-up; the import in
+    index-studio.ts is kept so reactivation is a one-line change.
+
+    · Mobile / tablet (< lg): single column, sections stacked.
     · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`.
     · The right column sticks to the top of the viewport while the
       user scrolls the longer settings column.
@@ -39,7 +49,11 @@
       <ng-template pTemplate>
         <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
-          <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" />
+          <!-- Cinematography hidden for this beta — uncomment to reactivate.
+               When re-enabling, also remove the <app-proncer> below if Proncer
+               is no longer needed in this slot, or keep both and re-number. -->
+          <!-- <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" /> -->
+          <app-proncer />
           <app-output-format />
         </section>
       </ng-template>
@@ -80,7 +94,9 @@
     <div class="flex flex-1 flex-col">
       <section class="flex flex-col">
         <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
-        <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" />
+        <!-- Cinematography hidden for this beta — see comment in lg+ branch above. -->
+        <!-- <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" /> -->
+        <app-proncer />
         <app-output-format />
       </section>
       <aside class="flex flex-col">

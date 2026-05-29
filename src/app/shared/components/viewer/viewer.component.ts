@@ -35,7 +35,7 @@ import { environment } from '@environment/environment';
   template: `
     <section class="px-6 py-6">
       <ui-section-header
-        number="04"
+        number="05"
         labelKey="STUDIO.VIEWER.TITLE"
         hintKey="STUDIO.VIEWER.HINT"
       />
