@@ -168,6 +168,6 @@ export class TakesReelComponent {
 
   public onTakeSeleted(take: Take) {
     this.selectTake.emit(take.index);
-    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? '');
+    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? 'no file');
   }
 }

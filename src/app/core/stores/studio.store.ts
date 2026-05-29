@@ -19,9 +19,13 @@ const SCHEMA_VERSION = 8;
 interface StudioSnapshot {
   __v: number;
   projectId: string | null;
+  chapterId: string | null;
+  shotId: string | null;
   sceneId: string | null;
   sceneCode: string;
   userHandle: string;
+  chapterName: string;
+  shotName: string;
   takes: Take[];
   currentTakeIndex: number;
   rawDescription: string;
@@ -80,16 +84,24 @@ export class StudioStore {
   // ── Core session/project state ───────────────────────────────────
   // private readonly _isGenerating = signal<boolean>(false);
   private readonly _projectId = signal<string | null>(null);
+  private readonly _chapterId = signal<string | null>(null);
   private readonly _sceneId = signal<string | null>(null);
+  private readonly _shotId = signal<string | null>(null);
   private readonly _sceneCode = signal<string>('');
   private readonly _projectName = signal<string>('');
+  private readonly _chapterName = signal<string>('');
   private readonly _sceneName = signal<string>('');
+  private readonly _shotName = signal<string>('');
   readonly projectName = this._projectName.asReadonly();
+  readonly chapterName = this._chapterName.asReadonly();
   readonly sceneName = this._sceneName.asReadonly();
+  readonly shotName = this._shotName.asReadonly();
   private readonly _userHandle = signal<string>('');
 
   readonly projectId = this._projectId.asReadonly();
+  readonly chapterId = this._chapterId.asReadonly();
   readonly sceneId = this._sceneId.asReadonly();
+  readonly shotId = this._shotId.asReadonly();
   readonly sceneCode = this._sceneCode.asReadonly();
 
   // ── Takes ────────────────────────────────────────────────────────
@@ -262,9 +274,13 @@ export class StudioStore {
       const snap: StudioSnapshot = {
         __v: SCHEMA_VERSION,
         projectId: this._projectId(),
+        chapterId: this._chapterId(),
+        shotId: this._shotId(),
         sceneId: this._sceneId(),
         sceneCode: this._sceneCode(),
         userHandle: this._userHandle(),
+        chapterName: this._chapterName(),
+        shotName: this._shotName(),
         takes: this._takes(),
         currentTakeIndex: this._currentTakeIndex(),
         rawDescription: this._rawDescription(),
@@ -299,9 +315,13 @@ export class StudioStore {
       const snap = await this.storage.get<StudioSnapshot>('studio');
       if (snap && snap.__v === SCHEMA_VERSION) {
         this._projectId.set(snap.projectId);
+        this._chapterId.set((snap as any).chapterId ?? null);
+        this._shotId.set((snap as any).shotId ?? null);
         this._sceneId.set(snap.sceneId);
         this._sceneCode.set(snap.sceneCode);
         this._userHandle.set(snap.userHandle);
+        this._chapterName.set((snap as any).chapterName ?? '');
+        this._shotName.set((snap as any).shotName ?? '');
         this._takes.set(snap.takes ?? []);
         this._currentTakeIndex.set(snap.currentTakeIndex ?? 0);
         this._rawDescription.set(snap.rawDescription || PROMPT_TEMPLATE);
@@ -329,8 +349,12 @@ export class StudioStore {
 
   initStudioSession(input: {
     projectId: string;
+    chapterId?: string;
+    shotId?: string;
     projectName?: string;
+    chapterName?: string;
     sceneName?: string;
+    shotName?: string;
     sceneId: string;
     sceneCode: string;
     userHandle: string;
@@ -344,10 +368,14 @@ export class StudioStore {
   }): void {
     const total = Math.max(1, Math.min(MAX_TAKES, Math.round(input.totalTakes)));
     this._projectId.set(input.projectId);
+    this._chapterId.set(input.chapterId ?? null);
+    this._shotId.set(input.shotId ?? null);
     this._sceneId.set(input.sceneId);
     this._sceneCode.set(input.sceneCode);
     if (input.projectName) this._projectName.set(input.projectName);
+    if (input.chapterName !== undefined) this._chapterName.set(input.chapterName);
     if (input.sceneName) this._sceneName.set(input.sceneName);
+    if (input.shotName !== undefined) this._shotName.set(input.shotName);
     this._userHandle.set(input.userHandle);
 
     if (input.backendTakes && input.backendTakes.length > 0) {
@@ -430,9 +458,11 @@ export class StudioStore {
   resetStudio(): void {
     this._projectId.set(null);
     this._projectName.set('');
+    this._chapterName.set('');
     this._sceneId.set(null);
     this._sceneCode.set('');
     this._sceneName.set('');
+    this._shotName.set('');
     this._userHandle.set('');
     this._takes.set([]);
     this._currentTakeIndex.set(0);
