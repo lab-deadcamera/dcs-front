@@ -110,10 +110,12 @@ export class StudioStore {
   private readonly _scenePresetIds = signal<Set<string>>(new Set());
   private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
   private readonly _sceneAssetIds = signal<Set<string>>(new Set());
+  private readonly _sceneCharacterData = signal<Array<{ id: string; name: string }>>([]);
 
   readonly scenePresetIds = this._scenePresetIds.asReadonly();
   readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
   readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
+  readonly sceneCharacterData = this._sceneCharacterData.asReadonly();
   // readonly isGenerating = this._isGenerating.asReadonly();
 
   private readonly _takes = signal<Take[]>([]);
@@ -484,6 +486,7 @@ export class StudioStore {
     this._modelCode.set(null);
     this._scenePresetIds.set(new Set());
     this._sceneCharacterIds.set(new Set());
+    this._sceneCharacterData.set([]);
     this._sceneAssetIds.set(new Set());
   }
 
@@ -647,8 +650,14 @@ export class StudioStore {
     this._scenePresetIds.set(
       new Set([...(assignments.presets ?? [])].map((a: any) => a.preset_id).filter(Boolean)),
     );
+    const chars = assignments.characters ?? [];
     this._sceneCharacterIds.set(
-      new Set([...(assignments.characters ?? [])].map((a: any) => a.character_id).filter(Boolean)),
+      new Set(chars.map((a: any) => a.character_id).filter(Boolean)),
+    );
+    this._sceneCharacterData.set(
+      chars
+        .filter((a: any) => a.character_id && a.name)
+        .map((a: any) => ({ id: a.character_id, name: a.name })),
     );
     this._sceneAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),

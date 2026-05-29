@@ -111,8 +111,10 @@ export class CharacterAssetsComponent {
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
     const assignedIds = this.studio.sceneCharacterIds();
     const buckets: Record<AssetType, LibraryItem[]> = { character: [], location: [], prop: [] };
+    const seenIds = new Set<string>();
     for (const item of this.chars.items()) {
       if (assignedIds.size > 0 && !assignedIds.has(item.character.id)) continue;
+      seenIds.add(item.character.id);
       let metadata: CharacterMetadata = {};
       try {
         metadata = item.character.metadata ? JSON.parse(item.character.metadata) : {};
@@ -135,6 +137,20 @@ export class CharacterAssetsComponent {
         firstFile,
         fileKind: resolveUsedKind(metadata.fileKind),
       });
+    }
+    // When assignments exist, include assigned characters that are not yet
+    // in the local CharactersService (e.g. created via a different flow).
+    if (assignedIds.size > 0) {
+      for (const c of this.studio.sceneCharacterData()) {
+        if (seenIds.has(c.id)) continue;
+        buckets.character.push({
+          id: c.id,
+          name: c.name,
+          files: [],
+          firstFile: null,
+          fileKind: 'image',
+        });
+      }
     }
     return buckets;
   });
