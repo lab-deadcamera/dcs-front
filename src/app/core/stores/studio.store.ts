@@ -170,6 +170,8 @@ export class StudioStore {
   });
 
   readonly output = this._output.asReadonly();
+  private readonly _imagePreview = signal<string | null>(null);
+  readonly imagePreview = this._imagePreview.asReadonly();
 
   // ── Clips ────────────────────────────────────────────────────────
 
@@ -199,6 +201,10 @@ export class StudioStore {
       { id, taskId: '', progress: 0, label, takeIndex },
     ]);
     return id;
+  }
+
+  setImagePreview(image: string): void {
+    this._imagePreview.set(image);
   }
 
   /** Guarda el taskId devuelto por el backend en la entrada pendiente. */
@@ -418,10 +424,7 @@ export class StudioStore {
   async clear(): Promise<void> {
     this.resetStudio();
     this._lastInjections.set({});
-    await Promise.all([
-      this.storage.delete('studio'),
-      this.storage.delete('assets'),
-    ]);
+    await Promise.all([this.storage.delete('studio'), this.storage.delete('assets')]);
   }
 
   resetStudio(): void {
@@ -612,14 +615,16 @@ export class StudioStore {
 
   setSceneAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
     this._scenePresetIds.set(
-      new Set(assignments.presets.map((a: any) => a.preset_id).filter(Boolean)),
+      new Set([...(assignments.presets ?? [])].map((a: any) => a.preset_id).filter(Boolean)),
     );
     this._sceneCharacterIds.set(
-      new Set(assignments.characters.map((a: any) => a.character_id).filter(Boolean)),
+      new Set([...(assignments.characters ?? [])].map((a: any) => a.character_id).filter(Boolean)),
     );
-    this._sceneAssetIds.set(new Set(assignments.assets.map((a: any) => a.file_id).filter(Boolean)));
+    this._sceneAssetIds.set(
+      new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
+    );
 
-    const freeAssets: ReferenceAsset[] = assignments.assets
+    const freeAssets: ReferenceAsset[] = (assignments.assets ?? [])
       .filter((a: any) => a.file_id)
       .map((a: any) => ({
         id: a.file_id,
