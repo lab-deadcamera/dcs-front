@@ -174,7 +174,12 @@ export class SessionStore {
       if (snap && snap.__v === SCHEMA_VERSION) {
         this._user.set(snap.user);
         this._authUser.set(snap.authUser);
-        this._token.set(snap.token);
+        // Don't overwrite the token if it was already set (e.g. by login()
+        // during the async hydration window). The constructor reads the
+        // token from localStorage synchronously before calling hydrate().
+        if (!this._token()) {
+          this._token.set(snap.token);
+        }
         this._language.set(snap.language ?? resolveInitialLanguage(this.translate));
         this._mode.set(snap.mode ?? storedTheme.mode ?? 'light');
         this._primaryName.set(snap.primaryName ?? storedTheme.primaryName ?? 'blue');
