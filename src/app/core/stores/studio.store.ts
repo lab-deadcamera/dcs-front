@@ -456,6 +456,23 @@ export class StudioStore {
       if (list.some((a) => a.fileId === asset.fileId)) return list;
       return [...list, asset];
     });
+
+    // Also register the character as assigned so it appears in "My Library".
+    // This lets the "Use" button in IndexCharacters populate the library
+    // panel without requiring a backend scene-assignment call.
+    if (asset.characterId) {
+      this._sceneCharacterIds.update((set) => {
+        if (set.has(asset.characterId)) return set;
+        const next = new Set(set);
+        next.add(asset.characterId);
+        return next;
+      });
+      this._sceneCharacterData.update((list) => {
+        if (list.some((c) => c.id === asset.characterId)) return list;
+        return [...list, { id: asset.characterId, name: asset.name }];
+      });
+      this._assignmentsLoaded.set(true);
+    }
   }
 
   unuseAsset(idOrFileId: string) {

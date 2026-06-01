@@ -385,17 +385,17 @@ export class CharacterAssetsComponent {
 
   protected onFreeAssets(files: File[]) {
     for (const f of files) {
-      console.log(f.type);
-
       let category: FileCategory = 'images';
       if (f.type.startsWith('video/')) {
         category = 'videos';
       } else if (f.type.startsWith('audio/')) {
         category = 'audio';
+      } else if (f.type.startsWith('image/')) {
+        category = 'images';
       } else {
         this.toast.add({
           severity: 'warn',
-          summary: 'PDF files are not supported',
+          summary: 'Unsupported file type',
           detail: 'Please upload an image, audio or video',
         });
         continue;

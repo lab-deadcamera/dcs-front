@@ -98,14 +98,6 @@
                 [pTooltip]="item.project.active ? 'Deactivate' : 'Activate'"
                 (onClick)="toggleProjectActive(item.project)"
               />
-              <p-button
-                icon="pi pi-trash"
-                severity="danger"
-                [text]="true"
-                [rounded]="true"
-                pTooltip="Delete project"
-                (onClick)="confirmDeleteProject(item.project)"
-              />
             </div>
           </div>
 
@@ -178,14 +170,6 @@
                         [rounded]="true"
                         [pTooltip]="cwt.chapter.active ? 'Deactivate' : 'Activate'"
                         (onClick)="toggleChapterActive(cwt.chapter)"
-                      />
-                      <p-button
-                        icon="pi pi-trash"
-                        severity="danger"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="Delete episode"
-                        (onClick)="confirmDeleteChapter(cwt.chapter)"
                       />
                     </div>
                   </div>
@@ -260,14 +244,6 @@
                                 [rounded]="true"
                                 [pTooltip]="swt.scene.active ? 'Deactivate' : 'Activate'"
                                 (onClick)="toggleSceneActive(swt.scene)"
-                              />
-                              <p-button
-                                icon="pi pi-trash"
-                                severity="danger"
-                                [text]="true"
-                                [rounded]="true"
-                                pTooltip="Delete scene"
-                                (onClick)="confirmDeleteScene(swt.scene)"
                               />
                             </div>
                           </div>
