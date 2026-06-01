@@ -86,11 +86,11 @@ export class SceneAssignmentComponent implements OnInit {
   });
 
   protected readonly tabs = [
-    { key: 'presets', label: 'Presets' },
     { key: 'characters', label: 'Characters' },
     { key: 'assets', label: 'Assets' },
+    // { key: 'presets', label: 'Presets' },
   ];
-  protected readonly activeTab = signal<string>('presets');
+  protected readonly activeTab = signal<string>('characters');
   protected readonly loading = signal(false);
   protected readonly fileUploadLoading = signal(false);
 
