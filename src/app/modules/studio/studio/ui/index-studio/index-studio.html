@@ -1,78 +1,115 @@
 <div class="flex flex-col bg-ink-950 text-fg">
   <app-hero />
 
+  <app-studio-breadcrumb
+    [projects]="navProjects()"
+    [chapters]="navChapters()"
+    [scenes]="navScenes()"
+    [shots]="navShots()"
+    [loadingProjects]="navLoadingProjects()"
+    [loadingChapters]="navLoadingChapters()"
+    [loadingScenes]="navLoadingScenes()"
+    [loadingShots]="navLoadingShots()"
+    [selectedSceneObj]="navSelectedScene()"
+    [(selectedProjectId)]="navSelectedProjectId"
+    [(selectedChapterId)]="navSelectedChapterId"
+    [(selectedSceneId)]="navSelectedSceneId"
+    [(selectedShotId)]="navSelectedShotId"
+    (projectChange)="onNavProjectChange($event)"
+    (chapterChange)="onNavChapterChange($event)"
+    (sceneChange)="onNavSceneChange($event)"
+    (shotChange)="onNavShotChange($event)"
+    (createShot)="onBreadcrumbCreateShot($event)"
+  />
+
   @if (studio.isReady()) {
-    <nav class="flex items-center gap-1.5 px-4 py-1 text-[11px] uppercase tracking-[0.08em] text-fg-muted" aria-label="Studio breadcrumb">
-      <span class="font-semibold text-fg">{{ studio.projectName() }}</span>
-      <span class="opacity-40">&gt;</span>
-      @if (studio.chapterName()) {
-        <span>{{ studio.chapterName() }}</span>
-        <span class="opacity-40">&gt;</span>
-      }
-      <span>{{ studio.sceneCode() }} — {{ studio.sceneName() }}</span>
-      <span class="opacity-40">&gt;</span>
-      <span>{{ studio.shotName() }}</span>
-    </nav>
-  }
-
-  <!--
-    Layout follows the numbered workflow:
-      LEFT (settings, lg+):
-        01 Character & Assets
-        02 Proncer                (AI prompt assistant — placeholder for next beta)
-        03 Output Format
-      RIGHT (preview + critique + prompt, sticky on lg+):
-        05 Viewer  +  Takes checklist (right rail)
-           Rating                  (no number — stars-only strip)
-        04 Prompt Builder
-        · Session Reel (history)
-
-    NOTE on numbering: the visual order of the RIGHT column is kept
-    intentionally (Viewer above Prompt Builder) but the numerical
-    workflow goes 04 Prompt Builder → 05 Viewer so the chosen prompt
-    is conceptually authored before the preview is rendered. Numbers
-    therefore don't follow visual order on the right side.
-
-    Cinematography (was 02) is intentionally hidden via comment for
-    this beta and slated to come back in a follow-up; the import in
-    index-studio.ts is kept so reactivation is a one-line change.
-
-    · Mobile / tablet (< lg): single column, sections stacked.
-    · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`.
-    · The right column sticks to the top of the viewport while the
-      user scrolls the longer settings column.
-    · Output Format (with the 1080p chip) lives in the LEFT column so
-      it can't be misclicked while interacting with the viewer.
-    · The takes checklist sits as a narrow right rail next to the viewer
-      so the user can tick a take done without leaving the preview.
-  -->
-  @if (isLargeScreen()) {
     <!--
-      lg+ : layout horizontal con <p-splitter> arrastrable. El aside
-      pierde sus utilidades sticky/max-h/overflow porque el splitter
-      ya aporta esa funcionalidad (cada panel scrollea internamente).
+      Layout follows the numbered workflow:
+        LEFT (settings, lg+):
+          01 Character & Assets
+          02 Proncer                (AI prompt assistant — placeholder for next beta)
+          03 Output Format
+        RIGHT (preview + critique + prompt, sticky on lg+):
+          05 Viewer  +  Takes checklist (right rail)
+             Rating                  (no number — stars-only strip)
+          04 Prompt Builder
+          · Session Reel (history)
+
+      NOTE on numbering: the visual order of the RIGHT column is kept
+      intentionally (Viewer above Prompt Builder) but the numerical
+      workflow goes 04 Prompt Builder → 05 Viewer so the chosen prompt
+      is conceptually authored before the preview is rendered. Numbers
+      therefore don't follow visual order on the right side.
+
+      Cinematography (was 02) is intentionally hidden via comment for
+      this beta and slated to come back in a follow-up; the import in
+      index-studio.ts is kept so reactivation is a one-line change.
+
+      · Mobile / tablet (< lg): single column, sections stacked.
+      · Desktop (lg+): two columns at 50 / 50 — both `lg:flex-1`.
+      · The right column sticks to the top of the viewport while the
+        user scrolls the longer settings column.
+      · Output Format (with the 1080p chip) lives in the LEFT column so
+        it can't be misclicked while interacting with the viewer.
+      · The takes checklist sits as a narrow right rail next to the viewer
+        so the user can tick a take done without leaving the preview.
     -->
-    <p-splitter
-      class="studio-splitter"
-      layout="horizontal"
-      [panelSizes]="[50, 50]"
-      [minSizes]="[25, 35]"
-      [gutterSize]="6"
-      panelStyleClass="flex flex-col overflow-hidden"
-    >
-      <ng-template pTemplate>
-        <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    @if (isLargeScreen()) {
+      <p-splitter
+        class="studio-splitter"
+        layout="horizontal"
+        [panelSizes]="[50, 50]"
+        [minSizes]="[25, 35]"
+        [gutterSize]="6"
+        panelStyleClass="flex flex-col overflow-hidden"
+      >
+        <ng-template pTemplate>
+          <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
+            <app-proncer />
+            <app-output-format />
+          </section>
+        </ng-template>
+        <ng-template pTemplate>
+          <aside class="flex min-h-0 flex-1 flex-col overflow-y-auto lg:border-l lg:border-ink-700">
+            <div class="flex items-start">
+              <div class="min-w-0 flex-1">
+                <app-viewer />
+              </div>
+              <app-take-checklist
+                [takes]="studio.takes()"
+                [currentIndex]="studio.currentTakeIndex()"
+                [scenePrefix]="scenePrefix()"
+                [locked]="!studio.isReady()"
+                (toggle)="onToggleTake($event)"
+              />
+            </div>
+            <app-rating />
+            <app-prompt-builder
+              (generate)="onGenerate()"
+              (preview)="onPreview()"
+              [isRegenerating]="isRegenerating()"
+              [takeSelected]="studio.isReady()"
+              [canPreview]="isSuperAdmin()"
+            />
+            <app-takes-reel
+              [takes]="studio.activeTakes()"
+              [discardedTakes]="studio.discardedTakes()"
+              [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+              (selectTake)="onSelectTake($event)"
+              (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
+            />
+          </aside>
+        </ng-template>
+      </p-splitter>
+    } @else {
+      <div class="flex flex-1 flex-col">
+        <section class="flex flex-col">
           <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
-          <!-- Cinematography hidden for this beta — uncomment to reactivate.
-               When re-enabling, also remove the <app-proncer> below if Proncer
-               is no longer needed in this slot, or keep both and re-number. -->
-          <!-- <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" /> -->
           <app-proncer />
           <app-output-format />
         </section>
-      </ng-template>
-      <ng-template pTemplate>
-        <aside class="flex min-h-0 flex-1 flex-col overflow-y-auto lg:border-l lg:border-ink-700">
+        <aside class="flex flex-col">
           <div class="flex items-start">
             <div class="min-w-0 flex-1">
               <app-viewer />
@@ -101,58 +138,22 @@
             (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
           />
         </aside>
-      </ng-template>
-    </p-splitter>
+      </div>
+    }
+
+    <app-footer />
   } @else {
-    <!-- < lg : layout apilado original. Sin splitter ni sticky. -->
-    <div class="flex flex-1 flex-col">
-      <section class="flex flex-col">
-        <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
-        <!-- Cinematography hidden for this beta — see comment in lg+ branch above. -->
-        <!-- <app-cinematography (presetChanged)="onPresetChangedFromCinematography($event)" /> -->
-        <app-proncer />
-        <app-output-format />
-      </section>
-      <aside class="flex flex-col">
-        <div class="flex items-start">
-          <div class="min-w-0 flex-1">
-            <app-viewer />
-          </div>
-          <app-take-checklist
-            [takes]="studio.takes()"
-            [currentIndex]="studio.currentTakeIndex()"
-            [scenePrefix]="scenePrefix()"
-            [locked]="!studio.isReady()"
-            (toggle)="onToggleTake($event)"
-          />
-        </div>
-        <app-rating />
-        <app-prompt-builder
-          (generate)="onGenerate()"
-          (preview)="onPreview()"
-          [isRegenerating]="isRegenerating()"
-          [takeSelected]="studio.isReady()"
-          [canPreview]="isSuperAdmin()"
-        />
-        <app-takes-reel
-          [takes]="studio.activeTakes()"
-          [discardedTakes]="studio.discardedTakes()"
-          [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
-          (selectTake)="onSelectTake($event)"
-          (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
-        />
-      </aside>
+    <div class="flex flex-1 flex-col items-center justify-center gap-4 py-24">
+      <i class="pi pi-camera text-5xl text-fg-muted opacity-30"></i>
+      <p class="text-[14px] font-medium text-fg-muted">
+        Select or create a shot to start working
+      </p>
+      <p class="max-w-md text-center text-[11px] text-fg-muted">
+        Choose a project, episode, and scene from the breadcrumb above, then pick an existing shot or create a new one.
+      </p>
     </div>
   }
-
-  <app-footer />
 </div>
-
-<app-session-gate-dialog
-  [visible]="gateOpen()"
-  [adminClosable]="canBypassGate()"
-  (visibleChange)="gateOpen.set($event)"
-/>
 
 <p-toast position="top-right" />
 
@@ -244,7 +245,7 @@
   </ng-template>
 </p-dialog>
 
-<!-- Preview payload dialog — shows the raw response of VideoGeneratorService.preview() -->
+<!-- Preview payload dialog -->
 <p-dialog
   [visible]="previewDialogVisible()"
   (visibleChange)="previewDialogVisible.set($event)"

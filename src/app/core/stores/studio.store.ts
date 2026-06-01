@@ -1,5 +1,4 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
-import { StudioStorageService } from './studio-storage.service';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
 import {
@@ -13,36 +12,6 @@ import {
   UsedAsset,
 } from '../interfaces/studio.models';
 import { ModelData } from '../interfaces';
-
-const SCHEMA_VERSION = 8;
-
-interface StudioSnapshot {
-  __v: number;
-  projectId: string | null;
-  chapterId: string | null;
-  shotId: string | null;
-  sceneId: string | null;
-  sceneCode: string;
-  userHandle: string;
-  chapterName: string;
-  shotName: string;
-  takes: Take[];
-  currentTakeIndex: number;
-  rawDescription: string;
-  cinematography: CinematographyConfig;
-  output: OutputFormatConfig;
-  sessionClips: GeneratedClip[];
-  activeClipId: string | null;
-  usedAssets?: UsedAsset[];
-  /** Persistimos generaciones en curso para poder re-checkear tras recarga. */
-  pendingGenerations: PendingGeneration[];
-}
-
-interface AssetsSnapshot {
-  firstFrame: ReferenceAsset | null;
-  lastFrame: ReferenceAsset | null;
-  freeAssets: ReferenceAsset[];
-}
 
 function clamp(n: number, min: number, max: number): number {
   if (Number.isNaN(n)) return min;
@@ -67,22 +36,16 @@ function escapeRegex(s: string): string {
 const MAX_TAKES = 99;
 
 /**
- * Unified studio store.
+ * Unified studio store — no persistent memory.
  *
- * Consolidates all studio-related state previously scattered across
- * SessionStateService, PromptStateService, AssetsStateService, and
- * StudioStateService: project/scene/takes, prompt, cinematography,
- * output format, generated clips, pending generations, and reference
- * assets.
+ * Every property resets to its default on page load. All project/scene/shot
+ * data must be loaded from the backend by the consumer (IndexStudio).
  */
 @Injectable({ providedIn: 'root' })
 export class StudioStore {
-  private readonly storage = inject(StudioStorageService);
   private readonly presets = inject(PresetsService);
-  private hydrated = false;
 
   // ── Core session/project state ───────────────────────────────────
-  // private readonly _isGenerating = signal<boolean>(false);
   private readonly _projectId = signal<string | null>(null);
   private readonly _chapterId = signal<string | null>(null);
   private readonly _sceneId = signal<string | null>(null);
@@ -97,12 +60,14 @@ export class StudioStore {
   readonly sceneName = this._sceneName.asReadonly();
   readonly shotName = this._shotName.asReadonly();
   private readonly _userHandle = signal<string>('');
+  private readonly _isReady = signal<boolean>(false);
 
   readonly projectId = this._projectId.asReadonly();
   readonly chapterId = this._chapterId.asReadonly();
   readonly sceneId = this._sceneId.asReadonly();
   readonly shotId = this._shotId.asReadonly();
   readonly sceneCode = this._sceneCode.asReadonly();
+  readonly isReady = this._isReady.asReadonly();
 
   // ── Takes ────────────────────────────────────────────────────────
 
@@ -116,7 +81,12 @@ export class StudioStore {
   readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
   readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
   readonly sceneCharacterData = this._sceneCharacterData.asReadonly();
-  // readonly isGenerating = this._isGenerating.asReadonly();
+
+  /** True after setSceneAssignments has been called at least once (even if
+   *  the response contained null/empty arrays). Used by child components
+   *  to distinguish "no assignments loaded yet" from "loaded but empty". */
+  private readonly _assignmentsLoaded = signal(false);
+  readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
   private readonly _takes = signal<Take[]>([]);
   private readonly _currentTakeIndex = signal<number>(0);
@@ -138,8 +108,6 @@ export class StudioStore {
   readonly discardedTakes = computed(() =>
     this._takes().filter((t) => t.video_url && t.active === false),
   );
-
-  readonly isReady = computed(() => this._takes().length > 0);
 
   readonly nextFilename = computed(() => {
     const take = this.currentTake();
@@ -172,7 +140,6 @@ export class StudioStore {
   readonly cinematography = this._cinematography.asReadonly();
 
   // ── Output format ────────────────────────────────────────────────
-  // readonly setGenerating = (v: boolean) => this._isGenerating.set(v);
 
   private readonly _output = signal<OutputFormatConfig>({
     aspectRatio: '16:9',
@@ -204,10 +171,6 @@ export class StudioStore {
   readonly pendingGenerations = this._pendingGenerations.asReadonly();
   readonly isGenerating = computed(() => this._pendingGenerations().length > 0);
 
-  /**
-   * Crea una entrada de generación en curso. taskId se asigna después
-   * cuando el backend responde (setGenerationTaskId).
-   */
   startGeneration(label?: string, takeIndex?: number): string {
     const id = `gen_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
     this._pendingGenerations.update((list) => [
@@ -221,18 +184,12 @@ export class StudioStore {
     this._imagePreview.set(image);
   }
 
-  /** Guarda el taskId devuelto por el backend en la entrada pendiente. */
   setGenerationTaskId(localId: string, taskId: string): void {
     this._pendingGenerations.update((list) =>
       list.map((g) => (g.id === localId ? { ...g, taskId } : g)),
     );
   }
 
-  /**
-   * Reemplaza una generación pendiente (recuperada tras recarga) con
-   * la info del backend. Se usa en IndexStudio.restorePendingTasks para
-   * sincronizar el taskId si la entrada se hidrató vacía.
-   */
   restorePendingTask(id: string, taskId: string, modelName: string): void {
     this._pendingGenerations.update((list) =>
       list.map((g) => (g.id === id ? { ...g, taskId, modelName, progress: 10 } : g)),
@@ -260,92 +217,7 @@ export class StudioStore {
   private readonly _usedAssets = signal<UsedAsset[]>([]);
   readonly usedAssets = this._usedAssets.asReadonly();
 
-  /**
-   * Last preset-prompt text injected into each section header. Used to
-   * find-and-replace on subsequent preset changes so the raw textarea
-   * stays in sync without duplicating preset text.
-   */
   private readonly _lastInjections = signal<Record<string, string>>({});
-
-  // ── Constructor / hydration ──────────────────────────────────────
-
-  constructor() {
-    this.hydrate();
-
-    effect(() => {
-      const snap: StudioSnapshot = {
-        __v: SCHEMA_VERSION,
-        projectId: this._projectId(),
-        chapterId: this._chapterId(),
-        shotId: this._shotId(),
-        sceneId: this._sceneId(),
-        sceneCode: this._sceneCode(),
-        userHandle: this._userHandle(),
-        chapterName: this._chapterName(),
-        shotName: this._shotName(),
-        takes: this._takes(),
-        currentTakeIndex: this._currentTakeIndex(),
-        rawDescription: this._rawDescription(),
-        cinematography: this._cinematography(),
-        output: this._output(),
-        sessionClips: this._sessionClips(),
-        activeClipId: this._activeClipId(),
-        usedAssets: this._usedAssets(),
-        pendingGenerations: this._pendingGenerations(),
-      };
-      if (this.hydrated) {
-        void this.storage.set('studio', snap);
-      }
-    });
-
-    effect(() => {
-      const strip = (a: ReferenceAsset | null): ReferenceAsset | null =>
-        a ? { ...a, thumbnailUrl: undefined } : null;
-      const snap: AssetsSnapshot = {
-        firstFrame: strip(this._firstFrame()),
-        lastFrame: strip(this._lastFrame()),
-        freeAssets: this._freeAssets().map((a) => ({ ...a, thumbnailUrl: undefined })),
-      };
-      if (this.hydrated) {
-        void this.storage.set('assets', snap);
-      }
-    });
-  }
-
-  private async hydrate() {
-    try {
-      const snap = await this.storage.get<StudioSnapshot>('studio');
-      if (snap && snap.__v === SCHEMA_VERSION) {
-        this._projectId.set(snap.projectId);
-        this._chapterId.set((snap as any).chapterId ?? null);
-        this._shotId.set((snap as any).shotId ?? null);
-        this._sceneId.set(snap.sceneId);
-        this._sceneCode.set(snap.sceneCode);
-        this._userHandle.set(snap.userHandle);
-        this._chapterName.set((snap as any).chapterName ?? '');
-        this._shotName.set((snap as any).shotName ?? '');
-        this._takes.set(snap.takes ?? []);
-        this._currentTakeIndex.set(snap.currentTakeIndex ?? 0);
-        this._rawDescription.set(snap.rawDescription || PROMPT_TEMPLATE);
-        this._cinematography.set(snap.cinematography);
-        this._output.set({ ...this._output(), ...snap.output });
-        this._sessionClips.set(snap.sessionClips);
-        this._activeClipId.set(snap.activeClipId);
-        this._usedAssets.set(snap.usedAssets ?? []);
-        this._pendingGenerations.set(snap.pendingGenerations ?? []);
-      }
-
-      const assetsSnap = await this.storage.get<AssetsSnapshot>('assets');
-      if (assetsSnap) {
-        this._firstFrame.set(assetsSnap.firstFrame);
-        this._lastFrame.set(assetsSnap.lastFrame);
-        this._freeAssets.set(assetsSnap.freeAssets);
-      }
-    } finally {
-      this.hydrated = true;
-      this._lastInjections.set(this.buildInjectionsMap());
-    }
-  }
 
   // ── Takes ────────────────────────────────────────────────────────
 
@@ -368,6 +240,7 @@ export class StudioStore {
       active: boolean;
     }>;
   }): void {
+    this._isReady.set(true);
     const total = Math.max(1, Math.min(MAX_TAKES, Math.round(input.totalTakes)));
     this._projectId.set(input.projectId);
     this._chapterId.set(input.chapterId ?? null);
@@ -395,13 +268,8 @@ export class StudioStore {
       });
       this._takes.set(merged);
     } else {
-      this._takes.set(
-        Array.from({ length: total }, (_, i) => ({
-          index: i + 1,
-          status: 'pending' as const,
-          number: i + 1,
-        })),
-      );
+      // No backend takes — don't create phantom entries
+      this._takes.set([]);
     }
     this._currentTakeIndex.set(0);
   }
@@ -450,14 +318,8 @@ export class StudioStore {
     );
   }
 
-  /** Limpia el store y también el storage persistente. */
-  async clear(): Promise<void> {
-    this.resetStudio();
-    this._lastInjections.set({});
-    await Promise.all([this.storage.delete('studio'), this.storage.delete('assets')]);
-  }
-
   resetStudio(): void {
+    this._isReady.set(false);
     this._projectId.set(null);
     this._projectName.set('');
     this._chapterName.set('');
@@ -488,6 +350,7 @@ export class StudioStore {
     this._sceneCharacterIds.set(new Set());
     this._sceneCharacterData.set([]);
     this._sceneAssetIds.set(new Set());
+    this._assignmentsLoaded.set(false);
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
@@ -651,9 +514,7 @@ export class StudioStore {
       new Set([...(assignments.presets ?? [])].map((a: any) => a.preset_id).filter(Boolean)),
     );
     const chars = assignments.characters ?? [];
-    this._sceneCharacterIds.set(
-      new Set(chars.map((a: any) => a.character_id).filter(Boolean)),
-    );
+    this._sceneCharacterIds.set(new Set(chars.map((a: any) => a.character_id).filter(Boolean)));
     this._sceneCharacterData.set(
       chars
         .filter((a: any) => a.character_id && a.name)
@@ -678,7 +539,9 @@ export class StudioStore {
         slot: 'free' as const,
       }));
     this.replaceFreeAssets(freeAssets);
+    this._assignmentsLoaded.set(true);
   }
+
   // ── Clip reuse ───────────────────────────────────────────────────
 
   reuseClip(clipId: string) {

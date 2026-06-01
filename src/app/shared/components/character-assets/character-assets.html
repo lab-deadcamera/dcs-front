@@ -252,10 +252,11 @@
         </p>
 
         <!--
-          ▸ MY LIBRARY quick-pick — every already-created character / location
-          / prop shown as a clickable tile. Tap to drop the @asset_name token
-          into the prompt without leaving the studio; tap again to remove it.
+          ▸ MY LIBRARY quick-pick — only rendered when the scene has
+          assigned characters/assets. If assignments have been loaded
+          and the set is empty, the entire section is hidden.
         -->
+        @if (!libraryEmpty()) {
         <div class="mt-4 border-t border-ink-700 pt-3">
           <div class="mb-2 flex items-end justify-between gap-3">
             <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-primary-500">
@@ -344,11 +345,6 @@
                       </span>
                     }
                   </button>
-                  <!--
-                    Hide from quick-pick — view-only, does NOT delete the
-                    asset from the Characters library. Sibling of the pick
-                    button so we never nest <button> elements.
-                  -->
                   <button
                     type="button"
                     class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity hover:text-primary-500 group-hover:opacity-100 focus:opacity-100"
@@ -374,6 +370,7 @@
             </button>
           }
         </div>
+        }
       </div>
     }
   </div>

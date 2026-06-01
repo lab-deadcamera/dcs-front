@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.studio-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--surface-ground) 60%, transparent);
+  flex-wrap: wrap;
+}
+
+.studio-bcrumb-segment {
+  display: flex;
+  align-items: center;
+}
+
+.studio-bcrumb-segment.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.studio-bcrumb-sep {
+  margin: 0 4px;
+  font-size: 16px;
+  color: var(--text-color-secondary);
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.studio-bcrumb-placeholder,
+.studio-bcrumb-loading {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-color-secondary);
+  white-space: nowrap;
+}
+
+.studio-bcrumb-loading {
+  font-style: italic;
+}
+
+/* Styled p-select to look like a breadcrumb button */
+.studio-bcrumb-select {
+  display: inline-flex;
+}
+.studio-bcrumb-select .p-select {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 6px !important;
+  border-radius: 4px;
+  transition: background 0.12s;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+.studio-bcrumb-select .p-select:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent) !important;
+}
+.studio-bcrumb-select .p-select-label {
+  padding: 0 !important;
+  font-size: 12px;
+  font-weight: 500;
+}
+.studio-bcrumb-select .p-select-dropdown {
+  display: none;
+}
+
+/* New shot button */
+.studio-bcrumb-shot-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+  color: var(--primary-400);
+  background: transparent;
+  border: 1px dashed var(--primary-400);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.studio-bcrumb-shot-new:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-400) 10%, transparent);
+  border-color: var(--primary-500);
+}
+.studio-bcrumb-shot-new:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: var(--text-color-secondary);
+  color: var(--text-color-secondary);
+}
+
+:host ::ng-deep .p-select {
+  border: none;
+}

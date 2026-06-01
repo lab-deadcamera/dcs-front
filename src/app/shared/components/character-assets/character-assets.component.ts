@@ -108,8 +108,21 @@ export class CharacterAssetsComponent {
     { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi-box' },
   ];
 
+  /** True when scene assignments have been loaded and the set is empty. */
+  protected readonly libraryEmpty = computed(
+    () => this.studio.assignmentsLoaded() && this.studio.sceneCharacterIds().size === 0,
+  );
+
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
     const assignedIds = this.studio.sceneCharacterIds();
+
+    // If assignments have been loaded and the set is empty, the scene has
+    // no related characters — show nothing rather than dumping the whole
+    // library.
+    if (this.libraryEmpty()) {
+      return { character: [], location: [], prop: [] };
+    }
+
     const buckets: Record<AssetType, LibraryItem[]> = { character: [], location: [], prop: [] };
     const seenIds = new Set<string>();
     for (const item of this.chars.items()) {

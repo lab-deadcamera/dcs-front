@@ -4,7 +4,6 @@ import { environment } from '@environment/environment';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   effect,
   inject,
   input,
@@ -17,15 +16,18 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { SessionStore } from '@app/core/stores/session.store';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
-import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interfaces';
+import { Project, Scene } from '@modules/projects/projects/interfaces';
 
 /**
  * Entry gate: blocks the studio until the user has selected a project,
- * chapter, scene, and shot. The user's nickname is shown as read-only.
+ * episode (chapter), and scene. The user must also provide a name for
+ * the new shot, which is created on submit.
  *
  * Admins (role level <= 1) may close the dialog without configuring a
  * session; regular users must complete the form to proceed.
@@ -40,6 +42,7 @@ import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interf
     ButtonModule,
     InputTextModule,
     SelectModule,
+    ToastModule,
     ValidatorErrors,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -101,29 +104,29 @@ import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interf
         </div>
 
         <div class="flex flex-col gap-1">
-          <label for="session-gate-chapter" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Chapter
+          <label for="session-gate-episode" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            Episode
           </label>
           @if (!form.get('projectId')?.value) {
             <p class="text-[12px] italic text-fg-muted">Select a project first.</p>
           } @else if (loadingChapters()) {
-            <p class="text-[12px] italic text-fg-muted">Loading chapters…</p>
+            <p class="text-[12px] italic text-fg-muted">Loading episodes…</p>
           } @else {
             <p-select
-              inputId="session-gate-chapter"
+              inputId="session-gate-episode"
               formControlName="chapterId"
               appendTo="body"
               [options]="chapters()"
               optionLabel="label"
               optionValue="id"
-              [placeholder]="'Select a chapter'"
+              [placeholder]="'Select an episode'"
               [showClear]="true"
               styleClass="w-full"
-              data-testid="session-gate-chapter"
+              data-testid="session-gate-episode"
               (onChange)="onChapterChange($event.value)"
             />
           }
-          <validator-errors [control]="form.get('chapterId')" [label]="'Chapter'" />
+          <validator-errors [control]="form.get('chapterId')" [label]="'Episode'" />
         </div>
 
         <div class="flex flex-col gap-1">
@@ -131,7 +134,7 @@ import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interf
             Scene
           </label>
           @if (!form.get('chapterId')?.value) {
-            <p class="text-[12px] italic text-fg-muted">Select a chapter first.</p>
+            <p class="text-[12px] italic text-fg-muted">Select an episode first.</p>
           } @else if (loadingScenes()) {
             <p class="text-[12px] italic text-fg-muted">Loading scenes…</p>
           } @else {
@@ -153,41 +156,28 @@ import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interf
         </div>
 
         <div class="flex flex-col gap-1">
-          <label for="session-gate-shot" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Shot
+          <label for="session-gate-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            Shot name
           </label>
-          @if (!form.get('sceneId')?.value) {
-            <p class="text-[12px] italic text-fg-muted">Select a scene first.</p>
-          } @else if (loadingShots()) {
-            <p class="text-[12px] italic text-fg-muted">Loading shots…</p>
-          } @else {
-            <p-select
-              inputId="session-gate-shot"
-              formControlName="shotId"
-              appendTo="body"
-              [options]="shots()"
-              optionLabel="label"
-              optionValue="id"
-              [placeholder]="'Select a shot'"
-              [showClear]="true"
-              styleClass="w-full"
-              data-testid="session-gate-shot"
-              (onChange)="onShotChange($event.value)"
-            />
-          }
-          <validator-errors [control]="form.get('shotId')" [label]="'Shot'" />
+          <input
+            id="session-gate-shot-name"
+            pInputText
+            formControlName="shotName"
+            placeholder="e.g. Master wide, Close-up, …
+"
+            class="w-full"
+            data-testid="session-gate-shot-name"
+          />
+          <p class="text-[10px] italic text-fg-muted">
+            Give your shot a descriptive name. A new shot will be created for this scene.
+          </p>
+          <validator-errors [control]="form.get('shotName')" [label]="'Shot name'" />
         </div>
 
-        @if (selectedShot()) {
+        @if (selectedScene()) {
           <div class="rounded border p-3 text-[12px]" style="border-color: var(--border-color);">
             <span class="font-semibold">Scene:</span>
             SC{{ selectedScene()!.number | number: '2.0' }} — {{ selectedScene()!.name }}
-            <br />
-            <span class="font-semibold">Shot:</span>
-            S{{ selectedShot()!.number | number: '2.0' }} — {{ selectedShot()!.name }}
-            <br />
-            <span class="font-semibold">Takes:</span>
-            {{ takesLen() }} take{{ takesLen() !== 1 ? 's' : '' }}
           </div>
         }
       </form>
@@ -208,6 +198,8 @@ import { Chapter, Project, Scene, Take } from '@modules/projects/projects/interf
         </div>
       </ng-template>
     </p-dialog>
+
+    <p-toast position="top-right" />
   `,
 })
 export class SessionGateDialogComponent {
@@ -227,36 +219,26 @@ export class SessionGateDialogComponent {
    */
   readonly adminClosable = input(false);
 
+  private readonly toast = inject(MessageService);
+
   // Local state for pickers
   protected readonly projects = signal<Project[]>([]);
   protected readonly chapters = signal<{ id: string; number: number; name: string; label: string }[]>([]);
   protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>([]);
-  protected readonly shots = signal<{ id: string; number: number; name: string; label: string }[]>([]);
-  protected readonly takes = signal<Take[]>([]);
   protected readonly loadingProjects = signal(false);
   protected readonly loadingChapters = signal(false);
   protected readonly loadingScenes = signal(false);
-  protected readonly loadingShots = signal(false);
   protected readonly submitting = signal(false);
   protected readonly user = this.sessionStore.user;
 
-  protected readonly takesLen = computed(() => {
-    const takeMap: Map<number, number> = new Map();
-    this.takes().forEach((take) => {
-      takeMap.set(take.number, (takeMap.get(take.number) || 0) + 1);
-    });
-    return takeMap.size;
-  });
-
   /** Derived scene object for the info panel. */
   protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(null);
-  protected readonly selectedShot = signal<{ id: string; number: number; name: string } | null>(null);
 
   protected readonly form: FormGroup = this.fb.group({
     projectId: [null, [Validators.required]],
     chapterId: [null, [Validators.required]],
     sceneId: [null, [Validators.required]],
-    shotId: [null, [Validators.required]],
+    shotName: ['', [Validators.required, Validators.minLength(2)]],
   });
 
   /**
@@ -268,13 +250,10 @@ export class SessionGateDialogComponent {
       projectId: null,
       chapterId: null,
       sceneId: null,
-      shotId: null,
+      shotName: '',
     });
     this.selectedScene.set(null);
-    this.selectedShot.set(null);
-    this.takes.set([]);
     this.scenes.set([]);
-    this.shots.set([]);
     this.chapters.set([]);
     this.loadProjects();
   });
@@ -283,25 +262,19 @@ export class SessionGateDialogComponent {
   protected onProjectChange(projectId: string | null): void {
     this.chapters.set([]);
     this.scenes.set([]);
-    this.shots.set([]);
-    this.takes.set([]);
     this.selectedScene.set(null);
-    this.selectedShot.set(null);
-    this.form.patchValue({ chapterId: null, sceneId: null, shotId: null }, { emitEvent: false });
+    this.form.patchValue({ chapterId: null, sceneId: null }, { emitEvent: false });
     if (projectId) {
       this.loadChapters(projectId);
     }
   }
 
-  /** Called when the user picks a chapter. */
+  /** Called when the user picks an episode. */
   protected onChapterChange(chapterId: string | null): void {
     const projectId: string | null = this.form.get('projectId')?.value;
     this.scenes.set([]);
-    this.shots.set([]);
-    this.takes.set([]);
     this.selectedScene.set(null);
-    this.selectedShot.set(null);
-    this.form.patchValue({ sceneId: null, shotId: null }, { emitEvent: false });
+    this.form.patchValue({ sceneId: null }, { emitEvent: false });
     if (chapterId && projectId) {
       this.loadScenes(projectId, chapterId);
     }
@@ -311,10 +284,7 @@ export class SessionGateDialogComponent {
   protected onSceneChange(sceneId: string | null): void {
     const projectId: string | null = this.form.get('projectId')?.value;
     const chapterId: string | null = this.form.get('chapterId')?.value;
-    this.shots.set([]);
-    this.takes.set([]);
-    this.selectedShot.set(null);
-    this.form.patchValue({ shotId: null }, { emitEvent: false });
+    this.form.patchValue({ shotName: '' }, { emitEvent: false });
     if (!sceneId || !projectId || !chapterId) {
       this.selectedScene.set(null);
       return;
@@ -323,23 +293,6 @@ export class SessionGateDialogComponent {
     if (scene) {
       this.selectedScene.set({ id: scene.id, number: scene.number, name: scene.name });
     }
-    this.loadShots(projectId, chapterId, sceneId);
-  }
-
-  protected onShotChange(shotId: string | null): void {
-    const projectId: string | null = this.form.get('projectId')?.value;
-    const chapterId: string | null = this.form.get('chapterId')?.value;
-    const sceneId: string | null = this.form.get('sceneId')?.value;
-    this.takes.set([]);
-    if (!shotId || !projectId || !chapterId || !sceneId) {
-      this.selectedShot.set(null);
-      return;
-    }
-    const shot = this.shots().find((s) => s.id === shotId);
-    if (shot) {
-      this.selectedShot.set({ id: shot.id, number: shot.number, name: shot.name });
-    }
-    this.loadTakes(projectId, chapterId, sceneId, shotId);
   }
 
   protected loadProjects(): void {
@@ -362,7 +315,7 @@ export class SessionGateDialogComponent {
             id: c.id,
             number: c.number,
             name: c.name,
-            label: `CH${String(c.number).padStart(2, '0')} — ${c.name}`,
+            label: `EP${String(c.number).padStart(2, '0')} — ${c.name}`,
           })),
         );
       }
@@ -387,33 +340,6 @@ export class SessionGateDialogComponent {
     });
   }
 
-  protected loadShots(projectId: string, chapterId: string, sceneId: string): void {
-    this.loadingShots.set(true);
-    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
-      this.loadingShots.set(false);
-      if (!res.error && res.data) {
-        this.shots.set(
-          res.data.map((sh) => ({
-            id: sh.id,
-            number: sh.number,
-            name: sh.name,
-            label: `S${String(sh.number).padStart(2, '0')} — ${sh.name}`,
-          })),
-        );
-      }
-    });
-  }
-
-  protected loadTakes(projectId: string, chapterId: string, sceneId: string, shotId: string): void {
-    this.projectsApi.listTakes(projectId, chapterId, sceneId, shotId).subscribe((res) => {
-      if (!res.error && res.data) {
-        this.takes.set(res.data);
-      } else {
-        this.takes.set([]);
-      }
-    });
-  }
-
   protected close(): void {
     this.visibleChange.emit(false);
   }
@@ -434,12 +360,11 @@ export class SessionGateDialogComponent {
       projectId: string;
       chapterId: string;
       sceneId: string;
-      shotId: string;
+      shotName: string;
     };
 
     const scene = this.selectedScene();
-    const shot = this.selectedShot();
-    if (!scene || !shot) return;
+    if (!scene) return;
 
     const currentUser = this.sessionStore.user();
     const handle = currentUser?.handle || currentUser?.email || 'anonymous';
@@ -448,43 +373,71 @@ export class SessionGateDialogComponent {
     const chapter = this.chapters().find((c) => c.id === raw.chapterId);
 
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
-    const totalTakes = Math.max(1, this.takes().length);
 
     this.submitting.set(true);
-    this.studio.initStudioSession({
-      projectId: raw.projectId,
-      chapterId: raw.chapterId,
-      shotId: raw.shotId,
-      sceneId: raw.sceneId,
-      sceneCode,
-      projectName: project?.name,
-      chapterName: chapter?.name,
-      sceneName: scene.name,
-      shotName: shot.name,
-      userHandle: handle,
-      totalTakes,
-      backendTakes: this.takes(),
-    });
 
-    this.sessionStore.initSession({
-      email: currentUser?.email ?? '',
-      handle,
-    });
-    // Load scene assignments for filtering
-    this.http
-      .get<{
-        data: any;
-      }>(`${this.environment.API_URL}/projects/${raw.projectId}/chapters/${raw.chapterId}/scenes/${raw.sceneId}/assignments`)
-      .subscribe({
-        next: (res) => {
-          if (res.data) this.studio.setSceneAssignments(res.data);
-        },
-        error: () => {
-          /* assignments not critical */
-        },
+    // 1. First, load existing shots to determine the next shot number
+    this.projectsApi.listShots(raw.projectId, raw.chapterId, raw.sceneId).subscribe((shotsRes) => {
+      const existingShots = (shotsRes.error || !shotsRes.data) ? [] : shotsRes.data;
+      const nextShotNumber = existingShots.length > 0
+        ? Math.max(...existingShots.map((s) => s.number)) + 1
+        : 1;
+
+      // 2. Create the new shot
+      this.projectsApi.createShot(raw.projectId, raw.chapterId, raw.sceneId, {
+        number: nextShotNumber,
+        name: raw.shotName.trim(),
+      }).subscribe((shotRes) => {
+        if (shotRes.error || !shotRes.data) {
+          this.toast?.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: shotRes.msg || 'Failed to create shot',
+          });
+          this.submitting.set(false);
+          return;
+        }
+
+        const newShot = shotRes.data;
+
+        // 3. Init studio session with the newly created shot
+        this.studio.initStudioSession({
+          projectId: raw.projectId,
+          chapterId: raw.chapterId,
+          shotId: newShot.id,
+          sceneId: raw.sceneId,
+          sceneCode,
+          projectName: project?.name,
+          chapterName: chapter?.name,
+          sceneName: scene.name,
+          shotName: newShot.name,
+          userHandle: handle,
+          totalTakes: 5,
+          backendTakes: [],
+        });
+
+        this.sessionStore.initSession({
+          email: currentUser?.email ?? '',
+          handle,
+        });
+
+        // 4. Load scene assignments
+        this.http
+          .get<{ data: any }>(
+            `${this.environment.API_URL}/projects/${raw.projectId}/chapters/${raw.chapterId}/scenes/${raw.sceneId}/assignments`,
+          )
+          .subscribe({
+            next: (res) => {
+              if (res.data) this.studio.setSceneAssignments(res.data);
+            },
+            error: () => {
+              /* assignments not critical */
+            },
+          });
+
+        this.submitting.set(false);
+        this.visibleChange.emit(false);
       });
-
-    this.submitting.set(false);
-    this.visibleChange.emit(false);
+    });
   }
 }

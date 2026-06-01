@@ -154,7 +154,7 @@ export class TakesReviewComponent implements OnInit {
         this.shots.set(
           res.data.map((sh) => ({
             id: sh.id,
-            label: `S${String(sh.number).padStart(2, '0')} — ${sh.name}`,
+            label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
           })),
         );
       }

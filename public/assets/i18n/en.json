@@ -443,9 +443,17 @@
       "CREATE_TITLE": "New Project",
       "EDIT_TITLE": "Edit Project"
     },
+    "CHAPTER_DIALOG": {
+      "CREATE_TITLE": "New Episode",
+      "EDIT_TITLE": "Edit Episode"
+    },
     "SCENE_DIALOG": {
       "CREATE_TITLE": "New Scene",
       "EDIT_TITLE": "Edit Scene"
+    },
+    "SHOT_DIALOG": {
+      "CREATE_TITLE": "New Shot",
+      "EDIT_TITLE": "Edit Shot"
     },
     "TAKE_DIALOG": {
       "CREATE_TITLE": "New Take",
@@ -454,7 +462,9 @@
     "FIELDS": {
       "NAME": "Name",
       "DESCRIPTION": "Description",
+      "CHAPTER_NUMBER": "Episode #",
       "SCENE_NUMBER": "Scene #",
+      "SHOT_NUMBER": "Shot #",
       "TAKE_NUMBER": "Take #"
     }
   },
