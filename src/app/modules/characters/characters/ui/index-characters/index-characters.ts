@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   OnInit,
+  Output,
   computed,
   inject,
   output,
@@ -28,6 +30,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /**
  * Characters library — typed asset board.
@@ -51,6 +54,7 @@ import { FilesApiService } from '@app/services';
     CharacterFormDialogComponent,
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
+    SourceThumbnailAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -58,6 +62,8 @@ import { FilesApiService } from '@app/services';
   styleUrl: './index-characters.css',
 })
 export class IndexCharacters implements OnInit {
+  @Output() charactersChanged = new EventEmitter<void>();
+
   protected readonly characters = inject(CharactersService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
@@ -310,6 +316,7 @@ export class IndexCharacters implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Updated' });
       this.editDialogVisible.set(false);
+      this.charactersChanged.emit();
       this.fetchPreviewFor(evt.id);
     });
   }
@@ -330,6 +337,7 @@ export class IndexCharacters implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Created' });
       this.editDialogVisible.set(false);
+      this.charactersChanged.emit();
     });
   }
 

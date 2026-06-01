@@ -15,6 +15,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FilesService } from '../../services';
 import { FileCategory, FileEntity, UploadParams } from '../../interfaces';
 import { FileLinkDialogComponent } from '../components/file-link-dialog/file-link-dialog.component';
+import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
+import { DialogModule } from 'primeng/dialog';
+import { JsonPipe } from '@angular/common';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 type ViewTab = FileCategory | 'trash';
 
@@ -35,8 +39,12 @@ type ViewTab = FileCategory | 'trash';
     ButtonModule,
     ConfirmDialogModule,
     TabsModule,
+    SourceAssetPipe,
+    SourceThumbnailAssetPipe,
     ToastModule,
     FileLinkDialogComponent,
+    IndexCharacters,
+    DialogModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -51,14 +59,16 @@ export class IndexFiles implements OnInit {
   protected readonly tabs: { id: ViewTab; labelKey: string; icon: string }[] = [
     { id: 'images', labelKey: 'FILES.TABS.IMAGES', icon: 'pi pi-image' },
     { id: 'videos', labelKey: 'FILES.TABS.VIDEOS', icon: 'pi pi-video' },
-    { id: 'audio',  labelKey: 'FILES.TABS.AUDIO',  icon: 'pi pi-volume-up' },
-    { id: 'temp',   labelKey: 'FILES.TABS.TEMP',   icon: 'pi pi-clock' },
-    { id: 'trash',  labelKey: 'FILES.TABS.TRASH',  icon: 'pi pi-trash' },
+    { id: 'audio', labelKey: 'FILES.TABS.AUDIO', icon: 'pi pi-volume-up' },
+    { id: 'temp', labelKey: 'FILES.TABS.TEMP', icon: 'pi pi-clock' },
+    { id: 'trash', labelKey: 'FILES.TABS.TRASH', icon: 'pi pi-trash' },
   ];
 
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly uploading = signal(false);
   protected readonly linkDialogVisible = signal(false);
+  protected readonly characterDialogVisible = signal(false);
+
   protected readonly linkDialogTarget = signal<FileEntity | null>(null);
 
   protected readonly active = computed<ViewTab>(() => this.files.category());
@@ -116,8 +126,7 @@ export class IndexFiles implements OnInit {
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () =>
-        this.files.delete(file.id).subscribe((res) => this.notify(res)),
+      accept: () => this.files.delete(file.id).subscribe((res) => this.notify(res)),
     });
   }
 
@@ -132,8 +141,7 @@ export class IndexFiles implements OnInit {
       acceptLabel: 'Delete forever',
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () =>
-        this.files.hardDelete(file.id).subscribe((res) => this.notify(res)),
+      accept: () => this.files.hardDelete(file.id).subscribe((res) => this.notify(res)),
     });
   }
 
@@ -142,9 +150,39 @@ export class IndexFiles implements OnInit {
     this.linkDialogVisible.set(true);
   }
 
-  /** Image-mime files render as preview thumbs. */
   protected isImage(file: FileEntity): boolean {
     return file.mimeType.startsWith('image/');
+  }
+
+  protected isVideo(file: FileEntity): boolean {
+    return file.mimeType.startsWith('video/');
+  }
+
+  protected isAudio(file: FileEntity): boolean {
+    return file.mimeType.startsWith('audio/');
+  }
+
+  /**
+   * Toggle play/pause on a video element.
+   * Bound to (click) on the <video> tag in the template.
+   */
+  protected togglePlay(e: Event): void {
+    const video = e.currentTarget as HTMLVideoElement;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+    } else {
+      video.pause();
+    }
+  }
+
+  /**
+   * Log media load errors gracefully — the card will show the broken
+   * placeholder (browser handles missing source silently).
+   */
+  protected onMediaError(e: Event): void {
+    const el = e.currentTarget as HTMLMediaElement;
+    console.warn('Media failed to load:', el.src);
   }
 
   protected formatSize(bytes: number): string {

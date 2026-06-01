@@ -4,16 +4,22 @@
       <h1 class="text-2xl font-bold uppercase tracking-[0.06em]">
         {{ 'FILES.TITLE' | translate }}
       </h1>
-      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary);">
+      <p class="mt-1 text-[12px] italic" style="color: var(--text-secondary)">
         {{ 'FILES.HINT' | translate }}
       </p>
     </div>
+    <p-button
+      label="Create Character"
+      icon="pi pi-user-plus"
+      severity="secondary"
+      (onClick)="characterDialogVisible.set(true)"
+    />
   </header>
 
   <!-- Category tabs -->
   <div
     class="mb-4 flex flex-wrap gap-1 border-b"
-    style="border-color: var(--border-color);"
+    style="border-color: var(--border-color)"
     role="tablist"
   >
     @for (t of tabs; track t.id) {
@@ -38,14 +44,15 @@
   @if (!isTrash()) {
     <div
       class="mb-4 flex items-center gap-3 border p-3"
-      style="border-color: var(--border-color); background: var(--surface-bg);"
+      style="border-color: var(--border-color); background: var(--surface-bg)"
     >
       <input
         type="file"
         data-testid="files-upload-input"
         (change)="onFilePick($event)"
+        [accept]="active() === 'images' ? 'image/*' : active() === 'videos' ? 'video/*' : 'audio/*'"
         class="text-[12px]"
-        style="color: var(--text-secondary);"
+        style="color: var(--text-secondary)"
       />
       <p-button
         [label]="'FILES.UPLOAD' | translate"
@@ -55,7 +62,7 @@
         data-testid="files-upload-submit"
         (onClick)="onUpload()"
       />
-      <span class="ml-auto font-mono text-[11px]" style="color: var(--text-muted);">
+      <span class="ml-auto font-mono text-[11px]" style="color: var(--text-muted)">
         {{ files.count() }} {{ 'FILES.COUNT_SUFFIX' | translate }}
       </span>
     </div>
@@ -63,11 +70,11 @@
 
   <!-- Files grid -->
   @if (files.loading()) {
-    <p class="py-8 text-center italic" style="color: var(--text-muted);">
+    <p class="py-8 text-center italic" style="color: var(--text-muted)">
       {{ 'COMMON.LOADING' | translate }}
     </p>
   } @else if (files.items().length === 0) {
-    <p class="py-12 text-center italic" style="color: var(--text-muted);">
+    <p class="py-12 text-center italic" style="color: var(--text-muted)">
       {{ 'FILES.EMPTY' | translate }}
     </p>
   } @else {
@@ -78,32 +85,67 @@
       @for (f of files.items(); track f.id) {
         <li
           class="flex flex-col border"
-          style="border-color: var(--border-color); background: var(--surface-bg);"
+          style="border-color: var(--border-color); background: var(--surface-bg)"
           [attr.data-testid]="'files-card-' + f.id"
         >
           <!-- Thumbnail -->
           <div
             class="relative aspect-square w-full overflow-hidden"
-            style="background: var(--content-bg);"
+            style="background: var(--content-bg)"
           >
             @if (isImage(f)) {
-              <img
-                [src]="f.url"
-                [alt]="f.filename"
-                class="h-full w-full object-cover"
-                onerror="this.style.display='none'"
-              />
+              @if (active() === 'temp') {
+                <img
+                  [src]="f.id | sourceAsset"
+                  [alt]="f.filename"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  onerror="this.style.display = 'none'"
+                />
+              } @else {
+                <img
+                  [src]="f.id | sourceThumbnailAsset"
+                  [alt]="f.filename"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  onerror="this.style.display = 'none'"
+                />
+              }
+            } @else if (isVideo(f)) {
+              <video
+                [src]="f.id | sourceAsset"
+                class="h-full w-full object-contain"
+                preload="metadata"
+                muted
+                playsinline
+                (click)="togglePlay($event)"
+                (error)="onMediaError($event)"
+              ></video>
+            } @else if (isAudio(f)) {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2">
+                <i class="pi pi-volume-up text-3xl" style="color: var(--text-muted)"></i>
+                <audio
+                  [src]="f.id | sourceAsset"
+                  controls
+                  preload="none"
+                  class="w-full max-w-[180px]"
+                  style="filter: invert(0.8)"
+                  (error)="onMediaError($event)"
+                ></audio>
+              </div>
             } @else {
               <span
                 aria-hidden="true"
                 class="absolute inset-0 flex items-center justify-center text-3xl"
-                style="color: var(--text-muted);"
+                style="color: var(--text-muted)"
               >
                 @switch (f.category) {
-                  @case ('videos') { <i class="pi pi-video"></i> }
-                  @case ('audio')  { <i class="pi pi-volume-up"></i> }
-                  @case ('temp')   { <i class="pi pi-clock"></i> }
-                  @default         { <i class="pi pi-file"></i> }
+                  @case ('temp') {
+                    <i class="pi pi-clock"></i>
+                  }
+                  @default {
+                    <i class="pi pi-file"></i>
+                  }
                 }
               </span>
             }
@@ -114,14 +156,11 @@
             <p
               class="truncate font-mono text-[11px]"
               [title]="f.filename"
-              style="color: var(--text-primary);"
+              style="color: var(--text-primary)"
             >
               {{ f.filename }}
             </p>
-            <p
-              class="font-mono text-[10px]"
-              style="color: var(--text-muted);"
-            >
+            <p class="font-mono text-[10px]" style="color: var(--text-muted)">
               {{ f.mimeType }} · {{ formatSize(f.size) }}
             </p>
           </div>
@@ -129,7 +168,7 @@
           <!-- Actions -->
           <div
             class="flex items-center justify-end gap-1 border-t px-1 py-1"
-            style="border-color: var(--border-color);"
+            style="border-color: var(--border-color)"
           >
             @if (!isTrash()) {
               <p-button
@@ -183,5 +222,16 @@
   />
 
   <p-confirmDialog />
-  <p-toast position="bottom-right" />
 </section>
+
+<p-toast position="bottom-right" />
+<p-dialog
+  [(visible)]="characterDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  header="Characters"
+>
+  <app-index-characters />
+</p-dialog>

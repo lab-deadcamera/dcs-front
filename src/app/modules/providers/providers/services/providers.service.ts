@@ -142,4 +142,34 @@ export class ProvidersService {
       }),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // CSV Export / Import
+  // ---------------------------------------------------------------------------
+
+  exportCSV(): void {
+    this.api.exportCSV().subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'providers.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  importCSV(
+    file: File,
+  ): Observable<{ error: boolean; msg: string; data?: { providers_created: number; models_created: number; models_updated: number; errors?: string[] } }> {
+    this._loading.set(true);
+    return this.api.importCSV(file).pipe(
+      tap((res) => {
+        if (!res.error) {
+          // Reload the full list after import.
+          this.load().subscribe();
+        }
+        this._loading.set(false);
+      }),
+    );
+  }
 }

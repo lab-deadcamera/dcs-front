@@ -35,6 +35,8 @@ export interface Take {
   video_url?: string;
   /** Whether this take is the active one for its scene+number. */
   active?: boolean;
+
+  number: number;
 }
 
 /**
@@ -76,12 +78,14 @@ export interface LoginResponse {
 /** Backend Take record shape from the projects API. */
 export interface BackendTake {
   id: string;
-  scene_id: string;
+  shot_id: string;
   number: number;
   video_url: string;
   video_local_url: string;
   status: string;
   active: boolean;
+  final: boolean;
+  finalized_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

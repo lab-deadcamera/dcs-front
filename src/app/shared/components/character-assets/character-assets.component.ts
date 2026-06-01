@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -15,6 +22,7 @@ import { CharactersService } from '@modules/characters/characters/services';
 import { AssetType, CharacterMetadata } from '@modules/characters/characters/interfaces';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes';
+import { FileCategory } from '@app/core/interfaces';
 
 interface LibraryItem {
   id: string;
@@ -66,7 +74,6 @@ export class CharacterAssetsComponent {
    */
   readonly assetPicked = output<UsedAssetKind>();
 
-
   /**
    * Whether the "Image Generation" band acts as an open disclosure — its
    * body mounts <app-image-gen-panel> only when expanded. Defaults to
@@ -108,9 +115,26 @@ export class CharacterAssetsComponent {
     { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi-box' },
   ];
 
+  /** True when scene assignments have been loaded and the set is empty. */
+  protected readonly libraryEmpty = computed(
+    () => this.studio.assignmentsLoaded() && this.studio.sceneCharacterIds().size === 0,
+  );
+
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
+    const assignedIds = this.studio.sceneCharacterIds();
+
+    // If assignments have been loaded and the set is empty, the scene has
+    // no related characters — show nothing rather than dumping the whole
+    // library.
+    if (this.libraryEmpty()) {
+      return { character: [], location: [], prop: [] };
+    }
+
     const buckets: Record<AssetType, LibraryItem[]> = { character: [], location: [], prop: [] };
+    const seenIds = new Set<string>();
     for (const item of this.chars.items()) {
+      if (assignedIds.size > 0 && !assignedIds.has(item.character.id)) continue;
+      seenIds.add(item.character.id);
       let metadata: CharacterMetadata = {};
       try {
         metadata = item.character.metadata ? JSON.parse(item.character.metadata) : {};
@@ -134,6 +158,20 @@ export class CharacterAssetsComponent {
         fileKind: resolveUsedKind(metadata.fileKind),
       });
     }
+    // When assignments exist, include assigned characters that are not yet
+    // in the local CharactersService (e.g. created via a different flow).
+    if (assignedIds.size > 0) {
+      for (const c of this.studio.sceneCharacterData()) {
+        if (seenIds.has(c.id)) continue;
+        buckets.character.push({
+          id: c.id,
+          name: c.name,
+          files: [],
+          firstFile: null,
+          fileKind: 'image',
+        });
+      }
+    }
     return buckets;
   });
 
@@ -146,9 +184,7 @@ export class CharacterAssetsComponent {
 
   protected readonly visibleLibrary = computed(() => {
     const hidden = this.hiddenIds();
-    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter(
-      (a) => !hidden.has(a.id),
-    );
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) => !hidden.has(a.id));
   });
 
   /** Counts reflect what's actually shown (hidden items excluded). */
@@ -162,9 +198,8 @@ export class CharacterAssetsComponent {
   /** How many items are hidden in the active tab — drives the "show hidden" link. */
   protected readonly hiddenInActiveTab = computed(() => {
     const hidden = this.hiddenIds();
-    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) =>
-      hidden.has(a.id),
-    ).length;
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) => hidden.has(a.id))
+      .length;
   });
 
   protected readonly usedAssetIds = computed(
@@ -314,14 +349,16 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.studio.setFirstFrame({
+      const asset: ReferenceAsset = {
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
         thumbnailUrl: this.filesApi.serveUrl(up.data.id),
         tag: '',
         slot: 'first-frame',
-      });
+      };
+      this.studio.setFirstFrame(asset);
+      this.onPickFreeAsset(asset);
     });
   }
 
@@ -333,20 +370,38 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.studio.setLastFrame({
+      const asset: ReferenceAsset = {
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
         thumbnailUrl: this.filesApi.serveUrl(up.data.id),
         tag: '',
         slot: 'last-frame',
-      });
+      };
+      this.studio.setLastFrame(asset);
+      this.onPickFreeAsset(asset);
     });
   }
 
   protected onFreeAssets(files: File[]) {
     for (const f of files) {
-      this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
+      let category: FileCategory = 'images';
+      if (f.type.startsWith('video/')) {
+        category = 'videos';
+      } else if (f.type.startsWith('audio/')) {
+        category = 'audio';
+      } else if (f.type.startsWith('image/')) {
+        category = 'images';
+      } else {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'Unsupported file type',
+          detail: 'Please upload an image, audio or video',
+        });
+        continue;
+      }
+
+      this.filesApi.upload({ file: f, category, storage: 'temp' }).subscribe((up) => {
         if (up.error || !up.data) {
           this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
           return;

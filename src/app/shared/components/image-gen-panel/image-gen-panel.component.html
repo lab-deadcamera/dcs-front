@@ -1,0 +1,383 @@
+<div class="flex flex-col gap-2.5">
+  <!--
+        Controls bar — Model | Aspect Ratio | Resolution on one row so
+        the panel stays short. Each chip carries its own accent so the
+        block reads as a colored toolbar rather than a stack of selects.
+      -->
+  <div class="flex flex-wrap items-stretch gap-2">
+    <!-- Model selector (grows) -->
+    <div class="flex min-w-[160px] flex-1 flex-col gap-1">
+      <label
+        class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-500"
+      >
+        <i class="pi pi-sparkles text-[10px]"></i> Model
+      </label>
+      @if (imageModels().length > 0) {
+        <p-select
+          [options]="imageModels()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="selectedModelId()"
+          (ngModelChange)="onModelChange($event)"
+          styleClass="w-full image-gen-select"
+        />
+      } @else if (loading()) {
+        <p class="text-[11px] italic text-fg-muted">Loading models…</p>
+      } @else {
+        <p class="text-[11px] text-fg-muted">No image models available.</p>
+      }
+    </div>
+
+    <!-- Aspect ratio chip -->
+    <div class="flex flex-col gap-1">
+      <label
+        class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500"
+      >
+        <i class="pi pi-clone text-[10px]"></i> Ratio
+      </label>
+      <button
+        type="button"
+        class="group relative flex h-[38px] items-center gap-2 overflow-hidden rounded-md border border-secondary-500/40 bg-gradient-to-br from-secondary-500/15 to-secondary-500/5 px-3 text-[12px] font-bold text-secondary-500 transition-all hover:border-secondary-500 hover:from-secondary-500/30 hover:to-secondary-500/10 focus:outline-none focus:ring-2 focus:ring-secondary-500/40"
+        (click)="ratioPop.toggle($event)"
+        data-testid="image-gen-ratio-toggle"
+      >
+        <span
+          aria-hidden="true"
+          class="inline-block rounded-sm border border-secondary-500/60 bg-secondary-500/30"
+          [style.width.px]="ratioPreview().w"
+          [style.height.px]="ratioPreview().h"
+        ></span>
+        <span class="font-mono tracking-wide">{{ selectedRatio() }}</span>
+        <i
+          class="pi pi-angle-down text-[10px] opacity-70 transition-transform group-hover:translate-y-0.5"
+        ></i>
+      </button>
+    </div>
+
+    <!-- Resolution chip -->
+    <div class="flex flex-col gap-1">
+      <label
+        class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500"
+      >
+        <i class="pi pi-th-large text-[10px]"></i> Quality
+      </label>
+      <button
+        type="button"
+        class="group relative flex h-[38px] items-center gap-2 overflow-hidden rounded-md border border-accent-500/40 bg-gradient-to-br from-accent-500/15 to-accent-500/5 px-3 text-[12px] font-bold text-accent-500 transition-all hover:border-accent-500 hover:from-accent-500/30 hover:to-accent-500/10 focus:outline-none focus:ring-2 focus:ring-accent-500/40"
+        (click)="resPop.toggle($event)"
+        data-testid="image-gen-resolution-toggle"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-5 w-5 items-center justify-center rounded-sm bg-accent-500/20 font-mono text-[9px] font-extrabold leading-none"
+          >★</span
+        >
+        <span class="font-mono tracking-wider">{{ selectedResolution() }}</span>
+        <i
+          class="pi pi-angle-down text-[10px] opacity-70 transition-transform group-hover:translate-y-0.5"
+        ></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Ratio popover — every aspect ratio supported by the model -->
+  <p-popover #ratioPop [dismissable]="true">
+    <div class="w-72 p-2">
+      <p
+        class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500"
+      >
+        <i class="pi pi-clone text-[10px]"></i> Aspect Ratio
+      </p>
+      <ul class="grid grid-cols-4 gap-1.5">
+        @for (r of ratioOptions; track r.value) {
+          <li>
+            <button
+              type="button"
+              class="flex h-16 w-full flex-col items-center justify-center gap-1 rounded-md border transition-all hover:scale-[1.03] focus:outline-none"
+              [class]="
+                selectedRatio() === r.value
+                  ? 'border-secondary-500 bg-gradient-to-br from-secondary-500/25 to-secondary-500/5 text-secondary-500 shadow-[0_0_12px_rgba(0,0,0,0.4)]'
+                  : 'border-ink-600 bg-ink-900 text-fg-muted hover:border-secondary-500/60 hover:text-secondary-500'
+              "
+              (click)="onPickRatio(r.value); ratioPop.hide()"
+              [attr.aria-pressed]="selectedRatio() === r.value"
+              [attr.aria-label]="'Aspect ratio ' + r.value"
+              [attr.data-testid]="'image-gen-ratio-' + r.value"
+            >
+              <span
+                aria-hidden="true"
+                class="inline-block rounded-sm border"
+                [class.border-secondary-500]="selectedRatio() === r.value"
+                [class.bg-secondary-500]="selectedRatio() === r.value"
+                [class.border-fg-muted]="selectedRatio() !== r.value"
+                [class.bg-fg-muted]="selectedRatio() !== r.value"
+                [style.width.px]="r.w"
+                [style.height.px]="r.h"
+              ></span>
+              <span class="font-mono text-[10px] font-bold">{{ r.value }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </p-popover>
+
+  <!-- Resolution popover — 1K / 2K / 4K tiers -->
+  <p-popover #resPop [dismissable]="true">
+    <div class="w-56 p-2">
+      <p
+        class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500"
+      >
+        <i class="pi pi-th-large text-[10px]"></i> Quality
+      </p>
+      <ul class="grid grid-cols-3 gap-1.5">
+        @for (r of resolutionOptions; track r.value) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full flex-col items-center justify-center gap-0.5 rounded-md border px-2 py-2.5 transition-all hover:scale-[1.04] focus:outline-none"
+              [class]="
+                selectedResolution() === r.value
+                  ? 'border-accent-500 bg-gradient-to-br from-accent-500/30 to-accent-500/5 text-accent-500 shadow-[0_0_12px_rgba(0,0,0,0.4)]'
+                  : 'border-ink-600 bg-ink-900 text-fg-muted hover:border-accent-500/60 hover:text-accent-500'
+              "
+              (click)="onPickResolution(r.value); resPop.hide()"
+              [attr.aria-pressed]="selectedResolution() === r.value"
+              [attr.data-testid]="'image-gen-resolution-' + r.value"
+            >
+              <span class="font-mono text-[15px] font-extrabold leading-none">{{ r.value }}</span>
+              <span class="text-[9px] italic opacity-80">{{ r.hint }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </p-popover>
+
+  <!--
+        References strip — inline, single row, scrolls horizontally so
+        the panel never grows tall. The "+" tile shares the row to keep
+        the upload action visually paired with its results.
+      -->
+  <div class="flex items-center gap-2 overflow-x-auto py-1">
+    <span class="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted"
+      >Refs</span
+    >
+    @for (ref of referenceImages(); track ref.id) {
+      <div
+        class="group relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-ink-600"
+      >
+        <img
+          [src]="ref.id | sourceThumbnailAsset"
+          class="h-full w-full object-cover"
+          alt="Reference"
+        />
+        <button
+          type="button"
+          class="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/70 text-[9px] text-white opacity-0 transition-opacity hover:bg-red-500 group-hover:opacity-100"
+          (click)="removeReference(ref.id)"
+        >
+          ✕
+        </button>
+      </div>
+    }
+    <label
+      class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-dashed border-primary-500/50 bg-primary-500/5 text-primary-500 transition-colors hover:border-primary-500 hover:bg-primary-500/15"
+      title="Add reference image"
+    >
+      <i class="pi pi-plus text-[14px]"></i>
+      <input type="file" accept="image/*" class="hidden" (change)="onReferencePicked($event)" />
+    </label>
+  </div>
+
+  <!-- Prompt textarea (2 rows — auto-expands on focus via resize) -->
+  <textarea
+    [ngModel]="prompt()"
+    (ngModelChange)="prompt.set($event)"
+    rows="2"
+    class="w-full resize-y rounded-md border border-ink-600 bg-ink-800 px-3 py-2 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/40"
+    placeholder="Describe the image you want to generate…"
+  ></textarea>
+
+  <!-- Generate CTA — gradient button + optional preview + meta on the same row -->
+  <div class="flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        class="group flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] text-fg-strong shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-red/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+        [disabled]="!canGenerate()"
+        (click)="onGenerate()"
+        data-testid="image-gen-generate"
+      >
+        @if (generating()) {
+          <i class="pi pi-spin pi-spinner text-[12px]"></i>
+          <span>Generating…</span>
+        } @else {
+          <i class="pi pi-bolt text-[12px] transition-transform group-hover:scale-110"></i>
+          <span>Generate</span>
+        }
+      </button>
+      @if (canPreview()) {
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-md border border-primary-500 bg-transparent px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] text-primary-500 transition-colors hover:bg-primary-500/10 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!canGenerate()"
+          (click)="onPreview()"
+          data-testid="image-gen-preview-button"
+        >
+          <i class="pi pi-eye text-[12px]" aria-hidden="true"></i>
+          <span>Preview</span>
+        </button>
+      }
+    </div>
+    @if (selectedModelName(); as name) {
+      <span
+        class="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted"
+        [title]="name"
+      >
+        ▸ {{ name }}
+      </span>
+    }
+  </div>
+
+  <!-- Generated image result — inline preview -->
+  @if (generatedImage(); as img) {
+    <div class="mt-2 flex flex-col gap-2">
+      <img
+        [src]="img.url"
+        alt="Generated image"
+        class="w-full cursor-pointer rounded object-contain"
+        style="max-height: 300px; background: var(--ink-900)"
+        (click)="previewVisible.set(true)"
+      />
+      <div class="flex items-center gap-2">
+        <p-button
+          severity="secondary"
+          [text]="true"
+          icon="pi pi-window-maximize"
+          label="Preview"
+          (onClick)="previewVisible.set(true)"
+        />
+        <p-button
+          severity="secondary"
+          [text]="true"
+          icon="pi pi-download"
+          label="Download"
+          (onClick)="downloadImage(img.url)"
+        />
+        @if (!savedAssetUrl()) {
+          <p-button
+            severity="info"
+            [text]="true"
+            icon="pi pi-save"
+            [label]="saving() ? 'Saving…' : 'Save as temp asset'"
+            [loading]="saving()"
+            (onClick)="saveAsTempAsset(img.url)"
+          />
+        }
+        <p-button
+          severity="secondary"
+          [text]="true"
+          icon="pi pi-trash"
+          label="Clear"
+          (onClick)="generatedImage.set(null)"
+        />
+        @if (savedAssetUrl()) {
+          <p-button
+            severity="secondary"
+            [text]="true"
+            icon="pi pi-plus"
+            label="Use"
+            (onClick)="saveAsFreeAssets()"
+          />
+        }
+      </div>
+      @if (savedAssetUrl(); as url) {
+        <p class="text-[11px] text-green-400">Saved in the temp assets</p>
+      }
+    </div>
+  }
+
+  <!-- Preview modal -->
+  <p-dialog
+    [visible]="previewVisible()"
+    (visibleChange)="previewVisible.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '80vw', maxWidth: '1024px' }"
+    header="Generated Image"
+  >
+    @if (generatedImage(); as img) {
+      <img
+        [src]="img.url"
+        alt="Generated image"
+        class="w-full rounded object-contain"
+        style="max-height: 80vh; background: var(--ink-900)"
+      />
+    }
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          severity="secondary"
+          [text]="true"
+          icon="pi pi-download"
+          label="Download"
+          (onClick)="downloadImage(generatedImage()!.url)"
+        />
+        <p-button
+          severity="info"
+          icon="pi pi-save"
+          [label]="saving() ? 'Saving…' : 'Save as temp asset'"
+          [loading]="saving()"
+          (onClick)="saveAsTempAsset(generatedImage()!.url)"
+        />
+        <p-button
+          severity="secondary"
+          [text]="true"
+          label="Close"
+          (onClick)="previewVisible.set(false)"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Error state -->
+  @if (error(); as msg) {
+    <p class="text-[12px] text-red-400">{{ msg }}</p>
+  }
+</div>
+
+<!-- Preview payload dialog — shows the raw response of VideoGeneratorService.preview() -->
+<p-dialog
+  [visible]="previewDialogVisible()"
+  (visibleChange)="previewDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '60rem', maxWidth: '95vw' }"
+  header="Vista previa del payload"
+>
+  @if (previewLoading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">Cargando…</p>
+  } @else if (previewError()) {
+    <p class="py-4 font-mono text-[12px] text-red-400">{{ previewError() }}</p>
+  } @else if (!previewData()) {
+    <p class="py-4 text-[13px] italic text-fg-muted">Sin datos en la respuesta.</p>
+  } @else {
+    <pre
+      class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
+      >{{ previewDataPretty() }}</pre
+    >
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        label="Cerrar"
+        (onClick)="previewDialogVisible.set(false)"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

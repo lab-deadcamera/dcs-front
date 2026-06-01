@@ -12,15 +12,18 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { environment } from '@environment/environment';
 
 /**
  * Section 01 — VIEWER.
  *
- * Resizable horizontally (drag bottom-right). Height auto-tracks
- * width via `aspect-video` so the 16:9 ratio is locked.
- * A fullscreen toggle lives in the top-right corner; the video uses
- * `object-contain` so the 16:9 ratio is preserved (letterboxed if the
- * screen ratio differs).
+ * Resizable horizontally (drag bottom-right). Height auto-tracks width
+ * via CSS `aspect-ratio`, which mirrors `studio.output().aspectRatio`
+ * so the viewer flips between 16:9, 9:16, 21:9, 1:1 as the user picks
+ * a format in Output Format. The video element uses `object-contain`
+ * so the chosen ratio is preserved (letterboxed if the source differs).
+ * Fullscreen overrides this with `aspect-ratio: auto` to fill the
+ * viewport regardless of the selected ratio.
  */
 @Component({
   selector: 'app-viewer',
@@ -31,15 +34,13 @@ import { StudioStore } from '@app/core/stores/studio.store';
   },
   template: `
     <section class="px-6 py-6">
-      <ui-section-header
-        number="04"
-        labelKey="STUDIO.VIEWER.TITLE"
-        hintKey="STUDIO.VIEWER.HINT"
-      />
+      <ui-section-header number="05" labelKey="STUDIO.VIEWER.TITLE" hintKey="STUDIO.VIEWER.HINT" />
 
       <div
         #box
-        class="viewer-box relative mt-4 aspect-video w-full bg-ink-900"
+        class="viewer-box relative mx-auto mt-4 w-full bg-ink-900"
+        [style.aspect-ratio]="aspectRatioStyle()"
+        [style.max-width]="viewerMaxWidth()"
       >
         <ui-corner-frame position="top-left" />
         <ui-corner-frame position="top-right" />
@@ -101,9 +102,8 @@ import { StudioStore } from '@app/core/stores/studio.store';
           class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-850/80 text-fg-strong backdrop-blur-sm transition-colors hover:border-primary-500 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
           (click)="toggleFullscreen()"
           [attr.aria-label]="
-            (isFullscreen()
-              ? 'STUDIO.VIEWER.FULLSCREEN_EXIT'
-              : 'STUDIO.VIEWER.FULLSCREEN_ENTER') | translate
+            (isFullscreen() ? 'STUDIO.VIEWER.FULLSCREEN_EXIT' : 'STUDIO.VIEWER.FULLSCREEN_ENTER')
+              | translate
           "
         >
           @if (isFullscreen()) {
@@ -134,15 +134,24 @@ import { StudioStore } from '@app/core/stores/studio.store';
         @if (studio.activeClip(); as clip) {
           <video
             class="h-full w-full object-contain"
-            [src]="clip.videoUrl"
+            [src]="studio.imagePreview() || clipUrl(clip.videoUrl)"
             controls
           ></video>
         } @else if (!studio.isReady()) {
-          <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-3"
-          >
-            <svg viewBox="0 0 24 24" class="h-8 w-8 text-fg-faint" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <svg
+              viewBox="0 0 24 24"
+              class="h-8 w-8 text-fg-faint"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+              />
             </svg>
             <p class="text-lg font-light italic text-fg-strong">
               {{ 'STUDIO.VIEWER.NO_SCENE_TITLE' | translate }}
@@ -152,9 +161,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
             </p>
           </div>
         } @else {
-          <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-3"
-          >
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <div class="flex items-center gap-1.5">
               <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
               <span class="h-1.5 w-1.5 rounded-full bg-fg-faint"></span>
@@ -250,7 +257,9 @@ import { StudioStore } from '@app/core/stores/studio.store';
   `,
   styles: [
     `
-      :host { display: block; }
+      :host {
+        display: block;
+      }
 
       .viewer-box {
         resize: horizontal;
@@ -284,15 +293,45 @@ export class ViewerComponent implements OnDestroy {
   protected readonly hdPending = signal(false);
   private hdTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
+  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
 
-  protected readonly isHd = computed(
-    () => this.studio.output().resolution === '1080p',
+  /** Returns the full URL, prepending the API base for relative paths. */
+  protected clipUrl(path: string | undefined): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return this.baseUrl + path;
+  }
+
+  protected readonly isHd = computed(() => this.studio.output().resolution === '1080p');
+
+  /** CSS `aspect-ratio` value derived from the studio's selected aspect
+   *  (e.g. '16:9' → '16 / 9'). Bound on `.viewer-box` so the preview
+   *  reshapes when the user picks a different format in Output Format. */
+  protected readonly aspectRatioStyle = computed(() =>
+    this.studio.output().aspectRatio.replace(':', ' / '),
   );
+
+  /** Caps the viewer-box width so its computed height (via `aspect-ratio`)
+   *  never overflows the viewport. For wide aspects (16:9 / 21:9) this
+   *  evaluates to `100%` in practice — the panel width is the binding
+   *  constraint. For tall aspects (9:16) it shrinks the width to
+   *  `available_height × ratio`, so the viewer fits without page scroll.
+   *  14rem ≈ space reserved for hero + section header chrome.
+   *
+   *  Tall aspects (h > w) get an extra 0.5 factor so the vertical preview
+   *  takes ~half the available height (proportionally narrower too, so
+   *  the 9:16 ratio is preserved exactly). Wide/square aspects are left
+   *  at full size — their cap was already harmless in normal viewports. */
+  protected readonly viewerMaxWidth = computed(() => {
+    const [w, h] = this.studio.output().aspectRatio.split(':').map(Number);
+    const heightFactor = h > w ? 0.5 : 1;
+    return `min(100%, calc((100dvh - 14rem) * ${(w / h) * heightFactor}))`;
+  });
 
   /** Disable the download icon when there's no playable clip URL. */
   protected readonly canDownload = computed(() => {
     const clip = this.studio.activeClip();
-    return !!clip?.videoUrl;
+    return !!clip?.videoUrl && !!this.clipUrl(clip.videoUrl);
   });
 
   protected onReuse(): void {
@@ -312,17 +351,18 @@ export class ViewerComponent implements OnDestroy {
    */
   protected async onDownload(): Promise<void> {
     const clip = this.studio.activeClip();
-    if (!clip?.videoUrl) return;
+    const url = this.clipUrl(clip?.videoUrl);
+    if (!url || !clip) return;
     const filename = this.studio.filenameForClip(clip);
     try {
-      const res = await fetch(clip.videoUrl);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, filename);
-      URL.revokeObjectURL(url);
+      const blobUrl = URL.createObjectURL(blob);
+      triggerDownload(blobUrl, filename);
+      URL.revokeObjectURL(blobUrl);
     } catch {
-      triggerDownload(clip.videoUrl, filename, '_blank');
+      triggerDownload(url, filename, '_blank');
     }
   }
 

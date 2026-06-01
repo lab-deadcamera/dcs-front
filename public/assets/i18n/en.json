@@ -10,6 +10,7 @@
     "VIDEOS": "Videos",
     "ABOUT": "About",
     "CONTACT": "Contact",
+    "DIRECTOR": "Director",
     "STUDIO": "Studio",
     "CHARACTERS": "Characters",
     "FILES": "Files",
@@ -252,6 +253,12 @@
         "HORROR": "Horror"
       }
     },
+    "PRONCER": {
+      "TITLE": "Proncer",
+      "HINT": "AI assistant to refine your prompt",
+      "BODY": "Soon you'll be able to ask Claude for help improving your prompt right from this panel. Stay tuned for the next beta.",
+      "STATUS_SOON": "Coming soon"
+    },
     "OUTPUT": {
       "TITLE": "Output Format",
       "MODEL": "Model",
@@ -303,7 +310,8 @@
       "LIBRARY_QUICKPICK_HINT": "Click to add to the prompt",
       "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet.",
       "LIBRARY_HIDE": "Hide from library",
-      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden"
+      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden",
+      "FREE_ASSETS": "Add file"
     },
     "FOOTER": {
       "VERSION": "v1.0",
@@ -436,9 +444,17 @@
       "CREATE_TITLE": "New Project",
       "EDIT_TITLE": "Edit Project"
     },
+    "CHAPTER_DIALOG": {
+      "CREATE_TITLE": "New Episode",
+      "EDIT_TITLE": "Edit Episode"
+    },
     "SCENE_DIALOG": {
       "CREATE_TITLE": "New Scene",
       "EDIT_TITLE": "Edit Scene"
+    },
+    "SHOT_DIALOG": {
+      "CREATE_TITLE": "New Shot",
+      "EDIT_TITLE": "Edit Shot"
     },
     "TAKE_DIALOG": {
       "CREATE_TITLE": "New Take",
@@ -447,7 +463,9 @@
     "FIELDS": {
       "NAME": "Name",
       "DESCRIPTION": "Description",
+      "CHAPTER_NUMBER": "Episode #",
       "SCENE_NUMBER": "Scene #",
+      "SHOT_NUMBER": "Shot #",
       "TAKE_NUMBER": "Take #"
     }
   },

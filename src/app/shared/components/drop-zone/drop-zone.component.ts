@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 /**
@@ -30,11 +24,7 @@ import { TranslatePipe } from '@ngx-translate/core';
       (drop)="onDrop($event)"
     >
       @if (preview(); as src) {
-        <img
-          [src]="src"
-          [alt]="previewAlt()"
-          class="absolute inset-0 h-full w-full object-cover"
-        />
+        <img [src]="src" [alt]="previewAlt()" class="absolute inset-0 h-full w-full object-cover" />
         <span
           aria-hidden="true"
           class="absolute inset-0 bg-ink-950/30 transition-colors group-hover:bg-ink-950/10"
@@ -55,7 +45,9 @@ import { TranslatePipe } from '@ngx-translate/core';
           class="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-ink-500 bg-ink-900/80 text-fg-strong transition-colors hover:border-primary-500 hover:text-primary-500"
           [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
           (click)="onClear($event)"
-        >×</button>
+        >
+          ×
+        </button>
       } @else {
         <div class="flex flex-col items-center gap-2 text-fg-muted">
           <span class="text-2xl leading-none">+</span>
@@ -80,7 +72,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class DropZoneComponent {
   readonly labelKey = input<string | null>(null);
   readonly placeholderKey = input<string | null>(null);
-  readonly accept = input<string>('image/*,video/*');
+  readonly accept = input<string>('image/*,video/*,audio/*');
   readonly multiple = input<boolean>(false);
   /** Compact variant for the "+" tile in the asset grid. */
   readonly compact = input<boolean>(false);

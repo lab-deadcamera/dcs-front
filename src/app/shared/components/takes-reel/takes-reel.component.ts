@@ -1,7 +1,19 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
+import { environment } from '@environment/environment';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { RESOLVE_URL } from '@app/shared/utils';
 
 /**
  * "CARRETE DE TOMAS" — horizontal strip of take thumbnails.
@@ -42,7 +54,7 @@ import { Take } from '@core/interfaces/session.models';
                   class="relative h-20 w-32 flex-none overflow-hidden border bg-ink-900 transition-colors"
                   [class.border-primary-500]="take.index === selectedTakeIndex()"
                   [class.border-ink-500]="take.index !== selectedTakeIndex()"
-                  (click)="selectTake.emit(take.index)"
+                  (click)="onTakeSeleted(take)"
                 >
                   @if (take.video_url) {
                     <video
@@ -63,7 +75,7 @@ import { Take } from '@core/interfaces/session.models';
                   <span
                     class="pointer-events-none absolute bottom-1 left-1 rounded bg-ink-950/70 px-1.5 font-mono text-[10px] text-fg-strong"
                   >
-                    T{{ take.index | number: '2.0' }}
+                    T{{ take.number | number: '2.0' }}
                   </span>
                   <!-- Active indicator -->
                   <span
@@ -130,6 +142,7 @@ import { Take } from '@core/interfaces/session.models';
   `,
 })
 export class TakesReelComponent {
+  protected readonly studio = inject(StudioStore);
   /** Active (current generation) takes. */
   readonly takes = input<readonly Take[]>([]);
   /** Discarded (older generation) takes. */
@@ -144,12 +157,36 @@ export class TakesReelComponent {
 
   /** Accordion open state for discarded section. */
   protected readonly discardOpen = signal(false);
+  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
+
+  readonly takeSeleted$ = effect(() => {
+    const first = this.takes()[this.takes().length - 1];
+    if (!first) {
+      this.studio.setImagePreview('');
+      this.studio.selectClip(null);
+      return;
+    }
+    this.onTakeSeleted(first);
+  });
+
+  /** Resolves a possibly-relative video URL (/outputs/...) to an absolute one. */
+  protected videoUrl(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return this.baseUrl + path;
+  }
 
   /**
    * Append `#t=0.1` to the video URL so the browser seeks to ~100ms and
    * paints that frame as the visible poster.
    */
   protected posterUrl(url: string): string {
-    return url.includes('#') ? url : `${url}#t=0.1`;
+    const full = this.videoUrl(url);
+    return full.includes('#') ? full : `${full}#t=0.1`;
+  }
+
+  public onTakeSeleted(take: Take) {
+    this.selectTake.emit(take.index);
+    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? null);
   }
 }

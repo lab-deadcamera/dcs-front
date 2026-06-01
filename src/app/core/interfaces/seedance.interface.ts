@@ -8,6 +8,8 @@
  * ModelArk and handles AK/SK signing internally.
  */
 
+import { Preset } from './studio.models';
+
 /** Type discriminator for items in the `content[]` array. */
 export type StudioContentType = 'text' | 'image' | 'video' | 'audio';
 
@@ -29,6 +31,7 @@ export type StudioTaskStatus = 'queued' | 'running' | 'succeeded' | 'failed';
 /** Single produced artifact — usually a video URL. */
 export interface StudioOutput {
   url: string;
+  localUrl?: string;
   type: 'video' | 'image';
 }
 
@@ -62,9 +65,11 @@ export interface StudioGenerateRequest {
 
   /** Session tracking — obligatorio para registrar la generación y recuperar estado. */
   project_id: string;
+  project_name: string;
   scene_id: string;
   scene_code: string;
   take_number: number;
+  user_name: string;
   user_id: number;
 }
 
@@ -84,7 +89,7 @@ export interface GenerationLogEntry {
   scene_code: string;
   take_number?: number;
   request?: string;
-  outputs?: string;
+  outputs: [{ localUrl?: string; url: string; name: string; type: string }];
   status: string;
   error_message: string;
   created_at: string;
@@ -152,4 +157,54 @@ export interface StudioTaskResponse {
   outputs: StudioOutput[];
   /** Backend-set human-readable error when status === 'failed'. */
   error?: string;
+}
+
+export interface PresetGroup {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  active: boolean;
+}
+
+export interface ScenePresetAssignment {
+  id: string;
+  scene_id: string;
+  preset_id: string;
+  code: string;
+  label: string;
+  group_slug: string;
+  created_at: string;
+}
+
+export interface SceneCharacterAssignment {
+  id: string;
+  scene_id: string;
+  character_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface SceneAssetAssignment {
+  id: string;
+  scene_id: string;
+  file_id: string;
+  filename: string;
+  mime_type: string;
+  created_at: string;
+}
+
+export interface SceneAssignments {
+  presets: ScenePresetAssignment[];
+  characters: SceneCharacterAssignment[];
+  assets: SceneAssetAssignment[];
+}
+
+export interface SceneResources {
+  presets: ScenePresetAssignment[];
+  availablePresets: Preset[];
+  characters: SceneCharacterAssignment[];
+  availableCharacters: any[];
+  assets: SceneAssetAssignment[];
+  availableAssets: any[];
 }

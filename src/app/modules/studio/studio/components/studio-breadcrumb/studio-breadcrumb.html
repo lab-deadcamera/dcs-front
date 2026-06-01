@@ -1,0 +1,146 @@
+<nav class="studio-breadcrumb card mb-3" aria-label="Studio navigation">
+  <!-- Project breadcrumb segment -->
+  <div class="studio-bcrumb-segment">
+    @if (loadingProjects()) {
+      <span class="studio-bcrumb-loading">Loading…</span>
+    } @else {
+      <p-select
+        [options]="projects()"
+        optionLabel="name"
+        optionValue="id"
+        class="w-52"
+        [(ngModel)]="selectedProjectId"
+        [placeholder]="'Project'"
+        [showClear]="false"
+        styleClass="studio-bcrumb-select"
+        (onChange)="onProjectChange($event.value)"
+      />
+    }
+  </div>
+
+  <span class="studio-bcrumb-sep">›</span>
+
+  <!-- Episode breadcrumb segment -->
+  <div class="studio-bcrumb-segment" [class.disabled]="!selectedProjectId()">
+    @if (!selectedProjectId()) {
+      <span class="studio-bcrumb-placeholder">Episode</span>
+    } @else if (loadingChapters()) {
+      <span class="studio-bcrumb-loading">Loading…</span>
+    } @else {
+      <p-select
+        [options]="chapters()"
+        optionLabel="label"
+        optionValue="id"
+        [(ngModel)]="selectedChapterId"
+        [placeholder]="'Episode'"
+        [showClear]="false"
+        styleClass="studio-bcrumb-select"
+        (onChange)="onChapterChange($event.value)"
+      />
+    }
+  </div>
+
+  <span class="studio-bcrumb-sep">›</span>
+
+  <!-- Scene breadcrumb segment -->
+  <div class="studio-bcrumb-segment" [class.disabled]="!selectedChapterId()">
+    @if (!selectedChapterId()) {
+      <span class="studio-bcrumb-placeholder">Scene</span>
+    } @else if (loadingScenes()) {
+      <span class="studio-bcrumb-loading">Loading…</span>
+    } @else {
+      <p-select
+        [options]="scenes()"
+        optionLabel="label"
+        optionValue="id"
+        [(ngModel)]="selectedSceneId"
+        [placeholder]="'Scene'"
+        [showClear]="false"
+        styleClass="studio-bcrumb-select"
+        (onChange)="onSceneChange($event.value)"
+      />
+    }
+  </div>
+
+  <span class="studio-bcrumb-sep">›</span>
+
+  <!-- Shot breadcrumb segment -->
+  <div class="studio-bcrumb-segment" [class.disabled]="!selectedSceneId()">
+    @if (!selectedSceneId()) {
+      <span class="studio-bcrumb-placeholder">Shot</span>
+    } @else if (loadingShots()) {
+      <span class="studio-bcrumb-loading">Loading…</span>
+    } @else {
+      <p-select
+        [options]="shots()"
+        optionLabel="label"
+        optionValue="id"
+        [(ngModel)]="selectedShotId"
+        [placeholder]="'Shot'"
+        [showClear]="true"
+        styleClass="studio-bcrumb-select"
+        (onChange)="onShotChange($event.value)"
+      />
+    }
+  </div>
+
+  <!-- New shot button -->
+  <div class="studio-bcrumb-segment">
+    <button
+      type="button"
+      class="studio-bcrumb-shot-new ml-2"
+      [disabled]="!selectedSceneId()"
+      (click)="onOpenNewShotDialog()"
+    >
+      <i class="pi pi-plus"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- New Shot dialog -->
+<p-dialog
+  [visible]="newShotDialogVisible()"
+  (visibleChange)="newShotDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '28rem' }"
+  header="New Shot"
+>
+  @if (selectedSceneObj()) {
+    <div
+      class="mb-3 rounded border p-2 text-[12px]"
+      style="border-color: var(--border-color); background: var(--surface-ground)"
+    >
+      <span class="font-semibold">Scene:</span>
+      SC{{ selectedSceneObj()!.number | number: '2.0' }} — {{ selectedSceneObj()!.name }}
+    </div>
+  }
+  <div class="flex flex-col gap-1">
+    <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+      >Shot name</label
+    >
+    <input
+      id="new-shot-name"
+      pInputText
+      [(ngModel)]="newShotName"
+      placeholder="e.g. Master wide, Close-up, …"
+      class="w-full"
+    />
+    <p class="text-[10px] italic text-fg-muted">
+      Give your shot a descriptive name. A new shot will be created for this scene.
+    </p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelNewShot()" />
+      <p-button
+        icon="pi pi-play"
+        label="Create &amp; Open"
+        [disabled]="!newShotName().trim() || newShotSubmitting()"
+        [loading]="newShotSubmitting()"
+        (onClick)="onConfirmNewShot()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
