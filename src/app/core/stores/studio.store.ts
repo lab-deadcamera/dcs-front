@@ -112,7 +112,7 @@ export class StudioStore {
   readonly nextFilename = computed(() => {
     const take = this.currentTake();
     if (!take) return null;
-    return this.buildFilename(take.index);
+    return this.buildFilename();
   });
 
   // ── Model ────────────────────────────────────────────────────────
@@ -277,6 +277,8 @@ export class StudioStore {
   toggleTake(takeIndex: number): void {
     const list = this._takes();
     const target = list.find((t) => t.index === takeIndex);
+    console.log({ list, target, takeIndex });
+
     if (!target) return;
     const willBeDone = target.status === 'pending';
 
@@ -354,24 +356,25 @@ export class StudioStore {
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
-    if (clip.takeIndex !== undefined) return this.buildFilename(clip.takeIndex);
+    if (clip.id) return this.buildFilename();
     return `clip-${clip.id}.mp4`;
   }
 
-  private buildFilename(takeIndex: number): string {
+  private buildFilename(): string {
     const code = this._sceneCode();
     const handle = this._userHandle();
     const proj = this._projectName();
     const scName = this._sceneName();
-    if (!code || !handle) return `clip-take${takeIndex}.mp4`;
+    const chapterName = this._chapterName();
+    const shot = this._shotName();
+    const take = this._currentTakeIndex() + 1;
     const safe = (s: string) => s.replace(/[^a-zA-Z0-9_-]+/g, '_');
-    const now = new Date();
-    const ts =
-      `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_` +
-      `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const ts = new Date().getTime();
     const projPart = proj ? `${safe(proj)}_` : '';
     const scenePart = scName ? `${safe(scName)}_` : `${safe(code)}_`;
-    return `${projPart}${scenePart}T${takeIndex}_${safe(handle)}_${ts}.mp4`;
+    const chapterPart = chapterName ? `EP_${safe(chapterName)}_` : '';
+    const shotPart = shot ? `SHOT_${safe(shot)}_` : '';
+    return `${projPart}${chapterPart}${scenePart}${shotPart}T${take}_${safe(handle)}_${ts}.mp4`;
   }
 
   // ── Model ────────────────────────────────────────────────────────

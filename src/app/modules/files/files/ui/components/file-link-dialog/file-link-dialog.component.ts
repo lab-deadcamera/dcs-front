@@ -15,7 +15,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { CharactersService } from '@modules/characters/characters/services';
-import { CharacterFileRole, Character, CharacterWithFiles } from '@modules/characters/characters/interfaces';
+import {
+  CharacterFileRole,
+  Character,
+  CharacterWithFiles,
+} from '@modules/characters/characters/interfaces';
 import { FileEntity } from '../../../interfaces';
 
 /**
@@ -68,6 +72,7 @@ import { FileEntity } from '../../../interfaces';
           [formControl]="characterCtrl"
           [filter]="true"
           filterBy="label"
+          appendTo="body"
           [placeholder]="'FILES.LINK.CHARACTER_PLACEHOLDER' | translate"
           data-testid="file-link-character-select"
         />

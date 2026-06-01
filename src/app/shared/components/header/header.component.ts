@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -69,6 +69,7 @@ export class HeaderComponent {
   protected readonly state = this.studio;
 
   protected readonly modelDialogVisible = signal(false);
+  public isStudio = computed(() => this.studio.projectId() !== null);
 
   /** Largest edge (px) of the stored avatar — kept small for the session snapshot. */
   private readonly AVATAR_SIZE = 96;

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnDestroy,
   OnInit,
   computed,
   inject,
@@ -104,7 +105,10 @@ export class IndexStudio implements OnInit {
     this.isLargeScreen.set(mq.matches);
     const handler = (e: MediaQueryListEvent) => this.isLargeScreen.set(e.matches);
     mq.addEventListener('change', handler);
-    this.destroyRef.onDestroy(() => mq.removeEventListener('change', handler));
+    this.destroyRef.onDestroy(() => {
+      mq.removeEventListener('change', handler);
+      this.studio.resetStudio();
+    });
   }
 
   /** Forwarder for <app-character-assets (assetPicked)>. */
@@ -496,11 +500,6 @@ export class IndexStudio implements OnInit {
     this.loadProjects();
   }
 
-  /** Forwarded from the take-checklist's `(toggle)` output. */
-  protected onToggleTake(takeIndex: number): void {
-    this.studio.toggleTake(takeIndex);
-  }
-
   /**
    * Forwarded from the takes-reel's `(selectTake)` output.
    * Loads the take's video into the viewer.
@@ -750,7 +749,8 @@ export class IndexStudio implements OnInit {
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
       prompt: this.studio.rawDescription(),
-      videoUrl: out.localUrl || out.url,
+      videoUrl: out.url,
+      videoLocalUrl: out.localUrl,
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
       resolution: output.resolution,
@@ -790,10 +790,11 @@ export class IndexStudio implements OnInit {
       .subscribe((takeRes) => {
         if (takeRes.error || !takeRes.data) return;
 
-        // Update the take with the video URL
+        // Update the take with both URLs: remote (video_url) and local (video_local_url)
         this.projectsApi
           .updateTake(projectId, chapterId, sceneId, shotId, takeRes.data.id, {
             video_url: clip.videoUrl,
+            video_local_url: clip.videoLocalUrl,
             status: 'completed',
           })
           .subscribe(() => {

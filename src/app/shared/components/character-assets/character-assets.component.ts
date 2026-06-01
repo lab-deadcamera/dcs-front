@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -15,6 +22,7 @@ import { CharactersService } from '@modules/characters/characters/services';
 import { AssetType, CharacterMetadata } from '@modules/characters/characters/interfaces';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes';
+import { FileCategory } from '@app/core/interfaces';
 
 interface LibraryItem {
   id: string;
@@ -65,7 +73,6 @@ export class CharacterAssetsComponent {
    * the cursor in the editor.
    */
   readonly assetPicked = output<UsedAssetKind>();
-
 
   /**
    * Whether the "Image Generation" band acts as an open disclosure — its
@@ -177,9 +184,7 @@ export class CharacterAssetsComponent {
 
   protected readonly visibleLibrary = computed(() => {
     const hidden = this.hiddenIds();
-    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter(
-      (a) => !hidden.has(a.id),
-    );
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) => !hidden.has(a.id));
   });
 
   /** Counts reflect what's actually shown (hidden items excluded). */
@@ -193,9 +198,8 @@ export class CharacterAssetsComponent {
   /** How many items are hidden in the active tab — drives the "show hidden" link. */
   protected readonly hiddenInActiveTab = computed(() => {
     const hidden = this.hiddenIds();
-    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) =>
-      hidden.has(a.id),
-    ).length;
+    return (this.libraryByType()[this.activeLibraryType()] ?? []).filter((a) => hidden.has(a.id))
+      .length;
   });
 
   protected readonly usedAssetIds = computed(
@@ -345,14 +349,16 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.studio.setFirstFrame({
+      const asset: ReferenceAsset = {
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
         thumbnailUrl: this.filesApi.serveUrl(up.data.id),
         tag: '',
         slot: 'first-frame',
-      });
+      };
+      this.studio.setFirstFrame(asset);
+      this.onPickFreeAsset(asset);
     });
   }
 
@@ -364,20 +370,38 @@ export class CharacterAssetsComponent {
         this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
         return;
       }
-      this.studio.setLastFrame({
+      const asset: ReferenceAsset = {
         id: up.data.id,
         kind: inferKind(f),
         filename: up.data.filename,
         thumbnailUrl: this.filesApi.serveUrl(up.data.id),
         tag: '',
         slot: 'last-frame',
-      });
+      };
+      this.studio.setLastFrame(asset);
+      this.onPickFreeAsset(asset);
     });
   }
 
   protected onFreeAssets(files: File[]) {
     for (const f of files) {
-      this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
+      console.log(f.type);
+
+      let category: FileCategory = 'images';
+      if (f.type.startsWith('video/')) {
+        category = 'videos';
+      } else if (f.type.startsWith('audio/')) {
+        category = 'audio';
+      } else {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'PDF files are not supported',
+          detail: 'Please upload an image, audio or video',
+        });
+        continue;
+      }
+
+      this.filesApi.upload({ file: f, category, storage: 'temp' }).subscribe((up) => {
         if (up.error || !up.data) {
           this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
           return;

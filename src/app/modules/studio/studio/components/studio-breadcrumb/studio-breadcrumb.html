@@ -1,4 +1,4 @@
-<nav class="studio-breadcrumb" aria-label="Studio navigation">
+<nav class="studio-breadcrumb card mb-3" aria-label="Studio navigation">
   <!-- Project breadcrumb segment -->
   <div class="studio-bcrumb-segment">
     @if (loadingProjects()) {
@@ -88,7 +88,7 @@
   <div class="studio-bcrumb-segment">
     <button
       type="button"
-      class="studio-bcrumb-shot-new"
+      class="studio-bcrumb-shot-new ml-2"
       [disabled]="!selectedSceneId()"
       (click)="onOpenNewShotDialog()"
     >

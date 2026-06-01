@@ -18,7 +18,7 @@ import { FileLinkDialogComponent } from '../components/file-link-dialog/file-lin
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
 import { DialogModule } from 'primeng/dialog';
 import { JsonPipe } from '@angular/common';
-import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 type ViewTab = FileCategory | 'trash';
 
@@ -39,6 +39,7 @@ type ViewTab = FileCategory | 'trash';
     ButtonModule,
     ConfirmDialogModule,
     TabsModule,
+    SourceAssetPipe,
     SourceThumbnailAssetPipe,
     ToastModule,
     FileLinkDialogComponent,
@@ -149,9 +150,39 @@ export class IndexFiles implements OnInit {
     this.linkDialogVisible.set(true);
   }
 
-  /** Image-mime files render as preview thumbs. */
   protected isImage(file: FileEntity): boolean {
     return file.mimeType.startsWith('image/');
+  }
+
+  protected isVideo(file: FileEntity): boolean {
+    return file.mimeType.startsWith('video/');
+  }
+
+  protected isAudio(file: FileEntity): boolean {
+    return file.mimeType.startsWith('audio/');
+  }
+
+  /**
+   * Toggle play/pause on a video element.
+   * Bound to (click) on the <video> tag in the template.
+   */
+  protected togglePlay(e: Event): void {
+    const video = e.currentTarget as HTMLVideoElement;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+    } else {
+      video.pause();
+    }
+  }
+
+  /**
+   * Log media load errors gracefully — the card will show the broken
+   * placeholder (browser handles missing source silently).
+   */
+  protected onMediaError(e: Event): void {
+    const el = e.currentTarget as HTMLMediaElement;
+    console.warn('Media failed to load:', el.src);
   }
 
   protected formatSize(bytes: number): string {

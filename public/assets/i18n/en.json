@@ -310,7 +310,8 @@
       "LIBRARY_QUICKPICK_HINT": "Click to add to the prompt",
       "LIBRARY_QUICKPICK_EMPTY": "No assets in this category yet.",
       "LIBRARY_HIDE": "Hide from library",
-      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden"
+      "LIBRARY_SHOW_HIDDEN": "Show {{n}} hidden",
+      "FREE_ASSETS": "Add file"
     },
     "FOOTER": {
       "VERSION": "v1.0",

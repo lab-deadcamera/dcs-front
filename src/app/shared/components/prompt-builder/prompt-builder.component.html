@@ -203,7 +203,7 @@
       "
       (click)="onGenerate()"
     >
-      {{ generateLabel() }}
+      {{ 'STUDIO.PROMPT.GENERATE' | translate }}
       <!-- loading -->
       @if (studio.isGenerating()) {
         <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>

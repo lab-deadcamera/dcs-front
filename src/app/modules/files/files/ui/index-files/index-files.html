@@ -50,6 +50,7 @@
         type="file"
         data-testid="files-upload-input"
         (change)="onFilePick($event)"
+        [accept]="active() === 'images' ? 'image/*' : active() === 'videos' ? 'video/*' : 'audio/*'"
         class="text-[12px]"
         style="color: var(--text-secondary)"
       />
@@ -93,12 +94,45 @@
             style="background: var(--content-bg)"
           >
             @if (isImage(f)) {
-              <img
-                [src]="f.id | sourceThumbnailAsset"
-                [alt]="f.filename"
-                class="h-full w-full object-cover"
-                onerror="this.style.display = 'none'"
-              />
+              @if (active() === 'temp') {
+                <img
+                  [src]="f.id | sourceAsset"
+                  [alt]="f.filename"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  onerror="this.style.display = 'none'"
+                />
+              } @else {
+                <img
+                  [src]="f.id | sourceThumbnailAsset"
+                  [alt]="f.filename"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  onerror="this.style.display = 'none'"
+                />
+              }
+            } @else if (isVideo(f)) {
+              <video
+                [src]="f.id | sourceAsset"
+                class="h-full w-full object-contain"
+                preload="metadata"
+                muted
+                playsinline
+                (click)="togglePlay($event)"
+                (error)="onMediaError($event)"
+              ></video>
+            } @else if (isAudio(f)) {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2">
+                <i class="pi pi-volume-up text-3xl" style="color: var(--text-muted)"></i>
+                <audio
+                  [src]="f.id | sourceAsset"
+                  controls
+                  preload="none"
+                  class="w-full max-w-[180px]"
+                  style="filter: invert(0.8)"
+                  (error)="onMediaError($event)"
+                ></audio>
+              </div>
             } @else {
               <span
                 aria-hidden="true"
@@ -106,12 +140,6 @@
                 style="color: var(--text-muted)"
               >
                 @switch (f.category) {
-                  @case ('videos') {
-                    <i class="pi pi-video"></i>
-                  }
-                  @case ('audio') {
-                    <i class="pi pi-volume-up"></i>
-                  }
                   @case ('temp') {
                     <i class="pi pi-clock"></i>
                   }

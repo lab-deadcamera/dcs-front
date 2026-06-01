@@ -91,13 +91,6 @@ export class PromptBuilderComponent implements OnInit {
     return this.i18n.instant('STUDIO.PROMPT.PLACEHOLDER');
   });
 
-  /** Button label: GENERAR or VOLVER A GENERAR. */
-  protected readonly generateLabel = computed(() => {
-    const lang = this.lang();
-    const regen = this.isRegenerating();
-    return this.i18n.instant(regen ? 'STUDIO.PROMPT.REGENERATE' : 'STUDIO.PROMPT.GENERATE');
-  });
-
   // ── Reference assets grouped by kind ──────────────────────────────
 
   protected readonly imageAssets = computed(() =>

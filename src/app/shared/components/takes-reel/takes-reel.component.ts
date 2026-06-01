@@ -1,5 +1,14 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 import { environment } from '@environment/environment';
@@ -150,6 +159,16 @@ export class TakesReelComponent {
   protected readonly discardOpen = signal(false);
   private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
 
+  readonly takeSeleted$ = effect(() => {
+    const first = this.takes()[this.takes().length - 1];
+    if (!first) {
+      this.studio.setImagePreview('');
+      this.studio.selectClip(null);
+      return;
+    }
+    this.onTakeSeleted(first);
+  });
+
   /** Resolves a possibly-relative video URL (/outputs/...) to an absolute one. */
   protected videoUrl(path: string): string {
     if (!path) return '';
@@ -168,6 +187,6 @@ export class TakesReelComponent {
 
   public onTakeSeleted(take: Take) {
     this.selectTake.emit(take.index);
-    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? 'no file');
+    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? null);
   }
 }

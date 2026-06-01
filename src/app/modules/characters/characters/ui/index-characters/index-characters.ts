@@ -30,6 +30,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /**
  * Characters library — typed asset board.
@@ -53,6 +54,7 @@ import { FilesApiService } from '@app/services';
     CharacterFormDialogComponent,
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
+    SourceThumbnailAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
