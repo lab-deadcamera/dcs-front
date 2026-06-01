@@ -20,6 +20,7 @@
               accept="image/*,video/*,audio/*"
               [customUpload]="true"
               [auto]="true"
+              [multiple]="true"
               [disabled]="fileUploadLoading()"
               maxFileSize="10000000"
               (uploadHandler)="uploadFile($event)"
