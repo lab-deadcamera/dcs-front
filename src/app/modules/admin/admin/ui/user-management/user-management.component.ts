@@ -16,6 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { map, catchError } from 'rxjs';
@@ -50,6 +51,7 @@ interface AdminRole {
     PasswordModule,
     SelectModule,
     ToastModule,
+    TooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MessageService],
@@ -77,6 +79,7 @@ interface AdminRole {
                 <th class="px-3 py-2 font-medium">Role</th>
                 <th class="px-3 py-2 font-medium">Status</th>
                 <th class="px-3 py-2 font-medium">Created</th>
+                <th class="px-3 py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -112,6 +115,18 @@ interface AdminRole {
                   </td>
                   <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
                     {{ u.created_at | date: 'dd/MM/yy' }}
+                  </td>
+                  <td class="px-3 py-2">
+                    @if (u.role.level > 0) {
+                      <p-button
+                        [icon]="u.active ? 'pi pi-ban' : 'pi pi-check-circle'"
+                        [severity]="u.active ? 'danger' : 'success'"
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="u.active ? 'Deactivate' : 'Activate'"
+                        (onClick)="toggleActive(u)"
+                      />
+                    }
                   </td>
                 </tr>
               }
@@ -263,6 +278,33 @@ export class UserManagementComponent implements OnInit {
         }
         this.toast.add({ severity: 'success', summary: 'OK', detail: 'User created', life: 3000 });
         this.dialogVisible.set(false);
+        this.loadUsers();
+      });
+  }
+
+  protected toggleActive(u: AdminUser): void {
+    const newState = !u.active;
+    this.http
+      .patch<{ success: boolean; message: string; data?: { active: boolean } }>(
+        `${environment.API_URL}/admin/users/${u.id}/active`,
+        { active: newState },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError((err) => [{ error: true, msg: err.error?.message || err.message }]),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((res) => {
+        if (res.error) {
+          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 4000 });
+          return;
+        }
+        this.toast.add({
+          severity: 'success',
+          summary: 'OK',
+          detail: `${u.username} ${newState ? 'activated' : 'deactivated'}`,
+          life: 3000,
+        });
         this.loadUsers();
       });
   }
