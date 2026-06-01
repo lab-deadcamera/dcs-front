@@ -17,7 +17,7 @@
             <p-fileupload
               mode="basic"
               [chooseIcon]="fileUploadLoading() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"
-              accept="image/*"
+              accept="image/*,video/*,audio/*"
               [customUpload]="true"
               [auto]="true"
               [disabled]="fileUploadLoading()"
@@ -214,11 +214,22 @@
             >
               <div class="flex min-w-0 items-center gap-2">
                 <span class="truncate w-24 text-[12px]">{{ f.filename }}</span>
-                <img
-                  [src]="f.id | sourceThumbnailAsset"
-                  alt="{{ f.filename }}"
-                  class="h-6 w-auto object-cover"
-                />
+                <span>{{ f.type }}</span>
+                @if (f.mime_type.includes('video')) {
+                  <video class="h-6 w-auto" [src]="f.id | sourceAsset"></video>
+                }
+
+                @if (f.mime_type.includes('audio')) {
+                  <audio class="py-3" controls [src]="f.id | sourceAsset"></audio>
+                }
+
+                @if (f.mime_type.includes('image')) {
+                  <img
+                    [src]="f.id | sourceThumbnailAsset"
+                    alt="{{ f.filename }}"
+                    class="h-6 w-auto object-cover"
+                  />
+                }
                 <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
               </div>
               <button

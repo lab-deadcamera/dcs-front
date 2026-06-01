@@ -19,3 +19,10 @@ export const RESOLVE_URL = (path: string | undefined): string => {
   if (path.startsWith('/')) return BASE_URL + path;
   return BASE_URL + '/' + path;
 };
+
+export const INFER_CATEGORY = (file: File): 'images' | 'videos' | 'audio' | 'temp' => {
+  if (file.type.startsWith('image/')) return 'images';
+  if (file.type.startsWith('video/')) return 'videos';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'temp';
+};

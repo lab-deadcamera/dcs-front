@@ -22,12 +22,13 @@ import { PresetsService } from '@core/stores/presets.service';
 import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedance.interface';
 import { Preset } from '@core/interfaces/studio.models';
 import { TranslateModule } from '@ngx-translate/core';
-import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { FileUploadEvent, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { IndexCharacters } from '@app/modules/characters/characters/ui/index-characters/index-characters';
 import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
+import { INFER_CATEGORY } from '@app/shared/utils';
 
 interface ProjectInfo {
   name: string;
@@ -61,6 +62,7 @@ interface SceneAssignmentItem {
     FileUploadModule,
     TranslateModule,
     SourceThumbnailAssetPipe,
+    SourceAssetPipe,
     IndexCharacters,
   ],
   providers: [MessageService],
@@ -363,7 +365,7 @@ export class SceneAssignmentComponent implements OnInit {
       ev.files.map((file) => {
         const payload: UploadParams = {
           file,
-          category: 'images',
+          category: INFER_CATEGORY(file),
           storage: 'persistent',
         };
         return this.fileSvc.upload(payload);
