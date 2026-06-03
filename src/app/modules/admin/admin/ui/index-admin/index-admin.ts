@@ -142,10 +142,10 @@ export class IndexAdmin implements OnInit {
         }
       });
 
-    // Projects
+    // Projects (admin endpoint — includes inactive)
     this.http
       .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(
-        `${environment.API_URL}/projects`,
+        `${environment.API_URL}/projects/list-all`,
       )
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),

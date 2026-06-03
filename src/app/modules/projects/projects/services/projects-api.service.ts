@@ -67,6 +67,14 @@ export class ProjectsApiService {
     );
   }
 
+  /** Admin endpoint: lists all projects including inactive ones. */
+  listProjectsAdmin(): Observable<{ error: boolean; msg: string; data?: Project[] }> {
+    return this.http.get<ResponseBase<Project[]>>(`${this.apiUrl}/projects/list-all`).pipe(
+      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+      catchError(httpErrorHandler<Project[]>),
+    );
+  }
+
   deleteProject(id: string): Observable<{ error: boolean; msg: string }> {
     return this.http.delete<ResponseBase<unknown>>(`${this.apiUrl}/projects/${id}`).pipe(
       map((r) => ({ error: !r.success, msg: r.message })),
