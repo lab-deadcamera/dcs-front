@@ -26,6 +26,41 @@ export class GenerationLogsService {
   private readonly apiUrl = environment.API_URL + '/studio';
 
   /**
+   * Sum the estimated_cost of generation logs matching the given filters (no pagination).
+   * GET /studio/logs/generation/cost-summary
+   */
+  getCostSummary(filters: {
+    project_id?: string;
+    scene_id?: string;
+    status?: string;
+    model_name?: string;
+    user_id?: number;
+    resource_type?: string;
+    date_from?: string;
+    date_to?: string;
+  }): Observable<{ error: boolean; msg: string; data?: { total_cost: number } }> {
+    const params = new URLSearchParams();
+    if (filters.project_id) params.set('project_id', filters.project_id);
+    if (filters.scene_id) params.set('scene_id', filters.scene_id);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.model_name) params.set('model_name', filters.model_name);
+    if (filters.user_id) params.set('user_id', String(filters.user_id));
+    if (filters.resource_type) params.set('resource_type', filters.resource_type);
+    if (filters.date_from) params.set('date_from', filters.date_from);
+    if (filters.date_to) params.set('date_to', filters.date_to);
+    const qs = params.toString();
+
+    return this.http
+      .get<ResponseBase<{ total_cost: number }>>(
+        `${this.apiUrl}/logs/generation/cost-summary${qs ? '?' + qs : ''}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ total_cost: number }>),
+      );
+  }
+
+  /**
    * Query generation logs filtered by project/scene. Used to recover state
    * after a reload and to power the admin dashboard.
    */

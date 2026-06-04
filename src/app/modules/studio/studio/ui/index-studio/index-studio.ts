@@ -246,7 +246,7 @@ export class IndexStudio implements OnInit {
     this.projectsApi.listProjects().subscribe((res) => {
       this.navLoadingProjects.set(false);
       if (!res.error && res.data) {
-        this.navProjects.set(res.data);
+        this.navProjects.set(res.data.sort((a, b) => a.name.localeCompare(b.name)));
       }
     });
   }
@@ -266,12 +266,14 @@ export class IndexStudio implements OnInit {
         this.navLoadingChapters.set(false);
         if (!res.error && res.data) {
           this.navChapters.set(
-            res.data.map((c) => ({
-              id: c.id,
-              number: c.number,
-              name: c.name,
-              label: `EP${String(c.number).padStart(2, '0')} — ${c.name}`,
-            })),
+            res.data
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((c) => ({
+                id: c.id,
+                number: c.number,
+                name: c.name,
+                label: `EP${String(c.number).padStart(2, '0')} — ${c.name}`,
+              })),
           );
         }
       });
@@ -292,12 +294,14 @@ export class IndexStudio implements OnInit {
         this.navLoadingScenes.set(false);
         if (!res.error && res.data) {
           this.navScenes.set(
-            res.data.map((s) => ({
-              id: s.id,
-              number: s.number,
-              name: s.name,
-              label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
-            })),
+            res.data
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((s) => ({
+                id: s.id,
+                number: s.number,
+                name: s.name,
+                label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
+              })),
           );
         }
       });
@@ -325,12 +329,14 @@ export class IndexStudio implements OnInit {
         this.navLoadingShots.set(false);
         if (!res.error && res.data) {
           this.navShots.set(
-            res.data.map((sh) => ({
-              id: sh.id,
-              number: sh.number,
-              name: sh.name,
-              label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
-            })),
+            res.data
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((sh) => ({
+                id: sh.id,
+                number: sh.number,
+                name: sh.name,
+                label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
+              })),
           );
         }
       });
@@ -360,12 +366,14 @@ export class IndexStudio implements OnInit {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
         this.navShots.set(
-          res.data.map((sh) => ({
-            id: sh.id,
-            number: sh.number,
-            name: sh.name,
-            label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
-          })),
+          res.data
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((sh) => ({
+              id: sh.id,
+              number: sh.number,
+              name: sh.name,
+              label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
+            })),
         );
       }
     });
