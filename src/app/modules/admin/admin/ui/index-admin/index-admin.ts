@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -44,6 +44,7 @@ interface UserOption {
     FormsModule,
     ButtonModule,
     InputTextModule,
+    CurrencyPipe,
     SelectModule,
     PaginatorModule,
     ToastModule,
@@ -368,7 +369,7 @@ export class IndexAdmin implements OnInit {
           this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
           return;
         }
-        this.logs.set(res.data.logs);
+        this.logs.set(res.data.logs || []);
         this.totalRecords.set(res.data.total);
       });
     this.loadCostSummary();
