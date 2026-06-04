@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -44,6 +44,7 @@ interface UserOption {
     FormsModule,
     ButtonModule,
     InputTextModule,
+    CurrencyPipe,
     SelectModule,
     PaginatorModule,
     ToastModule,
@@ -99,6 +100,8 @@ export class IndexAdmin implements OnInit {
   protected readonly totalRecords = signal(0);
   protected readonly page = signal(0);
   protected readonly limit = signal(20);
+  protected readonly totalCost = signal(0);
+  protected readonly costLoading = signal(false);
 
   ngOnInit(): void {
     this.loadDropdowns();
@@ -341,7 +344,10 @@ export class IndexAdmin implements OnInit {
   }
 
   private loadPage(): void {
+    console.log('Loading page...');
+    console.log(this.page(), this.limit());
     const f = this.filters();
+    console.log(f);
     this.loading.set(true);
     this.genLogs
       .getLogs({
@@ -363,8 +369,31 @@ export class IndexAdmin implements OnInit {
           this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
           return;
         }
-        this.logs.set(res.data.logs);
+        this.logs.set(res.data.logs || []);
         this.totalRecords.set(res.data.total);
+      });
+    this.loadCostSummary();
+  }
+
+  private loadCostSummary(): void {
+    const f = this.filters();
+    this.costLoading.set(true);
+    this.genLogs
+      .getCostSummary({
+        model_name: f.modelName || undefined,
+        user_id: f.userId ?? undefined,
+        project_id: f.projectId || undefined,
+        scene_id: f.sceneId || undefined,
+        status: f.status ?? undefined,
+        resource_type: f.resourceType ?? undefined,
+        date_from: f.dateFrom || undefined,
+        date_to: f.dateTo || undefined,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.costLoading.set(false);
+        if (res.error || res.data == null) return;
+        this.totalCost.set(res.data.total_cost);
       });
   }
 }

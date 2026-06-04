@@ -187,6 +187,7 @@ interface AdminRole {
             optionValue="value"
             placeholder="Select role"
             styleClass="w-full"
+            appendTo="body"
           />
         </div>
       </form>

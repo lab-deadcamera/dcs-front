@@ -24,7 +24,10 @@ import { OutputFormatComponent } from '@shared/components/output-format/output-f
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
 import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
-import { StudioBreadcrumbComponent } from '../../components/studio-breadcrumb/studio-breadcrumb.component';
+import {
+  BreadcrumbOption,
+  StudioBreadcrumbComponent,
+} from '../../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
 import { ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { ButtonModule } from 'primeng/button';
@@ -45,6 +48,18 @@ import {
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { Splitter } from 'primeng/splitter';
+
+/** localStorage key for breadcrumb selection persistence. */
+const LS_KEY = 'studio-breadcrumb-selection';
+
+interface StoredNavSelection {
+  projectId: string;
+  chapterId: string | null;
+  sceneId: string | null;
+  shotId: string | null;
+  sceneNumber?: number;
+  sceneName?: string;
+}
 
 /** Visual progress per status — backend reports no % during running, so we fake it. */
 const PROGRESS_QUEUED = 10;
@@ -239,14 +254,24 @@ export class IndexStudio implements OnInit {
     null,
   );
 
-  // ── Breadcrumb event handlers ───────────────────────────────────────
+  /** True while restoring a previous selection from localStorage. */
+  private readonly restoring = signal(false);
+
+  /** Saved selection to restore (populated before restoring cascade). */
+  private savedNav: StoredNavSelection | null = null;
+
+  // ── Breadcrumb event handlers ──────────────────────────────────────────
 
   protected loadProjects(): void {
     this.navLoadingProjects.set(true);
     this.projectsApi.listProjects().subscribe((res) => {
       this.navLoadingProjects.set(false);
       if (!res.error && res.data) {
-        this.navProjects.set(res.data);
+        this.navProjects.set(res.data.sort((a, b) => a.name.localeCompare(b.name)));
+        // If restoring, trigger the cascade after projects load
+        if (this.restoring() && this.savedNav) {
+          this.restoreAfterProjects();
+        }
       }
     });
   }
@@ -260,91 +285,183 @@ export class IndexStudio implements OnInit {
     this.navSelectedSceneId.set(null);
     this.navSelectedScene.set(null);
     this.navSelectedShotId.set(null);
+    this.persistNav();
     if (projectId) {
-      this.navLoadingChapters.set(true);
-      this.projectsApi.listChapters(projectId).subscribe((res) => {
-        this.navLoadingChapters.set(false);
-        if (!res.error && res.data) {
-          this.navChapters.set(
-            res.data.map((c) => ({
-              id: c.id,
-              number: c.number,
-              name: c.name,
-              label: `EP${String(c.number).padStart(2, '0')} — ${c.name}`,
-            })),
-          );
-        }
-      });
+      this.loadChapters(projectId);
     }
   }
 
-  protected onNavChapterChange(chapterId: string | null): void {
+  /** Load chapters for a project and auto-select if appropriate. */
+  private loadChapters(projectId: string): void {
+    this.navLoadingChapters.set(true);
+    this.projectsApi.listChapters(projectId).subscribe((res) => {
+      this.navLoadingChapters.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((c) => ({
+            id: c.id,
+            number: c.number,
+            name: c.name,
+            label: `EP${String(c.number).padStart(2, '0')} \u2014 ${c.name}`,
+          }));
+        this.navChapters.set(items);
+        this.autoSelectChapter(items);
+      }
+    });
+  }
+
+  /** After chapters load, select the right one (restored, auto, or none). */
+  private autoSelectChapter(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.chapterId) {
+      const match = items.find((c) => c.id === saved.chapterId);
+      if (match) {
+        this.navSelectedChapterId.set(match.id);
+        this.handleChapterSelected(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedChapterId.set(items[0].id);
+      this.handleChapterSelected(items[0].id);
+    }
+  }
+
+  /** Called when a chapter is selected (user or auto). */
+  private handleChapterSelected(chapterId: string): void {
     this.studio.resetStudio();
     this.navScenes.set([]);
     this.navShots.set([]);
     this.navSelectedSceneId.set(null);
     this.navSelectedScene.set(null);
     this.navSelectedShotId.set(null);
+    this.persistNav();
     const projectId = this.navSelectedProjectId();
-    if (chapterId && projectId) {
-      this.navLoadingScenes.set(true);
-      this.projectsApi.listScenes(projectId, chapterId).subscribe((res) => {
-        this.navLoadingScenes.set(false);
-        if (!res.error && res.data) {
-          this.navScenes.set(
-            res.data.map((s) => ({
-              id: s.id,
-              number: s.number,
-              name: s.name,
-              label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
-            })),
-          );
-        }
-      });
+    if (projectId) {
+      this.loadScenes(projectId, chapterId);
     }
   }
 
-  protected onNavSceneChange(sceneId: string | null): void {
+  protected onNavChapterChange(chapterId: string | null): void {
+    if (chapterId) {
+      this.handleChapterSelected(chapterId);
+    }
+  }
+
+  /** Load scenes for a chapter and auto-select if appropriate. */
+  private loadScenes(projectId: string, chapterId: string): void {
+    this.navLoadingScenes.set(true);
+    this.projectsApi.listScenes(projectId, chapterId).subscribe((res) => {
+      this.navLoadingScenes.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((s) => ({
+            id: s.id,
+            number: s.number,
+            name: s.name,
+            label: `SC${String(s.number).padStart(2, '0')} \u2014 ${s.name}`,
+          }));
+        this.navScenes.set(items);
+        this.autoSelectScene(items);
+      }
+    });
+  }
+
+  /** After scenes load, select the right one (restored, auto, or none). */
+  private autoSelectScene(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.sceneId) {
+      const match = items.find((s) => s.id === saved.sceneId);
+      if (match) {
+        this.navSelectedSceneId.set(match.id);
+        this.handleSceneSelected(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedSceneId.set(items[0].id);
+      this.handleSceneSelected(items[0].id);
+    }
+  }
+
+  /** Called when a scene is selected (user or auto). */
+  private handleSceneSelected(sceneId: string): void {
     this.studio.resetStudio();
     this.navShots.set([]);
     this.navSelectedShotId.set(null);
-    if (!sceneId) {
-      this.navSelectedScene.set(null);
-      return;
-    }
+    this.persistNav();
     const scene = this.navScenes().find((s) => s.id === sceneId);
     if (scene) {
       this.navSelectedScene.set({ id: scene.id, number: scene.number, name: scene.name });
     }
-    // Load shots for this scene
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     if (projectId && chapterId) {
-      this.navLoadingShots.set(true);
-      this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
-        this.navLoadingShots.set(false);
-        if (!res.error && res.data) {
-          this.navShots.set(
-            res.data.map((sh) => ({
-              id: sh.id,
-              number: sh.number,
-              name: sh.name,
-              label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
-            })),
-          );
-        }
-      });
+      this.loadShots(projectId, chapterId, sceneId);
+    }
+  }
+
+  protected onNavSceneChange(sceneId: string | null): void {
+    if (sceneId) {
+      this.handleSceneSelected(sceneId);
+    } else {
+      this.studio.resetStudio();
+      this.navShots.set([]);
+      this.navSelectedShotId.set(null);
+      this.navSelectedScene.set(null);
+      this.persistNav();
+    }
+  }
+
+  /** Load shots for a scene and auto-select if appropriate. */
+  private loadShots(projectId: string, chapterId: string, sceneId: string): void {
+    this.navLoadingShots.set(true);
+    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
+      this.navLoadingShots.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((sh) => ({
+            id: sh.id,
+            number: sh.number,
+            name: sh.name,
+            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+          }));
+        this.navShots.set(items);
+        this.autoSelectShot(items);
+      }
+    });
+  }
+
+  /** After shots load, select the right one (restored, auto, or none). */
+  private autoSelectShot(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.shotId) {
+      const match = items.find((sh) => sh.id === saved.shotId);
+      if (match) {
+        this.navSelectedShotId.set(match.id);
+        this.onNavShotChange(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedShotId.set(items[0].id);
+      this.onNavShotChange(items[0].id);
     }
   }
 
   protected onNavShotChange(shotId: string | null): void {
     if (!shotId) {
       this.studio.resetStudio();
+      this.persistNav();
       return;
     }
     const shot = this.navShots().find((s) => s.id === shotId);
     if (shot) {
       this.startSessionWithShot(shot);
+      this.persistNav();
     }
   }
 
@@ -360,15 +477,81 @@ export class IndexStudio implements OnInit {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
         this.navShots.set(
-          res.data.map((sh) => ({
-            id: sh.id,
-            number: sh.number,
-            name: sh.name,
-            label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
-          })),
+          res.data
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((sh) => ({
+              id: sh.id,
+              number: sh.number,
+              name: sh.name,
+              label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+            })),
         );
+        // Auto-select if the previously selected shot is now in the list
+        const saved = this.savedNav;
+        if (saved?.shotId) {
+          const match = this.navShots().find((sh) => sh.id === saved.shotId);
+          if (match) {
+            this.navSelectedShotId.set(match.id);
+            this.onNavShotChange(match.id);
+          }
+        }
       }
     });
+  }
+
+  /** Persist current breadcrumb selection to localStorage. */
+  private persistNav(): void {
+    const projectId = this.navSelectedProjectId();
+    if (!projectId) {
+      localStorage.removeItem(LS_KEY);
+      return;
+    }
+    const scene = this.navSelectedScene();
+    const selection: StoredNavSelection = {
+      projectId,
+      chapterId: this.navSelectedChapterId(),
+      sceneId: this.navSelectedSceneId(),
+      shotId: this.navSelectedShotId(),
+      sceneNumber: scene?.number,
+      sceneName: scene?.name,
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(selection));
+  }
+
+  /** Start restoring a previous selection from localStorage. */
+  private startRestoring(): void {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    try {
+      const saved = JSON.parse(raw) as StoredNavSelection;
+      if (!saved.projectId) return;
+      this.savedNav = saved;
+      this.restoring.set(true);
+      // Projects load is already in progress (called from ngOnInit),
+      // so restoration continues in loadProjects() callback.
+    } catch {
+      localStorage.removeItem(LS_KEY);
+    }
+  }
+
+  /** Continue restoration after projects have loaded. */
+  private restoreAfterProjects(): void {
+    const saved = this.savedNav;
+    if (!saved) return;
+
+    // Find the project in the loaded list
+    const project = this.navProjects().find((p) => p.id === saved.projectId);
+    if (!project) {
+      // Saved project no longer exists — bail out
+      this.restoring.set(false);
+      this.savedNav = null;
+      localStorage.removeItem(LS_KEY);
+      return;
+    }
+
+    // Select the project (this will cascade to load chapters)
+    this.navSelectedProjectId.set(saved.projectId);
+    this.loadChapters(saved.projectId);
   }
 
   /** Initialize session for a given shot. */
@@ -498,6 +681,7 @@ export class IndexStudio implements OnInit {
       }
     });
     this.loadProjects();
+    this.startRestoring();
   }
 
   /**
