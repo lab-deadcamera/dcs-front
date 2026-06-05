@@ -692,11 +692,11 @@ export class IndexStudio implements OnInit {
     this.studio.selectTake(takeIndex);
 
     const take = this.studio.currentTake();
-    if (take?.video_url) {
+    if (take?.video_local_url) {
       this.studio.pushClip({
         id: crypto.randomUUID(),
         prompt: '',
-        videoUrl: take.video_url,
+        videoLocalUrl: take.video_local_url,
         createdAt: Date.now(),
         durationSeconds: 5,
         resolution: '480p',
@@ -933,8 +933,7 @@ export class IndexStudio implements OnInit {
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
       prompt: this.studio.rawDescription(),
-      videoUrl: out.url,
-      videoLocalUrl: out.localUrl,
+      videoLocalUrl: out.localUrl || '',
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
       resolution: output.resolution,
@@ -973,7 +972,7 @@ export class IndexStudio implements OnInit {
     const chapterId = this.studio.chapterId();
     const sceneId = this.studio.sceneId();
     const shotId = this.studio.shotId();
-    if (!projectId || !chapterId || !sceneId || !shotId || !clip.videoUrl) return;
+    if (!projectId || !chapterId || !sceneId || !shotId || !clip.videoLocalUrl) return;
 
     const currentTakes = this.studio.takes();
     const nextNumber =
@@ -989,7 +988,6 @@ export class IndexStudio implements OnInit {
         // Update the take with both URLs: remote (video_url) and local (video_local_url)
         this.projectsApi
           .updateTake(projectId, chapterId, sceneId, shotId, takeRes.data.id, {
-            video_url: clip.videoUrl,
             video_local_url: clip.videoLocalUrl,
             status: 'completed',
           })

@@ -160,10 +160,7 @@ export interface GeneratedClip {
   id: string;
   prompt: string;
   thumbnailUrl?: string;
-  videoUrl?: string;
-  /** Local filesystem path (e.g. /outputs/video/...), set when the backend
-   *  downloads the remote video for local storage. */
-  videoLocalUrl?: string;
+  videoLocalUrl: string;
   createdAt: number;
   durationSeconds: number;
   resolution: Resolution;

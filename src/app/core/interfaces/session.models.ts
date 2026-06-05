@@ -33,6 +33,9 @@ export interface Take {
   id?: string;
   /** URL of the generated video, if any. */
   video_url?: string;
+
+  /** URL of the server video */
+  video_local_url?: string;
   /** Whether this take is the active one for its scene+number. */
   active?: boolean;
 
