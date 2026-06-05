@@ -237,6 +237,7 @@ export class StudioStore {
       id: string;
       number: number;
       video_url: string;
+      video_local_url: string;
       active: boolean;
     }>;
   }): void {
@@ -262,6 +263,7 @@ export class StudioStore {
           status: backend && backend.video_url ? ('confirmed' as const) : ('pending' as const),
           id: backend?.id,
           video_url: backend?.video_url,
+          video_local_url: backend?.video_local_url,
           active: backend?.active ?? true,
           number: backend?.number ?? 0,
         };
@@ -304,7 +306,10 @@ export class StudioStore {
     }
   }
 
-  saveGenerationResponse(takeIndex: number, backendTake: { id: string; video_url: string }): void {
+  saveGenerationResponse(
+    takeIndex: number,
+    backendTake: { id: string; video_url: string; video_local_url: string },
+  ): void {
     this._takes.update((list) =>
       list.map((t) =>
         t.index === takeIndex
@@ -312,6 +317,7 @@ export class StudioStore {
               ...t,
               id: backendTake.id,
               video_url: backendTake.video_url,
+              video_local_url: backendTake.video_local_url,
               active: true,
               status: 'confirmed' as const,
             }

@@ -10,7 +10,7 @@ import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
-import { RESOLVE_URL } from '@app/shared/utils';
+import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { Take } from '@modules/projects/projects/interfaces';
 
@@ -231,22 +231,10 @@ export class TakesReviewComponent implements OnInit {
     const url = this.videoUrl(take.video_local_url);
     if (!url) return;
     this.downloadingId.set(take.id);
-    this.http
-      .get(url, { responseType: 'blob' })
-      .pipe(catchError(() => of(null)))
-      .subscribe((blob) => {
-        this.downloadingId.set(null);
-        if (!blob) {
-          this.toast.add({ severity: 'error', summary: 'Failed to download', life: 3000 });
-          return;
-        }
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = url.split('/').pop() || 'video.mp4';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        this.toast.add({ severity: 'success', summary: 'Download started', life: 2000 });
-      });
+    this.toast.add({ severity: 'info', summary: 'Downloading video', life: 5000 });
+    DOWNLOAD_VIDEO(url).finally(() => {
+      this.downloadingId.set(null);
+    });
   }
 
   protected setFinal(take: Take): void {

@@ -12,7 +12,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CornerFrameComponent } from '@shared/components/corner-frame/corner-frame.component';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
-import { environment } from '@environment/environment';
+import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
+import { MessageService } from 'primeng/api';
 
 /**
  * Section 01 — VIEWER.
@@ -134,7 +135,7 @@ import { environment } from '@environment/environment';
         @if (studio.activeClip(); as clip) {
           <video
             class="h-full w-full object-contain"
-            [src]="studio.imagePreview() || clipUrl(clip.videoUrl)"
+            [src]="studio.imagePreview() || clipUrl(clip.videoLocalUrl)"
             controls
           ></video>
         } @else if (!studio.isReady()) {
@@ -289,17 +290,15 @@ import { environment } from '@environment/environment';
 export class ViewerComponent implements OnDestroy {
   protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
+  private readonly toast = inject(MessageService);
   protected readonly isFullscreen = signal(false);
   protected readonly hdPending = signal(false);
   private hdTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
-  private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
 
   /** Returns the full URL, prepending the API base for relative paths. */
   protected clipUrl(path: string | undefined): string {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return this.baseUrl + path;
+    return RESOLVE_URL(path);
   }
 
   protected readonly isHd = computed(() => this.studio.output().resolution === '1080p');
@@ -331,7 +330,7 @@ export class ViewerComponent implements OnDestroy {
   /** Disable the download icon when there's no playable clip URL. */
   protected readonly canDownload = computed(() => {
     const clip = this.studio.activeClip();
-    return !!clip?.videoUrl && !!this.clipUrl(clip.videoUrl);
+    return !!clip?.videoLocalUrl && !!this.clipUrl(clip.videoLocalUrl);
   });
 
   protected onReuse(): void {
@@ -351,19 +350,11 @@ export class ViewerComponent implements OnDestroy {
    */
   protected async onDownload(): Promise<void> {
     const clip = this.studio.activeClip();
-    const url = this.clipUrl(clip?.videoUrl);
+    const url = this.clipUrl(clip?.videoLocalUrl);
     if (!url || !clip) return;
     const filename = this.studio.filenameForClip(clip);
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      triggerDownload(blobUrl, filename);
-      URL.revokeObjectURL(blobUrl);
-    } catch {
-      triggerDownload(url, filename, '_blank');
-    }
+    this.toast.add({ severity: 'info', summary: 'Downloading video', life: 5000 });
+    DOWNLOAD_VIDEO(url, filename);
   }
 
   protected async toggleFullscreen(): Promise<void> {
