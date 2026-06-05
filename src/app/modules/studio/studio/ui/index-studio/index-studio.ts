@@ -944,11 +944,23 @@ export class IndexStudio implements OnInit {
 
     this.persistGeneration(clip, task.taskId);
 
+    this.playNotificationSound();
+
     this.toast.add({
       summary: 'Generación completada',
       detail: 'El video se ha generado correctamente',
       severity: 'success',
       life: 5000,
+    });
+  }
+
+  /** Play a short chime to alert the user that a video is ready in the viewer. */
+  private playNotificationSound(): void {
+    if (typeof Audio === 'undefined') return;
+    const audio = new Audio('assets/audio/notification.wav');
+    audio.volume = 0.6;
+    audio.play().catch(() => {
+      // Autoplay may be blocked until first user gesture — silently ignore.
     });
   }
 
