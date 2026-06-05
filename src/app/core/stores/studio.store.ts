@@ -142,10 +142,10 @@ export class StudioStore {
   // ── Output format ────────────────────────────────────────────────
 
   private readonly _output = signal<OutputFormatConfig>({
-    aspectRatio: '16:9',
-    resolution: '480p',
+    aspectRatio: '9:16',
+    resolution: '720p',
     durationSeconds: 5,
-    sound: false,
+    sound: true,
     engine: 'fast',
     batchCount: 1,
   });
