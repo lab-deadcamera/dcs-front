@@ -16,7 +16,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { PresetsService } from '@core/stores/presets.service';
 import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedance.interface';
@@ -29,10 +30,20 @@ import { IndexCharacters } from '@app/modules/characters/characters/ui/index-cha
 import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
 import { INFER_CATEGORY } from '@app/shared/utils';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 interface ProjectInfo {
   name: string;
   description: string;
+}
+
+/** Minimal shape that AssetViewerComponent accepts. */
+interface FileLike {
+  id: string;
+  filename?: string;
+  mimeType?: string;
+  mime_type?: string;
+  size?: number;
 }
 
 interface SceneInfo {
@@ -58,14 +69,16 @@ interface SceneAssignmentItem {
     SelectModule,
     DialogModule,
     ToastModule,
+    ConfirmDialogModule,
     DecimalPipe,
     FileUploadModule,
     TranslateModule,
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
     IndexCharacters,
+    AssetViewerComponent,
   ],
-  providers: [MessageService],
+  providers: [ConfirmationService, MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scene-assignment.html',
 })
@@ -112,6 +125,8 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly availableAssets = signal<any[]>([]);
 
   protected readonly characterDialogVisible = signal(false);
+  protected readonly previewFile = signal<FileLike | null>(null);
+  protected readonly previewVisible = signal(false);
 
   constructor() {
     effect(() => {
@@ -338,6 +353,24 @@ export class SceneAssignmentComponent implements OnInit {
         },
         error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
       });
+  }
+
+  protected openPreview(file: FileLike): void {
+    this.previewFile.set(file);
+    this.previewVisible.set(true);
+  }
+
+  protected onDeleteFromViewer(id: string): void {
+    this.fileSvc.delete(id).subscribe({
+      next: (res) => {
+        this.previewVisible.set(false);
+        this.previewFile.set(null);
+        this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
+        this.reload();
+        this.loadAll(this.projectId(), this.sceneId());
+      },
+      error: () => this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
+    });
   }
 
   private reload(): void {

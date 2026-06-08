@@ -330,6 +330,7 @@
     "CANCEL": "Cancel",
     "CLOSE": "Close",
     "SAVE": "Save",
+    "DOWNLOAD": "Download",
     "CREATE": "Create",
     "DELETE": "Delete",
     "EDIT": "Edit",
@@ -429,7 +430,9 @@
       "LINK": "Link to character",
       "DELETE": "Move to trash",
       "RESTORE": "Restore",
-      "HARD_DELETE": "Delete forever"
+      "HARD_DELETE": "Delete forever",
+      "ZOOM_IN": "Zoom in",
+      "ZOOM_OUT": "Zoom out"
     },
     "LINK": {
       "DIALOG_TITLE": "Link file to character",

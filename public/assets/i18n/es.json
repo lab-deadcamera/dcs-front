@@ -324,6 +324,7 @@
     "CANCEL": "Cancelar",
     "CLOSE": "Cerrar",
     "SAVE": "Guardar",
+    "DOWNLOAD": "Descargar",
     "CREATE": "Crear",
     "DELETE": "Eliminar",
     "EDIT": "Editar",
@@ -423,7 +424,9 @@
       "LINK": "Vincular a personaje",
       "DELETE": "Mover a papelera",
       "RESTORE": "Restaurar",
-      "HARD_DELETE": "Eliminar para siempre"
+      "HARD_DELETE": "Eliminar para siempre",
+      "ZOOM_IN": "Acercar",
+      "ZOOM_OUT": "Alejar"
     },
     "LINK": {
       "DIALOG_TITLE": "Vincular archivo a personaje",

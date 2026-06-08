@@ -1,0 +1,95 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  (visibleChange)="onClose()"
+>
+  <ng-template pTemplate="header">
+    @if (file(); as f) {
+      <div class="flex w-full items-center justify-between gap-2">
+        <span class="font-mono text-[13px] font-bold uppercase tracking-[0.06em]">
+          {{ filename(f) }}
+        </span>
+        @if (isImage(f)) {
+          <p-button
+            [icon]="zoomed() ? 'pi pi-search-minus' : 'pi pi-search-plus'"
+            [variant]="zoomed() ? 'outlined' : 'text'"
+            severity="secondary"
+            size="small"
+            (onClick)="toggleZoomCenter()"
+            [pTooltip]="(zoomed() ? 'FILES.ACTIONS.ZOOM_OUT' : 'FILES.ACTIONS.ZOOM_IN') | translate"
+            tooltipPosition="left"
+          />
+        }
+      </div>
+    }
+  </ng-template>
+
+  <div class="flex items-center justify-center" (keydown)="onKeydown($event)">
+    @if (file(); as f) {
+      @if (isImage(f)) {
+        <div class="preview-image-container" [class.zoomed]="zoomed()">
+          <img
+            [src]="fileUrl(f)"
+            [alt]="filename(f)"
+            class="max-h-[75vh] max-w-full rounded object-contain"
+            [class.cursor-zoom-in]="!zoomed()"
+            (click)="zoomToClick($event)"
+          />
+        </div>
+      } @else if (isVideo(f)) {
+        <video [src]="fileUrl(f)" controls autoplay class="max-h-[75vh] max-w-full rounded"></video>
+      } @else if (isAudio(f)) {
+        <div class="flex flex-col items-center gap-4 py-8">
+          <i class="pi pi-volume-up text-5xl" style="color: var(--text-muted)"></i>
+          <audio
+            [src]="fileUrl(f)"
+            controls
+            autoplay
+            class="w-full max-w-[400px]"
+            style="filter: invert(0.8)"
+          ></audio>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center gap-3 py-8">
+          <i class="pi pi-file text-5xl" style="color: var(--text-muted)"></i>
+          <p class="font-mono text-[12px] italic" style="color: var(--text-muted)">
+            {{ mimeLabel(f) }}
+          </p>
+        </div>
+      }
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    @if (file(); as f) {
+      <div class="flex items-center justify-between gap-4">
+        <span class="font-mono text-[11px]" style="color: var(--text-muted)">
+          {{ mimeLabel(f) }}
+        </span>
+        <div class="flex gap-2">
+          @if (allowDelete()) {
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              variant="outlined"
+              (onClick)="onDelete()"
+              [label]="'FILES.ACTIONS.DELETE' | translate"
+            />
+          }
+          <p-button
+            icon="pi pi-download"
+            [label]="'COMMON.DOWNLOAD' | translate"
+            severity="info"
+            (onClick)="onDownload()"
+          />
+        </div>
+      </div>
+    }
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog />
