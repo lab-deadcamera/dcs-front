@@ -29,6 +29,7 @@ export class CharactersService {
       character: [],
       location: [],
       prop: [],
+      audio: [],
     };
     for (const item of this._items()) {
       if (!item.character.metadata) continue;
@@ -59,6 +60,7 @@ export class CharactersService {
       character: b.character.length,
       location: b.location.length,
       prop: b.prop.length,
+      audio: b.audio.length,
     };
   });
 
@@ -101,9 +103,7 @@ export class CharactersService {
       tap((res) => {
         if (!res.error && res.data) {
           this._items.update((list) =>
-            list.map((c) =>
-              c.character.id === id ? { character: res.data!, files: c.files } : c,
-            ),
+            list.map((c) => (c.character.id === id ? { character: res.data!, files: c.files } : c)),
           );
         }
       }),
