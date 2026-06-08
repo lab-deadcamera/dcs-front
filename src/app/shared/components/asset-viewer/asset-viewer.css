@@ -1,0 +1,25 @@
+.preview-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  max-height: 75vh;
+}
+
+.preview-image-container.zoomed {
+  display: block;
+  overflow: auto;
+  cursor: grab;
+}
+
+.preview-image-container.zoomed:active {
+  cursor: grabbing;
+}
+
+.preview-image-container.zoomed img {
+  max-height: none;
+  max-width: none;
+  width: auto;
+  height: auto;
+}

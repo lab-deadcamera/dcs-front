@@ -23,6 +23,7 @@ import { AssetType, CharacterMetadata } from '@modules/characters/characters/int
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes';
 import { FileCategory } from '@app/core/interfaces';
+import { Toast } from 'primeng/toast';
 
 interface LibraryItem {
   id: string;
@@ -55,6 +56,7 @@ interface LibraryItem {
     ButtonModule,
     DialogModule,
     IndexCharacters,
+    Toast,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
@@ -113,6 +115,7 @@ export class CharacterAssetsComponent {
     { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER', icon: 'pi-user' },
     { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION', icon: 'pi-map' },
     { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi-box' },
+    { id: 'audio', labelKey: 'FILES.TABS.AUDIO', icon: 'pi-volume-up' },
   ];
 
   /** True when scene assignments have been loaded and the set is empty. */
@@ -127,10 +130,15 @@ export class CharacterAssetsComponent {
     // no related characters — show nothing rather than dumping the whole
     // library.
     if (this.libraryEmpty()) {
-      return { character: [], location: [], prop: [] };
+      return { character: [], location: [], prop: [], audio: [] };
     }
 
-    const buckets: Record<AssetType, LibraryItem[]> = { character: [], location: [], prop: [] };
+    const buckets: Record<AssetType, LibraryItem[]> = {
+      character: [],
+      location: [],
+      prop: [],
+      audio: [],
+    };
     const seenIds = new Set<string>();
     for (const item of this.chars.items()) {
       if (assignedIds.size > 0 && !assignedIds.has(item.character.id)) continue;
@@ -158,6 +166,28 @@ export class CharacterAssetsComponent {
         fileKind: resolveUsedKind(metadata.fileKind),
       });
     }
+
+    this.studio.freeAssets().forEach((asset) => {
+      if (asset.kind == 'audio') {
+        buckets.audio.push({
+          id: asset.id,
+          name: asset.filename,
+          files: [
+            {
+              fileId: asset.id,
+              filename: asset.filename,
+              thumbUrl: this.filesApi.serveUrl(asset.id),
+            },
+          ],
+          firstFile: {
+            fileId: asset.id,
+            filename: asset.filename,
+            thumbUrl: this.filesApi.serveUrl(asset.id),
+          },
+          fileKind: 'audio',
+        });
+      }
+    });
     // When assignments exist, include assigned characters that are not yet
     // in the local CharactersService (e.g. created via a different flow).
     if (assignedIds.size > 0) {
@@ -192,7 +222,12 @@ export class CharacterAssetsComponent {
     const b = this.libraryByType();
     const hidden = this.hiddenIds();
     const count = (arr: LibraryItem[]) => arr.filter((a) => !hidden.has(a.id)).length;
-    return { character: count(b.character), location: count(b.location), prop: count(b.prop) };
+    return {
+      character: count(b.character),
+      location: count(b.location),
+      prop: count(b.prop),
+      audio: count(b.audio),
+    };
   });
 
   /** How many items are hidden in the active tab — drives the "show hidden" link. */
@@ -311,6 +346,7 @@ export class CharacterAssetsComponent {
       this.studio.unuseAsset(a.id);
       return;
     }
+
     if (a.files.length === 0) {
       this.toast.add({
         severity: 'warn',
@@ -413,6 +449,11 @@ export class CharacterAssetsComponent {
           thumbnailUrl: this.filesApi.serveUrl(up.data.id),
           tag: '',
           slot: 'free',
+        });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Asset added',
+          detail: `${f.name} added to library`,
         });
       });
     }

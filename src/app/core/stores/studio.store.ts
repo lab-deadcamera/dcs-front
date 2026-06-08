@@ -209,7 +209,7 @@ export class StudioStore {
   readonly totalCount = computed(() => {
     const f = this._firstFrame() ? 1 : 0;
     const l = this._lastFrame() ? 1 : 0;
-    return f + l + this._freeAssets().length;
+    return f + l + this._freeAssets().filter((a) => a.kind !== 'audio').length;
   });
 
   // ── Used assets (character library) ──────────────────────────────

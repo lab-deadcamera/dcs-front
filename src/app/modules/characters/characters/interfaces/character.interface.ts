@@ -1,4 +1,4 @@
-export type AssetType = 'character' | 'location' | 'prop';
+export type AssetType = 'character' | 'location' | 'prop' | 'audio';
 
 export type AssetFileKind = 'image' | 'video' | 'audio' | 'mixed';
 

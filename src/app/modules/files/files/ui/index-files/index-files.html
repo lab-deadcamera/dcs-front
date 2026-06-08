@@ -89,39 +89,11 @@
           [attr.data-testid]="'files-card-' + f.id"
         >
           <!-- Thumbnail -->
-          <div
-            class="relative aspect-square w-full overflow-hidden"
-            style="background: var(--content-bg)"
-          >
-            @if (isImage(f)) {
-              @if (active() === 'temp') {
-                <img
-                  [src]="f.id | sourceAsset"
-                  [alt]="f.filename"
-                  class="h-full w-full object-cover"
-                  loading="lazy"
-                  onerror="this.style.display = 'none'"
-                />
-              } @else {
-                <img
-                  [src]="f.id | sourceThumbnailAsset"
-                  [alt]="f.filename"
-                  class="h-full w-full object-cover"
-                  loading="lazy"
-                  onerror="this.style.display = 'none'"
-                />
-              }
-            } @else if (isVideo(f)) {
-              <video
-                [src]="f.id | sourceAsset"
-                class="h-full w-full object-contain"
-                preload="metadata"
-                muted
-                playsinline
-                (click)="togglePlay($event)"
-                (error)="onMediaError($event)"
-              ></video>
-            } @else if (isAudio(f)) {
+          @if (isAudio(f)) {
+            <div
+              class="relative aspect-square w-full overflow-hidden"
+              style="background: var(--content-bg)"
+            >
               <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2">
                 <i class="pi pi-volume-up text-3xl" style="color: var(--text-muted)"></i>
                 <audio
@@ -133,23 +105,73 @@
                   (error)="onMediaError($event)"
                 ></audio>
               </div>
-            } @else {
-              <span
-                aria-hidden="true"
-                class="absolute inset-0 flex items-center justify-center text-3xl"
-                style="color: var(--text-muted)"
-              >
-                @switch (f.category) {
-                  @case ('temp') {
-                    <i class="pi pi-clock"></i>
-                  }
-                  @default {
-                    <i class="pi pi-file"></i>
-                  }
+            </div>
+          } @else {
+            <div
+              class="group relative aspect-square w-full cursor-pointer overflow-hidden"
+              style="background: var(--content-bg)"
+              (click)="openPreview(f)"
+              [attr.aria-label]="'Preview ' + f.filename"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="openPreview(f)"
+            >
+              @if (isImage(f)) {
+                @if (active() === 'temp') {
+                  <img
+                    [src]="f.id | sourceAsset"
+                    [alt]="f.filename"
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    onerror="this.style.display = 'none'"
+                  />
+                } @else {
+                  <img
+                    [src]="f.id | sourceThumbnailAsset"
+                    [alt]="f.filename"
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    onerror="this.style.display = 'none'"
+                  />
                 }
-              </span>
-            }
-          </div>
+              } @else if (isVideo(f)) {
+                <video
+                  [src]="f.id | sourceAsset"
+                  class="h-full w-full object-contain"
+                  preload="metadata"
+                  muted
+                  playsinline
+                  (click)="togglePlay($event)"
+                  (error)="onMediaError($event)"
+                ></video>
+              } @else {
+                <span
+                  aria-hidden="true"
+                  class="absolute inset-0 flex items-center justify-center text-3xl"
+                  style="color: var(--text-muted)"
+                >
+                  @switch (f.category) {
+                    @case ('temp') {
+                      <i class="pi pi-clock"></i>
+                    }
+                    @default {
+                      <i class="pi pi-file"></i>
+                    }
+                  }
+                </span>
+              }
+
+              <!-- Preview overlay on hover -->
+              <div
+                class="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/40"
+                aria-hidden="true"
+              >
+                <i
+                  class="pi pi-eye text-2xl text-white opacity-0 transition-opacity group-hover:opacity-100"
+                ></i>
+              </div>
+            </div>
+          }
 
           <!-- Meta -->
           <div class="flex-1 px-2 py-2">
@@ -223,6 +245,13 @@
 
   <p-confirmDialog />
 </section>
+
+<!-- Asset preview modal -->
+<app-asset-viewer
+  [(visible)]="previewDialogVisible"
+  [file]="previewFile()"
+  (visibleChange)="previewFile.set(null)"
+/>
 
 <p-toast position="bottom-right" />
 <p-dialog

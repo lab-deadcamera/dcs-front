@@ -19,6 +19,8 @@ import { IndexCharacters } from '@modules/characters/characters/ui/index-charact
 import { DialogModule } from 'primeng/dialog';
 import { JsonPipe } from '@angular/common';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { DOWNLOAD_VIDEO, GENERATE_URL_FILE } from '@app/shared/utils';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 type ViewTab = FileCategory | 'trash';
 
@@ -33,7 +35,6 @@ type ViewTab = FileCategory | 'trash';
  * which page the user starts from.
  */
 @Component({
-  selector: 'app-index-files',
   imports: [
     TranslatePipe,
     ButtonModule,
@@ -45,6 +46,7 @@ type ViewTab = FileCategory | 'trash';
     FileLinkDialogComponent,
     IndexCharacters,
     DialogModule,
+    AssetViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -68,8 +70,10 @@ export class IndexFiles implements OnInit {
   protected readonly uploading = signal(false);
   protected readonly linkDialogVisible = signal(false);
   protected readonly characterDialogVisible = signal(false);
+  protected readonly previewDialogVisible = signal(false);
 
   protected readonly linkDialogTarget = signal<FileEntity | null>(null);
+  protected readonly previewFile = signal<FileEntity | null>(null);
 
   protected readonly active = computed<ViewTab>(() => this.files.category());
   protected readonly isTrash = computed(() => this.active() === 'trash');
@@ -150,6 +154,16 @@ export class IndexFiles implements OnInit {
     this.linkDialogVisible.set(true);
   }
 
+  protected openPreview(file: FileEntity): void {
+    this.previewFile.set(file);
+    this.previewDialogVisible.set(true);
+  }
+
+  protected onDownload(file: FileEntity): void {
+    const url = GENERATE_URL_FILE(file.id);
+    DOWNLOAD_VIDEO(url, file.filename);
+  }
+
   protected isImage(file: FileEntity): boolean {
     return file.mimeType.startsWith('image/');
   }
@@ -169,6 +183,7 @@ export class IndexFiles implements OnInit {
   protected togglePlay(e: Event): void {
     const video = e.currentTarget as HTMLVideoElement;
     if (!video) return;
+    e.stopPropagation();
     if (video.paused) {
       void video.play();
     } else {
