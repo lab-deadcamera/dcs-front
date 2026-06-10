@@ -1072,6 +1072,7 @@ export class IndexStudio implements OnInit {
       project_name: this.studio.projectName(),
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),
+      shot_id: this.studio.shotId() ?? '',
       take_number: takeIndex,
       user_name: this.sessionStore.user()?.handle ?? '',
       user_id: this.sessionStore.authUser()?.id ?? 0,

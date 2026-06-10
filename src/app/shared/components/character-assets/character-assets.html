@@ -402,7 +402,10 @@
     styleClass="characters-library-dialog"
   >
     @if (charactersDialogVisible()) {
-      <app-index-characters (assetUsed)="onCharactersDialogVisibility(false)" />
+      <app-index-characters
+        (assetUsed)="onCharactersDialogVisibility(false)"
+        [showUseButton]="true"
+      />
     }
   </p-dialog>
 </section>

@@ -6,6 +6,7 @@ import {
   Output,
   computed,
   inject,
+  input,
   output,
   signal,
 } from '@angular/core';
@@ -69,6 +70,8 @@ export class IndexCharacters implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
+
+  showUseButton = input<boolean>(false);
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();

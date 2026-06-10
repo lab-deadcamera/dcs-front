@@ -67,6 +67,7 @@ export interface StudioGenerateRequest {
   project_id: string;
   project_name: string;
   scene_id: string;
+  shot_id: string;
   scene_code: string;
   take_number: number;
   user_name: string;

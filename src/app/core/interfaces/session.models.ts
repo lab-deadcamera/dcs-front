@@ -38,6 +38,8 @@ export interface Take {
   video_local_url?: string;
   /** Whether this take is the active one for its scene+number. */
   active?: boolean;
+  /** JSON payload from generation_logs.request_payload, contains prompt + assets. */
+  request_payload?: string;
 
   number: number;
 }
@@ -89,6 +91,8 @@ export interface BackendTake {
   active: boolean;
   final: boolean;
   finalized_at: string | null;
+  task_id?: string;
+  request_payload?: string;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

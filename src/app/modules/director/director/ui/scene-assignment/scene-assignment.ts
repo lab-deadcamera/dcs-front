@@ -24,13 +24,15 @@ import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedanc
 import { Preset } from '@core/interfaces/studio.models';
 import { TranslateModule } from '@ngx-translate/core';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { FileUploadEvent, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { IndexCharacters } from '@app/modules/characters/characters/ui/index-characters/index-characters';
 import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
 import { INFER_CATEGORY } from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
+import { Character } from '@app/modules/characters/characters/interfaces';
+import { CharactersService } from '@app/modules/characters/characters/services';
 
 interface ProjectInfo {
   name: string;
@@ -89,6 +91,8 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly presetsSvc = inject(PresetsService);
   private readonly fileSvc = inject(FilesApiService);
+  private readonly confirm = inject(ConfirmationService);
+  private readonly charSvc = inject(CharactersService);
   private readonly apiUrl = environment.API_URL;
 
   protected readonly projectId = toSignal(this.route.params.pipe(map((p) => p['projectId'])), {
@@ -360,6 +364,54 @@ export class SceneAssignmentComponent implements OnInit {
     this.previewVisible.set(true);
   }
 
+  deleteFile(f: FileLike): void {
+    this.confirm.confirm({
+      header: 'Delete file',
+      message: `Move "${f.filename}" to trash?`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.onDeleteFromViewer(f.id),
+    });
+  }
+
+  deleteCharacter(p: Character) {
+    this.confirm.confirm({
+      header: 'Delete Character',
+      message: `Are you sure you want to delete "${p.name}"?`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.onDeleteCharater(p.id),
+    });
+  }
+
+  private onDeleteCharater(id: string) {
+    this.charSvc.delete(id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
+      this.reload();
+      this.loadAll(this.projectId(), this.sceneId());
+    });
+  }
+
+  protected onDeleteCharacter(id: string): void {
+    this.charSvc.delete(id).subscribe({
+      next: (res) => {
+        this.previewVisible.set(false);
+        this.previewFile.set(null);
+        this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
+        this.reload();
+        this.loadAll(this.projectId(), this.sceneId());
+      },
+      error: () =>
+        this.toast.add({ severity: 'error', summary: 'Failed to delete character', life: 3000 }),
+    });
+  }
+
   protected onDeleteFromViewer(id: string): void {
     this.fileSvc.delete(id).subscribe({
       next: (res) => {
@@ -369,7 +421,8 @@ export class SceneAssignmentComponent implements OnInit {
         this.reload();
         this.loadAll(this.projectId(), this.sceneId());
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
+      error: () =>
+        this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
     });
   }
 
