@@ -149,13 +149,16 @@
             class="flex flex-col gap-1 border-t px-1.5 py-1.5"
             style="border-color: var(--border-color)"
           >
-            <p-button
-              [label]="'CHARACTERS.ACTIONS.USE' | translate"
-              icon="pi pi-arrow-right"
-              size="small"
-              [attr.data-testid]="'assets-use-' + a.id"
-              (onClick)="useAsset(a)"
-            />
+            @if (showUseButton()) {
+              <p-button
+                [label]="'CHARACTERS.ACTIONS.USE' | translate"
+                icon="pi pi-arrow-right"
+                size="small"
+                [attr.data-testid]="'assets-use-' + a.id"
+                (onClick)="useAsset(a)"
+              />
+            }
+
             <div class="flex items-center justify-end gap-0">
               <p-button
                 icon="pi pi-folder"

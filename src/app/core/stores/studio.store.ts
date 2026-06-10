@@ -239,6 +239,8 @@ export class StudioStore {
       video_url: string;
       video_local_url: string;
       active: boolean;
+      task_id?: string;
+      request_payload?: string;
     }>;
   }): void {
     this._isReady.set(true);
@@ -266,6 +268,7 @@ export class StudioStore {
           video_local_url: backend?.video_local_url,
           active: backend?.active ?? true,
           number: backend?.number ?? 0,
+          request_payload: backend?.request_payload,
         };
       });
       this._takes.set(merged);
