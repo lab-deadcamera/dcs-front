@@ -103,8 +103,8 @@ export class SceneAssignmentComponent implements OnInit {
   });
 
   protected readonly tabs = [
-    { key: 'characters', label: 'Characters' },
-    { key: 'assets', label: 'Assets' },
+    { key: 'characters', label: 'Resources' },
+    { key: 'assets', label: 'Temp' },
     // { key: 'presets', label: 'Presets' },
   ];
   protected readonly activeTab = signal<string>('characters');
