@@ -3,209 +3,263 @@ import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
+import { TooltipModule } from 'primeng/tooltip';
+import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
+import { ProjectsApiService } from '@modules/projects/projects/services';
+import { Take } from '@modules/projects/projects/interfaces';
 
-interface ProjectOption { id: string; name: string }
-interface SceneOption { id: string; number: number; name: string }
-interface TakeItem {
-  id: string; number: number; scene_id: string;
-  video_url: string; video_local_url: string;
-  status: string; active: boolean; final: boolean;
-  finalized_at: string | null;
-  created_at: string;
+/**
+ * Takes Review — director-side panel that lets the user drill down through
+ * Project → Chapter → Scene → Shot to inspect every Take generated for a
+ * given shot. Mirrors the cascade flow used by the session-gate-dialog
+ * (so the user picks the same hierarchy in both screens) and reuses
+ * `ProjectsApiService` for every list / take action. Local actions like
+ * "save server video to local disk" hit a download endpoint that is not
+ * exposed by the API service, so they keep using HttpClient directly with
+ * the new chapter+shot path.
+ */
+interface PickerOption {
+  id: string;
+  label: string;
 }
 
 @Component({
   selector: 'app-takes-review',
+  templateUrl: './takes-review.html',
   standalone: true,
-  imports: [DatePipe, FormsModule, ButtonModule, SelectModule, ToastModule],
+  imports: [
+    DatePipe,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    SelectModule,
+    ToastModule,
+    TooltipModule,
+  ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="p-6">
-      <div class="mb-6">
-        <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Takes Review</h1>
-        <p class="mt-1 text-[12px] text-fg-muted">Review generated takes by scene and select the final take</p>
-      </div>
-
-      <div class="mb-4 flex flex-wrap items-end gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Project</label>
-          <p-select
-            [options]="projects()" optionLabel="name" optionValue="id"
-            [ngModel]="selectedProjectId()" (ngModelChange)="onProjectChange($event)"
-            placeholder="Select project" [showClear]="true" styleClass="w-56"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Scene</label>
-          <p-select
-            [options]="scenes()" optionLabel="label" optionValue="id"
-            [ngModel]="selectedSceneId()" (ngModelChange)="selectedSceneId.set($event ?? '')"
-            placeholder="Select scene" [showClear]="true" styleClass="w-56"
-            [disabled]="!selectedProjectId()"
-          />
-        </div>
-        <p-button label="Load Takes" icon="pi pi-search" (onClick)="loadTakes()" [disabled]="!selectedSceneId()" />
-      </div>
-
-      @if (loading()) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
-      }
-
-      @if (!loading() && takes().length > 0) {
-        <div class="overflow-x-auto rounded border border-ink-700">
-          <table class="w-full text-[12px]">
-            <thead>
-              <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                <th class="px-3 py-2 font-medium">Take</th>
-                <th class="px-3 py-2 font-medium">Preview</th>
-                <th class="px-3 py-2 font-medium">Status</th>
-                <th class="px-3 py-2 font-medium">Active</th>
-                <th class="px-3 py-2 font-medium">Final</th>
-                <th class="px-3 py-2 font-medium">Date</th>
-                <th class="w-40 px-3 py-2 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (t of takes(); track t.id) {
-                <tr class="border-t border-ink-700" [class.bg-green-900/10]="t.final">
-                  <td class="px-3 py-2 font-mono font-bold">Take {{ t.number }}</td>
-                  <td class="px-3 py-2">
-                    @if (t.video_local_url || t.video_url) {
-                      <video
-                        [src]="t.video_local_url || t.video_url"
-                        class="h-20 w-36 rounded object-cover"
-                        preload="metadata" playsinline muted
-                      ></video>
-                    } @else {
-                      <span class="text-fg-muted">No video</span>
-                    }
-                  </td>
-                  <td class="px-3 py-2">
-                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                      [class.bg-green-900/40]="t.status === 'succeeded'"
-                      [class.text-green-400]="t.status === 'succeeded'"
-                      [class.bg-yellow-900/40]="t.status === 'running'"
-                      [class.text-yellow-400]="t.status === 'running'"
-                      [class.bg-red-900/40]="t.status === 'failed'"
-                      [class.text-red-400]="t.status === 'failed'"
-                    >{{ t.status }}</span>
-                  </td>
-                  <td class="px-3 py-2">
-                    @if (t.active) {
-                      <span class="text-green-400">● Active</span>
-                    } @else {
-                      <span class="text-fg-muted">○</span>
-                    }
-                  </td>
-                  <td class="px-3 py-2">
-                    @if (t.final) {
-                      <span class="inline-flex items-center rounded-full bg-yellow-900/40 px-2 py-0.5 text-[10px] font-bold uppercase text-yellow-400">★ Final</span>
-                    }
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">{{ t.created_at | date: 'dd/MM/yy HH:mm' }}</td>
-                  <td class="px-3 py-2">
-                    <div class="flex gap-1">
-                      @if (!t.final) {
-                        <p-button
-                          label="Select as Final"
-                          icon="pi pi-star"
-                          severity="contrast"
-                          size="small"
-                          [loading]="loadingId() === t.id"
-                          (onClick)="setFinal(t)"
-                        />
-                      }
-                      @if (t.video_local_url || t.video_url) {
-                        <a
-                          [href]="t.video_local_url || t.video_url"
-                          target="_blank"
-                          class="inline-flex items-center rounded bg-ink-700 px-2 py-1 text-[10px] text-primary-400 transition-colors hover:bg-ink-600"
-                        >Open</a>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-
-      @if (!loading() && takes().length === 0 && selectedSceneId()) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">No takes found for this scene.</p>
-      }
-    </section>
-  `,
 })
 export class TakesReviewComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(MessageService);
+  private readonly projectsApi = inject(ProjectsApiService);
   private readonly apiUrl = environment.API_URL;
 
-  protected readonly projects = signal<ProjectOption[]>([]);
-  protected readonly scenes = signal<Array<{ id: string; label: string }>>([]);
+  /** Returns the full URL for a local video path (/outputs/...). */
+  protected videoUrl(path: string | undefined): string {
+    return RESOLVE_URL(path);
+  }
+
+  // ── Cascade pickers (Project → Chapter → Scene → Shot) ───────────────
+
+  protected readonly projects = signal<PickerOption[]>([]);
+  protected readonly chapters = signal<PickerOption[]>([]);
+  protected readonly scenes = signal<PickerOption[]>([]);
+  protected readonly shots = signal<PickerOption[]>([]);
+
   protected readonly selectedProjectId = signal<string>('');
+  protected readonly selectedChapterId = signal<string>('');
   protected readonly selectedSceneId = signal<string>('');
-  protected readonly takes = signal<TakeItem[]>([]);
+  protected readonly selectedShotId = signal<string>('');
+
+  protected readonly loadingChapters = signal(false);
+  protected readonly loadingScenes = signal(false);
+  protected readonly loadingShots = signal(false);
+
+  // ── Takes (list + per-row action state) ──────────────────────────────
+
+  protected readonly takes = signal<Take[]>([]);
   protected readonly loading = signal(false);
   protected readonly loadingId = signal<string | null>(null);
+  protected readonly savingId = signal<string | null>(null);
+  protected readonly previewVisible = signal(false);
+  protected readonly previewTake = signal<Take | null>(null);
+  protected readonly downloadingId = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.http.get<{ data: any[] }>(`${this.apiUrl}/projects`).pipe(
-      catchError(() => of({ data: [] })),
-    ).subscribe((res) => {
-      this.projects.set((res.data || []).map((p) => ({ id: p.id || p.project?.id, name: p.name || p.project?.name || '' })));
+    this.projectsApi.listProjects().subscribe((res) => {
+      if (!res.error && res.data) {
+        this.projects.set(res.data.map((p) => ({ id: p.id, label: p.name })));
+      }
     });
   }
 
-  protected onProjectChange(id: string): void {
-    this.selectedProjectId.set(id);
+  // ── Cascade handlers ─────────────────────────────────────────────────
+
+  protected onProjectChange(id: string | null): void {
+    this.selectedProjectId.set(id ?? '');
+    this.selectedChapterId.set('');
     this.selectedSceneId.set('');
+    this.selectedShotId.set('');
+    this.chapters.set([]);
     this.scenes.set([]);
+    this.shots.set([]);
     this.takes.set([]);
     if (!id) return;
-    this.http.get<{ data: any[] }>(`${this.apiUrl}/projects/${id}/scenes`).pipe(
-      catchError(() => of({ data: [] })),
-    ).subscribe((res) => {
-      this.scenes.set((res.data || []).map((s) => ({
-        id: s.id,
-        label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
-      })));
+    this.loadingChapters.set(true);
+    this.projectsApi.listChapters(id).subscribe((res) => {
+      this.loadingChapters.set(false);
+      if (!res.error && res.data) {
+        this.chapters.set(
+          res.data.map((c) => ({
+            id: c.id,
+            label: `CH${String(c.number).padStart(2, '0')} — ${c.name}`,
+          })),
+        );
+      }
     });
   }
+
+  protected onChapterChange(id: string | null): void {
+    this.selectedChapterId.set(id ?? '');
+    this.selectedSceneId.set('');
+    this.selectedShotId.set('');
+    this.scenes.set([]);
+    this.shots.set([]);
+    this.takes.set([]);
+    const projectId = this.selectedProjectId();
+    if (!id || !projectId) return;
+    this.loadingScenes.set(true);
+    this.projectsApi.listScenes(projectId, id).subscribe((res) => {
+      this.loadingScenes.set(false);
+      if (!res.error && res.data) {
+        this.scenes.set(
+          res.data.map((s) => ({
+            id: s.id,
+            label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected onSceneChange(id: string | null): void {
+    this.selectedSceneId.set(id ?? '');
+    this.selectedShotId.set('');
+    this.shots.set([]);
+    this.takes.set([]);
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    if (!id || !projectId || !chapterId) return;
+    this.loadingShots.set(true);
+    this.projectsApi.listShots(projectId, chapterId, id).subscribe((res) => {
+      this.loadingShots.set(false);
+      if (!res.error && res.data) {
+        this.shots.set(
+          res.data.map((sh) => ({
+            id: sh.id,
+            label: `SH${String(sh.number).padStart(2, '0')} — ${sh.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected onShotChange(id: string | null): void {
+    this.selectedShotId.set(id ?? '');
+    this.takes.set([]);
+    if (!id) return;
+    this.loadTakes();
+  }
+
+  // ── Takes loading & actions ──────────────────────────────────────────
 
   protected loadTakes(): void {
-    const sid = this.selectedSceneId();
-    if (!sid) return;
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
     this.loading.set(true);
-    this.http.get<{ data: any }>(`${this.apiUrl}/projects/${this.selectedProjectId()}/scenes/${sid}`).pipe(
-      catchError(() => of({ data: { takes: [] } })),
-    ).subscribe((res) => {
-      this.takes.set((res.data?.takes || []).sort((a: TakeItem, b: TakeItem) => b.number - a.number));
+    this.projectsApi.listTakes(projectId, chapterId, sceneId, shotId).subscribe((res) => {
       this.loading.set(false);
+      if (!res.error && res.data) {
+        this.takes.set([...res.data].sort((a, b) => b.number - a.number));
+      } else {
+        this.takes.set([]);
+      }
     });
   }
 
-  protected setFinal(take: TakeItem): void {
-    this.loadingId.set(take.id);
-    this.http.patch(`${this.apiUrl}/takes/${take.id}`, { final: true }).pipe(
-      catchError(() => of(null)),
-    ).subscribe({
-      next: () => {
-        this.toast.add({ severity: 'success', summary: 'Take selected as final', life: 2000 });
-        this.loadingId.set(null);
-        this.loadTakes();
-      },
-      error: () => {
-        this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
-        this.loadingId.set(null);
-      },
+  protected saveLocal(take: Take): void {
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
+    this.savingId.set(take.id);
+    this.http
+      .post(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${take.id}/download`,
+        {},
+      )
+      .pipe(catchError(() => of(null)))
+      .subscribe({
+        next: (res: any) => {
+          this.savingId.set(null);
+          if (res && res.data) {
+            this.toast.add({ severity: 'success', summary: 'Video saved locally', life: 2000 });
+            this.loadTakes();
+          } else {
+            this.toast.add({ severity: 'error', summary: 'Failed to save video', life: 3000 });
+          }
+        },
+        error: () => {
+          this.savingId.set(null);
+          this.toast.add({ severity: 'error', summary: 'Failed to save video', life: 3000 });
+        },
+      });
+  }
+
+  protected openPreview(take: Take): void {
+    this.previewTake.set(take);
+    this.previewVisible.set(true);
+  }
+
+  protected closePreview(): void {
+    this.previewVisible.set(false);
+    this.previewTake.set(null);
+  }
+
+  protected downloadVideo(take: Take): void {
+    const url = this.videoUrl(take.video_local_url);
+    if (!url) return;
+    this.downloadingId.set(take.id);
+    this.toast.add({ severity: 'info', summary: 'Downloading video', life: 5000 });
+    DOWNLOAD_VIDEO(url).finally(() => {
+      this.downloadingId.set(null);
     });
+  }
+
+  protected setFinal(take: Take): void {
+    const projectId = this.selectedProjectId();
+    const chapterId = this.selectedChapterId();
+    const sceneId = this.selectedSceneId();
+    const shotId = this.selectedShotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
+    this.loadingId.set(take.id);
+    this.projectsApi
+      .updateTake(projectId, chapterId, sceneId, shotId, take.id, { final: true })
+      .subscribe({
+        next: (res) => {
+          this.loadingId.set(null);
+          if (res.error) {
+            this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
+            return;
+          }
+          this.toast.add({ severity: 'success', summary: 'Take selected as final', life: 2000 });
+          this.loadTakes();
+        },
+        error: () => {
+          this.loadingId.set(null);
+          this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
+        },
+      });
   }
 }

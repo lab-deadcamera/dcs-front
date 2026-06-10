@@ -40,17 +40,19 @@ import { StudioStore } from '@app/core/stores/studio.store';
                     [alt]="clip.prompt"
                     class="h-full w-full object-cover"
                   />
-                } @else if (clip.videoUrl) {
+                } @else if (clip.videoLocalUrl) {
                   <!-- See posterUrl() — uses a media fragment to force first-frame paint. -->
                   <video
-                    [src]="posterUrl(clip.videoUrl)"
+                    [src]="posterUrl(clip.videoLocalUrl)"
                     preload="metadata"
                     muted
                     playsinline
                     class="pointer-events-none h-full w-full object-cover"
                   ></video>
                 } @else {
-                  <span class="flex h-full w-full items-center justify-center bg-ink-800 font-mono text-[10px] text-fg-muted">
+                  <span
+                    class="flex h-full w-full items-center justify-center bg-ink-800 font-mono text-[10px] text-fg-muted"
+                  >
                     {{ clip.durationSeconds }}s
                   </span>
                 }

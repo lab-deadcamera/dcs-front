@@ -154,13 +154,13 @@ export const PROMPT_TEMPLATE = [
   'NEGATIVE:',
   '',
   'REFERENCE SLOTS:',
-].join('\n');
+].join('<br />');
 
 export interface GeneratedClip {
   id: string;
   prompt: string;
   thumbnailUrl?: string;
-  videoUrl?: string;
+  videoLocalUrl: string;
   createdAt: number;
   durationSeconds: number;
   resolution: Resolution;

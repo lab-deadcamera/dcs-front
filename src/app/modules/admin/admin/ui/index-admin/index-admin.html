@@ -116,6 +116,16 @@
       </div>
       <p-button label="Search" icon="pi pi-search" (onClick)="search()" />
       <p-button label="Clear" severity="secondary" [text]="true" (onClick)="clearFilters()" />
+
+      <!-- Cost summary -->
+      <div class="flex items-center gap-2 text-[13px] ml-auto">
+        <span class="font-bold uppercase tracking-[0.08em] text-fg-muted">Total Cost:</span>
+        @if (costLoading()) {
+          <span class="italic text-fg-muted">calculating...</span>
+        } @else {
+          <span class="font-mono font-bold text-green-400">{{ totalCost() | currency }}</span>
+        }
+      </div>
     </div>
   </div>
 
@@ -146,19 +156,19 @@
         <tbody>
           @for (log of logs(); track log.id) {
             <tr class="border-t" style="border-color: var(--border-color)">
-              <td class="max-w-[120px] truncate px-3 py-2 font-mono" [title]="log.task_id">
+              <td class="max-w-30 truncate px-3 py-2 font-mono" [title]="log.task_id">
                 {{ log.task_id }}
               </td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                  [class.bg-blue-900/40]="log.resource_type === 'video'"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                  [class.bg-blue-900]="log.resource_type === 'video'"
                   [class.text-blue-400]="log.resource_type === 'video'"
-                  [class.bg-purple-900/40]="log.resource_type === 'image'"
+                  [class.bg-purple-900]="log.resource_type === 'image'"
                   [class.text-purple-400]="log.resource_type === 'image'"
-                  [class.bg-green-900/40]="log.resource_type === 'audio'"
+                  [class.bg-green-900]="log.resource_type === 'audio'"
                   [class.text-green-400]="log.resource_type === 'audio'"
-                  [class.bg-orange-900/40]="log.resource_type === 'text'"
+                  [class.bg-orange-900]="log.resource_type === 'text'"
                   [class.text-orange-400]="log.resource_type === 'text'"
                   [class.bg-ink-700]="!log.resource_type"
                   [class.text-fg-muted]="!log.resource_type"
@@ -179,12 +189,12 @@
               <td class="px-3 py-2 font-mono">{{ log.take_number ?? '—' }}</td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                  [class.bg-green-900/40]="log.status === 'succeeded'"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                  [class.bg-green-900]="log.status === 'succeeded'"
                   [class.text-green-400]="log.status === 'succeeded'"
-                  [class.bg-yellow-900/40]="log.status === 'queued' || log.status === 'running'"
+                  [class.bg-yellow-900]="log.status === 'queued' || log.status === 'running'"
                   [class.text-yellow-400]="log.status === 'queued' || log.status === 'running'"
-                  [class.bg-red-900/40]="log.status === 'failed'"
+                  [class.bg-red-900]="log.status === 'failed'"
                   [class.text-red-400]="log.status === 'failed'"
                 >
                   {{ log.status }}
@@ -223,20 +233,11 @@
                     (onClick)="refreshTask(log)"
                   />
                   <p-button
-                    icon="pi pi-eye"
-                    severity="secondary"
-                    [text]="true"
-                    [rounded]="true"
-                    pTooltip="View request payload"
-                    (onClick)="showPayload(log)"
-                  />
-                  <p-button
                     [icon]="typeIcon(log.resource_type)"
                     severity="secondary"
                     [text]="true"
                     [rounded]="true"
                     [pTooltip]="'View generated ' + (log.resource_type || 'output')"
-                    [disabled]="!log.outputs || log.outputs === '[]'"
                     (onClick)="showOutput(log)"
                   />
                   <p-button
@@ -259,6 +260,7 @@
       [totalRecords]="totalRecords()"
       [rows]="limit()"
       [rowsPerPageOptions]="[10, 20, 50]"
+      [first]="page() * limit()"
       (onPageChange)="onPageChange($event)"
       class="mt-3"
     />
@@ -338,27 +340,31 @@
       <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
         @if (out.type === 'video') {
           <video
-            [src]="out.url"
+            [src]="out.url | resolveUrl"
             controls
-            class="w-full max-h-[400px]"
+            class="w-full max-h-100"
             preload="metadata"
             playsinline
           >
-            Your browser does not support the video tag.
+            Your browser does not support the video tag x.
           </video>
         } @else if (out.type === 'audio') {
           <div class="flex items-center justify-center bg-ink-900 p-8">
-            <audio [src]="out.url" controls class="w-full max-w-md">
+            <audio [src]="out.url | resolveUrl" controls class="w-full max-w-md">
               Your browser does not support the audio tag.
             </audio>
           </div>
         } @else {
-          <img [src]="out.url" class="w-full max-h-[400px] object-contain" alt="Generated output" />
+          <img
+            [src]="out.url | resolveUrl"
+            class="w-full max-h-100 object-contain"
+            alt="Generated output"
+          />
         }
         <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
           <span>{{ out.type }}</span>
           <a
-            [href]="out.url"
+            [href]="out.url | resolveUrl"
             target="_blank"
             rel="noopener noreferrer"
             class="text-primary-500 underline hover:text-primary-400"
@@ -472,15 +478,15 @@
       </div>
 
       <!-- Outputs -->
-      @if (d.outputs && d.outputs !== '[]') {
+      @if (d.outputs.length > 0) {
         <div>
           <span class="block font-bold uppercase text-fg-muted">Outputs</span>
           <div class="mt-1 flex flex-wrap gap-3">
-            @for (out of parseOutputs(d.outputs); track $index) {
+            @for (out of d.outputs; track $index) {
               <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
                 @if (out.type === 'video') {
                   <video
-                    [src]="out.url"
+                    [src]="out.localUrl || out.url | resolveUrl"
                     controls
                     class="w-60 h-36 object-cover"
                     preload="metadata"
@@ -490,15 +496,24 @@
                   </video>
                 } @else if (out.type === 'audio') {
                   <div class="flex h-36 w-60 items-center justify-center bg-ink-900 p-4">
-                    <audio [src]="out.url" controls class="w-full">
+                    <audio [src]="out.localUrl || out.url | resolveUrl" controls class="w-full">
                       Your browser does not support the audio tag.
                     </audio>
                   </div>
                 } @else {
-                  <img [src]="out.url" class="w-60 h-36 object-contain bg-ink-900" alt="Output" />
+                  <img
+                    [src]="out.localUrl || out.url | resolveUrl"
+                    class="w-60 h-36 object-contain bg-ink-900"
+                    alt="Output"
+                  />
                 }
                 <div class="px-2 py-1 text-[10px] text-fg-muted">
-                  <a [href]="out.url" target="_blank" class="text-primary-500 underline">Open</a>
+                  <a
+                    [href]="out.localUrl || out.url | resolveUrl"
+                    target="_blank"
+                    class="text-primary-500 underline"
+                    >Open</a
+                  >
                 </div>
               </div>
             }

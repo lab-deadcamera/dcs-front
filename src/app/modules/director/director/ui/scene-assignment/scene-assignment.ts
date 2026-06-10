@@ -16,22 +16,36 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { PresetsService } from '@core/stores/presets.service';
 import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedance.interface';
 import { Preset } from '@core/interfaces/studio.models';
 import { TranslateModule } from '@ngx-translate/core';
-import { SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { FileUploadEvent, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { IndexCharacters } from '@app/modules/characters/characters/ui/index-characters/index-characters';
 import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
+import { INFER_CATEGORY } from '@app/shared/utils';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
+import { Character } from '@app/modules/characters/characters/interfaces';
+import { CharactersService } from '@app/modules/characters/characters/services';
 
 interface ProjectInfo {
   name: string;
   description: string;
+}
+
+/** Minimal shape that AssetViewerComponent accepts. */
+interface FileLike {
+  id: string;
+  filename?: string;
+  mimeType?: string;
+  mime_type?: string;
+  size?: number;
 }
 
 interface SceneInfo {
@@ -57,13 +71,16 @@ interface SceneAssignmentItem {
     SelectModule,
     DialogModule,
     ToastModule,
+    ConfirmDialogModule,
     DecimalPipe,
     FileUploadModule,
     TranslateModule,
     SourceThumbnailAssetPipe,
+    SourceAssetPipe,
     IndexCharacters,
+    AssetViewerComponent,
   ],
-  providers: [MessageService],
+  providers: [ConfirmationService, MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scene-assignment.html',
 })
@@ -74,6 +91,8 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly presetsSvc = inject(PresetsService);
   private readonly fileSvc = inject(FilesApiService);
+  private readonly confirm = inject(ConfirmationService);
+  private readonly charSvc = inject(CharactersService);
   private readonly apiUrl = environment.API_URL;
 
   protected readonly projectId = toSignal(this.route.params.pipe(map((p) => p['projectId'])), {
@@ -84,11 +103,11 @@ export class SceneAssignmentComponent implements OnInit {
   });
 
   protected readonly tabs = [
-    { key: 'presets', label: 'Presets' },
     { key: 'characters', label: 'Resources' },
     { key: 'assets', label: 'Temp' },
+    // { key: 'presets', label: 'Presets' },
   ];
-  protected readonly activeTab = signal<string>('presets');
+  protected readonly activeTab = signal<string>('characters');
   protected readonly loading = signal(false);
   protected readonly fileUploadLoading = signal(false);
 
@@ -110,6 +129,8 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly availableAssets = signal<any[]>([]);
 
   protected readonly characterDialogVisible = signal(false);
+  protected readonly previewFile = signal<FileLike | null>(null);
+  protected readonly previewVisible = signal(false);
 
   constructor() {
     effect(() => {
@@ -338,6 +359,73 @@ export class SceneAssignmentComponent implements OnInit {
       });
   }
 
+  protected openPreview(file: FileLike): void {
+    this.previewFile.set(file);
+    this.previewVisible.set(true);
+  }
+
+  deleteFile(f: FileLike): void {
+    this.confirm.confirm({
+      header: 'Delete file',
+      message: `Move "${f.filename}" to trash?`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.onDeleteFromViewer(f.id),
+    });
+  }
+
+  deleteCharacter(p: Character) {
+    this.confirm.confirm({
+      header: 'Delete Character',
+      message: `Are you sure you want to delete "${p.name}"?`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.onDeleteCharater(p.id),
+    });
+  }
+
+  private onDeleteCharater(id: string) {
+    this.charSvc.delete(id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
+      this.reload();
+      this.loadAll(this.projectId(), this.sceneId());
+    });
+  }
+
+  protected onDeleteCharacter(id: string): void {
+    this.charSvc.delete(id).subscribe({
+      next: (res) => {
+        this.previewVisible.set(false);
+        this.previewFile.set(null);
+        this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
+        this.reload();
+        this.loadAll(this.projectId(), this.sceneId());
+      },
+      error: () =>
+        this.toast.add({ severity: 'error', summary: 'Failed to delete character', life: 3000 }),
+    });
+  }
+
+  protected onDeleteFromViewer(id: string): void {
+    this.fileSvc.delete(id).subscribe({
+      next: (res) => {
+        this.previewVisible.set(false);
+        this.previewFile.set(null);
+        this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
+        this.reload();
+        this.loadAll(this.projectId(), this.sceneId());
+      },
+      error: () =>
+        this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
+    });
+  }
+
   private reload(): void {
     const pid = this.projectId();
     const sid = this.sceneId();
@@ -363,7 +451,7 @@ export class SceneAssignmentComponent implements OnInit {
       ev.files.map((file) => {
         const payload: UploadParams = {
           file,
-          category: 'images',
+          category: INFER_CATEGORY(file),
           storage: 'persistent',
         };
         return this.fileSvc.upload(payload);

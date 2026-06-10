@@ -3,7 +3,7 @@
   <div class="mb-6 flex items-center justify-between">
     <div>
       <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Projects</h1>
-      <p class="mt-1 text-[12px] text-fg-muted">Manage your video projects, scenes, and takes</p>
+      <p class="mt-1 text-[12px] text-fg-muted">Manage your video projects, episodes, scenes, and takes</p>
     </div>
     <p-button
       [label]="'PROJECTS.NEW_PROJECT' | translate"
@@ -35,7 +35,7 @@
     <div class="flex flex-col gap-3">
       @for (item of projects(); track item.project.id) {
         <div class="border" style="border-color: var(--border-color)">
-          <!-- Project header row -->
+          <!-- ── Project header row ── -->
           <div class="flex items-center justify-between gap-4 px-4 py-3">
             <div class="flex items-center gap-3 min-w-0">
               <button
@@ -55,7 +55,7 @@
                 </span>
               }
               <span
-                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                 [class.bg-green-900]="item.project.active"
                 [class.text-green-400]="item.project.active"
                 [class.bg-ink-700]="!item.project.active"
@@ -71,7 +71,7 @@
 
             <div class="flex items-center gap-2 flex-shrink-0">
               <span class="font-mono text-[11px] text-fg-muted">
-                {{ item.project.scene_count }} scene{{ item.scenes.length !== 1 ? 's' : '' }}
+                {{ item.project.chapter_count }} episode{{ item.chapters.length !== 1 ? 's' : '' }}
               </span>
 
               <p-button
@@ -79,8 +79,8 @@
                 severity="secondary"
                 [text]="true"
                 [rounded]="true"
-                pTooltip="Add scene"
-                (onClick)="openCreateScene(item.project.id)"
+                pTooltip="Add episode"
+                (onClick)="openCreateChapter(item.project.id)"
               />
               <p-button
                 icon="pi pi-pencil"
@@ -98,52 +98,44 @@
                 [pTooltip]="item.project.active ? 'Deactivate' : 'Activate'"
                 (onClick)="toggleProjectActive(item.project)"
               />
-              <p-button
-                icon="pi pi-trash"
-                severity="danger"
-                [text]="true"
-                [rounded]="true"
-                pTooltip="Delete project"
-                (onClick)="confirmDeleteProject(item.project)"
-              />
             </div>
           </div>
 
-          <!-- Scenes section (expandable) -->
+          <!-- ── Episodes section (expandable) ── -->
           @if (expandedProjects()[item.project.id]) {
             <div class="border-t" style="border-color: var(--border-color)">
-              @if (item.scenes.length === 0) {
-                <div class="px-4 py-4 text-center text-[12px] text-fg-muted">No scenes yet.</div>
+              @if (item.chapters.length === 0) {
+                <div class="px-4 py-4 text-center text-[12px] text-fg-muted">No episodes yet.</div>
               }
 
-              @for (swt of item.scenes; track swt.scene.id) {
+              @for (cwt of item.chapters; track cwt.chapter.id) {
                 <div class="border-t" style="border-color: var(--border-color)">
-                  <!-- Scene header row -->
+                  <!-- Episode header row -->
                   <div class="flex items-center justify-between gap-4 px-4 py-2.5 pl-10">
                     <div class="flex items-center gap-3 min-w-0">
                       <button
                         type="button"
                         class="flex h-5 w-5 items-center justify-center rounded text-[10px] transition-colors hover:bg-ink-800"
-                        (click)="toggleSceneExpand(item.project.id, swt.scene.id)"
-                        [attr.aria-expanded]="expandedScenes()[swt.scene.id]"
+                        (click)="toggleChapterExpand(item.project.id, cwt.chapter.id)"
+                        [attr.aria-expanded]="expandedChapters()[cwt.chapter.id]"
                       >
-                        {{ expandedScenes()[swt.scene.id] ? '▾' : '▸' }}
+                        {{ expandedChapters()[cwt.chapter.id] ? '▾' : '▸' }}
                       </button>
                       <span class="font-mono text-[12px] font-semibold text-primary-400">
-                        SC{{ swt.scene.number | number: '2.0' }}
+                        EP{{ cwt.chapter.number | number: '2.0' }}
                       </span>
                       <span class="truncate text-[13px]">
-                        {{ swt.scene.name }}
+                        {{ cwt.chapter.name }}
                       </span>
                       <span
-                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                        [class.bg-green-900/40]="swt.scene.active"
-                        [class.text-green-400]="swt.scene.active"
-                        [class.bg-ink-700]="!swt.scene.active"
-                        [class.text-fg-muted]="!swt.scene.active"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                        [class.bg-green-900]="cwt.chapter.active"
+                        [class.text-green-400]="cwt.chapter.active"
+                        [class.bg-ink-700]="!cwt.chapter.active"
+                        [class.text-fg-muted]="!cwt.chapter.active"
                       >
                         {{
-                          swt.scene.active
+                          cwt.chapter.active
                             ? ('GLOBAL.STATUS.ACTIVE' | translate)
                             : ('GLOBAL.STATUS.INACTIVE' | translate)
                         }}
@@ -152,7 +144,7 @@
 
                     <div class="flex items-center gap-2 flex-shrink-0">
                       <span class="font-mono text-[11px] text-fg-muted">
-                        {{ swt.takes.length }} take{{ swt.takes.length !== 1 ? 's' : '' }}
+                        {{ cwt.chapter.scene_count }} scene{{ cwt.scenes.length !== 1 ? 's' : '' }}
                       </span>
 
                       <p-button
@@ -160,120 +152,102 @@
                         severity="secondary"
                         [text]="true"
                         [rounded]="true"
-                        pTooltip="Add take"
-                        (onClick)="openCreateTake(item.project.id, swt.scene.id)"
+                        pTooltip="Add scene"
+                        (onClick)="openCreateScene(item.project.id, cwt.chapter.id)"
                       />
                       <p-button
                         icon="pi pi-pencil"
                         severity="secondary"
                         [text]="true"
                         [rounded]="true"
-                        pTooltip="Edit scene"
-                        (onClick)="openEditScene(swt.scene)"
+                        pTooltip="Edit episode"
+                        (onClick)="openEditChapter(cwt.chapter)"
                       />
-                      @if (isDirectorOrAdmin()) {
-                        <a
-                          [routerLink]="
-                            '/director/projects/' +
-                            item.project.id +
-                            '/scenes/' +
-                            swt.scene.id +
-                            '/assign'
-                          "
-                          class="inline-flex items-center rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary-400 transition-colors hover:bg-ink-800"
-                          pTooltip="Assign resources to this scene"
-                        >
-                          RESOURCES
-                        </a>
-                      }
                       <p-button
                         icon="pi pi-power-off"
                         severity="secondary"
                         [text]="true"
                         [rounded]="true"
-                        [pTooltip]="swt.scene.active ? 'Deactivate' : 'Activate'"
-                        (onClick)="toggleSceneActive(swt.scene)"
-                      />
-                      <p-button
-                        icon="pi pi-trash"
-                        severity="danger"
-                        [text]="true"
-                        [rounded]="true"
-                        pTooltip="Delete scene"
-                        (onClick)="confirmDeleteScene(swt.scene)"
+                        [pTooltip]="cwt.chapter.active ? 'Deactivate' : 'Activate'"
+                        (onClick)="toggleChapterActive(cwt.chapter)"
                       />
                     </div>
                   </div>
 
-                  <!-- Takes section (expandable) -->
-                  @if (expandedScenes()[swt.scene.id]) {
+                  <!-- ── Scenes section (expandable) ── -->
+                  @if (expandedChapters()[cwt.chapter.id]) {
                     <div class="border-t" style="border-color: var(--border-color)">
-                      @if (swt.takes.length === 0) {
-                        <div class="px-4 py-4 text-center text-[12px] text-fg-muted">
-                          No takes yet.
-                        </div>
+                      @if (cwt.scenes.length === 0) {
+                        <div class="px-4 py-4 text-center text-[12px] text-fg-muted">No scenes yet.</div>
                       }
 
-                      @if (swt.takes.length > 0) {
-                        <table class="w-full text-[12px]">
-                          <thead>
-                            <tr
-                              class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted"
-                            >
-                              <th class="px-4 py-2 pl-14 font-medium">Take</th>
-                              <th class="px-4 py-2 font-medium">Status</th>
-                              <th class="px-4 py-2 font-medium">Video URL</th>
-                              <th class="w-32 px-4 py-2"></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @for (t of swt.takes; track t.id) {
-                              <tr class="border-t" style="border-color: var(--border-color)">
-                                <td class="px-4 py-2 pl-14 font-mono text-[13px]">
-                                  Take {{ t.number | number: '2.0' }}
-                                </td>
-                                <td class="px-4 py-2">
-                                  <span
-                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                                    [class]="statusClass(t.status)"
-                                  >
-                                    {{ t.status }}
-                                  </span>
-                                </td>
-                                <td
-                                  class="max-w-[250px] truncate px-4 py-2 font-mono text-fg-muted"
+                      @for (swt of cwt.scenes; track swt.scene.id) {
+                        <div class="border-t" style="border-color: var(--border-color)">
+                          <!-- Scene header row -->
+                          <div class="flex items-center justify-between gap-4 px-4 py-2.5 pl-16">
+                            <div class="flex items-center gap-3 min-w-0">
+                              <span class="font-mono text-[12px] font-semibold text-primary-400">
+                                SC{{ swt.scene.number | number: '2.0' }}
+                              </span>
+                              <span class="truncate text-[13px]">
+                                {{ swt.scene.name }}
+                              </span>
+                              <span
+                                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                                [class.bg-green-900]="swt.scene.active"
+                                [class.text-green-400]="swt.scene.active"
+                                [class.bg-ink-700]="!swt.scene.active"
+                                [class.text-fg-muted]="!swt.scene.active"
+                              >
+                                {{
+                                  swt.scene.active
+                                    ? ('GLOBAL.STATUS.ACTIVE' | translate)
+                                    : ('GLOBAL.STATUS.INACTIVE' | translate)
+                                }}
+                              </span>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                              <span class="font-mono text-[11px] text-fg-muted">
+                                {{ swt.scene.shot_count }} shot{{ swt.shots.length !== 1 ? 's' : '' }}
+                              </span>
+
+                              <p-button
+                                icon="pi pi-pencil"
+                                severity="secondary"
+                                [text]="true"
+                                [rounded]="true"
+                                pTooltip="Edit scene"
+                                (onClick)="openEditScene(swt.scene)"
+                              />
+                              @if (isDirectorOrAdmin()) {
+                                <a
+                                  [routerLink]="
+                                    '/director/projects/' +
+                                    item.project.id +
+                                    '/chapters/' +
+                                    cwt.chapter.id +
+                                    '/scenes/' +
+                                    swt.scene.id +
+                                    '/assign'
+                                  "
+                                  class="inline-flex items-center rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary-400 transition-colors hover:bg-ink-800"
+                                  pTooltip="Assign resources to this scene"
                                 >
-                                  @if (t.video_url) {
-                                    <a
-                                      [href]="t.video_url"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      class="underline hover:text-primary-400"
-                                    >
-                                      {{ t.video_url }}
-                                    </a>
-                                  } @else {
-                                    <span class="italic">—</span>
-                                  }
-                                </td>
-                                <td class="px-4 py-2">
-                                  <div class="flex items-center gap-1">
-                                    <p-button
-                                      icon="pi pi-trash"
-                                      severity="danger"
-                                      [text]="true"
-                                      [rounded]="true"
-                                      pTooltip="Delete take"
-                                      (onClick)="
-                                        confirmDeleteTake(t, item.project.id, swt.scene.id)
-                                      "
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
+                                  RESOURCES
+                                </a>
+                              }
+                              <p-button
+                                icon="pi pi-power-off"
+                                severity="secondary"
+                                [text]="true"
+                                [rounded]="true"
+                                [pTooltip]="swt.scene.active ? 'Deactivate' : 'Activate'"
+                                (onClick)="toggleSceneActive(swt.scene)"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       }
                     </div>
                   }
@@ -296,6 +270,15 @@
     (update)="onUpdateProject($event)"
   />
 
+  <app-chapter-form-dialog
+    [visible]="chapterDialogVisible()"
+    [chapter]="chapterDialogTarget()"
+    [submitting]="submitting()"
+    (visibleChange)="chapterDialogVisible.set($event)"
+    (create)="onCreateChapter($event)"
+    (update)="onUpdateChapter($event)"
+  />
+
   <app-scene-form-dialog
     [visible]="sceneDialogVisible()"
     [scene]="sceneDialogTarget()"
@@ -303,13 +286,5 @@
     (visibleChange)="sceneDialogVisible.set($event)"
     (create)="onCreateScene($event)"
     (update)="onUpdateScene($event)"
-  />
-
-  <app-take-form-dialog
-    [visible]="takeDialogVisible()"
-    [take]="takeDialogTarget()"
-    [submitting]="submitting()"
-    (visibleChange)="takeDialogVisible.set($event)"
-    (create)="onCreateTake($event)"
   />
 </section>

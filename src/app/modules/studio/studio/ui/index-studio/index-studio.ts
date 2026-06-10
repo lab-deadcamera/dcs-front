@@ -2,35 +2,43 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnDestroy,
   OnInit,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@environment/environment';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
+import { DatePipe } from '@angular/common';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
 import { TakesReelComponent } from '@shared/components/takes-reel/takes-reel.component';
-import { CinematographyComponent } from '@shared/components/cinematography/cinematography.component';
+import { ProncerComponent } from '@shared/components/proncer/proncer.component';
 import { OutputFormatComponent } from '@shared/components/output-format/output-format.component';
 import { CharacterAssetsComponent } from '@shared/components/character-assets/character-assets.component';
 import { RatingComponent } from '@shared/components/rating/rating.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
-import { SessionGateDialogComponent } from '@shared/components/session-gate-dialog/session-gate-dialog.component';
+import {
+  BreadcrumbOption,
+  StudioBreadcrumbComponent,
+} from '../../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
 import { ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { DatePipe } from '@angular/common';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
-import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
+import { MAX_BATCH_COUNT, UsedAssetKind } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { GenerationLogsService, ModelService, VideoGeneratorService } from '@app/services';
 import { ProjectsApiService } from '@modules/projects/projects/services';
+import { Project } from '@modules/projects/projects/interfaces';
 import {
   GeneratedClip,
   VideoGenerateContentItem,
@@ -39,6 +47,19 @@ import {
 } from '@app/core/interfaces';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Splitter } from 'primeng/splitter';
+
+/** localStorage key for breadcrumb selection persistence. */
+const LS_KEY = 'studio-breadcrumb-selection';
+
+interface StoredNavSelection {
+  projectId: string;
+  chapterId: string | null;
+  sceneId: string | null;
+  shotId: string | null;
+  sceneNumber?: number;
+  sceneName?: string;
+}
 
 /** Visual progress per status — backend reports no % during running, so we fake it. */
 const PROGRESS_QUEUED = 10;
@@ -56,18 +77,19 @@ const POLL_INTERVAL_MS = 3000;
     ViewerComponent,
     PromptBuilderComponent,
     TakesReelComponent,
-    CinematographyComponent,
+    ProncerComponent,
     OutputFormatComponent,
     CharacterAssetsComponent,
     RatingComponent,
     ToastModule,
     FooterComponent,
-    SessionGateDialogComponent,
+    StudioBreadcrumbComponent,
     TakeChecklistComponent,
     ButtonModule,
     DialogModule,
     TooltipModule,
     DatePipe,
+    Splitter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
@@ -83,6 +105,36 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly http = inject(HttpClient);
+  protected readonly environment = environment;
+
+  // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
+
+  protected readonly isLargeScreen = signal(false);
+
+  private readonly promptBuilder = viewChild(PromptBuilderComponent);
+
+  constructor() {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 64rem)');
+    this.isLargeScreen.set(mq.matches);
+    const handler = (e: MediaQueryListEvent) => this.isLargeScreen.set(e.matches);
+    mq.addEventListener('change', handler);
+    this.destroyRef.onDestroy(() => {
+      mq.removeEventListener('change', handler);
+      this.studio.resetStudio();
+    });
+  }
+
+  /** Forwarder for <app-character-assets (assetPicked)>. */
+  protected onAssetPickedFromCharacters(kind: UsedAssetKind): void {
+    this.promptBuilder()?.addReferenceForKind(kind);
+  }
+
+  /** Forwarder for <app-cinematography (presetChanged)>. */
+  protected onPresetChangedFromCinematography(change: { remove?: string; add?: string }): void {
+    this.promptBuilder()?.applyPresetChange(change);
+  }
 
   // ── Preview dialog ──────────────────────────────────────────────────
 
@@ -91,19 +143,17 @@ export class IndexStudio implements OnInit {
   protected readonly previewData = signal<Record<string, unknown> | null>(null);
   protected readonly previewError = signal<string | null>(null);
 
-  /** Pretty-printed JSON for the preview modal. */
   protected readonly previewDataPretty = computed(() => {
     const d = this.previewData();
     return d ? JSON.stringify(d, null, 2) : '';
   });
 
-  // ── Sync floating button ────────────────────────────────────────────
+  // ── Sync dialog ─────────────────────────────────────────────────────
 
   protected readonly syncDialogVisible = signal(false);
   protected readonly syncedAssets = signal<ModelAssetSync[]>([]);
   protected readonly syncLoading = signal(false);
 
-  /** Posición del botón flotante. */
   protected readonly syncBtnPos = signal({ x: 16, y: 200 });
   private dragging = false;
   private dragStart = { x: 0, y: 0, btnX: 0, btnY: 0 };
@@ -114,7 +164,12 @@ export class IndexStudio implements OnInit {
     this.moved = false;
     const pos = this.syncBtnPos();
     if ('touches' in e) {
-      this.dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, btnX: pos.x, btnY: pos.y };
+      this.dragStart = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        btnX: pos.x,
+        btnY: pos.y,
+      };
     } else {
       this.dragStart = { x: e.clientX, y: e.clientY, btnX: pos.x, btnY: pos.y };
     }
@@ -136,14 +191,20 @@ export class IndexStudio implements OnInit {
   }
 
   protected onSyncBtnClick(): void {
-    if (this.moved) return; // fue un arrastre, no un click
+    if (this.moved) return;
+
     this.openSyncDialog();
   }
 
   protected openSyncDialog(): void {
     const model = this.studio.modelCode();
     if (!model?.id) {
-      this.toast.add({ severity: 'warn', summary: 'Sync', detail: 'Select a model first', life: 3000 });
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Sync',
+        detail: 'Select a model first',
+        life: 3000,
+      });
       return;
     }
     this.syncLoading.set(true);
@@ -158,150 +219,513 @@ export class IndexStudio implements OnInit {
     });
   }
 
-  /**
-   * Two-way binding for the gate dialog. Auto-opens when no session is
-   * loaded — closing happens from inside the dialog after a successful
-   * submit (or via the parent if we later add a "switch scene" affordance).
-   */
-  protected readonly gateOpen = signal(false);
+  /** Scene code prefix for the take checklist. */
   protected readonly scenePrefix = computed(() => this.studio.sceneCode());
 
   /** True when the current take already has a video (re-generation mode). */
   protected readonly isRegenerating = this.studio.currentTakeHasVideo;
 
-  /** Admins (level ≤ 1) pueden cerrar el gate sin seleccionar proyecto/escena. */
-  protected readonly canBypassGate = computed(() => this.sessionStore.roleLevel() <= 1);
-
   /** Solo SUPER_ADMIN (level 0) ve el botón de Vista previa del payload. */
   protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
 
+  // ── Breadcrumb state (data managed here, displayed by breadcrumb component) ──
+
+  protected readonly navProjects = signal<Project[]>([]);
+  protected readonly navChapters = signal<
+    { id: string; number: number; name: string; label: string }[]
+  >([]);
+  protected readonly navScenes = signal<
+    { id: string; number: number; name: string; label: string }[]
+  >([]);
+  protected readonly navShots = signal<
+    { id: string; number: number; name: string; label: string }[]
+  >([]);
+  protected readonly navSelectedProjectId = signal<string | null>(null);
+  protected readonly navSelectedChapterId = signal<string | null>(null);
+  protected readonly navSelectedSceneId = signal<string | null>(null);
+  protected readonly navSelectedShotId = signal<string | null>(null);
+  protected readonly navLoadingProjects = signal(false);
+  protected readonly navLoadingChapters = signal(false);
+  protected readonly navLoadingScenes = signal(false);
+  protected readonly navLoadingShots = signal(false);
+
+  /** Selected scene object for display in the new-shot dialog. */
+  protected readonly navSelectedScene = signal<{ id: string; number: number; name: string } | null>(
+    null,
+  );
+
+  /** True while restoring a previous selection from localStorage. */
+  private readonly restoring = signal(false);
+
+  /** Saved selection to restore (populated before restoring cascade). */
+  private savedNav: StoredNavSelection | null = null;
+
+  // ── Breadcrumb event handlers ──────────────────────────────────────────
+
+  protected loadProjects(): void {
+    this.navLoadingProjects.set(true);
+    this.projectsApi.listProjects().subscribe((res) => {
+      this.navLoadingProjects.set(false);
+      if (!res.error && res.data) {
+        this.navProjects.set(res.data.sort((a, b) => a.name.localeCompare(b.name)));
+        // If restoring, trigger the cascade after projects load
+        if (this.restoring() && this.savedNav) {
+          this.restoreAfterProjects();
+        }
+      }
+    });
+  }
+
+  protected onNavProjectChange(projectId: string | null): void {
+    this.studio.resetStudio();
+    this.navChapters.set([]);
+    this.navScenes.set([]);
+    this.navShots.set([]);
+    this.navSelectedChapterId.set(null);
+    this.navSelectedSceneId.set(null);
+    this.navSelectedScene.set(null);
+    this.navSelectedShotId.set(null);
+    this.persistNav();
+    if (projectId) {
+      this.loadChapters(projectId);
+    }
+  }
+
+  /** Load chapters for a project and auto-select if appropriate. */
+  private loadChapters(projectId: string): void {
+    this.navLoadingChapters.set(true);
+    this.projectsApi.listChapters(projectId).subscribe((res) => {
+      this.navLoadingChapters.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((c) => ({
+            id: c.id,
+            number: c.number,
+            name: c.name,
+            label: `EP${String(c.number).padStart(2, '0')} \u2014 ${c.name}`,
+          }));
+        this.navChapters.set(items);
+        this.autoSelectChapter(items);
+      }
+    });
+  }
+
+  /** After chapters load, select the right one (restored, auto, or none). */
+  private autoSelectChapter(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.chapterId) {
+      const match = items.find((c) => c.id === saved.chapterId);
+      if (match) {
+        this.navSelectedChapterId.set(match.id);
+        this.handleChapterSelected(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedChapterId.set(items[0].id);
+      this.handleChapterSelected(items[0].id);
+    }
+  }
+
+  /** Called when a chapter is selected (user or auto). */
+  private handleChapterSelected(chapterId: string): void {
+    this.studio.resetStudio();
+    this.navScenes.set([]);
+    this.navShots.set([]);
+    this.navSelectedSceneId.set(null);
+    this.navSelectedScene.set(null);
+    this.navSelectedShotId.set(null);
+    this.persistNav();
+    const projectId = this.navSelectedProjectId();
+    if (projectId) {
+      this.loadScenes(projectId, chapterId);
+    }
+  }
+
+  protected onNavChapterChange(chapterId: string | null): void {
+    if (chapterId) {
+      this.handleChapterSelected(chapterId);
+    }
+  }
+
+  /** Load scenes for a chapter and auto-select if appropriate. */
+  private loadScenes(projectId: string, chapterId: string): void {
+    this.navLoadingScenes.set(true);
+    this.projectsApi.listScenes(projectId, chapterId).subscribe((res) => {
+      this.navLoadingScenes.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((s) => ({
+            id: s.id,
+            number: s.number,
+            name: s.name,
+            label: `SC${String(s.number).padStart(2, '0')} \u2014 ${s.name}`,
+          }));
+        this.navScenes.set(items);
+        this.autoSelectScene(items);
+      }
+    });
+  }
+
+  /** After scenes load, select the right one (restored, auto, or none). */
+  private autoSelectScene(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.sceneId) {
+      const match = items.find((s) => s.id === saved.sceneId);
+      if (match) {
+        this.navSelectedSceneId.set(match.id);
+        this.handleSceneSelected(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedSceneId.set(items[0].id);
+      this.handleSceneSelected(items[0].id);
+    }
+  }
+
+  /** Called when a scene is selected (user or auto). */
+  private handleSceneSelected(sceneId: string): void {
+    this.studio.resetStudio();
+    this.navShots.set([]);
+    this.navSelectedShotId.set(null);
+    this.persistNav();
+    const scene = this.navScenes().find((s) => s.id === sceneId);
+    if (scene) {
+      this.navSelectedScene.set({ id: scene.id, number: scene.number, name: scene.name });
+    }
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (projectId && chapterId) {
+      this.loadShots(projectId, chapterId, sceneId);
+    }
+  }
+
+  protected onNavSceneChange(sceneId: string | null): void {
+    if (sceneId) {
+      this.handleSceneSelected(sceneId);
+    } else {
+      this.studio.resetStudio();
+      this.navShots.set([]);
+      this.navSelectedShotId.set(null);
+      this.navSelectedScene.set(null);
+      this.persistNav();
+    }
+  }
+
+  /** Load shots for a scene and auto-select if appropriate. */
+  private loadShots(projectId: string, chapterId: string, sceneId: string): void {
+    this.navLoadingShots.set(true);
+    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
+      this.navLoadingShots.set(false);
+      if (!res.error && res.data) {
+        const items = res.data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((sh) => ({
+            id: sh.id,
+            number: sh.number,
+            name: sh.name,
+            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+          }));
+        this.navShots.set(items);
+        this.autoSelectShot(items);
+      }
+    });
+  }
+
+  /** After shots load, select the right one (restored, auto, or none). */
+  private autoSelectShot(items: BreadcrumbOption[]): void {
+    const saved = this.savedNav;
+    if (this.restoring() && saved?.shotId) {
+      const match = items.find((sh) => sh.id === saved.shotId);
+      if (match) {
+        this.navSelectedShotId.set(match.id);
+        this.onNavShotChange(match.id);
+        return;
+      }
+    }
+    if (!this.restoring() && items.length === 1) {
+      this.navSelectedShotId.set(items[0].id);
+      this.onNavShotChange(items[0].id);
+    }
+  }
+
+  protected onNavShotChange(shotId: string | null): void {
+    if (!shotId) {
+      this.studio.resetStudio();
+      this.persistNav();
+      return;
+    }
+    const shot = this.navShots().find((s) => s.id === shotId);
+    if (shot) {
+      this.startSessionWithShot(shot);
+      this.persistNav();
+    }
+  }
+
+  /** Reload shots list for the current scene. */
+  private reloadShots(): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+
+    this.navLoadingShots.set(true);
+    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
+      this.navLoadingShots.set(false);
+      if (!res.error && res.data) {
+        this.navShots.set(
+          res.data
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((sh) => ({
+              id: sh.id,
+              number: sh.number,
+              name: sh.name,
+              label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+            })),
+        );
+        // Auto-select if the previously selected shot is now in the list
+        const saved = this.savedNav;
+        if (saved?.shotId) {
+          const match = this.navShots().find((sh) => sh.id === saved.shotId);
+          if (match) {
+            this.navSelectedShotId.set(match.id);
+            this.onNavShotChange(match.id);
+          }
+        }
+      }
+    });
+  }
+
+  /** Persist current breadcrumb selection to localStorage. */
+  private persistNav(): void {
+    const projectId = this.navSelectedProjectId();
+    if (!projectId) {
+      localStorage.removeItem(LS_KEY);
+      return;
+    }
+    const scene = this.navSelectedScene();
+    const selection: StoredNavSelection = {
+      projectId,
+      chapterId: this.navSelectedChapterId(),
+      sceneId: this.navSelectedSceneId(),
+      shotId: this.navSelectedShotId(),
+      sceneNumber: scene?.number,
+      sceneName: scene?.name,
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(selection));
+  }
+
+  /** Start restoring a previous selection from localStorage. */
+  private startRestoring(): void {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    try {
+      const saved = JSON.parse(raw) as StoredNavSelection;
+      if (!saved.projectId) return;
+      this.savedNav = saved;
+      this.restoring.set(true);
+      // Projects load is already in progress (called from ngOnInit),
+      // so restoration continues in loadProjects() callback.
+    } catch {
+      localStorage.removeItem(LS_KEY);
+    }
+  }
+
+  /** Continue restoration after projects have loaded. */
+  private restoreAfterProjects(): void {
+    const saved = this.savedNav;
+    if (!saved) return;
+
+    // Find the project in the loaded list
+    const project = this.navProjects().find((p) => p.id === saved.projectId);
+    if (!project) {
+      // Saved project no longer exists — bail out
+      this.restoring.set(false);
+      this.savedNav = null;
+      localStorage.removeItem(LS_KEY);
+      return;
+    }
+
+    // Select the project (this will cascade to load chapters)
+    this.navSelectedProjectId.set(saved.projectId);
+    this.loadChapters(saved.projectId);
+  }
+
+  /** Initialize session for a given shot. */
+  private startSessionWithShot(shot: { id: string; number: number; name: string }): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    const scene = this.navSelectedScene();
+    if (!projectId || !chapterId || !sceneId || !scene) return;
+
+    const currentUser = this.sessionStore.user();
+    const handle = currentUser?.handle || currentUser?.email || 'anonymous';
+
+    const project = this.navProjects().find((p) => p.id === projectId);
+    const chapter = this.navChapters().find((c) => c.id === chapterId);
+    const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
+
+    this.projectsApi.listTakes(projectId, chapterId, sceneId, shot.id).subscribe((takesRes) => {
+      const backendTakes = takesRes.error || !takesRes.data ? [] : takesRes.data;
+      const totalTakes = Math.max(
+        1,
+        backendTakes.length > 0 ? Math.max(...backendTakes.map((t) => t.number)) : 5,
+      );
+
+      this.studio.initStudioSession({
+        projectId,
+        chapterId,
+        shotId: shot.id,
+        sceneId,
+        sceneCode,
+        projectName: project?.name,
+        chapterName: chapter?.name,
+        sceneName: scene.name,
+        shotName: shot.name,
+        userHandle: handle,
+        totalTakes,
+        backendTakes,
+      });
+
+      this.sessionStore.initSession({
+        email: currentUser?.email ?? '',
+        handle,
+      });
+
+      this.http
+        .get<{
+          data: any;
+        }>(
+          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
+        )
+        .subscribe({
+          next: (res) => {
+            if (res.data) this.studio.setSceneAssignments(res.data);
+          },
+          error: () => {
+            /* assignments not critical */
+          },
+        });
+    });
+  }
+
+  // ── Called from breadcrumb "Create & Open" button ───────────────────
+
+  private readonly breadcrumbComponent = viewChild(StudioBreadcrumbComponent);
+
+  protected onBreadcrumbCreateShot(shotName: string): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    const scene = this.navSelectedScene();
+    if (!projectId || !chapterId || !sceneId || !scene) return;
+
+    // Load existing shots to determine the next shot number
+    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((shotsRes) => {
+      const existingShots = shotsRes.error || !shotsRes.data ? [] : shotsRes.data;
+      const nextShotNumber =
+        existingShots.length > 0 ? Math.max(...existingShots.map((s) => s.number)) + 1 : 1;
+
+      // Create the new shot
+      this.projectsApi
+        .createShot(projectId, chapterId, sceneId, {
+          number: nextShotNumber,
+          name: shotName,
+        })
+        .subscribe((shotRes) => {
+          if (shotRes.error || !shotRes.data) {
+            this.toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: shotRes.msg || 'Failed to create shot',
+            });
+            return;
+          }
+
+          const newShot = shotRes.data;
+
+          // Reload shots list so the dropdown shows the new shot
+          this.reloadShots();
+
+          // Set the shot in the breadcrumb model so the dropdown selects it
+          this.navSelectedShotId.set(newShot.id);
+
+          // Reset the breadcrumb dialog
+          this.breadcrumbComponent()?.resetNewShotDialog();
+
+          // Start session with the newly created shot
+          this.startSessionWithShot({
+            id: newShot.id,
+            number: newShot.number,
+            name: newShot.name,
+          });
+        });
+    });
+  }
+
+  // ── Lifecycle ───────────────────────────────────────────────────────
+
   ngOnInit(): void {
+    // The studio has no persistent memory. Every page load starts fresh.
+    // The breadcrumb is the entry gate: the user must explicitly select
+    // project → episode → scene → shot before the studio activates.
+    this.studio.resetStudio();
+
     this.modelService.getFavorite().subscribe((res) => {
       if (!res.error && res.data) {
         this.studio.model = res.data;
       }
     });
-    // Open the gate immediately if there's no persisted session. Hydrate is
-    // async, so wait a tick before checking — otherwise we'd flash the gate
-    // even for returning users whose session is being read from IndexedDB.
-    queueMicrotask(() => {
-      if (!this.studio.isReady()) this.gateOpen.set(true);
-      // Intenta recuperar generaciones que quedaron en curso tras una recarga.
-      this.restorePendingTasks();
-    });
-  }
-
-  /**
-   * Recupera el estado de generaciones desde dos fuentes:
-   *   1. Pending tasks hidratadas desde IndexedDB (re-poll status).
-   *   2. Backend generation_logs filtrados por proyecto/escena (completados).
-   */
-  private restorePendingTasks(): void {
-    const pending = this.studio.pendingGenerations();
-    const projectId = this.studio.projectId();
-    const sceneId = this.studio.sceneId();
-
-    // 1. Re-poll tasks que estaban en curso antes de la recarga
-    for (const p of pending) {
-      if (!p.taskId) continue;
-      this.videoGenerator.status(p.taskId).subscribe((res) => {
-        if (res.error || !res.data) {
-          this.studio.failGeneration(p.id);
-          return;
-        }
-        const task = res.data;
-        const source = p.takeIndex != null
-          ? { rawDescription: '', cinematography: {} as any, output: {} as any }
-          : undefined;
-        if (task.status === 'succeeded') {
-          this.finishWithClip(p.id, task, source as any);
-        } else if (task.status === 'failed') {
-          this.studio.failGeneration(p.id);
-          this.toast.add({
-            summary: 'Generación recuperada',
-            detail: `Take ${p.takeIndex ?? '?'} falló antes de la recarga`,
-            severity: 'warn',
-            life: 5000,
-          });
-        } else {
-          // Todavía en progreso — reanudar polling
-          const modelName = this.studio.modelCode()?.name ?? '';
-          this.studio.restorePendingTask(p.id, p.taskId, modelName);
-          this.studio.updateGenerationProgress(p.id, 30);
-          this.pollUntilTerminal(p.taskId, p.id, source as any);
-        }
-      });
-    }
-
-    // 2. Consultar logs del backend para el proyecto/escena actual y
-    //    asegurar que ningún clip completado se perdió en el olvido.
-    if (!projectId || !sceneId) return;
-
-    this.genLogs.getLogs({ project_id: projectId, scene_id: sceneId, limit: 50 }).subscribe((res) => {
-      if (res.error || !res.data) return;
-      const existingUrls = new Set(this.studio.sessionClips().map((c) => c.videoUrl));
-      for (const log of res.data.logs) {
-        if (log.status !== 'succeeded') continue;
-        if (!log.outputs) continue;
-        try {
-          const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs);
-          const video = outputs.find((o) => o.type === 'video');
-          if (!video?.url || existingUrls.has(video.url)) continue;
-
-          this.studio.pushClip({
-            id: crypto.randomUUID(),
-            prompt: '',
-            videoUrl: video.url,
-            createdAt: new Date(log.created_at).getTime(),
-            durationSeconds: 5,
-            resolution: '480p',
-          });
-          existingUrls.add(video.url);
-        } catch {
-          // JSON parse error — skip this log entry
-        }
-      }
-    });
-  }
-
-  /** Forwarded from the take-checklist's `(toggle)` output. */
-  protected onToggleTake(takeIndex: number): void {
-    this.studio.toggleTake(takeIndex);
+    this.loadProjects();
+    this.startRestoring();
   }
 
   /**
    * Forwarded from the takes-reel's `(selectTake)` output.
-   * Selects a take by its index, setting the cursor so the next
-   * generation targets it. The prompt builder switches to "VOLVER A GENERAR"
-   * if this take already has a video.
+   * Loads the take's video into the viewer.
    */
   protected onSelectTake(takeIndex: number): void {
     this.studio.selectTake(takeIndex);
+
+    const take = this.studio.currentTake();
+    if (take?.video_local_url) {
+      this.studio.pushClip({
+        id: crypto.randomUUID(),
+        prompt: '',
+        videoLocalUrl: take.video_local_url,
+        createdAt: Date.now(),
+        durationSeconds: 5,
+        resolution: '480p',
+        takeIndex,
+      });
+    }
   }
 
   /**
    * Forwarded from the takes-reel's `(toggleActive)` output.
-   * Reactivates a discarded take via the backend API, then updates
-   * local state so the reel reflects the change.
    */
   protected onToggleTakeActive(takeId: string, takeIndex: number): void {
     const projectId = this.studio.projectId();
+    const chapterId = this.studio.chapterId();
     const sceneId = this.studio.sceneId();
-    if (!projectId || !sceneId) return;
+    const shotId = this.studio.shotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
 
-    this.projectsApi.toggleTakeActive(projectId, sceneId, takeId).subscribe((res) => {
-      if (!res.error && res.data) {
-        // Reload the session's backend takes to reflect the toggle
-        this.studio.selectTake(takeIndex);
-      }
-    });
+    this.projectsApi
+      .toggleTakeActive(projectId, chapterId, sceneId, shotId, takeId)
+      .subscribe((res) => {
+        if (!res.error && res.data) {
+          this.studio.selectTake(takeIndex);
+        }
+      });
   }
 
   /**
-   * Dispatch one independent generation request per `batchCount`. Each
-   * request gets its own backend task id, pending-task entry, and 3s
-   * polling loop so the viewer can render individual progress rings for
-   * the batch.
+   * Dispatch one independent generation request per `batchCount`.
    */
   protected onGenerate(): void {
     if (!this.studio.projectId() || !this.studio.sceneId()) {
@@ -311,7 +735,6 @@ export class IndexStudio implements OnInit {
         severity: 'error',
         life: 3000,
       });
-      this.gateOpen.set(true);
       return;
     }
 
@@ -332,15 +755,9 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Dry-run the same payload `onGenerate` would send and show the backend's
-   * response in a modal. Skips the polling loop and the generation queue —
-   * the user can inspect what would have been sent before paying for the
-   * actual run.
+   * Dry-run the same payload `onGenerate` would send.
    */
   protected onPreview(): void {
-    // Defense in depth — the button is already hidden for non-superadmins
-    // via `[canPreview]`, but guard the handler in case it gets called
-    // programmatically (e.g. dev tools, future shortcut binding).
     if (!this.isSuperAdmin()) return;
     if (!this.studio.projectId() || !this.studio.sceneId()) {
       this.toast.add({
@@ -349,7 +766,6 @@ export class IndexStudio implements OnInit {
         severity: 'error',
         life: 3000,
       });
-      this.gateOpen.set(true);
       return;
     }
     const text = this.studio.rawDescription().trim();
@@ -383,13 +799,7 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Submit one task to the studio API and follow its lifecycle:
-   *   1. POST /studio/generate           — registers task, returns taskId
-   *   2. GET  /studio/status/{taskId}    — every 3s until succeeded/failed
-   *   3. On succeed → pushClip; on fail → drop the pending entry.
-   *
-   * Progress is faked locally because the backend only reports a status
-   * enum (queued/running/succeeded/failed), not a percentage.
+   * Submit one task to the studio API and follow its lifecycle.
    */
   private runOneGeneration(prompt: string, index: number, total: number): void {
     const label = total > 1 ? `${index}/${total}` : undefined;
@@ -406,17 +816,12 @@ export class IndexStudio implements OnInit {
       return;
     }
 
-    // Capture the source snapshot at submit time so the resulting clip can
-    // be "reused" later even if the user has since edited the editor.
     const source = this.buildSourceSnapshot(prompt);
     const payload = this.buildPayload(prompt);
-
     this.videoGenerator
       .generate(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
-        console.log({ res });
-
         this.toast.add({
           summary: 'Respuesta del servidor',
           detail: res.msg,
@@ -429,8 +834,6 @@ export class IndexStudio implements OnInit {
         }
         const initial = res.data;
 
-        // Guardar taskId y modelName en la entrada pendiente para poder
-        // recuperar el estado si hay una recarga.
         this.studio.setGenerationTaskId(localId, initial.taskId);
         const modelCode = this.studio.modelCode();
         if (modelCode) {
@@ -445,7 +848,6 @@ export class IndexStudio implements OnInit {
           this.studio.failGeneration(localId);
           return;
         }
-        // Async path: kick off the polling loop.
         this.studio.updateGenerationProgress(
           localId,
           initial.status === 'running' ? PROGRESS_RUNNING_START : PROGRESS_QUEUED,
@@ -455,10 +857,7 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Poll `/studio/status/{taskId}` every 3 seconds until the task reaches
-   * a terminal state. The `takeWhile(..., inclusive=true)` makes sure the
-   * terminal response is delivered to the subscriber before the stream
-   * completes, so we always see the final outputs[] or the failure flag.
+   * Poll `/studio/status/{taskId}` every 3 seconds until terminal.
    */
   private pollUntilTerminal(
     taskId: string,
@@ -512,15 +911,7 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Materialize a `GeneratedClip` from the first video output and hand it
-   * to the prompt store so it surfaces in the viewer + session reel. If
-   * the backend reports `succeeded` without any outputs, treat it as a
-   * failure rather than push a broken clip.
-   *
-   * After the clip is ready, associate it with the current session's take
-   * by calling the projects API's save-generation endpoint. The backend
-   * handles discarding the previous generation for the same take number
-   * and returns the new take record.
+   * Materialize a `GeneratedClip` from the first video output.
    */
   private finishWithClip(
     localId: string,
@@ -542,7 +933,7 @@ export class IndexStudio implements OnInit {
     const clip: GeneratedClip = {
       id: crypto.randomUUID(),
       prompt: this.studio.rawDescription(),
-      videoUrl: out.url,
+      videoLocalUrl: out.localUrl || '',
       createdAt: Date.now(),
       durationSeconds: output.durationSeconds,
       resolution: output.resolution,
@@ -550,8 +941,9 @@ export class IndexStudio implements OnInit {
     };
     this.studio.completeGeneration(localId, clip);
 
-    // Associate the generated video with the current scene+take
-    this.persistGeneration(clip);
+    this.persistGeneration(clip, task.taskId);
+
+    this.playNotificationSound();
 
     this.toast.add({
       summary: 'Generación completada',
@@ -561,40 +953,90 @@ export class IndexStudio implements OnInit {
     });
   }
 
+  /** Play a short chime to alert the user that a video is ready in the viewer. */
+  private playNotificationSound(): void {
+    if (typeof Audio === 'undefined') return;
+    const audio = new Audio('assets/audio/notification.wav');
+    audio.volume = 0.6;
+    audio.play().catch(() => {
+      // Autoplay may be blocked until first user gesture — silently ignore.
+    });
+  }
+
   /**
-   * Persist the generation result to the backend, linking it to the
-   * current session's project, scene, and take. The backend discards
-   * (deactivates) any previous generation for the same take number.
+   * Persist the generation result as a new take in the backend, then
+   * reload the takes list so the reel reflects the new entry.
    */
-  private persistGeneration(clip: GeneratedClip): void {
+  private persistGeneration(clip: GeneratedClip, taskId?: string): void {
     const projectId = this.studio.projectId();
+    const chapterId = this.studio.chapterId();
     const sceneId = this.studio.sceneId();
-    const take = this.studio.currentTake();
-    if (!projectId || !sceneId || !take || !clip.videoUrl) return;
+    const shotId = this.studio.shotId();
+    if (!projectId || !chapterId || !sceneId || !shotId || !clip.videoLocalUrl) return;
+
+    const currentTakes = this.studio.takes();
+    const nextNumber =
+      currentTakes.length > 0 ? Math.max(...currentTakes.map((t) => t.number ?? t.index)) + 1 : 1;
 
     this.projectsApi
-      .saveGeneration(projectId, sceneId, {
-        number: take.index,
-        video_url: clip.videoUrl,
+      .createTake(projectId, chapterId, sceneId, shotId, {
+        number: nextNumber,
       })
-      .subscribe((res) => {
-        if (!res.error && res.data) {
-          this.studio.saveGenerationResponse(take.index, {
-            id: res.data.id,
-            video_url: res.data.video_url,
+      .subscribe((takeRes) => {
+        if (takeRes.error || !takeRes.data) return;
+
+        // Update the take with both URLs: remote (video_url) and local (video_local_url)
+        this.projectsApi
+          .updateTake(projectId, chapterId, sceneId, shotId, takeRes.data.id, {
+            video_local_url: clip.videoLocalUrl,
+            status: 'completed',
+          })
+          .subscribe(() => {
+            // Reload takes for this shot so the reel refreshes
+            this.reloadTakesForShot();
           });
-        }
       });
+  }
+
+  /** Reload takes from the backend for the current shot and update the store. */
+  private reloadTakesForShot(): void {
+    const projectId = this.studio.projectId();
+    const chapterId = this.studio.chapterId();
+    const sceneId = this.studio.sceneId();
+    const shotId = this.studio.shotId();
+    if (!projectId || !chapterId || !sceneId || !shotId) return;
+
+    this.projectsApi.listTakes(projectId, chapterId, sceneId, shotId).subscribe((res) => {
+      if (res.error || !res.data) return;
+
+      const backendTakes = res.data;
+      const totalTakes = Math.max(
+        1,
+        backendTakes.length > 0 ? Math.max(...backendTakes.map((t) => t.number)) : 5,
+      );
+
+      const currentUser = this.sessionStore.user();
+      const handle = currentUser?.handle || currentUser?.email || 'anonymous';
+
+      this.studio.initStudioSession({
+        projectId,
+        chapterId,
+        shotId,
+        sceneId,
+        sceneCode: this.studio.sceneCode(),
+        projectName: this.studio.projectName(),
+        chapterName: this.studio.chapterName(),
+        sceneName: this.studio.sceneName(),
+        shotName: this.studio.shotName(),
+        userHandle: handle,
+        totalTakes,
+        backendTakes,
+      });
+    });
   }
 
   /**
    * Build the request body from the current prompt + output + assets state.
-   *
-   * References come from two sources: the drop-zone slots (first/last/free
-   * via AssetsStateService) and the Characters library quick-pick (via
-   * PromptStateService.usedAssets). Both are flattened into a single
-   * deduped `content[]` array — drop-zone slots first because their order
-   * carries semantic meaning ("Image 1" = first frame).
    */
   private buildPayload(text: string): VideoGenerateRequest {
     const output = this.studio.output();
@@ -627,18 +1069,19 @@ export class IndexStudio implements OnInit {
       generate_audio: output.sound,
       image_mode: 'PIL',
       project_id: this.studio.projectId() ?? '',
+      project_name: this.studio.projectName(),
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),
+      shot_id: this.studio.shotId() ?? '',
       take_number: takeIndex,
+      user_name: this.sessionStore.user()?.handle ?? '',
       user_id: this.sessionStore.authUser()?.id ?? 0,
     };
   }
 
   /**
    * Auto-generated text prepended to the prompt so the model knows which
-   * reference image anchors the first/last frame of the video. Order
-   * mirrors `collectReferenceAssets`: first-frame is always Image 1; if
-   * a last-frame is set without a first-frame, it stands alone as Image 1.
+   * reference image anchors the first/last frame.
    */
   private buildFrameHints(): string {
     const first = this.studio.firstFrame();
@@ -650,13 +1093,7 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Flatten every reference source into a single deduped list:
-   *   1. Drop-zone first frame
-   *   2. Drop-zone last frame
-   *   3. Drop-zone free assets (in user-added order)
-   *   4. Characters library picks (in click order)
-   * Order matters because BytePlus references images positionally
-   * ("Image 1" = first item with `type: 'image'`).
+   * Flatten every reference source into a single deduped list.
    */
   private collectReferenceAssets(): Array<{
     fileId: string;
@@ -686,9 +1123,6 @@ export class IndexStudio implements OnInit {
     if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
     const last = this.studio.lastFrame();
     if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
-    // Free-asset uploads only enter the payload when the user clicks the
-    // thumbnail — at that point they're already in `usedAssets` below and
-    // travel with the same per-kind `[ImageN]` numbering as library picks.
     for (const used of this.studio.usedAssets()) {
       const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
       push(used.fileId, used.filename, type, used.name);
@@ -696,7 +1130,7 @@ export class IndexStudio implements OnInit {
     return out;
   }
 
-  /** Snapshot of the editor inputs at submit time — drives "reuse prompt". */
+  /** Snapshot of the editor inputs at submit time. */
   private buildSourceSnapshot(compiled: string): GeneratedClip['source'] {
     return {
       rawDescription: compiled,

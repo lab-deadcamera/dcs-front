@@ -6,11 +6,11 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { Project, Scene, Take } from '../../interfaces';
+import { Chapter, Project, Scene } from '../../interfaces';
 import { ProjectsService } from '../../services';
 import { ProjectFormDialogComponent } from '../components/project-form-dialog/project-form-dialog.component';
+import { ChapterFormDialogComponent } from '../components/chapter-form-dialog/chapter-form-dialog.component';
 import { SceneFormDialogComponent } from '../components/scene-form-dialog/scene-form-dialog.component';
-import { TakeFormDialogComponent } from '../components/take-form-dialog/take-form-dialog.component';
 import { ButtonModule } from 'primeng/button';
 import { SessionStore } from '@app/core/stores/session.store';
 import { LEVEL_ROL } from '@app/core/constants';
@@ -26,8 +26,8 @@ import { LEVEL_ROL } from '@app/core/constants';
     ConfirmDialogModule,
     ToastModule,
     ProjectFormDialogComponent,
+    ChapterFormDialogComponent,
     SceneFormDialogComponent,
-    TakeFormDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -42,25 +42,25 @@ export class IndexProjects implements OnInit {
   protected readonly projects = this.service.projects;
   protected readonly loading = this.service.loading;
 
-  /** Track which project rows are expanded to show scenes. */
+  /** Track which project rows are expanded to show episodes. */
   protected readonly expandedProjects = signal<Record<string, boolean>>({});
-  /** Track which scene rows are expanded to show takes. */
-  protected readonly expandedScenes = signal<Record<string, boolean>>({});
+  /** Track which episode rows are expanded to show scenes. */
+  protected readonly expandedChapters = signal<Record<string, boolean>>({});
 
   // Project dialog
   protected readonly projectDialogVisible = signal(false);
   protected readonly projectDialogTarget = signal<Project | null>(null);
 
+  // Chapter dialog
+  protected readonly chapterDialogVisible = signal(false);
+  protected readonly chapterDialogTarget = signal<Chapter | null>(null);
+  protected readonly chapterPreSelectedProjectId = signal<string | null>(null);
+
   // Scene dialog
   protected readonly sceneDialogVisible = signal(false);
   protected readonly sceneDialogTarget = signal<Scene | null>(null);
+  protected readonly scenePreSelectedChapterId = signal<string | null>(null);
   protected readonly scenePreSelectedProjectId = signal<string | null>(null);
-
-  // Take dialog
-  protected readonly takeDialogVisible = signal(false);
-  protected readonly takeDialogTarget = signal<Take | null>(null);
-  protected readonly takePreSelectedSceneId = signal<string | null>(null);
-  protected readonly takePreSelectedProjectId = signal<string | null>(null);
 
   protected readonly submitting = signal(false);
   isDirectorOrAdmin = signal(false);
@@ -76,21 +76,21 @@ export class IndexProjects implements OnInit {
       ...map,
       [projectId]: !map[projectId],
     }));
-    // lazy-load scenes on first expand
+    // lazy-load chapters on first expand
     if (!wasExpanded) {
-      this.service.loadProjectScenes(projectId);
+      this.service.loadProjectChapters(projectId);
     }
   }
 
-  protected toggleSceneExpand(projectId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
+  protected toggleChapterExpand(projectId: string, chapterId: string): void {
+    const wasExpanded = this.expandedChapters()[chapterId];
+    this.expandedChapters.update((map) => ({
       ...map,
-      [sceneId]: !map[sceneId],
+      [chapterId]: !map[chapterId],
     }));
-    // lazy-load takes on first expand
+    // lazy-load scenes on first expand
     if (!wasExpanded) {
-      this.service.loadSceneTakes(projectId, sceneId);
+      this.service.loadChapterScenes(projectId, chapterId);
     }
   }
 
@@ -153,7 +153,7 @@ export class IndexProjects implements OnInit {
   protected confirmDeleteProject(p: Project): void {
     this.confirm.confirm({
       header: 'Delete Project',
-      message: `Delete "${p.name}" and all its scenes and takes?`,
+      message: `Delete "${p.name}" and all its episodes and scenes?`,
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
@@ -169,27 +169,121 @@ export class IndexProjects implements OnInit {
   }
 
   // ---------------------------------------------------------------------------
+  // Chapter (Episode) CRUD
+  // ---------------------------------------------------------------------------
+
+  protected openCreateChapter(projectId: string): void {
+    this.chapterDialogTarget.set(null);
+    this.chapterPreSelectedProjectId.set(projectId);
+    this.chapterDialogVisible.set(true);
+  }
+
+  protected openEditChapter(c: Chapter): void {
+    this.chapterDialogTarget.set(c);
+    this.chapterPreSelectedProjectId.set(null);
+    this.chapterDialogVisible.set(true);
+  }
+
+  protected onCreateChapter(evt: { number: number; name: string; description?: string }): void {
+    const projectId = this.chapterPreSelectedProjectId();
+    if (!projectId) return;
+
+    this.submitting.set(true);
+    this.service.createChapter(projectId, evt).subscribe((res) => {
+      this.submitting.set(false);
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode created' });
+      this.chapterDialogVisible.set(false);
+    });
+  }
+
+  protected onUpdateChapter(evt: {
+    id: string;
+    number: number;
+    name: string;
+    description?: string;
+  }): void {
+    const projectId = this.getProjectIdForChapter(evt.id);
+    if (!projectId) return;
+
+    this.submitting.set(true);
+    this.service.updateChapter(projectId, evt.id, evt).subscribe((res) => {
+      this.submitting.set(false);
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode updated' });
+      this.chapterDialogVisible.set(false);
+    });
+  }
+
+  protected toggleChapterActive(c: Chapter): void {
+    const projectId = this.getProjectIdForChapter(c.id);
+    if (!projectId) return;
+
+    this.service.updateChapter(projectId, c.id, { active: !c.active }).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({
+        severity: 'success',
+        summary: 'OK',
+        detail: `${c.name} ${c.active ? 'deactivated' : 'activated'}`,
+      });
+    });
+  }
+
+  protected confirmDeleteChapter(c: Chapter): void {
+    const projectId = this.getProjectIdForChapter(c.id);
+    if (!projectId) return;
+
+    this.confirm.confirm({
+      header: 'Delete Episode',
+      message: `Delete episode "${c.name}" and all its scenes?`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () =>
+        this.service.deleteChapter(projectId, c.id).subscribe((res) => {
+          if (res.error) {
+            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            return;
+          }
+          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode deleted' });
+        }),
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Scene CRUD
   // ---------------------------------------------------------------------------
 
-  protected openCreateScene(projectId: string): void {
+  protected openCreateScene(projectId: string, chapterId: string): void {
     this.sceneDialogTarget.set(null);
     this.scenePreSelectedProjectId.set(projectId);
+    this.scenePreSelectedChapterId.set(chapterId);
     this.sceneDialogVisible.set(true);
   }
 
   protected openEditScene(s: Scene): void {
     this.sceneDialogTarget.set(s);
     this.scenePreSelectedProjectId.set(null);
+    this.scenePreSelectedChapterId.set(null);
     this.sceneDialogVisible.set(true);
   }
 
   protected onCreateScene(evt: { number: number; name: string; description?: string }): void {
     const projectId = this.scenePreSelectedProjectId();
-    if (!projectId) return;
+    const chapterId = this.scenePreSelectedChapterId();
+    if (!projectId || !chapterId) return;
 
     this.submitting.set(true);
-    this.service.createScene(projectId, evt).subscribe((res) => {
+    this.service.createScene(projectId, chapterId, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
         this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
@@ -206,11 +300,12 @@ export class IndexProjects implements OnInit {
     name: string;
     description?: string;
   }): void {
-    const projectId = this.getProjectIdForScene(evt.id);
-    if (!projectId) return;
+    const ids = this.getParentIdsForScene(evt.id);
+    if (!ids) return;
+    const { projectId, chapterId } = ids;
 
     this.submitting.set(true);
-    this.service.updateScene(projectId, evt.id, evt).subscribe((res) => {
+    this.service.updateScene(projectId, chapterId, evt.id, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
         this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
@@ -222,10 +317,11 @@ export class IndexProjects implements OnInit {
   }
 
   protected toggleSceneActive(s: Scene): void {
-    const projectId = this.getProjectIdForScene(s.id);
-    if (!projectId) return;
+    const ids = this.getParentIdsForScene(s.id);
+    if (!ids) return;
+    const { projectId, chapterId } = ids;
 
-    this.service.updateScene(projectId, s.id, { active: !s.active }).subscribe((res) => {
+    this.service.updateScene(projectId, chapterId, s.id, { active: !s.active }).subscribe((res) => {
       if (res.error) {
         this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
         return;
@@ -239,17 +335,18 @@ export class IndexProjects implements OnInit {
   }
 
   protected confirmDeleteScene(s: Scene): void {
-    const projectId = this.getProjectIdForScene(s.id);
-    if (!projectId) return;
+    const ids = this.getParentIdsForScene(s.id);
+    if (!ids) return;
+    const { projectId, chapterId } = ids;
 
     this.confirm.confirm({
       header: 'Delete Scene',
-      message: `Delete scene "${s.name}" and all its takes?`,
+      message: `Delete scene "${s.name}"?`,
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
-        this.service.deleteScene(projectId, s.id).subscribe((res) => {
+        this.service.deleteScene(projectId, chapterId, s.id).subscribe((res) => {
           if (res.error) {
             this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
             return;
@@ -260,81 +357,26 @@ export class IndexProjects implements OnInit {
   }
 
   // ---------------------------------------------------------------------------
-  // Take CRUD
-  // ---------------------------------------------------------------------------
-
-  protected openCreateTake(projectId: string, sceneId: string): void {
-    this.takeDialogTarget.set(null);
-    this.takePreSelectedProjectId.set(projectId);
-    this.takePreSelectedSceneId.set(sceneId);
-    this.takeDialogVisible.set(true);
-  }
-
-  protected openEditTake(t: Take, projectId: string, sceneId: string): void {
-    this.takeDialogTarget.set(t);
-    this.takePreSelectedProjectId.set(projectId);
-    this.takePreSelectedSceneId.set(sceneId);
-    this.takeDialogVisible.set(true);
-  }
-
-  protected onCreateTake(evt: { number: number }): void {
-    const projectId = this.takePreSelectedProjectId();
-    const sceneId = this.takePreSelectedSceneId();
-    if (!projectId || !sceneId) return;
-
-    this.submitting.set(true);
-    this.service.createTake(projectId, sceneId, evt).subscribe((res) => {
-      this.submitting.set(false);
-      if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
-        return;
-      }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Take created' });
-      this.takeDialogVisible.set(false);
-    });
-  }
-
-  protected confirmDeleteTake(t: Take, projectId: string, sceneId: string): void {
-    this.confirm.confirm({
-      header: 'Delete Take',
-      message: `Delete take #${t.number}?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () =>
-        this.service.deleteTake(projectId, sceneId, t.id).subscribe((res) => {
-          if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
-            return;
-          }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Take deleted' });
-        }),
-    });
-  }
-
-  // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private getProjectIdForScene(sceneId: string): string | null {
+  private getProjectIdForChapter(chapterId: string): string | null {
     for (const p of this.projects()) {
-      if (p.scenes.some((s) => s.scene.id === sceneId)) {
+      if (p.chapters.some((c) => c.chapter.id === chapterId)) {
         return p.project.id;
       }
     }
     return null;
   }
 
-  protected statusClass(status: string): string {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-900/40 text-green-400';
-      case 'processing':
-        return 'bg-yellow-900/40 text-yellow-400';
-      case 'failed':
-        return 'bg-red-900/40 text-red-400';
-      default:
-        return 'bg-ink-700 text-fg-muted';
+  private getParentIdsForScene(sceneId: string): { projectId: string; chapterId: string } | null {
+    for (const p of this.projects()) {
+      for (const c of p.chapters) {
+        if (c.scenes.some((s) => s.scene.id === sceneId)) {
+          return { projectId: p.project.id, chapterId: c.chapter.id };
+        }
+      }
     }
+    return null;
   }
 }

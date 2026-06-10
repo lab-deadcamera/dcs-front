@@ -253,6 +253,12 @@
         "HORROR": "Terror"
       }
     },
+    "PRONCER": {
+      "TITLE": "Proncer",
+      "HINT": "Asistente IA para mejorar tu prompt",
+      "BODY": "Pronto podrás pedirle a Claude que mejore tu prompt directamente desde este panel. Mantente atento para la próxima beta.",
+      "STATUS_SOON": "Próximamente"
+    },
     "OUTPUT": {
       "TITLE": "Formato de Salida",
       "MODEL": "Modelo",
@@ -304,7 +310,8 @@
       "LIBRARY_QUICKPICK_HINT": "Haz clic para añadir al prompt",
       "LIBRARY_QUICKPICK_EMPTY": "Aún no hay assets en esta categoría.",
       "LIBRARY_HIDE": "Ocultar de la biblioteca",
-      "LIBRARY_SHOW_HIDDEN": "Mostrar {{n}} ocultos"
+      "LIBRARY_SHOW_HIDDEN": "Mostrar {{n}} ocultos",
+      "FREE_ASSETS": "Agregar archivo"
     },
     "FOOTER": {
       "VERSION": "v1.0",
@@ -317,6 +324,7 @@
     "CANCEL": "Cancelar",
     "CLOSE": "Cerrar",
     "SAVE": "Guardar",
+    "DOWNLOAD": "Descargar",
     "CREATE": "Crear",
     "DELETE": "Eliminar",
     "EDIT": "Editar",
@@ -416,7 +424,9 @@
       "LINK": "Vincular a personaje",
       "DELETE": "Mover a papelera",
       "RESTORE": "Restaurar",
-      "HARD_DELETE": "Eliminar para siempre"
+      "HARD_DELETE": "Eliminar para siempre",
+      "ZOOM_IN": "Acercar",
+      "ZOOM_OUT": "Alejar"
     },
     "LINK": {
       "DIALOG_TITLE": "Vincular archivo a personaje",
@@ -437,9 +447,17 @@
       "CREATE_TITLE": "Nuevo Proyecto",
       "EDIT_TITLE": "Editar Proyecto"
     },
+    "CHAPTER_DIALOG": {
+      "CREATE_TITLE": "Nuevo Episodio",
+      "EDIT_TITLE": "Editar Episodio"
+    },
     "SCENE_DIALOG": {
       "CREATE_TITLE": "Nueva Escena",
       "EDIT_TITLE": "Editar Escena"
+    },
+    "SHOT_DIALOG": {
+      "CREATE_TITLE": "Nuevo Shot",
+      "EDIT_TITLE": "Editar Shot"
     },
     "TAKE_DIALOG": {
       "CREATE_TITLE": "Nueva Toma",
@@ -448,7 +466,9 @@
     "FIELDS": {
       "NAME": "Nombre",
       "DESCRIPTION": "Descripción",
+      "CHAPTER_NUMBER": "Episodio #",
       "SCENE_NUMBER": "Escena #",
+      "SHOT_NUMBER": "Shot #",
       "TAKE_NUMBER": "Toma #"
     }
   },

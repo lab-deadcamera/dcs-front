@@ -6,6 +6,7 @@ import {
   Output,
   computed,
   inject,
+  input,
   output,
   signal,
 } from '@angular/core';
@@ -30,6 +31,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /**
  * Characters library — typed asset board.
@@ -53,6 +55,7 @@ import { FilesApiService } from '@app/services';
     CharacterFormDialogComponent,
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
+    SourceThumbnailAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -67,6 +70,8 @@ export class IndexCharacters implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
+
+  showUseButton = input<boolean>(false);
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();

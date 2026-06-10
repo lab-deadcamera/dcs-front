@@ -14,17 +14,23 @@
         }
         @case ('assets') {
           <div class="flex gap-1">
-            <p-fileupload
-              mode="basic"
-              [chooseIcon]="fileUploadLoading() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"
-              accept="image/*"
-              [customUpload]="true"
-              [auto]="true"
-              [disabled]="fileUploadLoading()"
-              maxFileSize="1000000"
-              (uploadHandler)="uploadFile($event)"
-              chooseLabel="New Asset"
-            />
+            @if (fileUploadLoading()) {
+              <i class="pi pi-spin pi-spinner text-[12px]"></i>
+            } @else {
+              <p-fileupload
+                mode="basic"
+                #file
+                [chooseIcon]="fileUploadLoading() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"
+                accept="image/*,video/*,audio/*"
+                [customUpload]="true"
+                [auto]="true"
+                [multiple]="true"
+                [disabled]="fileUploadLoading()"
+                maxFileSize="10000000"
+                (uploadHandler)="uploadFile($event); file.clear()"
+                chooseLabel="New Asset"
+              />
+            }
           </div>
         }
       }
@@ -92,6 +98,7 @@
                 <span class="text-[12px] font-semibold">{{ p.label }}</span>
                 <span class="ml-2 text-[10px] text-fg-muted">{{ p.labelKey | translate }}</span>
               </div>
+
               <button
                 type="button"
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
@@ -159,13 +166,23 @@
                 }
                 <span class="text-[12px]">{{ c.name }}</span>
               </div>
-              <button
-                type="button"
-                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
-                (click)="assignCharacter(c.id)"
-              >
-                + Assign
-              </button>
+
+              <div class="flex gap-2">
+                <p-button
+                  icon="pi pi-trash"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  (onClick)="deleteCharacter(c)"
+                />
+                <button
+                  type="button"
+                  class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
+                  (click)="assignCharacter(c.id)"
+                >
+                  + Assign
+                </button>
+              </div>
             </div>
           }
           @if (availableCharacters().length === 0) {
@@ -214,20 +231,43 @@
             >
               <div class="flex min-w-0 items-center gap-2">
                 <span class="truncate w-24 text-[12px]">{{ f.filename }}</span>
-                <img
-                  [src]="f.id | sourceThumbnailAsset"
-                  alt="{{ f.filename }}"
-                  class="h-6 w-auto object-cover"
-                />
+                <span>{{ f.type }}</span>
+                @if (f.mime_type.includes('video')) {
+                  <video class="h-6 w-auto" [src]="f.id | sourceAsset"></video>
+                }
+
+                @if (f.mime_type.includes('audio')) {
+                  <audio class="py-3" controls [src]="f.id | sourceAsset"></audio>
+                }
+
+                @if (f.mime_type.includes('image')) {
+                  <img
+                    [src]="f.id | sourceThumbnailAsset"
+                    alt="{{ f.filename }}"
+                    class="h-6 w-auto cursor-pointer object-cover"
+                    (click)="openPreview(f)"
+                  />
+                }
                 <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
               </div>
-              <button
-                type="button"
-                class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
-                (click)="assignAsset(f.id)"
-              >
-                + Assign
-              </button>
+
+              <div class="flex gap-2">
+                <p-button
+                  icon="pi pi-trash"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  (onClick)="deleteFile(f)"
+                />
+
+                <button
+                  type="button"
+                  class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
+                  (click)="assignAsset(f.id)"
+                >
+                  + Assign
+                </button>
+              </div>
             </div>
           }
           @if (availableAssets().length === 0) {
@@ -245,7 +285,11 @@
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
               <div class="min-w-0 flex-1">
-                <span class="truncate text-[12px]">{{ a.filename }}</span>
+                <span
+                  class="truncate cursor-pointer text-[12px] hover:text-primary-400"
+                  (click)="openPreview(a)"
+                  >{{ a.filename }}</span
+                >
                 <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
               </div>
               <button
@@ -276,3 +320,12 @@
 >
   <app-index-characters (charactersChanged)="onCharactersChanged()" />
 </p-dialog>
+
+<app-asset-viewer
+  [(visible)]="previewVisible"
+  [file]="previewFile()"
+  [allowDelete]="true"
+  (deleteFile)="onDeleteFromViewer($event)"
+/>
+
+<p-confirmDialog />

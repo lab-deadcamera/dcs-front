@@ -7,12 +7,33 @@
         Manage AI providers and their model configurations
       </p>
     </div>
-    <p-button
-      [label]="'PROVIDERS.NEW_PROVIDER' | translate"
-      icon="pi pi-plus"
-      data-testid="new-provider-btn"
-      (onClick)="openCreateProvider()"
-    />
+    <div class="flex items-center gap-2">
+      @if (session.roleLevel() < 2) {
+        <p-button
+          icon="pi pi-download"
+          severity="secondary"
+          [text]="true"
+          pTooltip="Export CSV"
+          (onClick)="onExport()"
+        />
+        <p-button
+          icon="pi pi-upload"
+          severity="secondary"
+          [text]="true"
+          pTooltip="Import CSV"
+          (onClick)="fileInput.click()"
+        />
+      }
+      <p-button
+        [label]="'PROVIDERS.NEW_PROVIDER' | translate"
+        icon="pi pi-plus"
+        data-testid="new-provider-btn"
+        (onClick)="openCreateProvider()"
+      />
+    </div>
+
+    <!-- Hidden file input for CSV import -->
+    <input #fileInput type="file" accept=".csv" class="hidden" (change)="onImport($event)" />
   </div>
 
   <!-- Loading -->
@@ -36,10 +57,7 @@
   @if (providers().length > 0) {
     <div class="flex flex-col gap-3">
       @for (item of providers(); track item.provider.id) {
-        <div
-          class="border"
-          style="border-color: var(--border-color);"
-        >
+        <div class="border" style="border-color: var(--border-color)">
           <!-- Provider header row -->
           <div class="flex items-center justify-between gap-4 px-4 py-3">
             <div class="flex items-center gap-3 min-w-0">
@@ -55,8 +73,8 @@
                 {{ item.provider.name }}
               </span>
               <span
-                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                [class.bg-green-900/40]="item.provider.active"
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                [class.bg-green-900]="item.provider.active"
                 [class.text-green-400]="item.provider.active"
                 [class.bg-ink-700]="!item.provider.active"
                 [class.text-fg-muted]="!item.provider.active"
@@ -107,7 +125,7 @@
 
           <!-- Models section (expandable) -->
           @if (expandedIds()[item.provider.id] && item.models.length > 0) {
-            <div class="border-t" style="border-color: var(--border-color);">
+            <div class="border-t" style="border-color: var(--border-color)">
               <table class="w-full text-[12px]">
                 <thead>
                   <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
@@ -122,18 +140,18 @@
                 </thead>
                 <tbody>
                   @for (m of item.models; track m.id) {
-                    <tr class="border-t" style="border-color: var(--border-color);">
+                    <tr class="border-t" style="border-color: var(--border-color)">
                       <td class="px-4 py-2 font-mono text-[13px]">{{ m.name }}</td>
                       <td class="px-4 py-2">
                         <span
-                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
-                          [class.bg-blue-900/40]="m.model_type === 'video'"
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest"
+                          [class.bg-blue-900]="m.model_type === 'video'"
                           [class.text-blue-400]="m.model_type === 'video'"
-                          [class.bg-purple-900/40]="m.model_type === 'text'"
+                          [class.bg-purple-900]="m.model_type === 'text'"
                           [class.text-purple-400]="m.model_type === 'text'"
-                          [class.bg-amber-900/40]="m.model_type === 'audio'"
+                          [class.bg-amber-900]="m.model_type === 'audio'"
                           [class.text-amber-400]="m.model_type === 'audio'"
-                          [class.bg-emerald-900/40]="m.model_type === 'image'"
+                          [class.bg-emerald-900]="m.model_type === 'image'"
                           [class.text-emerald-400]="m.model_type === 'image'"
                         >
                           {{ m.model_type }}
@@ -141,8 +159,8 @@
                       </td>
                       <td class="px-4 py-2">
                         <span
-                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                          [class.bg-green-900/40]="m.active"
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                          [class.bg-green-900]="m.active"
                           [class.text-green-400]="m.active"
                           [class.bg-ink-700]="!m.active"
                           [class.text-fg-muted]="!m.active"
@@ -205,7 +223,10 @@
 
           <!-- Empty models state -->
           @if (expandedIds()[item.provider.id] && item.models.length === 0) {
-            <div class="border-t px-4 py-4 text-center text-[12px] text-fg-muted" style="border-color: var(--border-color);">
+            <div
+              class="border-t px-4 py-4 text-center text-[12px] text-fg-muted"
+              style="border-color: var(--border-color)"
+            >
               No models yet.
             </div>
           }
@@ -215,23 +236,27 @@
   }
 
   <!-- Dialogs -->
-  <app-provider-form-dialog
-    [visible]="providerDialogVisible()"
-    [provider]="providerDialogTarget()"
-    [submitting]="submitting()"
-    (visibleChange)="providerDialogVisible.set($event)"
-    (create)="onCreateProvider($event)"
-    (update)="onUpdateProvider($event)"
-  />
+  @if (providerDialogVisible()) {
+    <app-provider-form-dialog
+      [visible]="providerDialogVisible()"
+      [provider]="providerDialogTarget()"
+      [submitting]="submitting()"
+      (visibleChange)="providerDialogVisible.set($event)"
+      (create)="onCreateProvider($event)"
+      (update)="onUpdateProvider($event)"
+    />
+  }
 
-  <app-model-form-dialog
-    [visible]="modelDialogVisible()"
-    [model]="modelDialogTarget()"
-    [providers]="allProviders()"
-    [preSelectedProviderId]="modelPreSelectedProviderId()"
-    [submitting]="submitting()"
-    (visibleChange)="modelDialogVisible.set($event)"
-    (create)="onCreateModel($event)"
-    (update)="onUpdateModel($event)"
-  />
+  @if (modelDialogVisible()) {
+    <app-model-form-dialog
+      [visible]="modelDialogVisible()"
+      [model]="modelDialogTarget()"
+      [providers]="allProviders()"
+      [preSelectedProviderId]="modelPreSelectedProviderId()"
+      [submitting]="submitting()"
+      (visibleChange)="modelDialogVisible.set($event)"
+      (create)="onCreateModel($event)"
+      (update)="onUpdateModel($event)"
+    />
+  }
 </section>

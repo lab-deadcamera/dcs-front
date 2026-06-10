@@ -7,22 +7,25 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { GenerationLogsService, VideoGeneratorService } from '@app/services';
-import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+
+import { FilesApiService, GenerationLogsService, VideoGeneratorService } from '@app/services';
+import { GenerationLogEntry } from '@core/interfaces/seedance.interface';
 import { environment } from '@environment/environment';
-import { map, catchError } from 'rxjs';
-import { httpErrorHandler } from '@shared/utils';
+import { RESOLVE_URL } from '@app/shared/utils';
+import { ResolveUrlPipe } from '@app/core/pipes';
 
 interface SelectOption {
   label: string;
@@ -41,9 +44,11 @@ interface UserOption {
     FormsModule,
     ButtonModule,
     InputTextModule,
+    CurrencyPipe,
     SelectModule,
     PaginatorModule,
     ToastModule,
+    ResolveUrlPipe,
     DialogModule,
     TooltipModule,
   ],
@@ -57,6 +62,7 @@ export class IndexAdmin implements OnInit {
   private readonly genLogs = inject(GenerationLogsService);
   private readonly toast = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly fileSvc = inject(FilesApiService);
 
   protected readonly resourceTypeOptions: SelectOption[] = [
     { label: 'Video', value: 'video' },
@@ -94,6 +100,8 @@ export class IndexAdmin implements OnInit {
   protected readonly totalRecords = signal(0);
   protected readonly page = signal(0);
   protected readonly limit = signal(20);
+  protected readonly totalCost = signal(0);
+  protected readonly costLoading = signal(false);
 
   ngOnInit(): void {
     this.loadDropdowns();
@@ -137,10 +145,10 @@ export class IndexAdmin implements OnInit {
         }
       });
 
-    // Projects
+    // Projects (admin endpoint — includes inactive)
     this.http
       .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(
-        `${environment.API_URL}/projects`,
+        `${environment.API_URL}/projects/list-all`,
       )
       .pipe(
         map((r) => ({ error: !r.success, data: r.data })),
@@ -237,31 +245,6 @@ export class IndexAdmin implements OnInit {
     Array<{ type: string; text?: string; name?: string; id?: string }>
   >([]);
 
-  protected showPayload(log: GenerationLogEntry): void {
-    try {
-      if (!log.request) {
-        this.toast.add({
-          severity: 'warn',
-          summary: 'No payload',
-          detail: 'Request payload not loaded',
-          life: 3000,
-        });
-        return;
-      }
-      const parsed = JSON.parse(log.request);
-      this.selectedPayload.set(parsed);
-      this.selectedPayloadContent.set(parsed.content ?? []);
-      this.payloadDialogVisible.set(true);
-    } catch {
-      this.toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Invalid payload JSON',
-        life: 3000,
-      });
-    }
-  }
-
   // ── Output preview dialog (type-aware) ────────────────────────────
 
   protected readonly outputDialogVisible = signal(false);
@@ -270,8 +253,13 @@ export class IndexAdmin implements OnInit {
 
   protected showOutput(log: GenerationLogEntry): void {
     try {
-      const outputs: Array<{ url: string; type: string }> = JSON.parse(log.outputs ?? '[]');
-      this.selectedOutputs.set(outputs);
+      const o = log.outputs.map((out) => {
+        return {
+          url: RESOLVE_URL(out.localUrl || out.url),
+          type: out.type || 'output',
+        };
+      });
+      this.selectedOutputs.set(o);
       this.selectedOutputType.set(log.resource_type || 'output');
       this.outputDialogVisible.set(true);
     } catch {
@@ -356,7 +344,10 @@ export class IndexAdmin implements OnInit {
   }
 
   private loadPage(): void {
+    console.log('Loading page...');
+    console.log(this.page(), this.limit());
     const f = this.filters();
+    console.log(f);
     this.loading.set(true);
     this.genLogs
       .getLogs({
@@ -378,8 +369,31 @@ export class IndexAdmin implements OnInit {
           this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
           return;
         }
-        this.logs.set(res.data.logs);
+        this.logs.set(res.data.logs || []);
         this.totalRecords.set(res.data.total);
+      });
+    this.loadCostSummary();
+  }
+
+  private loadCostSummary(): void {
+    const f = this.filters();
+    this.costLoading.set(true);
+    this.genLogs
+      .getCostSummary({
+        model_name: f.modelName || undefined,
+        user_id: f.userId ?? undefined,
+        project_id: f.projectId || undefined,
+        scene_id: f.sceneId || undefined,
+        status: f.status ?? undefined,
+        resource_type: f.resourceType ?? undefined,
+        date_from: f.dateFrom || undefined,
+        date_to: f.dateTo || undefined,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.costLoading.set(false);
+        if (res.error || res.data == null) return;
+        this.totalCost.set(res.data.total_cost);
       });
   }
 }

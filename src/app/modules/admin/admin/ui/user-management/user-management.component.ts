@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,6 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { map, catchError } from 'rxjs';
@@ -43,6 +51,7 @@ interface AdminRole {
     PasswordModule,
     SelectModule,
     ToastModule,
+    TooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MessageService],
@@ -70,6 +79,7 @@ interface AdminRole {
                 <th class="px-3 py-2 font-medium">Role</th>
                 <th class="px-3 py-2 font-medium">Status</th>
                 <th class="px-3 py-2 font-medium">Created</th>
+                <th class="px-3 py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -81,10 +91,10 @@ interface AdminRole {
                   <td class="px-3 py-2 font-mono">{{ u.email }}</td>
                   <td class="px-3 py-2">
                     <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                      [class.bg-purple-900/40]="u.role.level <= 1"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                      [class.bg-purple-900]="u.role.level <= 1"
                       [class.text-purple-400]="u.role.level <= 1"
-                      [class.bg-blue-900/40]="u.role.level === 2"
+                      [class.bg-blue-900]="u.role.level === 2"
                       [class.text-blue-400]="u.role.level === 2"
                       [class.bg-ink-700]="u.role.level >= 3"
                       [class.text-fg-muted]="u.role.level >= 3"
@@ -94,10 +104,10 @@ interface AdminRole {
                   </td>
                   <td class="px-3 py-2">
                     <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]"
-                      [class.bg-green-900/40]="u.active"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                      [class.bg-green-900]="u.active"
                       [class.text-green-400]="u.active"
-                      [class.bg-red-900/40]="!u.active"
+                      [class.bg-red-900]="!u.active"
                       [class.text-red-400]="!u.active"
                     >
                       {{ u.active ? 'Active' : 'Inactive' }}
@@ -105,6 +115,18 @@ interface AdminRole {
                   </td>
                   <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
                     {{ u.created_at | date: 'dd/MM/yy' }}
+                  </td>
+                  <td class="px-3 py-2">
+                    @if (u.role.level > 0) {
+                      <p-button
+                        [icon]="u.active ? 'pi pi-ban' : 'pi pi-check-circle'"
+                        [severity]="u.active ? 'danger' : 'success'"
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="u.active ? 'Deactivate' : 'Activate'"
+                        (onClick)="toggleActive(u)"
+                      />
+                    }
                   </td>
                 </tr>
               }
@@ -131,7 +153,14 @@ interface AdminRole {
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Password</label>
-          <p-password formControlName="password" placeholder="min 6 characters" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+          <p-password
+            formControlName="password"
+            placeholder="min 6 characters"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+          />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Name</label>
@@ -158,14 +187,25 @@ interface AdminRole {
             optionValue="value"
             placeholder="Select role"
             styleClass="w-full"
+            appendTo="body"
           />
         </div>
       </form>
 
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
-          <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="dialogVisible.set(false)" />
-          <p-button label="Create" [disabled]="form.invalid || submitting()" [loading]="submitting()" (onClick)="onSubmit()" />
+          <p-button
+            severity="secondary"
+            [text]="true"
+            label="Cancel"
+            (onClick)="dialogVisible.set(false)"
+          />
+          <p-button
+            label="Create"
+            [disabled]="form.invalid || submitting()"
+            [loading]="submitting()"
+            (onClick)="onSubmit()"
+          />
         </div>
       </ng-template>
     </p-dialog>
@@ -201,7 +241,15 @@ export class UserManagementComponent implements OnInit {
   }
 
   protected openCreate(): void {
-    this.form.reset({ username: '', password: '', name: '', surname: '', email: '', user_name: '', role_id: null });
+    this.form.reset({
+      username: '',
+      password: '',
+      name: '',
+      surname: '',
+      email: '',
+      user_name: '',
+      role_id: null,
+    });
     this.dialogVisible.set(true);
   }
 
@@ -218,7 +266,9 @@ export class UserManagementComponent implements OnInit {
       )
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-        catchError((err) => [{ error: true, msg: err.error?.message || err.message, data: undefined }]),
+        catchError((err) => [
+          { error: true, msg: err.error?.message || err.message, data: undefined },
+        ]),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((res) => {
@@ -229,6 +279,33 @@ export class UserManagementComponent implements OnInit {
         }
         this.toast.add({ severity: 'success', summary: 'OK', detail: 'User created', life: 3000 });
         this.dialogVisible.set(false);
+        this.loadUsers();
+      });
+  }
+
+  protected toggleActive(u: AdminUser): void {
+    const newState = !u.active;
+    this.http
+      .patch<{ success: boolean; message: string; data?: { active: boolean } }>(
+        `${environment.API_URL}/admin/users/${u.id}/active`,
+        { active: newState },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError((err) => [{ error: true, msg: err.error?.message || err.message }]),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((res) => {
+        if (res.error) {
+          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 4000 });
+          return;
+        }
+        this.toast.add({
+          severity: 'success',
+          summary: 'OK',
+          detail: `${u.username} ${newState ? 'activated' : 'deactivated'}`,
+          life: 3000,
+        });
         this.loadUsers();
       });
   }
@@ -245,7 +322,12 @@ export class UserManagementComponent implements OnInit {
       .subscribe((res) => {
         this.loading.set(false);
         if (res.error || !res.data) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load users', life: 3000 });
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load users',
+            life: 3000,
+          });
           return;
         }
         this.users.set(res.data);
@@ -262,15 +344,29 @@ export class UserManagementComponent implements OnInit {
       )
       .subscribe((res: any) => {
         if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load roles: ' + (res.msg || 'unknown'), life: 5000 });
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load roles: ' + (res.msg || 'unknown'),
+            life: 5000,
+          });
           return;
         }
         if (!res.data || res.data.length === 0) {
-          this.toast.add({ severity: 'warn', summary: 'Warning', detail: 'No roles returned from server', life: 5000 });
+          this.toast.add({
+            severity: 'warn',
+            summary: 'Warning',
+            detail: 'No roles returned from server',
+            life: 5000,
+          });
           return;
         }
         // SUPER_ADMIN (level 0) no se muestra — es único, creado desde .env
-        this.roles.set(res.data.filter((r: AdminRole) => r.level > 0).map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })));
+        this.roles.set(
+          res.data
+            .filter((r: AdminRole) => r.level > 0)
+            .map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })),
+        );
       });
   }
 }

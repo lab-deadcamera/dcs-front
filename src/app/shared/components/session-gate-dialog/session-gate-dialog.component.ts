@@ -16,16 +16,18 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { SessionStore } from '@app/core/stores/session.store';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
-import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
+import { Project, Scene } from '@modules/projects/projects/interfaces';
 
 /**
- * Entry gate: blocks the studio until the user has selected a project
- * and scene. The user's nickname is shown as read-only — it comes from
- * the auth session (already persisted in IndexedDB).
+ * Entry gate: blocks the studio until the user has selected a project,
+ * episode (chapter), and scene. The user must also provide a name for
+ * the new shot, which is created on submit.
  *
  * Admins (role level <= 1) may close the dialog without configuring a
  * session; regular users must complete the form to proceed.
@@ -40,6 +42,7 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
     ButtonModule,
     InputTextModule,
     SelectModule,
+    ToastModule,
     ValidatorErrors,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -101,11 +104,37 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
         </div>
 
         <div class="flex flex-col gap-1">
-          <label for="session-gate-scene" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Scene
+          <label for="session-gate-episode" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            Episode
           </label>
           @if (!form.get('projectId')?.value) {
             <p class="text-[12px] italic text-fg-muted">Select a project first.</p>
+          } @else if (loadingChapters()) {
+            <p class="text-[12px] italic text-fg-muted">Loading episodes…</p>
+          } @else {
+            <p-select
+              inputId="session-gate-episode"
+              formControlName="chapterId"
+              appendTo="body"
+              [options]="chapters()"
+              optionLabel="label"
+              optionValue="id"
+              [placeholder]="'Select an episode'"
+              [showClear]="true"
+              styleClass="w-full"
+              data-testid="session-gate-episode"
+              (onChange)="onChapterChange($event.value)"
+            />
+          }
+          <validator-errors [control]="form.get('chapterId')" [label]="'Episode'" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="session-gate-scene" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            Scene
+          </label>
+          @if (!form.get('chapterId')?.value) {
+            <p class="text-[12px] italic text-fg-muted">Select an episode first.</p>
           } @else if (loadingScenes()) {
             <p class="text-[12px] italic text-fg-muted">Loading scenes…</p>
           } @else {
@@ -126,13 +155,29 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
           <validator-errors [control]="form.get('sceneId')" [label]="'Scene'" />
         </div>
 
+        <div class="flex flex-col gap-1">
+          <label for="session-gate-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+            Shot name
+          </label>
+          <input
+            id="session-gate-shot-name"
+            pInputText
+            formControlName="shotName"
+            placeholder="e.g. Master wide, Close-up, …
+"
+            class="w-full"
+            data-testid="session-gate-shot-name"
+          />
+          <p class="text-[10px] italic text-fg-muted">
+            Give your shot a descriptive name. A new shot will be created for this scene.
+          </p>
+          <validator-errors [control]="form.get('shotName')" [label]="'Shot name'" />
+        </div>
+
         @if (selectedScene()) {
           <div class="rounded border p-3 text-[12px]" style="border-color: var(--border-color);">
             <span class="font-semibold">Scene:</span>
             SC{{ selectedScene()!.number | number: '2.0' }} — {{ selectedScene()!.name }}
-            <br />
-            <span class="font-semibold">Takes:</span>
-            {{ takes().length }} take{{ takes().length !== 1 ? 's' : '' }}
           </div>
         }
       </form>
@@ -153,6 +198,8 @@ import { Project, Scene, Take } from '@modules/projects/projects/interfaces';
         </div>
       </ng-template>
     </p-dialog>
+
+    <p-toast position="top-right" />
   `,
 })
 export class SessionGateDialogComponent {
@@ -172,68 +219,80 @@ export class SessionGateDialogComponent {
    */
   readonly adminClosable = input(false);
 
+  private readonly toast = inject(MessageService);
+
   // Local state for pickers
   protected readonly projects = signal<Project[]>([]);
-  protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>(
-    [],
-  );
-  protected readonly takes = signal<Take[]>([]);
+  protected readonly chapters = signal<{ id: string; number: number; name: string; label: string }[]>([]);
+  protected readonly scenes = signal<{ id: string; number: number; name: string; label: string }[]>([]);
   protected readonly loadingProjects = signal(false);
+  protected readonly loadingChapters = signal(false);
   protected readonly loadingScenes = signal(false);
   protected readonly submitting = signal(false);
   protected readonly user = this.sessionStore.user;
 
   /** Derived scene object for the info panel. */
-  protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(
-    null,
-  );
+  protected readonly selectedScene = signal<{ id: string; number: number; name: string } | null>(null);
 
   protected readonly form: FormGroup = this.fb.group({
     projectId: [null, [Validators.required]],
+    chapterId: [null, [Validators.required]],
     sceneId: [null, [Validators.required]],
+    shotName: ['', [Validators.required, Validators.minLength(2)]],
   });
 
   /**
-   * Reset project/scene pickers every time the dialog opens. The user's
-   * identity is already in the store (persisted via IndexedDB) and shown
-   * as read-only — no need to re-capture it.
+   * Reset pickers every time the dialog opens.
    */
   private readonly resetOnOpen = effect(() => {
     if (!this.visible()) return;
     this.form.reset({
       projectId: null,
+      chapterId: null,
       sceneId: null,
+      shotName: '',
     });
     this.selectedScene.set(null);
-    this.takes.set([]);
     this.scenes.set([]);
+    this.chapters.set([]);
     this.loadProjects();
   });
 
   /** Called when the user picks a project. */
   protected onProjectChange(projectId: string | null): void {
+    this.chapters.set([]);
     this.scenes.set([]);
-    this.takes.set([]);
+    this.selectedScene.set(null);
+    this.form.patchValue({ chapterId: null, sceneId: null }, { emitEvent: false });
+    if (projectId) {
+      this.loadChapters(projectId);
+    }
+  }
+
+  /** Called when the user picks an episode. */
+  protected onChapterChange(chapterId: string | null): void {
+    const projectId: string | null = this.form.get('projectId')?.value;
+    this.scenes.set([]);
     this.selectedScene.set(null);
     this.form.patchValue({ sceneId: null }, { emitEvent: false });
-    if (projectId) {
-      this.loadScenes(projectId);
+    if (chapterId && projectId) {
+      this.loadScenes(projectId, chapterId);
     }
   }
 
   /** Called when the user picks a scene. */
   protected onSceneChange(sceneId: string | null): void {
     const projectId: string | null = this.form.get('projectId')?.value;
-    if (!sceneId || !projectId) {
+    const chapterId: string | null = this.form.get('chapterId')?.value;
+    this.form.patchValue({ shotName: '' }, { emitEvent: false });
+    if (!sceneId || !projectId || !chapterId) {
       this.selectedScene.set(null);
-      this.takes.set([]);
       return;
     }
     const scene = this.scenes().find((s) => s.id === sceneId);
     if (scene) {
       this.selectedScene.set({ id: scene.id, number: scene.number, name: scene.name });
     }
-    this.loadTakes(projectId, sceneId);
   }
 
   protected loadProjects(): void {
@@ -246,10 +305,27 @@ export class SessionGateDialogComponent {
     });
   }
 
-  protected loadScenes(projectId: string): void {
+  protected loadChapters(projectId: string): void {
+    this.loadingChapters.set(true);
+    this.projectsApi.listChapters(projectId).subscribe((res) => {
+      this.loadingChapters.set(false);
+      if (!res.error && res.data) {
+        this.chapters.set(
+          res.data.map((c) => ({
+            id: c.id,
+            number: c.number,
+            name: c.name,
+            label: `EP${String(c.number).padStart(2, '0')} — ${c.name}`,
+          })),
+        );
+      }
+    });
+  }
+
+  protected loadScenes(projectId: string, chapterId: string): void {
     this.loadingScenes.set(true);
     this.form.patchValue({ sceneId: null }, { emitEvent: false });
-    this.projectsApi.listScenes(projectId).subscribe((res) => {
+    this.projectsApi.listScenes(projectId, chapterId).subscribe((res) => {
       this.loadingScenes.set(false);
       if (!res.error && res.data) {
         this.scenes.set(
@@ -260,16 +336,6 @@ export class SessionGateDialogComponent {
             label: `SC${String(s.number).padStart(2, '0')} — ${s.name}`,
           })),
         );
-      }
-    });
-  }
-
-  protected loadTakes(projectId: string, sceneId: string): void {
-    this.projectsApi.listTakes(projectId, sceneId).subscribe((res) => {
-      if (!res.error && res.data) {
-        this.takes.set(res.data);
-      } else {
-        this.takes.set([]);
       }
     });
   }
@@ -290,10 +356,11 @@ export class SessionGateDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
-
     const raw = this.form.getRawValue() as {
       projectId: string;
+      chapterId: string;
       sceneId: string;
+      shotName: string;
     };
 
     const scene = this.selectedScene();
@@ -302,38 +369,75 @@ export class SessionGateDialogComponent {
     const currentUser = this.sessionStore.user();
     const handle = currentUser?.handle || currentUser?.email || 'anonymous';
 
+    const project = this.projects().find((p) => p.id === raw.projectId);
+    const chapter = this.chapters().find((c) => c.id === raw.chapterId);
+
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
-    const totalTakes = Math.max(1, this.takes().length);
 
     this.submitting.set(true);
-    this.studio.initStudioSession({
-      projectId: raw.projectId,
-      sceneId: raw.sceneId,
-      sceneCode,
-      userHandle: handle,
-      totalTakes,
-      backendTakes: this.takes(),
-    });
 
-    this.sessionStore.initSession({
-      email: currentUser?.email ?? '',
-      handle,
-    });
-    // Load scene assignments for filtering
-    this.http
-      .get<{
-        data: any;
-      }>(`${this.environment.API_URL}/projects/${raw.projectId}/scenes/${raw.sceneId}/assignments`)
-      .subscribe({
-        next: (res) => {
-          if (res.data) this.studio.setSceneAssignments(res.data);
-        },
-        error: () => {
-          /* assignments not critical */
-        },
+    // 1. First, load existing shots to determine the next shot number
+    this.projectsApi.listShots(raw.projectId, raw.chapterId, raw.sceneId).subscribe((shotsRes) => {
+      const existingShots = (shotsRes.error || !shotsRes.data) ? [] : shotsRes.data;
+      const nextShotNumber = existingShots.length > 0
+        ? Math.max(...existingShots.map((s) => s.number)) + 1
+        : 1;
+
+      // 2. Create the new shot
+      this.projectsApi.createShot(raw.projectId, raw.chapterId, raw.sceneId, {
+        number: nextShotNumber,
+        name: raw.shotName.trim(),
+      }).subscribe((shotRes) => {
+        if (shotRes.error || !shotRes.data) {
+          this.toast?.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: shotRes.msg || 'Failed to create shot',
+          });
+          this.submitting.set(false);
+          return;
+        }
+
+        const newShot = shotRes.data;
+
+        // 3. Init studio session with the newly created shot
+        this.studio.initStudioSession({
+          projectId: raw.projectId,
+          chapterId: raw.chapterId,
+          shotId: newShot.id,
+          sceneId: raw.sceneId,
+          sceneCode,
+          projectName: project?.name,
+          chapterName: chapter?.name,
+          sceneName: scene.name,
+          shotName: newShot.name,
+          userHandle: handle,
+          totalTakes: 5,
+          backendTakes: [],
+        });
+
+        this.sessionStore.initSession({
+          email: currentUser?.email ?? '',
+          handle,
+        });
+
+        // 4. Load scene assignments
+        this.http
+          .get<{ data: any }>(
+            `${this.environment.API_URL}/projects/${raw.projectId}/chapters/${raw.chapterId}/scenes/${raw.sceneId}/assignments`,
+          )
+          .subscribe({
+            next: (res) => {
+              if (res.data) this.studio.setSceneAssignments(res.data);
+            },
+            error: () => {
+              /* assignments not critical */
+            },
+          });
+
+        this.submitting.set(false);
+        this.visibleChange.emit(false);
       });
-
-    this.submitting.set(false);
-    this.visibleChange.emit(false);
+    });
   }
 }

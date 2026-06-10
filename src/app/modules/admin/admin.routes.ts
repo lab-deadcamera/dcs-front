@@ -23,6 +23,13 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.UserManagementComponent,
           ),
       },
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./admin/ui/admin-project-management/admin-project-management.component').then(
+            (m) => m.AdminProjectManagementComponent,
+          ),
+      },
     ],
   },
 ];

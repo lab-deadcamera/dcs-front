@@ -5,6 +5,8 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
+  ElementRef,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -17,6 +19,8 @@ import { ProvidersService } from '../../services';
 import { ProviderFormDialogComponent } from '../components/provider-form-dialog/provider-form-dialog.component';
 import { ModelFormDialogComponent } from '../components/model-form-dialog/model-form-dialog.component';
 import { ModelService } from '@app/services';
+import { SessionStore } from '@app/core/stores/session.store';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-index-providers',
@@ -24,6 +28,7 @@ import { ModelService } from '@app/services';
     TranslatePipe,
     ButtonModule,
     TooltipModule,
+    SelectModule,
     ConfirmDialogModule,
     ToastModule,
     ProviderFormDialogComponent,
@@ -37,6 +42,7 @@ import { ModelService } from '@app/services';
 export class IndexProviders implements OnInit {
   private readonly service = inject(ProvidersService);
   private readonly modelService = inject(ModelService);
+  public readonly session = inject(SessionStore);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
 
@@ -47,9 +53,7 @@ export class IndexProviders implements OnInit {
   protected readonly expandedIds = signal<Record<string, boolean>>({});
 
   /** All providers flattened (for the model dialog dropdown). */
-  protected readonly allProviders = computed(() =>
-    this.providers().map((p) => p.provider),
-  );
+  protected readonly allProviders = computed(() => this.providers().map((p) => p.provider));
 
   // Provider dialog
   protected readonly providerDialogVisible = signal(false);
@@ -61,6 +65,9 @@ export class IndexProviders implements OnInit {
   protected readonly modelPreSelectedProviderId = signal<string | null>(null);
 
   protected readonly submitting = signal(false);
+
+  /** Reference to the hidden file input for CSV import. */
+  protected readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   ngOnInit(): void {
     this.service.load().subscribe();
@@ -203,19 +210,17 @@ export class IndexProviders implements OnInit {
   }
 
   protected toggleModelActive(m: Model, providerId: string): void {
-    this.service
-      .updateModel(m.id, providerId, { active: !m.active })
-      .subscribe((res) => {
-        if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
-          return;
-        }
-        this.toast.add({
-          severity: 'success',
-          summary: 'OK',
-          detail: `${m.name} ${m.active ? 'deactivated' : 'activated'}`,
-        });
+    this.service.updateModel(m.id, providerId, { active: !m.active }).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        return;
+      }
+      this.toast.add({
+        severity: 'success',
+        summary: 'OK',
+        detail: `${m.name} ${m.active ? 'deactivated' : 'activated'}`,
       });
+    });
   }
 
   protected confirmDeleteModel(m: Model, providerId: string): void {
@@ -233,6 +238,44 @@ export class IndexProviders implements OnInit {
           }
           this.toast.add({ severity: 'success', summary: 'OK', detail: 'Model deleted' });
         }),
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CSV Export / Import
+  // ---------------------------------------------------------------------------
+
+  protected onExport(): void {
+    this.service.exportCSV();
+  }
+
+  protected onImport(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.service.importCSV(file).subscribe((res) => {
+      // Reset file input so the same file can be selected again.
+      input.value = '';
+
+      if (res.error) {
+        this.toast.add({ severity: 'error', summary: 'Import Error', detail: res.msg });
+        return;
+      }
+
+      const d = res.data;
+      const parts: string[] = [];
+      if (d) {
+        if (d.providers_created > 0) parts.push(`${d.providers_created} providers created`);
+        if (d.models_created > 0) parts.push(`${d.models_created} models created`);
+        if (d.models_updated > 0) parts.push(`${d.models_updated} models updated`);
+        if (d.errors && d.errors.length > 0) parts.push(`${d.errors.length} errors`);
+      }
+      this.toast.add({
+        severity: d?.errors?.length ? 'warn' : 'success',
+        summary: 'Import Complete',
+        detail: parts.length ? parts.join(', ') : 'No changes',
+      });
     });
   }
 

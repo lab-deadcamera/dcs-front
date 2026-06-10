@@ -31,6 +31,7 @@ export type StudioTaskStatus = 'queued' | 'running' | 'succeeded' | 'failed';
 /** Single produced artifact — usually a video URL. */
 export interface StudioOutput {
   url: string;
+  localUrl?: string;
   type: 'video' | 'image';
 }
 
@@ -64,9 +65,12 @@ export interface StudioGenerateRequest {
 
   /** Session tracking — obligatorio para registrar la generación y recuperar estado. */
   project_id: string;
+  project_name: string;
   scene_id: string;
+  shot_id: string;
   scene_code: string;
   take_number: number;
+  user_name: string;
   user_id: number;
 }
 
@@ -86,7 +90,7 @@ export interface GenerationLogEntry {
   scene_code: string;
   take_number?: number;
   request?: string;
-  outputs?: string;
+  outputs: [{ localUrl?: string; url: string; name: string; type: string }];
   status: string;
   error_message: string;
   created_at: string;

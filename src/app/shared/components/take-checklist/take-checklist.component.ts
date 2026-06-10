@@ -1,13 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
+import { RESOLVE_URL } from '@app/shared/utils';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { Tooltip } from 'primeng/tooltip';
 
 /**
  * Vertical column of small checkmarks rendered to the right of the viewer.
@@ -23,7 +19,7 @@ import { Take } from '@core/interfaces/session.models';
  */
 @Component({
   selector: 'app-take-checklist',
-  imports: [],
+  imports: [Tooltip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -31,9 +27,7 @@ import { Take } from '@core/interfaces/session.models';
       role="group"
       [attr.aria-label]="ariaGroupLabel()"
     >
-      <p
-        class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted"
-      >
+      <p class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted">
         {{ scenePrefix() || '–––' }}
       </p>
 
@@ -60,15 +54,18 @@ import { Take } from '@core/interfaces/session.models';
             <path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7" />
           </svg>
         </div>
-        <span class="mt-1 max-w-[3rem] text-center font-mono text-[7px] leading-tight text-fg-muted">
+        <span
+          class="mt-1 max-w-[3rem] text-center font-mono text-[7px] leading-tight text-fg-muted"
+        >
           {{ tooltipText() }}
         </span>
       } @else {
-        @for (take of takes(); track take.index) {
+        @for (take of takes(); track take.number) {
           @let state = stateFor(take);
           <button
             type="button"
             role="checkbox"
+            pTooltip="{{ 'Take: ' + take.number }}"
             class="group flex h-7 w-7 items-center justify-center rounded-sm border text-[10px] font-mono tabular-nums transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
             [class.border-ink-600]="state === 'pending'"
             [class.text-fg-muted]="state === 'pending'"
@@ -83,10 +80,8 @@ import { Take } from '@core/interfaces/session.models';
             [class.bg-green-700]="state === 'confirmed'"
             [class.text-white]="state === 'confirmed'"
             [attr.aria-checked]="take.status === 'done' || take.status === 'confirmed'"
-            [attr.aria-label]="ariaFor(take, state)"
-            [attr.title]="ariaFor(take, state)"
             [attr.data-testid]="'take-' + take.index"
-            (click)="toggle.emit(take.index)"
+            (click)="onClick(take)"
           >
             @if (state === 'done' || state === 'confirmed') {
               <svg
@@ -112,8 +107,10 @@ import { Take } from '@core/interfaces/session.models';
 })
 export class TakeChecklistComponent {
   private readonly i18n = inject(TranslateService);
+  protected readonly studio = inject(StudioStore);
 
   readonly takes = input<readonly Take[]>([]);
+
   /** 0-based pointer into `takes`. */
   readonly currentIndex = input<number>(0);
   /** Optional short prefix shown above the column (e.g. scene code). */
@@ -141,18 +138,7 @@ export class TakeChecklistComponent {
     return 'pending';
   }
 
-  protected ariaFor(take: Take, state: 'pending' | 'current' | 'done' | 'confirmed'): string {
-    const statusKey =
-      state === 'confirmed'
-        ? 'STUDIO.TAKE_CHECKLIST.STATUS_CONFIRMED'
-        : state === 'done'
-          ? 'STUDIO.TAKE_CHECKLIST.STATUS_DONE'
-          : state === 'current'
-            ? 'STUDIO.TAKE_CHECKLIST.STATUS_CURRENT'
-            : 'STUDIO.TAKE_CHECKLIST.STATUS_PENDING';
-    return this.i18n.instant('STUDIO.TAKE_CHECKLIST.TAKE_ARIA', {
-      n: take.index,
-      status: this.i18n.instant(statusKey),
-    });
+  onClick(take: Take): void {
+    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? '');
   }
 }
