@@ -31,6 +31,14 @@
         data-testid="assets-new-prop"
         (onClick)="openCreate('prop')"
       />
+
+      <p-button
+        icon="pi pi-volume-up"
+        [label]="'CHARACTERS.ASSETS.NEW_AUDIO' | translate"
+        severity="secondary"
+        data-testid="assets-new-audio"
+        (onClick)="openCreate('audio')"
+      />
     </div>
   </header>
 
@@ -95,11 +103,21 @@
             class="relative aspect-square w-full overflow-hidden"
             style="background: var(--content-bg)"
           >
-            <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center">
-              <i class="pi text-2xl" [class]="fallbackIcon(a)" style="color: var(--text-muted)"></i>
-            </span>
-
             @let preview = previewMap()[a.id];
+
+            <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center">
+              @switch (a.metadata.fileKind) {
+                @case ('audio') {
+                  <audio [src]="preview.fileIds[0] | sourceAsset" controls></audio>
+                }
+                @case ('video') {
+                  <i class="pi pi-video text-2xl" style="color: var(--text-muted)"></i>
+                }
+                @default {
+                  <i class="pi pi-image text-2xl" style="color: var(--text-muted)"></i>
+                }
+              }
+            </span>
 
             @if (preview && shouldRenderImage(a) && preview.fileIds.length > 0) {
               <div class="absolute inset-0 grid gap-px" [class]="gridClass(preview.fileIds.length)">
