@@ -74,7 +74,7 @@ export class ImageGeneratorService {
   ): Observable<{ error: boolean; msg: string; data?: Record<string, unknown> }> {
     const res = {
       error: true,
-      msg: 'Error undefined',
+      msg: 'Error undefined',     
       data: undefined as Record<string, unknown> | undefined,
     };
 

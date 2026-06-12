@@ -70,6 +70,14 @@ const PROGRESS_RUNNING_CAP = 85;
 /** Backend polling cadence per the studio-generation use-case doc. */
 const POLL_INTERVAL_MS = 3000;
 
+/** Model selected by default when the studio loads. */
+const DEFAULT_MODEL_NAME = 'Dreamina-Seedance-2-0-Gallery';
+
+/** Tolerant model-name match — ignores case, spaces, dots and dashes. */
+function normalizeModelName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 @Component({
   selector: 'app-index-studio',
   imports: [
@@ -675,10 +683,22 @@ export class IndexStudio implements OnInit {
     // project → episode → scene → shot before the studio activates.
     this.studio.resetStudio();
 
-    this.modelService.getFavorite().subscribe((res) => {
-      if (!res.error && res.data) {
-        this.studio.model = res.data;
+    // Default the studio to the Dreamina-Seedance-2-0-Gallery model so the
+    // user can start generating without picking one first. It stays selected
+    // (surviving breadcrumb navigation, see StudioStore.resetStudio) until the
+    // user changes it via the model picker. Fall back to the account favorite
+    // if that model isn't available for this account.
+    this.modelService.getAllModels('video').subscribe((res) => {
+      const preferred = res.data?.find(
+        (m) => normalizeModelName(m.name) === normalizeModelName(DEFAULT_MODEL_NAME),
+      );
+      if (preferred) {
+        this.studio.model = preferred;
+        return;
       }
+      this.modelService.getFavorite().subscribe((fav) => {
+        if (!fav.error && fav.data) this.studio.model = fav.data;
+      });
     });
     this.loadProjects();
     this.startRestoring();

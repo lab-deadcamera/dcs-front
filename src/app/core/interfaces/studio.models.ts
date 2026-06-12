@@ -142,19 +142,7 @@ export interface PendingGeneration {
 }
 
 /** Canonical Seedance prompt scaffold. */
-export const PROMPT_TEMPLATE = [
-  'SUBJECT:',
-  '',
-  'WARDROBE:',
-  '',
-  'POSE:',
-  '',
-  'ENVIRONMENT AND LIGHTING:',
-  '',
-  'NEGATIVE:',
-  '',
-  'REFERENCE SLOTS:',
-].join('<br />');
+export const PROMPT_TEMPLATE = '';
 
 export interface GeneratedClip {
   id: string;
