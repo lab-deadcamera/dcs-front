@@ -48,6 +48,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
                     muted
                     playsinline
                     class="pointer-events-none h-full w-full object-cover"
+                    
                   ></video>
                 } @else {
                   <span
