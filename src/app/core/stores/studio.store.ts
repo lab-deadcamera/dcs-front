@@ -460,6 +460,10 @@ export class StudioStore {
 
   // ── Used assets (character library) ──────────────────────────────
 
+  clearUsedAssets() {
+    this._usedAssets.set([]);
+  }
+
   useAsset(asset: UsedAsset) {
     this._usedAssets.update((list) => {
       if (list.some((a) => a.fileId === asset.fileId)) return list;

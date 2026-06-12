@@ -36,9 +36,9 @@ import { Tooltip } from 'primeng/tooltip';
   imports: [
     SectionHeaderComponent,
     SourceAssetPipe,
+    TranslatePipe,
     EditorModule,
     FormsModule,
-    TranslatePipe,
     Tooltip,
   ],
   styles: [
@@ -168,20 +168,8 @@ export class PromptBuilderComponent implements OnInit {
       });
     });
   }
-  ngOnInit(): void {
-    console.log(
-      this.studio.canGenerate(),
-      this.takeSelected(),
-      this.studio.isGenerating(),
-      this.studio.modelCode(),
-    );
-    console.log(
-      !this.studio.canGenerate(),
-      !this.takeSelected(),
-      this.studio.isGenerating(),
-      !this.studio.modelCode(),
-    );
-  }
+
+  ngOnInit(): void {}
 
   /** Called by the editor on every user keystroke. Syncs plain text to the store. */
   protected onTextChange(event: { textValue: string }) {
@@ -361,6 +349,7 @@ export class PromptBuilderComponent implements OnInit {
     // onTextChange, but we set the flag preemptively in case the event
     // path is suppressed for `api`-source edits.
     this.skipStoreSync = true;
+    console.log({ txt: quill.getText() });
     this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
   }
 }
