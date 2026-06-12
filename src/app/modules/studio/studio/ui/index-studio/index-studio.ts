@@ -70,6 +70,14 @@ const PROGRESS_RUNNING_CAP = 85;
 /** Backend polling cadence per the studio-generation use-case doc. */
 const POLL_INTERVAL_MS = 3000;
 
+/** Model selected by default when the studio loads. */
+const DEFAULT_MODEL_NAME = 'Dreamina-Seedance-2-0-Gallery';
+
+/** Tolerant model-name match — ignores case, spaces, dots and dashes. */
+function normalizeModelName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 @Component({
   selector: 'app-index-studio',
   imports: [
@@ -675,10 +683,22 @@ export class IndexStudio implements OnInit {
     // project → episode → scene → shot before the studio activates.
     this.studio.resetStudio();
 
-    this.modelService.getFavorite().subscribe((res) => {
-      if (!res.error && res.data) {
-        this.studio.model = res.data;
+    // Default the studio to the Dreamina-Seedance-2-0-Gallery model so the
+    // user can start generating without picking one first. It stays selected
+    // (surviving breadcrumb navigation, see StudioStore.resetStudio) until the
+    // user changes it via the model picker. Fall back to the account favorite
+    // if that model isn't available for this account.
+    this.modelService.getAllModels('video').subscribe((res) => {
+      const preferred = res.data?.find(
+        (m) => normalizeModelName(m.name) === normalizeModelName(DEFAULT_MODEL_NAME),
+      );
+      if (preferred) {
+        this.studio.model = preferred;
+        return;
       }
+      this.modelService.getFavorite().subscribe((fav) => {
+        if (!fav.error && fav.data) this.studio.model = fav.data;
+      });
     });
     this.loadProjects();
     this.startRestoring();
@@ -974,28 +994,7 @@ export class IndexStudio implements OnInit {
     const shotId = this.studio.shotId();
     if (!projectId || !chapterId || !sceneId || !shotId || !clip.videoLocalUrl) return;
 
-    const currentTakes = this.studio.takes();
-    const nextNumber =
-      currentTakes.length > 0 ? Math.max(...currentTakes.map((t) => t.number ?? t.index)) + 1 : 1;
-
-    this.projectsApi
-      .createTake(projectId, chapterId, sceneId, shotId, {
-        number: nextNumber,
-      })
-      .subscribe((takeRes) => {
-        if (takeRes.error || !takeRes.data) return;
-
-        // Update the take with both URLs: remote (video_url) and local (video_local_url)
-        this.projectsApi
-          .updateTake(projectId, chapterId, sceneId, shotId, takeRes.data.id, {
-            video_local_url: clip.videoLocalUrl,
-            status: 'completed',
-          })
-          .subscribe(() => {
-            // Reload takes for this shot so the reel refreshes
-            this.reloadTakesForShot();
-          });
-      });
+    this.reloadTakesForShot();
   }
 
   /** Reload takes from the backend for the current shot and update the store. */
@@ -1054,7 +1053,7 @@ export class IndexStudio implements OnInit {
       });
     }
 
-    const takeIndex = this.studio.currentTake()?.index ?? 1;
+    const takeIndex = this.studio.takes().length + 1;
     return {
       model: this.studio.modelCode()?.name ?? '',
       content,

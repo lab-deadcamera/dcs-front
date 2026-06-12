@@ -6,7 +6,7 @@
       @switch (activeTab()) {
         @case ('characters') {
           <p-button
-            label="Create Character"
+            label="Create Resource"
             icon="pi pi-user-plus"
             severity="secondary"
             (onClick)="characterDialogVisible.set(true)"
@@ -148,22 +148,40 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Characters
+          Available Resources
         </h2>
         <div class="flex flex-col gap-1">
           @for (c of availableCharacters(); track c.id) {
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="flex min-w-0 items-center gap-2">
-                @if (c.thumbnailUrl) {
-                  <img [src]="c.thumbnailUrl" class="h-12 w-12 rounded object-cover" />
-                } @else {
-                  <span
-                    class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
-                    >☺</span
-                  >
+              <div class="flex min-w-0 items-center gap-2" [attr.data-kind]="c.kind">
+                @switch (c.kind) {
+                  @case ('audio') {
+                    <audio
+                      controls
+                      [src]="c.thumbnailUrl"
+                      class="h-12 w-12 rounded object-cover"
+                    ></audio>
+                  }
+                  @case ('video') {
+                    <video
+                      [src]="c.id | sourceAsset"
+                      class="h-12 w-12 rounded object-cover"
+                    ></video>
+                  }
+                  @default {
+                    @if (c.thumbnailUrl) {
+                      <img [src]="c.thumbnailUrl" class="h-12 w-12 rounded object-cover" />
+                    } @else {
+                      <span
+                        class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
+                        >☺</span
+                      >
+                    }
+                  }
                 }
+
                 <span class="text-[12px]">{{ c.name }}</span>
               </div>
 
@@ -316,9 +334,13 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Characters"
+  header="Resources"
 >
-  <app-index-characters (charactersChanged)="onCharactersChanged()" />
+  <app-index-characters
+    headerTitle="Resources"
+    headerHint="Scene resource library — name, description, metadata."
+    (charactersChanged)="onCharactersChanged()"
+  />
 </p-dialog>
 
 <app-asset-viewer

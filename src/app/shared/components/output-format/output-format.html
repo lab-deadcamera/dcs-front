@@ -76,7 +76,7 @@
           <button
             type="button"
             class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-            [disabled]="studio.output().batchCount <= minBatch"
+            [disabled]="studio.output().batchCount <= minBatch || true"
             [attr.aria-label]="'STUDIO.OUTPUT.BATCH_DEC' | translate"
             data-testid="batch-count-dec"
             (click)="onBatchCount(-1)"
@@ -92,7 +92,7 @@
           <button
             type="button"
             class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-            [disabled]="studio.output().batchCount >= maxBatch"
+            [disabled]="studio.output().batchCount >= maxBatch || true"
             [attr.aria-label]="'STUDIO.OUTPUT.BATCH_INC' | translate"
             data-testid="batch-count-inc"
             (click)="onBatchCount(1)"

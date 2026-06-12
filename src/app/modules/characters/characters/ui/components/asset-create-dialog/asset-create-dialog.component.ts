@@ -111,6 +111,7 @@ interface StagedFile {
 
           <ui-drop-zone
             [multiple]="true"
+            [accept]="type() === 'audio' ? 'audio/*' : 'image/*'"
             placeholderKey="CHARACTERS.ASSETS.DROP_HINT"
             (filesDropped)="onFilesDropped($event)"
           />
@@ -216,6 +217,8 @@ export class AssetCreateDialogComponent implements OnDestroy {
         return 'CHARACTERS.ASSETS.TITLE_LOCATION';
       case 'prop':
         return 'CHARACTERS.ASSETS.TITLE_PROP';
+      case 'audio':
+        return 'CHARACTERS.ASSETS.TITLE_AUDIO';
       default:
         return 'CHARACTERS.ASSETS.TITLE_CHARACTER';
     }
@@ -227,6 +230,8 @@ export class AssetCreateDialogComponent implements OnDestroy {
         return 'CHARACTERS.ASSETS.SUBMIT_LOCATION';
       case 'prop':
         return 'CHARACTERS.ASSETS.SUBMIT_PROP';
+      case 'audio':
+        return 'CHARACTERS.ASSETS.SUBMIT_AUDIO';
       default:
         return 'CHARACTERS.ASSETS.SUBMIT_CHARACTER';
     }
@@ -238,6 +243,8 @@ export class AssetCreateDialogComponent implements OnDestroy {
         return 'CHARACTERS.ASSETS.NAME_PH_LOCATION';
       case 'prop':
         return 'CHARACTERS.ASSETS.NAME_PH_PROP';
+      case 'audio':
+        return 'CHARACTERS.ASSETS.NAME_PH_AUDIO';
       default:
         return 'CHARACTERS.FIELDS.NAME_PLACEHOLDER';
     }

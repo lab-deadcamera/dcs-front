@@ -393,24 +393,29 @@
     "TABS": {
       "CHARACTER": "Character",
       "LOCATION": "Location",
-      "PROP": "Props"
+      "PROP": "Props",
+      "AUDIO": "Audio"
     },
     "ASSETS": {
       "EMPTY": "No assets in this category yet. Pick a “New …” button above to create one.",
       "NEW_CHARACTER": "New character",
       "NEW_LOCATION": "New location",
       "NEW_PROP": "New prop",
+      "NEW_AUDIO": "New audio",
       "TITLE_CHARACTER": "New character",
       "TITLE_LOCATION": "New location",
       "TITLE_PROP": "New prop",
+      "TITLE_AUDIO": "New audio",
       "SUBMIT_CHARACTER": "Create character",
       "SUBMIT_LOCATION": "Create location",
       "SUBMIT_PROP": "Create prop",
+      "SUBMIT_AUDIO": "Create audio",
       "NAME_PH_LOCATION": "Tokyo rooftop",
       "NAME_PH_PROP": "Neon katana",
-      "FILES_LABEL": "Reference images",
+      "NAME_PH_AUDIO": "Tokyo ambient sound",
+      "FILES_LABEL": "Reference files",
       "FILES_COUNT": "file(s) ready",
-      "DROP_HINT": "Drop images or click to pick"
+      "DROP_HINT": "Drop files or click to pick"
     }
   },
   "FILES": {

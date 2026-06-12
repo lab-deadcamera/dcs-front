@@ -13,6 +13,7 @@ import { Take } from '@core/interfaces/session.models';
 import { environment } from '@environment/environment';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { RESOLVE_URL } from '@app/shared/utils';
+import { UsedAsset, VideoGenerateRequest } from '@app/core/interfaces';
 
 /**
  * "CARRETE DE TOMAS" — horizontal strip of take thumbnails.
@@ -76,5 +77,28 @@ export class TakesReelComponent {
   public onTakeSeleted(take: Take) {
     this.selectTake.emit(take.index);
     this.studio.setImagePreview(RESOLVE_URL(take.video_local_url) ?? null);
+
+    const payload: VideoGenerateRequest = JSON.parse(
+      take.request_payload || '{}',
+    ) as VideoGenerateRequest;
+    const text: string = payload.content
+      ?.filter((c) => c.type === 'text')
+      ?.map((c) => c.text)
+      .join('\n');
+    this.studio.setRawDescription(text);
+
+    this.studio.clearUsedAssets();
+    payload.content
+      .filter((a) => a.type !== 'text')
+      .forEach((a) => {
+        const asset: UsedAsset = {
+          fileId: a.id,
+          characterId: '',
+          name: a.text,
+          filename: a.name,
+          kind: a.type,
+        };
+        this.studio.useAsset(asset);
+      });
   }
 }

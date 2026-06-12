@@ -104,7 +104,7 @@ export class SceneAssignmentComponent implements OnInit {
 
   protected readonly tabs = [
     { key: 'characters', label: 'Resources' },
-    { key: 'assets', label: 'Temp' },
+    // { key: 'assets', label: 'Temp' },
     // { key: 'presets', label: 'Presets' },
   ];
   protected readonly activeTab = signal<string>('characters');
@@ -247,14 +247,20 @@ export class SceneAssignmentComponent implements OnInit {
     this.availableCharacters.set(
       this.allCharacters()
         .filter((c: any) => !assignedIds.has(c.character?.id || c.id))
-        .map((c: any) => ({
-          id: c.character?.id || c.id,
-          name: c.character?.name || c.name,
-          thumbnailUrl:
-            c.files?.find((f: any) => f.role === 'portrait')?.thumbnail_url ||
-            c.files?.[0]?.thumbnail_url ||
-            '',
-        })),
+        .map((c: any) => {
+          const kind = JSON.parse(c.character?.metadata || '{"fileKind": "unknown"}').fileKind;
+          return {
+            id: c.character?.id || c.id,
+            name: c.character?.name || c.name,
+            kind,
+            thumbnailUrl:
+              kind === 'audio'
+                ? c.files?.[0]?.url || ''
+                : c.files?.find((f: any) => f.role === 'portrait')?.thumbnail_url ||
+                  c.files?.[0]?.thumbnail_url ||
+                  '',
+          };
+        }),
     );
   }
 

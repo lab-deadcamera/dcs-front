@@ -356,7 +356,9 @@ export class StudioStore {
     this._firstFrame.set(null);
     this._lastFrame.set(null);
     this._freeAssets.set([]);
-    this._modelCode.set(null);
+    // Intentionally NOT clearing the selected model: it's a user-level
+    // preference (defaults to Dreamina-Seedance-2-0-Gallery) that should
+    // persist across scene/shot navigation until the user changes it.
     this._scenePresetIds.set(new Set());
     this._sceneCharacterIds.set(new Set());
     this._sceneCharacterData.set([]);
@@ -459,6 +461,10 @@ export class StudioStore {
   }
 
   // ── Used assets (character library) ──────────────────────────────
+
+  clearUsedAssets() {
+    this._usedAssets.set([]);
+  }
 
   useAsset(asset: UsedAsset) {
     this._usedAssets.update((list) => {

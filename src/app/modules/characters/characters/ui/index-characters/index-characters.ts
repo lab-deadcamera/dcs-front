@@ -31,7 +31,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
-import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 
 /**
  * Characters library — typed asset board.
@@ -56,6 +56,7 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
     SourceThumbnailAssetPipe,
+    SourceAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -72,6 +73,14 @@ export class IndexCharacters implements OnInit {
   private readonly studio = inject(StudioStore);
 
   showUseButton = input<boolean>(false);
+
+  /**
+   * Optional header overrides. Host contexts (e.g. the Scene Resources
+   * modal) can relabel the library's title/subtitle without touching the
+   * shared `CHARACTERS.*` i18n, which other surfaces still rely on.
+   */
+  readonly headerTitle = input<string>();
+  readonly headerHint = input<string>();
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
@@ -105,6 +114,7 @@ export class IndexCharacters implements OnInit {
     { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER', icon: 'pi pi-user' },
     { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION', icon: 'pi pi-map' },
     { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi pi-box' },
+    { id: 'audio', labelKey: 'CHARACTERS.TABS.AUDIO', icon: 'pi pi-volume-up' },
   ];
 
   protected readonly visibleAssets = computed<Character[]>(

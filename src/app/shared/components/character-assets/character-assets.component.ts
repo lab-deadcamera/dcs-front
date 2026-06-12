@@ -166,42 +166,6 @@ export class CharacterAssetsComponent {
         fileKind: resolveUsedKind(metadata.fileKind),
       });
     }
-
-    this.studio.freeAssets().forEach((asset) => {
-      if (asset.kind == 'audio') {
-        buckets.audio.push({
-          id: asset.id,
-          name: asset.filename,
-          files: [
-            {
-              fileId: asset.id,
-              filename: asset.filename,
-              thumbUrl: this.filesApi.serveUrl(asset.id),
-            },
-          ],
-          firstFile: {
-            fileId: asset.id,
-            filename: asset.filename,
-            thumbUrl: this.filesApi.serveUrl(asset.id),
-          },
-          fileKind: 'audio',
-        });
-      }
-    });
-    // When assignments exist, include assigned characters that are not yet
-    // in the local CharactersService (e.g. created via a different flow).
-    if (assignedIds.size > 0) {
-      for (const c of this.studio.sceneCharacterData()) {
-        if (seenIds.has(c.id)) continue;
-        buckets.character.push({
-          id: c.id,
-          name: c.name,
-          files: [],
-          firstFile: null,
-          fileKind: 'image',
-        });
-      }
-    }
     return buckets;
   });
 
@@ -248,6 +212,8 @@ export class CharacterAssetsComponent {
         return 'pi-map';
       case 'prop':
         return 'pi-box';
+      case 'audio':
+        return 'pi-volume-up';
       default:
         return 'pi-user';
     }
