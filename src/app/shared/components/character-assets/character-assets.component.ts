@@ -166,21 +166,6 @@ export class CharacterAssetsComponent {
         fileKind: resolveUsedKind(metadata.fileKind),
       });
     }
-
-    // When assignments exist, include assigned characters that are not yet
-    // in the local CharactersService (e.g. created via a different flow).
-    if (assignedIds.size > 0) {
-      for (const c of this.studio.sceneCharacterData()) {
-        if (seenIds.has(c.id)) continue;
-        buckets.character.push({
-          id: c.id,
-          name: c.name,
-          files: [],
-          firstFile: null,
-          fileKind: 'image',
-        });
-      }
-    }
     return buckets;
   });
 
