@@ -89,7 +89,7 @@ export class TakesReelComponent {
 
     this.studio.clearUsedAssets();
     payload.content
-      .filter((a) => a.type !== 'text')
+      ?.filter((a) => a.type !== 'text')
       .forEach((a) => {
         const asset: UsedAsset = {
           fileId: a.id,
