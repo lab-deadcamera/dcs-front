@@ -31,7 +31,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
-import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 
 /**
  * Characters library — typed asset board.
@@ -56,6 +56,7 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
     SourceThumbnailAssetPipe,
+    SourceAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -105,6 +106,7 @@ export class IndexCharacters implements OnInit {
     { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER', icon: 'pi pi-user' },
     { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION', icon: 'pi pi-map' },
     { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP', icon: 'pi pi-box' },
+    { id: 'audio', labelKey: 'CHARACTERS.TABS.AUDIO', icon: 'pi pi-volume-up' },
   ];
 
   protected readonly visibleAssets = computed<Character[]>(
