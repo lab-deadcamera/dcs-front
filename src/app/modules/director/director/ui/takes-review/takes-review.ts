@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -36,6 +36,7 @@ interface PickerOption {
   imports: [
     DatePipe,
     FormsModule,
+    JsonPipe,
     ButtonModule,
     DialogModule,
     SelectModule,
@@ -81,6 +82,8 @@ export class TakesReviewComponent implements OnInit {
   protected readonly previewVisible = signal(false);
   protected readonly previewTake = signal<Take | null>(null);
   protected readonly downloadingId = signal<string | null>(null);
+  protected readonly payloadVisible = signal(false);
+  protected readonly payloadTake = signal<Take | null>(null);
 
   ngOnInit(): void {
     this.projectsApi.listProjects().subscribe((res) => {
@@ -237,6 +240,16 @@ export class TakesReviewComponent implements OnInit {
     });
   }
 
+  protected openPayload(take: Take): void {
+    this.payloadTake.set(take);
+    this.payloadVisible.set(true);
+  }
+
+  protected closePayload(): void {
+    this.payloadVisible.set(false);
+    this.payloadTake.set(null);
+  }
+
   protected setFinal(take: Take): void {
     const projectId = this.selectedProjectId();
     const chapterId = this.selectedChapterId();
@@ -261,5 +274,13 @@ export class TakesReviewComponent implements OnInit {
           this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
         },
       });
+  }
+
+  protected toParse(value: string): object {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      return {};
+    }
   }
 }

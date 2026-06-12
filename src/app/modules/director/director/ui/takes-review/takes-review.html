@@ -162,6 +162,16 @@
                       (onClick)="saveLocal(t)"
                     />
                   }
+                  @if (t.request_payload) {
+                    <p-button
+                      pTooltip="View generation payload."
+                      tooltipPosition="top"
+                      icon="pi pi-info-circle"
+                      severity="help"
+                      size="small"
+                      (onClick)="openPayload(t)"
+                    />
+                  }
                   @if (t.video_local_url) {
                     <p-button
                       pTooltip="View this take in a full-screen video player."
@@ -215,6 +225,27 @@
         class="h-full w-full rounded object-contain"
         style="max-height: calc(80vh - 8rem)"
       ></video>
+    }
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="payloadVisible"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    [dismissableMask]="true"
+    [closable]="true"
+    (onHide)="closePayload()"
+  >
+    <ng-template pTemplate="header">
+      <span class="text-sm font-bold uppercase tracking-wider">
+        Payload — Take {{ payloadTake()?.number }}
+      </span>
+    </ng-template>
+    @if (payloadTake(); as take) {
+      <pre
+        class="max-h-[65vh] overflow-auto whitespace-pre-wrap break-all rounded bg-ink-900 p-4 text-[11px] leading-relaxed text-green-400"
+        >{{ toParse(take.request_payload ?? '') | json }}</pre
+      >
     }
   </p-dialog>
 </section>
