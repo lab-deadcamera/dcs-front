@@ -74,6 +74,14 @@ export class IndexCharacters implements OnInit {
 
   showUseButton = input<boolean>(false);
 
+  /**
+   * Optional header overrides. Host contexts (e.g. the Scene Resources
+   * modal) can relabel the library's title/subtitle without touching the
+   * shared `CHARACTERS.*` i18n, which other surfaces still rely on.
+   */
+  readonly headerTitle = input<string>();
+  readonly headerHint = input<string>();
+
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
 

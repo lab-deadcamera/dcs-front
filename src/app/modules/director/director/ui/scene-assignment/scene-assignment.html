@@ -6,7 +6,7 @@
       @switch (activeTab()) {
         @case ('characters') {
           <p-button
-            label="Create Character"
+            label="Create Resource"
             icon="pi pi-user-plus"
             severity="secondary"
             (onClick)="characterDialogVisible.set(true)"
@@ -334,9 +334,13 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Characters"
+  header="Resources"
 >
-  <app-index-characters (charactersChanged)="onCharactersChanged()" />
+  <app-index-characters
+    headerTitle="Resources"
+    headerHint="Scene resource library — name, description, metadata."
+    (charactersChanged)="onCharactersChanged()"
+  />
 </p-dialog>
 
 <app-asset-viewer
