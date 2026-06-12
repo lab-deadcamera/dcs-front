@@ -202,8 +202,8 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /** Strip HTML tags to get plain text. */
-  private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, '').trim();
+  private stripHtml(html: string | null | undefined): string {
+    return (html ?? '').replace(/<[^>]*>/g, '').trim();
   }
 
   /**

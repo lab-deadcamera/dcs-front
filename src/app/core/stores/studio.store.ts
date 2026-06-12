@@ -124,8 +124,8 @@ export class StudioStore {
 
   private readonly _rawDescription = signal<string>(PROMPT_TEMPLATE);
   readonly rawDescription = this._rawDescription.asReadonly();
-  readonly rawLength = computed(() => this._rawDescription().length);
-  readonly canGenerate = computed(() => this._rawDescription().trim().length > 0);
+  readonly rawLength = computed(() => (this._rawDescription() ?? '').length);
+  readonly canGenerate = computed(() => (this._rawDescription() ?? '').trim().length > 0);
 
   // ── Cinematography ───────────────────────────────────────────────
 
