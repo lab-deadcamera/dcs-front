@@ -974,28 +974,7 @@ export class IndexStudio implements OnInit {
     const shotId = this.studio.shotId();
     if (!projectId || !chapterId || !sceneId || !shotId || !clip.videoLocalUrl) return;
 
-    const currentTakes = this.studio.takes();
-    const nextNumber =
-      currentTakes.length > 0 ? Math.max(...currentTakes.map((t) => t.number ?? t.index)) + 1 : 1;
-
-    this.projectsApi
-      .createTake(projectId, chapterId, sceneId, shotId, {
-        number: nextNumber,
-      })
-      .subscribe((takeRes) => {
-        if (takeRes.error || !takeRes.data) return;
-
-        // Update the take with both URLs: remote (video_url) and local (video_local_url)
-        this.projectsApi
-          .updateTake(projectId, chapterId, sceneId, shotId, takeRes.data.id, {
-            video_local_url: clip.videoLocalUrl,
-            status: 'completed',
-          })
-          .subscribe(() => {
-            // Reload takes for this shot so the reel refreshes
-            this.reloadTakesForShot();
-          });
-      });
+    this.reloadTakesForShot();
   }
 
   /** Reload takes from the backend for the current shot and update the store. */
@@ -1054,7 +1033,7 @@ export class IndexStudio implements OnInit {
       });
     }
 
-    const takeIndex = this.studio.currentTake()?.index ?? 1;
+    const takeIndex = this.studio.takes().length + 1;
     return {
       model: this.studio.modelCode()?.name ?? '',
       content,

@@ -223,8 +223,6 @@ export class ImageGenPanelComponent implements OnInit {
     this.generatedImage.set(null);
     this.savedAssetUrl.set(null);
 
-    const takeIndex = this.studio.currentTake()?.index ?? 1;
-
     // Build content array: text prompt + reference images
     const content: Array<{ type: string; text?: string; id?: string }> = [
       { type: 'text', text: this.prompt().trim() },
@@ -241,7 +239,7 @@ export class ImageGenPanelComponent implements OnInit {
       project_id: this.studio.projectId() ?? '',
       scene_id: this.studio.sceneId() ?? '',
       scene_code: this.studio.sceneCode(),
-      take_number: takeIndex,
+      take_number: this.studio.takes().length + 1,
     } as unknown as ImageGenerateRequest;
 
     return payload;
