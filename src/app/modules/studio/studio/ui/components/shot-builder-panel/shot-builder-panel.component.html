@@ -264,6 +264,16 @@
                     [srcdoc]="fileContent()"
                     title="{{ selectedFileName() }}"
                   ></iframe>
+                } @else if (isOfficePreview()) {
+                  <div class="flex h-full flex-col">
+                    <div class="flex items-center gap-2 border-b border-ink-700 px-4 py-1.5 text-[11px] text-fg-muted">
+                      <i class="pi pi-file" aria-hidden="true"></i>
+                      <span>{{ isDocPreview() ? 'Word' : 'Excel' }} document — parsed to text</span>
+                    </div>
+                    <pre
+                      class="flex-1 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink-900 p-4 text-[13px] text-fg"
+                    >{{ officeText() }}</pre>
+                  </div>
                 } @else {
                   <pre
                     class="h-full overflow-y-auto rounded-lg bg-ink-900 p-4 text-[13px] text-fg"

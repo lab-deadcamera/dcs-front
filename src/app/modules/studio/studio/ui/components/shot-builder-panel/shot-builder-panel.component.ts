@@ -14,6 +14,11 @@ import {
 } from '@app/services/shot-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
 
+/** Parse .docx files into HTML for preview. */
+import * as mammoth from 'mammoth';
+/** Parse .xlsx files into structured data for preview. */
+import * as XLSX from 'xlsx';
+
 /** System prompt sent to Claude to enforce the shot-list JSON format. 
  
 For each shot, provide:
@@ -113,6 +118,20 @@ export class ShotBuilderPanelComponent {
   readonly isImagePreview = computed(() => this.activeFileMimeType().startsWith('image/'));
   readonly isPdfPreview = computed(() => this.activeFileMimeType() === 'application/pdf');
   readonly isHtmlPreview = computed(() => this.activeFileMimeType() === 'text/html');
+  readonly isDocPreview = computed(() =>
+    ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'].includes(this.activeFileMimeType()),
+  );
+  readonly isXlsxPreview = computed(() =>
+    ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'].includes(this.activeFileMimeType()),
+  );
+  readonly isOfficePreview = computed(() => this.isDocPreview() || this.isXlsxPreview());
+  /** The parsed text representation of an Office document. */
+  readonly officeText = computed(() => {
+    const idx = this.activeFileIndex();
+    const files = this.uploadedFiles();
+    if (idx < 0 || idx >= files.length) return '';
+    return files[idx].content; // already decoded during upload
+  });
 
   /** Safe PDF URL for use in [src] binding (data URIs are blocked by Angular security). */
   readonly safePdfUrl = computed<SafeResourceUrl | null>(() => {
@@ -153,10 +172,38 @@ export class ShotBuilderPanelComponent {
 
     files.forEach((file) => {
       const mimeType = file.type || 'application/octet-stream';
+      const isOfficeDoc =
+        mimeType.includes('openxmlformats-officedocument.wordprocessingml') ||
+        mimeType.includes('openxmlformats-officedocument.spreadsheetml') ||
+        mimeType.includes('msword') ||
+        mimeType.includes('ms-excel');
       const reader = new FileReader();
 
-      reader.onload = () => {
-        const content = typeof reader.result === 'string' ? reader.result : '';
+      reader.onload = async () => {
+        let content = typeof reader.result === 'string' ? reader.result : '';
+
+        // Parse Office documents into readable text
+        if (isOfficeDoc && reader.result instanceof ArrayBuffer) {
+          try {
+            if (mimeType.includes('wordprocessingml') || mimeType.includes('msword')) {
+              const result = await mammoth.extractRawText({ arrayBuffer: reader.result });
+              content = result.value;
+            } else {
+              const workbook = XLSX.read(reader.result, { type: 'array' });
+              const parts: string[] = [];
+              workbook.SheetNames.forEach((name) => {
+                const sheet = workbook.Sheets[name];
+                const csv = XLSX.utils.sheet_to_csv(sheet, { FS: '\t' });
+                parts.push(`[Sheet: ${name}]`);
+                parts.push(csv);
+              });
+              content = parts.join('\n\n');
+            }
+          } catch {
+            content = `[Unable to parse ${file.name}. The file could not be read as text.]`;
+          }
+        }
+
         this.uploadedFiles.update((items) => [
           ...items,
           { name: file.name, content, mimeType, sent: false },
@@ -180,6 +227,9 @@ export class ShotBuilderPanelComponent {
 
       if (mimeType.startsWith('image/') || mimeType === 'application/pdf') {
         reader.readAsDataURL(file);
+      } else if (isOfficeDoc) {
+        // Read as ArrayBuffer so mammoth/xlsx can parse
+        reader.readAsArrayBuffer(file);
       } else {
         reader.readAsText(file);
       }
