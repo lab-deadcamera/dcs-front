@@ -1,0 +1,293 @@
+|
+<div class="flex flex-col gap-4 h-full">
+  <h2 class="text-base font-semibold text-fg">Shot Builder</h2>
+
+  <p-splitter class="shot-builder-splitter h-full" [panelSizes]="[55, 45]">
+    <!-- LEFT: Chat + Input -->
+    <ng-template pTemplate>
+      <section class="flex h-full flex-col gap-3 border-r border-ink-700 px-4 py-3">
+        <!-- Chat messages -->
+        <div class="flex-1 overflow-y-auto">
+          @if (chatMessages().length === 0) {
+            <p class="text-center text-[12px] text-fg-muted">
+              Describe the scene, upload reference files, or paste a script to generate a shot list.
+            </p>
+          } @else {
+            @for (msg of chatMessages(); track msg.id) {
+              <div
+                class="mb-3 rounded-lg px-3 py-2 text-[13px]"
+                [class.bg-ink-800]="msg.role === 'assistant'"
+                [class.bg-ink-700]="msg.role === 'user'"
+              >
+                <span
+                  class="text-[11px] font-semibold uppercase tracking-wide"
+                  [class.text-primary-400]="msg.role === 'assistant'"
+                  [class.text-fg-muted]="msg.role === 'user'"
+                >
+                  {{ msg.role === 'assistant' ? 'Claude' : 'You' }}
+                </span>
+                <pre class="mt-1 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
+              </div>
+            }
+          }
+          @if (error()) {
+            <div class="mb-3 rounded-lg bg-red-900/30 px-3 py-2 text-[13px] text-red-400">
+              {{ error() }}
+            </div>
+          }
+        </div>
+
+        <!-- Prompt textarea -->
+        <textarea
+          class="h-24 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg focus:border-primary-400 focus:outline-none"
+          rows="1"
+          placeholder="Describe the scene, list shots, or paste a script..."
+          [disabled]="loading()"
+          [(ngModel)]="promptText"
+        ></textarea>
+
+        <!-- Bottom bar: file list + actions -->
+        <div class="border-t border-ink-700 pt-2">
+          <!-- Uploaded file pills -->
+          @if (uploadedFiles().length > 0) {
+            <div class="mb-2 flex flex-wrap gap-1">
+              @for (item of uploadedFiles(); track item.name; let i = $index) {
+                <span
+                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+                  [class.bg-green-900/40]="item.sent"
+                  [class.text-green-400]="item.sent"
+                  [class.bg-ink-700]="!item.sent"
+                  [class.text-fg-muted]="!item.sent"
+                >
+                  <i
+                    class="pi"
+                    [class.pi-check]="item.sent"
+                    [class.pi-file]="!item.sent"
+                    aria-hidden="true"
+                  ></i>
+                  {{ item.name }}
+                  <button
+                    type="button"
+                    class="ml-1 text-[11px] text-red-400 underline hover:text-red-300"
+                    (click)="onRemoveFile(i)"
+                    [disabled]="loading()"
+                  >
+                    ×
+                  </button>
+                </span>
+              }
+            </div>
+          }
+
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <input
+                #fileInput
+                type="file"
+                class="hidden"
+                accept=".md,.txt,.json,.html,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp"
+                [multiple]="true"
+                (change)="onSelectedFiles($event)"
+              />
+              <p-button
+                icon="pi pi-paperclip"
+                severity="secondary"
+                [rounded]="true"
+                [outlined]="true"
+                (onClick)="fileInput.click()"
+                [disabled]="loading()"
+                pTooltip="Attach file"
+                tooltipPosition="top"
+              />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <p-button
+                label="Clear"
+                severity="secondary"
+                [text]="true"
+                size="small"
+                (onClick)="clearChat()"
+                [disabled]="loading()"
+              />
+              <p-button
+                label="Generate Shots"
+                severity="primary"
+                size="small"
+                icon="pi pi-send"
+                (onClick)="send()"
+                [disabled]="!canSend()"
+                [loading]="loading()"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-template>
+
+    <!-- RIGHT: Preview panel with tabs -->
+    <ng-template pTemplate>
+      <aside class="flex min-h-0 flex-1 flex-col h-full">
+        <!-- Tab bar -->
+        <div class="flex border-b border-ink-700 overflow-x-auto">
+          <button
+            type="button"
+            class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+            [class.text-primary-400]="isPreviewTab()"
+            [class.border-b-2]="isPreviewTab()"
+            [class.border-primary-400]="isPreviewTab()"
+            [class.text-fg-muted]="!isPreviewTab()"
+            (click)="showPreviewTab()"
+          >
+            <i class="pi pi-th-large" aria-hidden="true"></i>
+            Shots
+            @if (hasShots()) {
+              <span class="ml-1 rounded-full bg-primary-500 px-1.5 text-[10px] text-white">
+                {{ shots().length }}
+              </span>
+            }
+          </button>
+          @for (file of uploadedFiles(); track file.name; let i = $index) {
+            <button
+              type="button"
+              class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+              [class.text-primary-400]="activeFileId() === file.name"
+              [class.border-b-2]="activeFileId() === file.name"
+              [class.border-primary-400]="activeFileId() === file.name"
+              [class.text-fg-muted]="activeFileId() !== file.name"
+              (click)="selectFile(i)"
+            >
+              @if (file.sent) {
+                <i class="pi pi-check-circle text-green-400" aria-hidden="true"></i>
+              } @else {
+                <i class="pi pi-file" aria-hidden="true"></i>
+              }
+              {{ file.name.length > 15 ? file.name.slice(0, 12) + '…' : file.name }}
+            </button>
+          }
+        </div>
+
+        <!-- Tab content -->
+        <div class="flex-1 overflow-hidden">
+          @if (loading()) {
+            <div class="flex h-full items-center justify-center text-[13px] text-fg-muted">
+              <div class="flex flex-col items-center gap-2">
+                <i class="pi pi-spin pi-spinner text-2xl text-primary-400"></i>
+                <span>Generating shot list…</span>
+              </div>
+            </div>
+          } @else if (isPreviewTab() && hasShots()) {
+            <!-- Shot list artifact: rendered as table -->
+            <div class="flex h-full flex-col">
+              <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
+                <span class="text-[12px] font-semibold text-fg-muted">
+                  Generated Shots ({{ shots().length }})
+                </span>
+                <div class="flex gap-2">
+                  <p-button
+                    icon="pi pi-copy"
+                    severity="secondary"
+                    [text]="true"
+                    size="small"
+                    (onClick)="copyArtifact()"
+                    pTooltip="Copy raw response"
+                    tooltipPosition="left"
+                  />
+                </div>
+              </div>
+              <div class="flex-1 overflow-y-auto p-2">
+                <table class="w-full text-[12px]">
+                  <thead>
+                    <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                      <th class="w-12 px-2 py-1 font-medium">#</th>
+                      <th class="px-2 py-1 font-medium">Name</th>
+                      <th class="px-2 py-1 font-medium">Pre-prompt</th>
+                      <th class="w-24 px-2 py-1 font-medium">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (shot of shots(); track shot.number) {
+                      <tr class="border-t border-ink-700">
+                        <td class="px-2 py-2 text-center font-mono text-fg-muted">
+                          {{ shot.number }}
+                        </td>
+                        <td class="px-2 py-2 font-medium text-fg">
+                          {{ shot.name }}
+                        </td>
+                        <td class="max-w-[200px] px-2 py-2">
+                          <p class="line-clamp-3 text-[11px] leading-snug text-fg-muted">
+                            {{ shot.description }}
+                          </p>
+                        </td>
+                        <td class="px-2 py-2">
+                          <p-button
+                            label="Use"
+                            severity="primary"
+                            [text]="true"
+                            size="small"
+                            (onClick)="useShotAsPrePrompt(shot)"
+                            pTooltip="Set this shot's description as the generation pre-prompt"
+                            tooltipPosition="left"
+                          />
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          } @else if (activeFileId()) {
+            <!-- File preview -->
+            <div class="flex h-full flex-col">
+              <div class="border-b border-ink-700 px-4 py-2 text-[12px] text-fg-muted">
+                {{ selectedFileName() }}
+              </div>
+              <div class="flex-1 overflow-hidden p-2">
+                @if (isImagePreview()) {
+                  <img
+                    [src]="fileContent()"
+                    alt="{{ selectedFileName() }}"
+                    class="h-full w-full object-contain"
+                  />
+                } @else if (isPdfPreview()) {
+                  @if (safePdfUrl(); as pdfUrl) {
+                    <iframe
+                      class="h-full w-full"
+                      [src]="pdfUrl"
+                      title="{{ selectedFileName() }}"
+                    ></iframe>
+                  }
+                } @else if (isHtmlPreview()) {
+                  <iframe
+                    class="h-full w-full"
+                    sandbox="allow-scripts"
+                    [srcdoc]="fileContent()"
+                    title="{{ selectedFileName() }}"
+                  ></iframe>
+                } @else {
+                  <pre
+                    class="h-full overflow-y-auto rounded-lg bg-ink-900 p-4 text-[13px] text-fg"
+                    >{{ fileContent() }}</pre
+                  >
+                }
+              </div>
+            </div>
+          } @else {
+            <!-- Empty state -->
+            <div class="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+              <i class="pi pi-camera text-3xl text-fg-muted opacity-30"></i>
+              <p class="text-[13px] text-fg-muted">
+                @if (uploadedFiles().length > 0) {
+                  Select a file tab above to preview, or click <strong>Generate Shots</strong> to
+                  see the result.
+                } @else {
+                  Upload files or send a prompt to generate shots.
+                }
+              </p>
+            </div>
+          }
+        </div>
+      </aside>
+    </ng-template>
+  </p-splitter>
+</div>

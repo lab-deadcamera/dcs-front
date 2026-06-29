@@ -1,0 +1,49 @@
+::ng-deep .p-fileupload-advanced {
+  border: 0 !important;
+}
+
+::ng-deep .p-fileupload-header {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+::ng-deep .p-fileupload-content {
+  display: none !important;
+}
+
+/* Prevent splitter panels from overflowing */
+::ng-deep .shot-builder-splitter .p-splitter-panel {
+  overflow: hidden !important;
+}
+
+/* Line clamp for pre-prompt description */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for the chat area */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--ink-700, #3730a3);
+  border-radius: 2px;
+}
+
+/* Tab bar scrollable */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 2px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--ink-700, #3730a3);
+  border-radius: 1px;
+}

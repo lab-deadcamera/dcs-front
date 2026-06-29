@@ -27,7 +27,7 @@ import { FooterComponent } from '@shared/components/footer/footer.component';
 import {
   BreadcrumbOption,
   StudioBreadcrumbComponent,
-} from '../../components/studio-breadcrumb/studio-breadcrumb.component';
+} from '../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
 import { ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { ButtonModule } from 'primeng/button';
@@ -48,6 +48,7 @@ import {
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { Splitter } from 'primeng/splitter';
+import { ShotBuilderPanelComponent } from '../components/shot-builder-panel/shot-builder-panel.component';
 
 /** localStorage key for breadcrumb selection persistence. */
 const LS_KEY = 'studio-breadcrumb-selection';
@@ -98,6 +99,7 @@ function normalizeModelName(name: string): string {
     TooltipModule,
     DatePipe,
     Splitter,
+    ShotBuilderPanelComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
