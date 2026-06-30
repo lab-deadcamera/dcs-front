@@ -29,6 +29,7 @@
     "@primeng/themes": "^21.0.4",
     "@primeuix/themes": "^2.0.3",
     "mammoth": "^1.12.0",
+    "marked": "^18.0.5",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.6",
     "quill": "^2.0.3",

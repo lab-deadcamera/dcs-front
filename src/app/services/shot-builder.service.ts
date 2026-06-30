@@ -2,6 +2,7 @@ import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { catchError, finalize, map, of } from 'rxjs';
+import { parseArtifactData } from './shot-builder-artifact';
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -270,69 +271,81 @@ export class ShotBuilderService {
     status: string;
     text?: string;
   }): ShotBuilderResult {
+    const artifactData = parseArtifactData(data.text || '');
+    if (artifactData) {
+      const rawText = JSON.stringify(artifactData);
+      const shots: ShotBuilderShot[] = artifactData.shots.map((s, i) => ({
+        number: i + 1,
+        name: s.title || '',
+        description: s.prompt || s.promptZh || '',
+      }));
+      return { shots, rawText };
+    }
+
+    // Fallback: return raw decoded text
     const rawText = this.decodeText(data.text || '');
-    const shots = this.extractShots(rawText);
-    return { shots, rawText };
+    return { shots: [], rawText };
   }
 
   private decodeText(text: string): string {
     if (!text) return '';
 
+    // Decode data:text/plain;base64,...
     const base64Match = text.match(/^data:text\/plain;base64,(.+)$/);
+    let decoded = text;
     if (base64Match) {
       try {
-        return atob(base64Match[1]);
+        decoded = atob(base64Match[1]);
       } catch {
-        return text;
+        decoded = text;
       }
     }
 
-    return text;
+    // Strip markdown fences if present (```json ... ```)
+    const fenceMatch = decoded.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+    if (fenceMatch) {
+      decoded = fenceMatch[1].trim();
+    }
+
+    return decoded;
   }
 
   private extractShots(text: string): ShotBuilderShot[] {
     if (!text) return [];
 
-    // Try direct JSON parse
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed.shots && Array.isArray(parsed.shots)) {
-        return parsed.shots as ShotBuilderShot[];
-      }
-      if (Array.isArray(parsed)) {
-        return parsed as ShotBuilderShot[];
-      }
-    } catch {
-      // fall through
-    }
-
-    // Look for ```json ... ``` block
-    const jsonMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
-    if (jsonMatch) {
+    const tryParse = (raw: string): ShotBuilderShot[] | null => {
       try {
-        const parsed = JSON.parse(jsonMatch[1].trim());
+        const parsed = JSON.parse(raw);
         if (parsed.shots && Array.isArray(parsed.shots)) {
-          return parsed.shots as ShotBuilderShot[];
+          return parsed.shots.map((s: any) => ({
+            number: s.id ? s.id.charCodeAt(0) - 64 : 0,
+            name: s.title || '',
+            description: s.prompt || s.promptZh || '',
+          }));
         }
         if (Array.isArray(parsed)) {
           return parsed as ShotBuilderShot[];
         }
-      } catch {
-        // malformed
-      }
+      } catch { /* ignore */ }
+      return null;
+    };
+
+    // Try direct JSON parse
+    const direct = tryParse(text);
+    if (direct) return direct;
+
+    // Look for ```json ... ``` block
+    const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+    if (fenceMatch) {
+      const fromFence = tryParse(fenceMatch[1].trim());
+      if (fromFence) return fromFence;
     }
 
     // Try to extract any JSON with "shots" key
     const arrayMatch = text.match(/\{[\s\S]*"shots"[\s\S]*\}/);
     if (arrayMatch) {
-      try {
-        const parsed = JSON.parse(arrayMatch[0]);
-        if (parsed.shots && Array.isArray(parsed.shots)) {
-          return parsed.shots as ShotBuilderShot[];
-        }
-      } catch {
-        // not parseable
-      }
+      const fromExtract = tryParse(arrayMatch[0]);
+      if (fromExtract) return fromExtract;
     }
 
     return [];

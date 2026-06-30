@@ -22,24 +22,18 @@ import {
 import * as mammoth from 'mammoth';
 /** Parse .xlsx files into structured data for preview. */
 import * as XLSX from 'xlsx';
+/** Render structured shot data as artifact HTML. */
+import { generateArtifactHtml, parseArtifactData, ArtifactData } from '@app/services/shot-builder-artifact';
+import { SHOT_BUILDER_RESPONSE } from '@app/core/mocks/shots-builder.mock';
 
-const SHOT_BUILDER_SYSTEM_PROMPT = `You are a professional film director's assistant. Given a scene description, reference files, and optional user instructions, generate a detailed shot list.
-
-For each shot, provide:
-- number: sequential integer
-- name: short descriptive title
-- description: detailed visual description that will serve as the video generation prompt (pre-prompt) — include camera angle, framing, character actions, lighting cues, and atmosphere
-
-Return a valid JSON object with this exact structure:
-{
-  "shots": [
-    { "number": 1, "name": "Establishing wide", "description": "Wide shot of the warehouse interior..." },
-    { "number": 2, "name": "Close-up protagonist", "description": "Close-up on John's face..." }
-  ]
-}
-
-CRITICAL: The "description" field must be a complete, self-contained video-generation prompt (in English).
-CRITICAL: Return ONLY the JSON object, no markdown fences, no extra text.`;
+/**
+ * System prompts are now managed server-side in the backend handler.
+ * The frontend sends system_prompt as empty string, and the backend
+ * applies the appropriate system prompt based on the endpoint:
+ *   - ClaudeGenerateShots  → shot builder system prompt (JSON shot list)
+ *   - ClaudeOptimizePrompt → proncer system prompt (refine prompts only)
+ */
+const SHOT_BUILDER_SYSTEM_PROMPT = '';
 type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
@@ -167,6 +161,34 @@ export class ShotBuilderPanelComponent {
 
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
+
+  /** Structured artifact HTML generated from Claude's JSON response. */
+  readonly artifactHtml = computed<string | null>(() => {
+    const raw = this.rawResponse();
+    if (!raw) return null;
+
+    const data = parseArtifactData(raw);
+    console.log('[artifact] raw preview:', raw.slice(0, 200), 'parsed:', !!data, 'shots:', data?.shots?.length);
+    if (data && data.shots && data.shots.length > 0) {
+      return generateArtifactHtml(data);
+    }
+
+    // Fallback: display as plain text
+    return `<pre style="white-space:pre-wrap;font-family:monospace;font-size:13px;background:#0a1011;color:#d3d8d4;padding:16px;border-radius:4px;">${this.escapeHtml(raw)}</pre>`;
+  });
+
+  /** SafeResourceUrl for iframe [src] — avoids Angular HTML sanitization stripping content. */
+  readonly safeArtifactUrl = computed<SafeResourceUrl | null>(() => {
+    const html = this.artifactHtml();
+    if (!html) return null;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
+
+  private escapeHtml(text: string): string {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
   // ── File management ────────────────────────────────────────────────
 
@@ -316,10 +338,13 @@ export class ShotBuilderPanelComponent {
 
           // Add assistant message to chat
           const shotCount = result.shots.length;
+          const hasRaw = result.rawText.length > 0;
           const summary =
-            result.shots.length > 0
+            shotCount > 0
               ? `Generated ${shotCount} shot${shotCount > 1 ? 's' : ''}. See the preview tab for details.`
-              : 'Response received but no shots could be parsed. Check the raw text below.';
+              : hasRaw
+                ? 'Response received. Check the preview tab for the shot list.'
+                : 'Response received but no content could be parsed.';
           this.chatMessages.update((items) => [
             ...items,
             {
@@ -362,6 +387,30 @@ export class ShotBuilderPanelComponent {
   /** Set a shot's description as the studio's pre-prompt. */
   useShotAsPrePrompt(shot: ShotBuilderShot): void {
     this.studio.setRawDescription(shot.description);
+  }
+
+  /** Load mock data from SHOT_BUILDER_RESPONSE for testing artifact rendering. */
+  loadMockResponse(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.shots.set([]);
+    this.rawResponse.set('');
+
+    setTimeout(() => {
+      // Set the raw text from the mock directly — artifactHtml will parse it
+      this.rawResponse.set(SHOT_BUILDER_RESPONSE.text);
+      this.chatMessages.update((items) => [
+        ...items,
+        {
+          id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          role: 'assistant',
+          content: 'Loading mock response... check the preview tab.',
+          timestamp: Date.now(),
+        },
+      ]);
+      this.activeFileId.set(null);
+      this.loading.set(false);
+    }, 800);
   }
 
   /** Save generated shots to the backend as real shot records. */

@@ -110,6 +110,16 @@
                 [disabled]="loading()"
               />
               <p-button
+                label="Mock"
+                severity="secondary"
+                size="small"
+                icon="pi pi-flask"
+                (onClick)="loadMockResponse()"
+                [disabled]="loading()"
+                pTooltip="Load mock response for testing"
+                tooltipPosition="top"
+              />
+              <p-button
                 label="Generate Shots"
                 severity="primary"
                 size="small"
@@ -247,11 +257,11 @@
               </div>
             </div>
           } @else if (isPreviewTab() && rawResponse()) {
-            <!-- Raw response when no shots could be parsed -->
+            <!-- Markdown rendered as HTML artifact -->
             <div class="flex h-full flex-col">
               <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
                 <span class="text-[12px] font-semibold text-fg-muted">
-                  Raw Response
+                  Shot List
                 </span>
                 <p-button
                   icon="pi pi-copy"
@@ -263,8 +273,13 @@
                   tooltipPosition="left"
                 />
               </div>
-              <div class="flex-1 overflow-y-auto p-2">
-                <pre class="whitespace-pre-wrap rounded-lg bg-ink-900 p-4 text-[13px] text-fg">{{ rawResponse() }}</pre>
+              <div class="flex-1 overflow-hidden p-2">
+                <iframe
+                  class="h-full w-full rounded-lg border-0"
+                  sandbox="allow-scripts"
+                  [src]="safeArtifactUrl()"
+                  title="Shot list artifact"
+                ></iframe>
               </div>
             </div>
           } @else if (activeFileId()) {
