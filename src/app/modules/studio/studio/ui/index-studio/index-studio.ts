@@ -607,9 +607,7 @@ export class IndexStudio implements OnInit {
       });
 
       this.http
-        .get<{
-          data: any;
-        }>(
+        .get<{ data: any }>(
           `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
         )
         .subscribe({
@@ -618,6 +616,22 @@ export class IndexStudio implements OnInit {
           },
           error: () => {
             /* assignments not critical */
+          },
+        });
+
+      // Load shot resources (characters, assets, presets) for the selected shot
+      this.http
+        .get<{ success: boolean; data: any }>(
+          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shot.id}/resources`,
+        )
+        .subscribe({
+          next: (res) => {
+            if (res.success && res.data) {
+              this.studio.loadShotResources(res.data);
+            }
+          },
+          error: () => {
+            /* shot resources not critical */
           },
         });
     });

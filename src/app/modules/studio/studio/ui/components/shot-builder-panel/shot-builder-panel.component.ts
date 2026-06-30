@@ -1,10 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@environment/environment';
+import { catchError, of } from 'rxjs';
 import { SplitterModule } from 'primeng/splitter';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import {
@@ -12,15 +17,14 @@ import {
   ShotBuilderShot,
   ShotBuilderResult,
 } from '@app/services/shot-builder.service';
-import { TooltipModule } from 'primeng/tooltip';
 
 /** Parse .docx files into HTML for preview. */
 import * as mammoth from 'mammoth';
 /** Parse .xlsx files into structured data for preview. */
 import * as XLSX from 'xlsx';
 
-/** System prompt sent to Claude to enforce the shot-list JSON format. 
- 
+const SHOT_BUILDER_SYSTEM_PROMPT = `You are a professional film director's assistant. Given a scene description, reference files, and optional user instructions, generate a detailed shot list.
+
 For each shot, provide:
 - number: sequential integer
 - name: short descriptive title
@@ -31,13 +35,11 @@ Return a valid JSON object with this exact structure:
   "shots": [
     { "number": 1, "name": "Establishing wide", "description": "Wide shot of the warehouse interior..." },
     { "number": 2, "name": "Close-up protagonist", "description": "Close-up on John's face..." }
-    ]
-    }
-    
-    CRITICAL: The "description" field must be a complete, self-contained video-generation prompt (in English).
-    CRITICAL: Return ONLY the JSON object, no markdown fences, no extra text.`;
-    */
-const SHOT_BUILDER_SYSTEM_PROMPT = `You are a professional film director's assistant. Given a scene description, reference files, and optional user instructions, generate a detailed shot list.`;
+  ]
+}
+
+CRITICAL: The "description" field must be a complete, self-contained video-generation prompt (in English).
+CRITICAL: Return ONLY the JSON object, no markdown fences, no extra text.`;
 type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
@@ -62,6 +64,7 @@ type UploadedFile = {
     SplitterModule,
     FileUploadModule,
     ButtonModule,
+    ToastModule,
     TooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,10 +72,17 @@ type UploadedFile = {
   styleUrls: ['./shot-builder-panel.component.css'],
 })
 export class ShotBuilderPanelComponent {
+  /** Optional: allow parent to pass project/scene IDs directly.
+   *  Falls back to StudioStore values if not provided. */
+  readonly sceneId = input<string | null>(null);
+  readonly projectId = input<string | null>(null);
+  readonly chapterId = input<string | null>(null);
+
   private readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly http = inject(HttpClient);
 
   readonly promptText = signal('');
   readonly chatMessages = signal<ChatMessage[]>([]);
@@ -119,10 +129,16 @@ export class ShotBuilderPanelComponent {
   readonly isPdfPreview = computed(() => this.activeFileMimeType() === 'application/pdf');
   readonly isHtmlPreview = computed(() => this.activeFileMimeType() === 'text/html');
   readonly isDocPreview = computed(() =>
-    ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'].includes(this.activeFileMimeType()),
+    [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ].includes(this.activeFileMimeType()),
   );
   readonly isXlsxPreview = computed(() =>
-    ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'].includes(this.activeFileMimeType()),
+    [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+    ].includes(this.activeFileMimeType()),
   );
   readonly isOfficePreview = computed(() => this.isDocPreview() || this.isXlsxPreview());
   /** The parsed text representation of an Office document. */
@@ -148,6 +164,9 @@ export class ShotBuilderPanelComponent {
 
   /** True when there are parsed shots to show. */
   readonly hasShots = computed(() => this.shots().length > 0);
+
+  /** True while saving shots to the backend. */
+  readonly savingShots = signal(false);
 
   // ── File management ────────────────────────────────────────────────
 
@@ -278,20 +297,20 @@ export class ShotBuilderPanelComponent {
     this.shots.set([]);
     this.rawResponse.set('');
 
-    const projectId = this.studio.projectId();
-    const sceneId = this.studio.sceneId();
     const userName = this.sessionStore.user()?.handle || '';
 
     this.shotBuilderService
       .generate({
-        projectId: projectId || '',
-        sceneId: sceneId || '',
+        projectId: this.projectId() || this.studio.projectId() || '',
+        sceneId: this.sceneId() || this.studio.sceneId() || '',
         prompt: content,
         systemPrompt: SHOT_BUILDER_SYSTEM_PROMPT,
         userName,
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
+          console.log('SHOT BUILDER RESULT', result);
+
           this.shots.set(result.shots);
           this.rawResponse.set(result.rawText);
 
@@ -317,6 +336,7 @@ export class ShotBuilderPanelComponent {
         },
         complete: () => {
           this.loading.set(false);
+          console.log(this.shotBuilderService.errorMessage());
         },
       });
   }
@@ -342,6 +362,58 @@ export class ShotBuilderPanelComponent {
   /** Set a shot's description as the studio's pre-prompt. */
   useShotAsPrePrompt(shot: ShotBuilderShot): void {
     this.studio.setRawDescription(shot.description);
+  }
+
+  /** Save generated shots to the backend as real shot records. */
+  saveShotsToBackend(): void {
+    const projectId = this.projectId() || this.studio.projectId();
+    const chapterId = this.chapterId() || this.studio.chapterId();
+    const sceneId = this.sceneId() || this.studio.sceneId();
+    const currentShots = this.shots();
+    if (!projectId || !chapterId || !sceneId || currentShots.length === 0) return;
+
+    this.savingShots.set(true);
+    this.error.set(null);
+
+    // Create each shot sequentially
+    let index = 0;
+    const total = currentShots.length;
+
+    const createNext = (): void => {
+      if (index >= total) {
+        this.savingShots.set(false);
+        this.chatMessages.update((items) => [
+          ...items,
+          {
+            id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            role: 'assistant',
+            content: `All ${total} shots saved to the scene successfully.`,
+            timestamp: Date.now(),
+          },
+        ]);
+        return;
+      }
+
+      const shot = currentShots[index];
+      index++;
+
+      this.http
+        .post<{ success: boolean; data?: { id: string }; message?: string }>(
+          `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
+          { number: shot.number, name: shot.name, description: shot.description },
+        )
+        .pipe(
+          catchError(() => {
+            createNext();
+            return of(null);
+          }),
+        )
+        .subscribe(() => {
+          createNext();
+        });
+    };
+
+    createNext();
   }
 
   /** Switch to the Preview tab (shot list / artifact). */

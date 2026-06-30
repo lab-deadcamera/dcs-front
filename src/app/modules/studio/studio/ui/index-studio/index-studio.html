@@ -66,7 +66,11 @@
         <ng-template pTemplate>
           <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
             @if (navSelectedSceneId() && !navSelectedShotId()) {
-              <app-shot-builder-panel class="flex-1" />
+              <app-shot-builder-panel class="flex-1"
+                [projectId]="navSelectedProjectId()"
+                [chapterId]="navSelectedChapterId()"
+                [sceneId]="navSelectedSceneId()"
+              />
             } @else {
               <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
               <app-proncer />
@@ -146,7 +150,11 @@
     <app-footer />
   } @else {
     @if (!studio.isReady() && navSelectedSceneId()) {
-      <app-shot-builder-panel class="flex-1" style="min-height: 400px;" />
+      <app-shot-builder-panel class="flex-1" style="min-height: 400px;"
+        [projectId]="navSelectedProjectId()"
+        [chapterId]="navSelectedChapterId()"
+        [sceneId]="navSelectedSceneId()"
+      />
     } @else {
       <div class="flex flex-1 flex-col items-center justify-center gap-4 py-24">
         <i class="pi pi-camera text-5xl text-fg-muted opacity-30"></i>

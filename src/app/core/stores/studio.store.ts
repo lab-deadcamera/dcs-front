@@ -88,6 +88,42 @@ export class StudioStore {
   private readonly _assignmentsLoaded = signal(false);
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
+  // ── Shot Resources (loaded when a shot is selected) ────────────────
+  private readonly _shotCharacters = signal<Array<{ id: string; characterId: string; name: string }>>([]);
+  private readonly _shotAssets = signal<Array<{ id: string; fileId: string; filename: string; mimeType: string; slot: string }>>([]);
+  private readonly _shotPresets = signal<Array<{ id: string; presetId: string; code: string; label: string; prompt: string }>>([]);
+  private readonly _shotResourcesLoaded = signal(false);
+
+  readonly shotCharacters = this._shotCharacters.asReadonly();
+  readonly shotAssets = this._shotAssets.asReadonly();
+  readonly shotPresets = this._shotPresets.asReadonly();
+  readonly shotResourcesLoaded = this._shotResourcesLoaded.asReadonly();
+
+  /** Load shot resources (characters, assets, presets) from the backend. */
+  loadShotResources(data: {
+    characters: Array<{ id: string; character_id: string; name: string }>;
+    assets: Array<{ id: string; file_id: string; filename: string; mime_type: string; slot: string }>;
+    presets: Array<{ id: string; preset_id: string; code: string; label: string; prompt: string }>;
+  }): void {
+    this._shotCharacters.set(
+      data.characters?.map((c: any) => ({ id: c.id, characterId: c.character_id, name: c.name })) ?? [],
+    );
+    this._shotAssets.set(
+      data.assets?.map((a: any) => ({ id: a.id, fileId: a.file_id, filename: a.filename, mimeType: a.mime_type, slot: a.slot })) ?? [],
+    );
+    this._shotPresets.set(
+      data.presets?.map((p: any) => ({ id: p.id, presetId: p.preset_id, code: p.code, label: p.label, prompt: p.prompt })) ?? [],
+    );
+    this._shotResourcesLoaded.set(true);
+  }
+
+  clearShotResources(): void {
+    this._shotCharacters.set([]);
+    this._shotAssets.set([]);
+    this._shotPresets.set([]);
+    this._shotResourcesLoaded.set(false);
+  }
+
   private readonly _takes = signal<Take[]>([]);
   private readonly _currentTakeIndex = signal<number>(0);
 
@@ -364,6 +400,7 @@ export class StudioStore {
     this._sceneCharacterData.set([]);
     this._sceneAssetIds.set(new Set());
     this._assignmentsLoaded.set(false);
+    this.clearShotResources();
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
