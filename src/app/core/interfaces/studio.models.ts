@@ -180,3 +180,10 @@ export interface StudioUser {
   handle: string;
   initial: string;
 }
+
+/** Lightweight skill reference used in store and shot builder. */
+export interface SkillBrief {
+  id: string;
+  name: string;
+  description: string;
+}

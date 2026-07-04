@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { SkillBrief } from '@app/core/interfaces/studio.models';
 import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
 import {
@@ -155,6 +156,15 @@ export class StudioStore {
 
   private readonly _modelCode = signal<ModelData | null>(null);
   readonly modelCode = this._modelCode.asReadonly();
+
+  // ── Skill ────────────────────────────────────────────────────────
+
+  private readonly _selectedSkill = signal<SkillBrief | null>(null);
+  readonly selectedSkill = this._selectedSkill.asReadonly();
+
+  setSelectedSkill(skill: SkillBrief | null): void {
+    this._selectedSkill.set(skill);
+  }
 
   // ── Prompt ───────────────────────────────────────────────────────
 
