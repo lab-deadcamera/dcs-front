@@ -108,6 +108,7 @@ export class ModelSelectDialogComponent {
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
+  readonly modelType = input<string>('video');
 
   protected readonly loading = signal(true);
   protected readonly grouped = signal<{ provider: string; models: ModelData[] }[]>([]);
@@ -116,7 +117,7 @@ export class ModelSelectDialogComponent {
   private readonly fetchOnOpen = effect(() => {
     if (!this.visible()) return;
     this.loading.set(true);
-    this.modelService.getAllModels('video').subscribe((res) => {
+    this.modelService.getAllModels(this.modelType()).subscribe((res) => {
       this.loading.set(false);
       if (res.error || !res.data) return;
 

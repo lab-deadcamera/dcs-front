@@ -101,6 +101,45 @@
             </div>
 
             <div class="flex items-center gap-2">
+              <!-- Skill selector -->
+              <button
+                type="button"
+                class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
+                (click)="skillDialogVisible.set(true)"
+                pTooltip="Select a skill (system prompt)"
+                tooltipPosition="top"
+              >
+                <i class="pi pi-book text-fg-muted"></i>
+                <span class="text-fg-muted">Skill:</span>
+                <span class="font-semibold text-fg-strong">
+                  {{ studio.selectedSkill()?.name || 'Default' }}
+                </span>
+              </button>
+
+              <!-- Model selector -->
+              <button
+                type="button"
+                class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
+                (click)="modelDialogVisible.set(true)"
+                pTooltip="Select a model"
+                tooltipPosition="top"
+              >
+                <i class="pi pi-microchip text-fg-muted"></i>
+                <span class="text-fg-muted">Model:</span>
+                <span class="font-semibold text-fg-strong">
+                  {{ selectedModelName() || 'claude-sonnet-4-6' }}
+                </span>
+              </button>
+
+              <p-button
+                label="Mock Seq"
+                severity="info"
+                [text]="true"
+                size="small"
+                (onClick)="loadSequenceMock()"
+                pTooltip="Load SHOT_SEQUENCE mock for native viewer testing"
+                tooltipPosition="top"
+              />
               <p-button
                 label="Clear"
                 severity="secondary"
@@ -108,16 +147,6 @@
                 size="small"
                 (onClick)="clearChat()"
                 [disabled]="loading()"
-              />
-              <p-button
-                label="Mock"
-                severity="secondary"
-                size="small"
-                icon="pi pi-flask"
-                (onClick)="loadMockResponse()"
-                [disabled]="loading()"
-                pTooltip="Load mock response for testing"
-                tooltipPosition="top"
               />
               <p-button
                 label="Generate Shots"
@@ -132,13 +161,28 @@
           </div>
         </div>
       </section>
+
+      <!-- Skill & Model dialogs -->
+      <app-skill-select-dialog
+        [visible]="skillDialogVisible()"
+        (visibleChange)="skillDialogVisible.set($event)"
+      />
+
+      <app-model-select-dialog
+        [visible]="modelDialogVisible()"
+        (visibleChange)="modelDialogVisible.set($event)"
+        modelType="text"
+      />
     </ng-template>
 
     <!-- RIGHT: Preview panel with tabs -->
     <ng-template pTemplate>
-      <aside class="flex min-h-0 flex-1 flex-col h-full">
+      <aside
+        class="flex min-h-0 flex-1 flex-col preview-panel h-full"
+        [class.fullscreen]="fullscreen()"
+      >
         <!-- Tab bar -->
-        <div class="flex border-b border-ink-700 overflow-x-auto">
+        <div class="flex shrink-0 items-center border-b border-ink-700 overflow-x-auto">
           <button
             type="button"
             class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
@@ -174,10 +218,32 @@
               {{ file.name.length > 15 ? file.name.slice(0, 12) + '…' : file.name }}
             </button>
           }
+
+          <!-- Fullscreen toggle -->
+          <button
+            type="button"
+            class="ml-auto flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors hover:text-primary-400"
+            [class.text-primary-400]="fullscreen()"
+            [class.text-fg-muted]="!fullscreen()"
+            (click)="toggleFullscreen()"
+            pTooltip="Toggle full-screen preview"
+            tooltipPosition="left"
+          >
+            <i
+              class="pi"
+              [class.pi-window-minimize]="fullscreen()"
+              [class.pi-window-maximize]="!fullscreen()"
+              aria-hidden="true"
+            ></i>
+          </button>
         </div>
 
         <!-- Tab content -->
-        <div class="flex-1 overflow-hidden">
+        <div
+          class="flex-1"
+          [class.overflow-hidden]="!fullscreen()"
+          [class.overflow-auto]="fullscreen()"
+        >
           @if (loading()) {
             <div class="flex h-full items-center justify-center text-[13px] text-fg-muted">
               <div class="flex flex-col items-center gap-2">
@@ -256,13 +322,22 @@
                 </table>
               </div>
             </div>
+          } @else if (isPreviewTab() && hasSequenceData()) {
+            <!-- Native Angular Sequence viewer -->
+            <div class="h-full overflow-y-auto sequence-viewer-wrap">
+              <app-shot-sequence-viewer
+                class="h-full"
+                [sequence]="sequenceData()!"
+                [projectName]="projectName()"
+                [chapterName]="chapterName()"
+                [sceneName]="sceneName()"
+              />
+            </div>
           } @else if (isPreviewTab() && rawResponse()) {
             <!-- Markdown rendered as HTML artifact -->
             <div class="flex h-full flex-col">
               <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
-                <span class="text-[12px] font-semibold text-fg-muted">
-                  Shot List
-                </span>
+                <span class="text-[12px] font-semibold text-fg-muted"> Shot List </span>
                 <p-button
                   icon="pi pi-copy"
                   severity="secondary"

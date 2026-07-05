@@ -90,9 +90,7 @@ export interface Prop {
 }
 
 export interface Sequence {
-  id: string;
-  title: string;
-  description?: string;
+  description: string;
   duration: number;
   mode: RenderMode;
   aspectRatio: AspectRatio;
@@ -170,7 +168,7 @@ export interface Shot {
   references: Reference[];
   prompt: Prompt;
   render: RenderSettings;
-  notes?: ShotNotes;
+  notes: ShotNotes;
 }
 
 export interface Camera {

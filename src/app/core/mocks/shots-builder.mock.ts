@@ -14,8 +14,6 @@ export const SHOT_BUILDER_RESPONSE = {
 };
 
 export const SHOT_SEQUENCE: Sequence = {
-  id: 'living-room',
-  title: 'The Brothers · Living Room Confrontation',
   description: 'Wyatt & Mike · Conflicto fraternal en la sala de estar',
   duration: 79,
   mode: 'M1',
@@ -35,18 +33,68 @@ export const SHOT_SEQUENCE: Sequence = {
     scale: { start: 'Frío', middle: 'Caliente', end: 'Vacío' },
     segments: [
       { id: 'A', shotId: 'A', label: 'Hook', start: 0, end: 11, intensity: 0.2, color: '#3d8b8f' },
-      { id: 'B', shotId: 'B', label: 'Friction', start: 11, end: 25, intensity: 0.5, color: '#c98a3c' },
-      { id: 'C', shotId: 'C', label: 'Friction', start: 25, end: 38, intensity: 0.65, color: '#c98a3c' },
-      { id: 'D', shotId: 'D', label: 'Spike', start: 38, end: 45, intensity: 1.0, marker: true, color: '#e0653c' },
-      { id: 'E', shotId: 'E', label: 'Spike', start: 45, end: 58, intensity: 0.95, color: '#e0653c' },
-      { id: 'F', shotId: 'F', label: 'Release', start: 58, end: 70, intensity: 0.8, color: '#e0653c' },
-      { id: 'G', shotId: 'G', label: 'Button', start: 70, end: 79, intensity: 0.15, color: '#5e7073' },
+      {
+        id: 'B',
+        shotId: 'B',
+        label: 'Friction',
+        start: 11,
+        end: 25,
+        intensity: 0.5,
+        color: '#c98a3c',
+      },
+      {
+        id: 'C',
+        shotId: 'C',
+        label: 'Friction',
+        start: 25,
+        end: 38,
+        intensity: 0.65,
+        color: '#c98a3c',
+      },
+      {
+        id: 'D',
+        shotId: 'D',
+        label: 'Spike',
+        start: 38,
+        end: 45,
+        intensity: 1.0,
+        marker: true,
+        color: '#e0653c',
+      },
+      {
+        id: 'E',
+        shotId: 'E',
+        label: 'Spike',
+        start: 45,
+        end: 58,
+        intensity: 0.95,
+        color: '#e0653c',
+      },
+      {
+        id: 'F',
+        shotId: 'F',
+        label: 'Release',
+        start: 58,
+        end: 70,
+        intensity: 0.8,
+        color: '#e0653c',
+      },
+      {
+        id: 'G',
+        shotId: 'G',
+        label: 'Button',
+        start: 70,
+        end: 79,
+        intensity: 0.15,
+        color: '#5e7073',
+      },
     ],
   },
 
   directorNotes: {
     goal: '15 beats consolidados en 7 planos multi-corte (≤3 cortes · ≤15s c/u) para mantener consistencia en las interacciones.',
-    styleGuide: 'teal-amber grade · spherical rectilinear lens · flat field no vignette · 24fps 180° · diegetic audio only · prompt in positive',
+    styleGuide:
+      'teal-amber grade · spherical rectilinear lens · flat field no vignette · 24fps 180° · diegetic audio only · prompt in positive',
     warnings: [
       'D y E son single-character — NO cargar ref del que no aparece',
       'Face-to-face rule: shoulders square to camera, only head turns, eyelines cross the cut',
@@ -69,20 +117,33 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 11,
       start: 0,
       end: 11,
-      camera: { lens: '40mm → 55mm', framing: 'Two-shot escalonado → single Mike', movement: 'Handheld', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '40mm → 55mm',
+        framing: 'Two-shot escalonado → single Mike',
+        movement: 'Handheld',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–6s): Two-shot escalonado. @image1 (gafas) tercio izq x=34%. @image2 tercio der x=70%. Cut 2 (6–11s): Single @image2.',
+        frameMap:
+          'Cut 1 (0–6s): Two-shot escalonado. @image1 (gafas) tercio izq x=34%. @image2 tercio der x=70%. Cut 2 (6–11s): Single @image2.',
         subjectLock: '@image1 + @image2: cara/vestuario idéntico. Hombros cuadrados a cámara.',
-        crossFrameRules: '@image1 izq, @image2 der — nunca cruzan centro. Hombros cuadrados a cámara.',
+        crossFrameRules:
+          '@image1 izq, @image2 der — nunca cruzan centro. Hombros cuadrados a cámara.',
         focus: 'Cut 1: ambos planos. Cut 2: @image2 solo.',
         depth: 'Shallow DOF',
       },
       blocking: {
         location: 'Living room — entrada',
-        movement: 'Cut 1: @image1 entra y azota puerta; @image2 irrumpe tras él. Cut 2: @image2 solo chest-up.',
+        movement:
+          'Cut 1: @image1 entra y azota puerta; @image2 irrumpe tras él. Cut 2: @image2 solo chest-up.',
         interaction: 'Staggered two-shot, nunca cara-a-cara.',
         positions: [
-          { subjectId: '@image1', description: 'Tercio izquierdo x=34%, foreground, junto a puerta' },
+          {
+            subjectId: '@image1',
+            description: 'Tercio izquierdo x=34%, foreground, junto a puerta',
+          },
           { subjectId: '@image2', description: 'Tercio derecho x=70%, midground, irrumpe' },
         ],
       },
@@ -120,7 +181,9 @@ export const SHOT_SEQUENCE: Sequence = {
         zh: 'Scene & Mood: 一次暴力闯入。画面布局：分镜1(0–6s)错位双人镜@image1左x=34%@image2右x=70%。分镜2(6–11s)@image2单人居中。运动：@image1进门摔门→@image2炸入→@image2咆哮。镜头：40mm/55mm。9:16竖屏24fps 180°。11s。',
       },
       render: { mode: 'M1', engine: 'Seedance', characterCount: { en: 950, zh: 200 } },
-      notes: { todos: ['Cargar @image1 Wyatt', 'Cargar @image2 Mike', 'Cargar @image3 plate sala'] },
+      notes: {
+        todos: ['Cargar @image1 Wyatt', 'Cargar @image2 Mike', 'Cargar @image3 plate sala'],
+      },
     },
 
     // ── Shot B: Advertencia · burla · reclamo ───────────────────────────
@@ -131,11 +194,21 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 14,
       start: 11,
       end: 25,
-      camera: { lens: '55mm → 55mm → 75mm', framing: '3 singles alternos', movement: 'Handheld', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '55mm → 55mm → 75mm',
+        framing: '3 singles alternos',
+        movement: 'Handheld',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–6s): @image1 chest-up x=48%. Cut 2 (6–10s): @image2 chest-up x=52%. Cut 3 (10–14s): @image1 más apretado.',
-        subjectLock: '@image1: cabeza girada a der. @image2: cabeza girada a izq, barbilla levantada.',
-        crossFrameRules: 'Singles — una cara por corte. Eyelines conectan: @image1 looking screen-right, @image2 screen-left.',
+        frameMap:
+          'Cut 1 (0–6s): @image1 chest-up x=48%. Cut 2 (6–10s): @image2 chest-up x=52%. Cut 3 (10–14s): @image1 más apretado.',
+        subjectLock:
+          '@image1: cabeza girada a der. @image2: cabeza girada a izq, barbilla levantada.',
+        crossFrameRules:
+          'Singles — una cara por corte. Eyelines conectan: @image1 looking screen-right, @image2 screen-left.',
         focus: 'Rostro del hablante',
         depth: 'Shallow DOF',
       },
@@ -151,7 +224,8 @@ export const SHOT_SEQUENCE: Sequence = {
       acting: {
         emotion: 'Tension / Mockery / Defiance',
         bodyLanguage: '@image1: shaking, pushes glasses up. @image2: provocative tilt, half-sneer.',
-        dialogue: '"Mike, you need to leave. Now." / "Selling my own house?" / "It\'s not your house."',
+        dialogue:
+          '"Mike, you need to leave. Now." / "Selling my own house?" / "It\'s not your house."',
         microExpressions: ['Pushes glasses up', 'Half sneer', 'Jaw setting hard'],
       },
       timeline: {
@@ -164,11 +238,16 @@ export const SHOT_SEQUENCE: Sequence = {
         beats: [
           { start: 3, end: 6, description: '"Mike, you need to leave. Now."' },
           { start: 6, end: 10, description: '"\'Doing this\'? Doing what? Selling my own house?"' },
-          { start: 10, end: 14, description: '"It\'s not your house. You gave up on this place years ago."' },
+          {
+            start: 10,
+            end: 14,
+            description: '"It\'s not your house. You gave up on this place years ago."',
+          },
         ],
       },
       audio: {
-        dialogue: '"Mike, you need to leave." / "\'Doing this\'? Selling my own house?" / "It\'s not your house."',
+        dialogue:
+          '"Mike, you need to leave." / "\'Doing this\'? Selling my own house?" / "It\'s not your house."',
         ambient: 'Quiet room tone',
         sfx: ['Fabric movement', 'Breath', 'Fingers flexing'],
         music: false,
@@ -194,9 +273,17 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 13,
       start: 25,
       end: 38,
-      camera: { lens: '55mm → 50mm → 75mm', framing: 'single → OTS → single', movement: 'Handheld', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '55mm → 50mm → 75mm',
+        framing: 'single → OTS → single',
+        movement: 'Handheld',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–4s): Single @image2 chest-up. Cut 2 (4–8s): OTS @image2 foreground, @image1 avanza. Cut 3 (8–13s): Single @image2 x=50%.',
+        frameMap:
+          'Cut 1 (0–4s): Single @image2 chest-up. Cut 2 (4–8s): OTS @image2 foreground, @image1 avanza. Cut 3 (8–13s): Single @image2 x=50%.',
         subjectLock: '@image1: puños blanqueados. @image2: semi-smile → línea cruel, brow arching.',
         crossFrameRules: 'OTS: solo @image1 se renderiza. Singles otherwise.',
         focus: '@image2 cut 1 y 3, @image1 en OTS cut 2',
@@ -214,7 +301,8 @@ export const SHOT_SEQUENCE: Sequence = {
       acting: {
         emotion: 'Escalation / Cruelty',
         bodyLanguage: '@image1: fists whitening. @image2: half-smile drops to flat cruel line.',
-        dialogue: '"I didn\'t give up. I grew up!" / "It\'s our parents\' legacy!" / "Check the brakes."',
+        dialogue:
+          '"I didn\'t give up. I grew up!" / "It\'s our parents\' legacy!" / "Check the brakes."',
         microExpressions: ['Short ugly laugh', 'Brow arching', 'Sliding the knife in flat'],
       },
       timeline: {
@@ -231,7 +319,8 @@ export const SHOT_SEQUENCE: Sequence = {
         ],
       },
       audio: {
-        dialogue: '"I didn\'t give up. I grew up!" / "It\'s our parents\' legacy!" / "Check the brakes this time."',
+        dialogue:
+          '"I didn\'t give up. I grew up!" / "It\'s our parents\' legacy!" / "Check the brakes this time."',
         ambient: 'Room tone, house creak',
         sfx: ['Knuckles tightening', 'Footstep', 'Ugly laugh'],
         music: false,
@@ -257,7 +346,14 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 7,
       start: 38,
       end: 45,
-      camera: { lens: '75mm', framing: 'Chest-up → Close-up push-in', movement: 'Push-in lento continuo', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '75mm',
+        framing: 'Chest-up → Close-up push-in',
+        movement: 'Push-in lento continuo',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
         frameMap: 'Single @image1 centrado x=50%. Slow push chest-up to close-up 7s.',
         subjectLock: '@image1: tres-cuartos a cámara. El golpe llega a 2s.',
@@ -269,24 +365,29 @@ export const SHOT_SEQUENCE: Sequence = {
         location: 'Living room — centro',
         movement: 'Una toma push-in. @image1 sostiene, a 2s golpe, a 4s retrocede medio paso.',
         interaction: 'Sin interacción — es el corazón emocional.',
-        positions: [
-          { subjectId: '@image1', description: 'Centrado x=50%' },
-        ],
+        positions: [{ subjectId: '@image1', description: 'Centrado x=50%' }],
       },
       acting: {
         emotion: 'Gut-punch / Inward detonation',
         bodyLanguage: 'Freeze — breath hitching, eyes widen, shoulders drop, backs off half step.',
         dialogue: '"Don\'t. You know that wasn\'t… the police said it was a—"',
-        microExpressions: ['Sharp caught breath', 'Eyes widen', 'Shoulders drop', 'Unfinished word'],
+        microExpressions: [
+          'Sharp caught breath',
+          'Eyes widen',
+          'Shoulders drop',
+          'Unfinished word',
+        ],
       },
       timeline: {
         duration: 7,
-        segments: [
-          { start: 0, end: 7, label: 'Single take — freeze' },
-        ],
+        segments: [{ start: 0, end: 7, label: 'Single take — freeze' }],
         beats: [
           { start: 2, end: 4, description: 'Golpe aterriza — breath catches' },
-          { start: 4, end: 7, description: 'Backs off, broken whisper: "the police said it was a—"' },
+          {
+            start: 4,
+            end: 7,
+            description: 'Backs off, broken whisper: "the police said it was a—"',
+          },
         ],
       },
       audio: {
@@ -315,9 +416,17 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 13,
       start: 45,
       end: 58,
-      camera: { lens: '55mm → 100mm / 55mm', framing: 'single → insert pared + single', movement: 'Handheld, camera gives ground', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '55mm → 100mm / 55mm',
+        framing: 'single → insert pared + single',
+        movement: 'Handheld, camera gives ground',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–7s): Single @image1 chest-up, cámara cede. Cut 2 (7–13s): Insert mano en pared, reframe chest-up.',
+        frameMap:
+          'Cut 1 (0–7s): Single @image1 chest-up, cámara cede. Cut 2 (7–13s): Insert mano en pared, reframe chest-up.',
         subjectLock: '@image1: flushing, driving forward, arm points, lip curls.',
         crossFrameRules: 'Solo @image1. Insert solo mano y pared.',
         focus: '@image1 / pared en insert',
@@ -327,9 +436,7 @@ export const SHOT_SEQUENCE: Sequence = {
         location: 'Living room — cerca de pared',
         movement: 'Cut 1: @image1 drive hacia lens. Cut 2: arm jabs a wallpaper.',
         interaction: 'Monólogo con gesticulación.',
-        positions: [
-          { subjectId: '@image1', description: 'Chest-up, camera ceding' },
-        ],
+        positions: [{ subjectId: '@image1', description: 'Chest-up, camera ceding' }],
       },
       acting: {
         emotion: 'Contempt / Aggressor',
@@ -344,12 +451,22 @@ export const SHOT_SEQUENCE: Sequence = {
           { start: 7, end: 13, label: 'Cut 2 — Insert + demanda' },
         ],
         beats: [
-          { start: 0, end: 7, description: 'Spits contempt: "The police... You think keeping the shop open makes up for it?"' },
-          { start: 7, end: 13, description: '"Sell the shop. Sign the papers. You owe me that much."' },
+          {
+            start: 0,
+            end: 7,
+            description:
+              'Spits contempt: "The police... You think keeping the shop open makes up for it?"',
+          },
+          {
+            start: 7,
+            end: 13,
+            description: '"Sell the shop. Sign the papers. You owe me that much."',
+          },
         ],
       },
       audio: {
-        dialogue: '"The police... You think keeping the shop makes up for it? Sell the shop. Sign the papers. You owe me."',
+        dialogue:
+          '"The police... You think keeping the shop makes up for it? Sell the shop. Sign the papers. You owe me."',
         ambient: 'Room tone',
         sfx: ['Hand striking wall', 'Paper rustle', 'Footstep'],
         music: false,
@@ -374,9 +491,17 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 12,
       start: 58,
       end: 70,
-      camera: { lens: '75mm', framing: '2 singles (el careo)', movement: 'Handheld estable', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '75mm',
+        framing: '2 singles (el careo)',
+        movement: 'Handheld estable',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–6s) @image2 chest-up leaning. Cut 2 (6–12s) @image1 chest-up dead still.',
+        frameMap:
+          'Cut 1 (0–6s) @image2 chest-up leaning. Cut 2 (6–12s) @image1 chest-up dead still.',
         subjectLock: '@image2: smirk leans, wipes mouth. @image1: fists whitening, flat stare.',
         crossFrameRules: 'Singles. @image2 screen-left, @image1 screen-right, eyelines lock.',
         focus: 'Rostro del hablante',
@@ -405,11 +530,16 @@ export const SHOT_SEQUENCE: Sequence = {
         ],
         beats: [
           { start: 0, end: 6, description: '"Mom and Dad are dead... sign the fucking papers."' },
-          { start: 6, end: 12, description: '"I don\'t owe you anything. I\'ve spent my whole life in this house."' },
+          {
+            start: 6,
+            end: 12,
+            description: '"I don\'t owe you anything. I\'ve spent my whole life in this house."',
+          },
         ],
       },
       audio: {
-        dialogue: '"Mom and Dad are dead. Sign the fucking papers." / "I don\'t owe you anything. I\'ve spent my whole life here."',
+        dialogue:
+          '"Mom and Dad are dead. Sign the fucking papers." / "I don\'t owe you anything. I\'ve spent my whole life here."',
         ambient: 'Low room tone',
         sfx: ['Rasp of hand across mouth', 'Knuckles tightening'],
         music: false,
@@ -435,9 +565,17 @@ export const SHOT_SEQUENCE: Sequence = {
       duration: 9,
       start: 70,
       end: 79,
-      camera: { lens: '40mm → 55mm', framing: 'Medium-wide → single Wyatt', movement: 'Handheld → near-static', fps: 24, shutter: '180°', aspectRatio: '9:16' },
+      camera: {
+        lens: '40mm → 55mm',
+        framing: 'Medium-wide → single Wyatt',
+        movement: 'Handheld → near-static',
+        fps: 24,
+        shutter: '180°',
+        aspectRatio: '9:16',
+      },
       composition: {
-        frameMap: 'Cut 1 (0–4s): Medium-wide, @image2 crosses to door, shoulder-check. Cut 2 (4–9s): @image1 alone x=50% → SMASH TO BLACK.',
+        frameMap:
+          'Cut 1 (0–4s): Medium-wide, @image2 crosses to door, shoulder-check. Cut 2 (4–9s): @image1 alone x=50% → SMASH TO BLACK.',
         subjectLock: '@image2: drives shoulder, walks out. @image1: takes hit, empties out.',
         crossFrameRules: 'Cut 1: passing shoulder-check. Cut 2: @image1 alone.',
         focus: 'Movement en cut 1, vacío en cut 2',
@@ -445,7 +583,8 @@ export const SHOT_SEQUENCE: Sequence = {
       },
       blocking: {
         location: 'Living room — centro → puerta',
-        movement: 'Cut 1: @image2 shoulder-checks, strides to door, slams. Cut 2: @image1 alone → SMASH TO BLACK.',
+        movement:
+          'Cut 1: @image2 shoulder-checks, strides to door, slams. Cut 2: @image1 alone → SMASH TO BLACK.',
         interaction: 'Contacto de paso. Negro cierra el episodio.',
         positions: [
           { subjectId: '@image2', description: 'Cruza de centro a puerta, shoulder-checks' },

@@ -9,7 +9,12 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
 import { LEVEL_ROL, PRIVATE_PATHS } from '@app/core/constants';
 
-const ROUTES = [
+const ROUTES: Array<{
+  label: string;
+  link: string;
+  level: number;
+  children?: Array<{ label: string; link: string }>;
+}> = [
   {
     label: 'NAV.STUDIO',
     link: `/${PRIVATE_PATHS.studio}`,
@@ -29,6 +34,12 @@ const ROUTES = [
     label: 'NAV.PROVIDERS',
     link: `/${PRIVATE_PATHS.providers}`,
     level: LEVEL_ROL.ADMIN,
+    children: [
+      {
+        label: 'Skills',
+        link: `/${PRIVATE_PATHS.providers}/${PRIVATE_PATHS.skills}`,
+      },
+    ],
   },
   {
     label: 'NAV.ADMIN',

@@ -37,6 +37,11 @@ export const routes: Routes = [
           import('@modules/providers/providers.routes').then((m) => m.PROVIDERS_ROUTES),
       },
       {
+        path: `${PRIVATE_PATHS.providers}/${PRIVATE_PATHS.skills}`,
+        loadChildren: () =>
+          import('@modules/skills/skills.routes').then((m) => m.SKILLS_ROUTES),
+      },
+      {
         path: PRIVATE_PATHS.admin,
         canActivate: [adminGuard],
         loadChildren: () => import('@modules/admin/admin.routes').then((m) => m.ADMIN_ROUTES),

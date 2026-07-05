@@ -67,14 +67,40 @@
 <nav class="flex items-center gap-1 border-b border-ink-600 px-6" aria-label="Primary">
   @for (route of ROUTES; track $index) {
     @if (session.roleLevel() <= route.level) {
-      <a
-        [routerLink]="route.link"
-        routerLinkActive="!text-fg-strong !border-primary-500"
-        class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
-        [attr.data-testid]="'DATA-' + route.label"
-      >
-        {{ route.label | translate }}
-      </a>
+      @if (route.children?.length) {
+        <div class="group relative">
+          <a
+            [routerLink]="route.link"
+            routerLinkActive="!text-fg-strong !border-primary-500"
+            class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+            [attr.data-testid]="'DATA-' + route.label"
+          >
+            {{ route.label | translate }}
+          </a>
+          <div
+            class="invisible absolute left-0 top-full z-50 flex min-w-[160px] flex-col border border-ink-600 bg-ink-850 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100"
+          >
+            @for (child of route.children; track child.label) {
+              <a
+                [routerLink]="child.link"
+                routerLinkActive="!text-fg-strong !bg-ink-700"
+                class="px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:bg-ink-700 hover:text-fg-strong"
+              >
+                {{ child.label }}
+              </a>
+            }
+          </div>
+        </div>
+      } @else {
+        <a
+          [routerLink]="route.link"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+          [attr.data-testid]="'DATA-' + route.label"
+        >
+          {{ route.label | translate }}
+        </a>
+      }
     }
   }
 </nav>

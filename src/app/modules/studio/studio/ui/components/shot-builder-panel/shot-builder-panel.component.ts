@@ -17,14 +17,22 @@ import {
   ShotBuilderShot,
   ShotBuilderResult,
 } from '@app/services/shot-builder.service';
+import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
+import { SkillSelectDialogComponent } from '../skill-select-dialog/skill-select-dialog.component';
 
 /** Parse .docx files into HTML for preview. */
 import * as mammoth from 'mammoth';
 /** Parse .xlsx files into structured data for preview. */
 import * as XLSX from 'xlsx';
 /** Render structured shot data as artifact HTML. */
-import { generateArtifactHtml, parseArtifactData, ArtifactData } from '@app/services/shot-builder-artifact';
-import { SHOT_BUILDER_RESPONSE } from '@app/core/mocks/shots-builder.mock';
+import {
+  generateArtifactHtml,
+  parseArtifactData,
+  ArtifactData,
+} from '@app/services/shot-builder-artifact';
+import { SHOT_BUILDER_RESPONSE, SHOT_SEQUENCE } from '@app/core/mocks/shots-builder.mock';
+import { Sequence } from '@app/core/interfaces';
+import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -60,6 +68,9 @@ type UploadedFile = {
     ButtonModule,
     ToastModule,
     TooltipModule,
+    ModelSelectDialogComponent,
+    SkillSelectDialogComponent,
+    ShotSequenceViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shot-builder-panel.component.html',
@@ -71,8 +82,12 @@ export class ShotBuilderPanelComponent {
   readonly sceneId = input<string | null>(null);
   readonly projectId = input<string | null>(null);
   readonly chapterId = input<string | null>(null);
+  /** Names for the shot-sequence-viewer header, sourced from the breadcrumb. */
+  readonly projectName = input<string>('');
+  readonly chapterName = input<string>('');
+  readonly sceneName = input<string>('');
 
-  private readonly studio = inject(StudioStore);
+  protected readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -90,6 +105,23 @@ export class ShotBuilderPanelComponent {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  /** Typed Sequence data for the native Angular viewer. */
+  readonly sequenceData = signal<Sequence | null>(null);
+
+  /** True when there's Sequence data to show in the native viewer. */
+  readonly hasSequenceData = computed(() => this.sequenceData() !== null);
+
+  /** Full-screen mode toggle for the right preview panel. */
+  readonly fullscreen = signal(false);
+  protected readonly toggleFullscreen = () => this.fullscreen.update((v) => !v);
+
+  // ── Skill & Model selection ────────────────────────────────────
+
+  protected readonly modelDialogVisible = signal(false);
+  protected readonly skillDialogVisible = signal(false);
+
+  protected readonly selectedModelName = computed(() => this.studio.modelCode()?.name || null);
 
   /** Index of the currently active file tab. -1 means "Preview" (artifact) tab. */
   readonly activeFileIndex = computed(() => {
@@ -168,7 +200,14 @@ export class ShotBuilderPanelComponent {
     if (!raw) return null;
 
     const data = parseArtifactData(raw);
-    console.log('[artifact] raw preview:', raw.slice(0, 200), 'parsed:', !!data, 'shots:', data?.shots?.length);
+    console.log(
+      '[artifact] raw preview:',
+      raw.slice(0, 200),
+      'parsed:',
+      !!data,
+      'shots:',
+      data?.shots?.length,
+    );
     if (data && data.shots && data.shots.length > 0) {
       return generateArtifactHtml(data);
     }
@@ -187,7 +226,11 @@ export class ShotBuilderPanelComponent {
   });
 
   private escapeHtml(text: string): string {
-    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   // ── File management ────────────────────────────────────────────────
@@ -321,12 +364,17 @@ export class ShotBuilderPanelComponent {
 
     const userName = this.sessionStore.user()?.handle || '';
 
+    const selectedSkill = this.studio.selectedSkill();
+    const selectedModel = this.studio.modelCode();
+
     this.shotBuilderService
       .generate({
         projectId: this.projectId() || this.studio.projectId() || '',
         sceneId: this.sceneId() || this.studio.sceneId() || '',
         prompt: content,
         systemPrompt: SHOT_BUILDER_SYSTEM_PROMPT,
+        model: selectedModel?.name || undefined,
+        skillID: selectedSkill?.id || undefined,
         userName,
       })
       .subscribe({
@@ -411,6 +459,27 @@ export class ShotBuilderPanelComponent {
       this.activeFileId.set(null);
       this.loading.set(false);
     }, 800);
+  }
+
+  /** Load mock Sequence data for testing the native Angular viewer. */
+  loadSequenceMock(): void {
+    this.error.set(null);
+    this.rawResponse.set('');
+    this.shots.set([]);
+
+    setTimeout(() => {
+      this.sequenceData.set(SHOT_SEQUENCE);
+      this.chatMessages.update((items) => [
+        ...items,
+        {
+          id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          role: 'assistant',
+          content: `Loaded mock sequence shots.`,
+          timestamp: Date.now(),
+        },
+      ]);
+      this.activeFileId.set(null);
+    }, 400);
   }
 
   /** Save generated shots to the backend as real shot records. */

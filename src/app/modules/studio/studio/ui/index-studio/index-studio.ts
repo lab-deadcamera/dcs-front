@@ -264,6 +264,17 @@ export class IndexStudio implements OnInit {
     null,
   );
 
+  /** Resolved names from the selected IDs for the shot-builder-panel header. */
+  protected readonly navSelectedProjectName = computed(
+    () => this.navProjects().find((p) => p.id === this.navSelectedProjectId())?.name ?? '',
+  );
+  protected readonly navSelectedChapterName = computed(
+    () => this.navChapters().find((c) => c.id === this.navSelectedChapterId())?.name ?? '',
+  );
+  protected readonly navSelectedSceneName = computed(
+    () => this.navScenes().find((s) => s.id === this.navSelectedSceneId())?.name ?? '',
+  );
+
   /** True while restoring a previous selection from localStorage. */
   private readonly restoring = signal(false);
 

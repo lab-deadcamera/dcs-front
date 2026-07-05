@@ -51,6 +51,7 @@ export class ShotBuilderService {
     prompt: string;
     systemPrompt?: string;
     model?: string;
+    skillID?: string;
     userName?: string;
     sceneContext?: SceneContext;
   }) {
@@ -79,6 +80,7 @@ export class ShotBuilderService {
       model: request.model || 'claude-shot-builder',
       prompt: request.prompt,
       system_prompt: request.systemPrompt || '',
+      skill_id: request.skillID || '',
       user_name: request.userName || '',
     };
 
