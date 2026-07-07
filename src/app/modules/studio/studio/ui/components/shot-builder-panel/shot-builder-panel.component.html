@@ -101,34 +101,16 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <!-- Skill selector -->
+              <!-- Settings gear -->
               <button
                 type="button"
                 class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
-                (click)="skillDialogVisible.set(true)"
-                pTooltip="Select a skill (system prompt)"
+                (click)="settingsDialogVisible.set(true)"
+                pTooltip="Settings: model, skill, language"
                 tooltipPosition="top"
               >
-                <i class="pi pi-book text-fg-muted"></i>
-                <span class="text-fg-muted">Skill:</span>
-                <span class="font-semibold text-fg-strong">
-                  {{ studio.selectedSkill()?.name || 'Default' }}
-                </span>
-              </button>
-
-              <!-- Model selector -->
-              <button
-                type="button"
-                class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
-                (click)="modelDialogVisible.set(true)"
-                pTooltip="Select a model"
-                tooltipPosition="top"
-              >
-                <i class="pi pi-microchip text-fg-muted"></i>
-                <span class="text-fg-muted">Model:</span>
-                <span class="font-semibold text-fg-strong">
-                  {{ selectedModelName() || 'claude-sonnet-4-6' }}
-                </span>
+                <i class="pi pi-cog text-fg-muted"></i>
+                <span class="text-fg-muted">{{ selectedModelName() }}</span>
               </button>
 
               <p-button
@@ -163,15 +145,11 @@
       </section>
 
       <!-- Skill & Model dialogs -->
-      <app-skill-select-dialog
-        [visible]="skillDialogVisible()"
-        (visibleChange)="skillDialogVisible.set($event)"
-      />
-
-      <app-model-select-dialog
-        [visible]="modelDialogVisible()"
-        (visibleChange)="modelDialogVisible.set($event)"
-        modelType="text"
+      <app-shot-builder-settings-dialog
+        [visible]="settingsDialogVisible()"
+        (visibleChange)="settingsDialogVisible.set($event)"
+        (modelChange)="onClaudeModelSelected($event)"
+        (generateChineseChange)="onGenerateChineseChange($event)"
       />
     </ng-template>
 
@@ -251,77 +229,6 @@
                 <span>Generating shot list…</span>
               </div>
             </div>
-          } @else if (isPreviewTab() && hasShots()) {
-            <!-- Shot list artifact: rendered as table -->
-            <div class="flex h-full flex-col">
-              <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
-                <span class="text-[12px] font-semibold text-fg-muted">
-                  Generated Shots ({{ shots().length }})
-                </span>
-                <div class="flex gap-2">
-                  <p-button
-                    icon="pi pi-save"
-                    severity="success"
-                    [text]="true"
-                    size="small"
-                    (onClick)="saveShotsToBackend()"
-                    [loading]="savingShots()"
-                    [disabled]="savingShots()"
-                    pTooltip="Save shots to scene"
-                    tooltipPosition="left"
-                  />
-                  <p-button
-                    icon="pi pi-copy"
-                    severity="secondary"
-                    [text]="true"
-                    size="small"
-                    (onClick)="copyArtifact()"
-                    pTooltip="Copy raw response"
-                    tooltipPosition="left"
-                  />
-                </div>
-              </div>
-              <div class="flex-1 overflow-y-auto p-2">
-                <table class="w-full text-[12px]">
-                  <thead>
-                    <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                      <th class="w-12 px-2 py-1 font-medium">#</th>
-                      <th class="px-2 py-1 font-medium">Name</th>
-                      <th class="px-2 py-1 font-medium">Pre-prompt</th>
-                      <th class="w-24 px-2 py-1 font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (shot of shots(); track shot.number) {
-                      <tr class="border-t border-ink-700">
-                        <td class="px-2 py-2 text-center font-mono text-fg-muted">
-                          {{ shot.number }}
-                        </td>
-                        <td class="px-2 py-2 font-medium text-fg">
-                          {{ shot.name }}
-                        </td>
-                        <td class="max-w-[200px] px-2 py-2">
-                          <p class="line-clamp-3 text-[11px] leading-snug text-fg-muted">
-                            {{ shot.description }}
-                          </p>
-                        </td>
-                        <td class="px-2 py-2">
-                          <p-button
-                            label="Use"
-                            severity="primary"
-                            [text]="true"
-                            size="small"
-                            (onClick)="useShotAsPrePrompt(shot)"
-                            pTooltip="Set this shot's description as the generation pre-prompt"
-                            tooltipPosition="left"
-                          />
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
           } @else if (isPreviewTab() && hasSequenceData()) {
             <!-- Native Angular Sequence viewer -->
             <div class="h-full overflow-y-auto sequence-viewer-wrap">
@@ -331,6 +238,8 @@
                 [projectName]="projectName()"
                 [chapterName]="chapterName()"
                 [sceneName]="sceneName()"
+                [showChinese]="generateChinese()"
+                (createPrePromptsClicked)="onCreatePrePrompts($event)"
               />
             </div>
           } @else if (isPreviewTab() && rawResponse()) {

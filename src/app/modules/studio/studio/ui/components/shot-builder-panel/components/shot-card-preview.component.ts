@@ -189,18 +189,20 @@ export function beatInfoFromSegments(
               class="toggle-btn"
               [class.on]="lang() === 'en'"
               [attr.aria-pressed]="lang() === 'en'"
-              (click)="lang.set('en')"
+              (click)="onToggleLang('en')"
             >
               EN
             </button>
-            <button
-              class="toggle-btn"
-              [class.on]="lang() === 'zh'"
-              [attr.aria-pressed]="lang() === 'zh'"
-              (click)="lang.set('zh')"
-            >
-              中文
-            </button>
+            @if (showChinese()) {
+              <button
+                class="toggle-btn"
+                [class.on]="lang() === 'zh'"
+                [attr.aria-pressed]="lang() === 'zh'"
+                (click)="onToggleLang('zh')"
+              >
+                中文
+              </button>
+            }
           </div>
           <span
             class="counter"
@@ -619,12 +621,16 @@ export class ShotCardPreviewComponent {
 
   readonly shot = input.required<Shot>();
   readonly beat = input.required<BeatInfo>();
+  /** When true, show the Chinese (中文) language toggle. */
+  readonly showChinese = input(true);
 
   /** Two-way model for approval status. */
   readonly approved = model(false);
 
   /** Output emitted when editing a prompt is finished. */
   readonly promptChange = output<{ lang: 'en' | 'zh'; value: string }>();
+  /** Output emitted when the language toggle changes. */
+  readonly langChange = output<'en' | 'zh'>();
 
   readonly lang = signal<'en' | 'zh'>('en');
   readonly copied = signal(false);
@@ -634,10 +640,20 @@ export class ShotCardPreviewComponent {
 
   readonly currentPrompt = computed(() => {
     const s = this.shot();
-    return this.lang() === 'en' ? s.prompt.en : s.prompt.zh;
+    return (this.lang() === 'en' ? s.prompt.en : s.prompt.zh) || '';
   });
 
   readonly charCount = computed(() => this.currentPrompt().length);
+
+  constructor() {
+    // Emit initial lang
+    queueMicrotask(() => this.langChange.emit(this.lang()));
+  }
+
+  protected onToggleLang(lang: 'en' | 'zh'): void {
+    this.lang.set(lang);
+    this.langChange.emit(lang);
+  }
 
   copyPrompt(): void {
     const text = this.currentPrompt();

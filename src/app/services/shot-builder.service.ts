@@ -2,7 +2,8 @@ import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { catchError, finalize, map, of } from 'rxjs';
-import { parseArtifactData } from './shot-builder-artifact';
+import { parseArtifactData, computeCharacterCount } from './shot-builder-artifact';
+import { Sequence } from '@app/core/interfaces';
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -15,6 +16,8 @@ export interface ShotBuilderShot {
 export interface ShotBuilderResult {
   shots: ShotBuilderShot[];
   rawText: string;
+  /** Parsed rich Sequence data, if the response was in the new rich format. */
+  sequence?: Sequence;
 }
 
 /** Scene context sent to Claude for both shot builder and proncer. */
@@ -54,6 +57,7 @@ export class ShotBuilderService {
     skillID?: string;
     userName?: string;
     sceneContext?: SceneContext;
+    generateZh?: boolean;
   }) {
     console.log({ request });
 
@@ -77,11 +81,13 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
-      model: request.model || 'claude-shot-builder',
+      model: 'claude-shot-builder',
+      api_model: request.model || 'claude-sonnet-4-6',
       prompt: request.prompt,
       system_prompt: request.systemPrompt || '',
       skill_id: request.skillID || '',
       user_name: request.userName || '',
+      generate_zh: request.generateZh !== false,
     };
 
     // Include scene context if provided
@@ -159,7 +165,8 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
-      model: request.model || 'claude-shot-builder',
+      model: 'claude-shot-builder',
+      api_model: request.model || 'claude-sonnet-4-6',
       current_prompt: request.currentPrompt,
       user_instructions: request.userInstructions || '',
       user_name: request.userName || '',
@@ -273,20 +280,40 @@ export class ShotBuilderService {
     status: string;
     text?: string;
   }): ShotBuilderResult {
-    const artifactData = parseArtifactData(data.text || '');
+    const raw = this.decodeText(data.text || '');
+    if (!raw) {
+      return { shots: [], rawText: '' };
+    }
+
+    // Try the old ArtifactData format first
+    const artifactData = parseArtifactData(raw);
     if (artifactData) {
-      const rawText = JSON.stringify(artifactData);
       const shots: ShotBuilderShot[] = artifactData.shots.map((s, i) => ({
         number: i + 1,
         name: s.title || '',
         description: s.prompt || s.promptZh || '',
       }));
-      return { shots, rawText };
+      return { shots, rawText: JSON.stringify(artifactData) };
+    }
+
+    // Try the new rich Sequence format
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.shots && Array.isArray(parsed.shots) && parsed.description) {
+        const seq = computeCharacterCount(parsed as Sequence);
+        const shots: ShotBuilderShot[] = parsed.shots.map((s: any, i: number) => ({
+          number: i + 1,
+          name: s.title || '',
+          description: s.prompt?.en || s.prompt?.zh || '',
+        }));
+        return { shots, rawText: raw, sequence: seq };
+      }
+    } catch {
+      // Not parseable as rich format either
     }
 
     // Fallback: return raw decoded text
-    const rawText = this.decodeText(data.text || '');
-    return { shots: [], rawText };
+    return { shots: [], rawText: raw };
   }
 
   private decodeText(text: string): string {

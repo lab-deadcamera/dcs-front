@@ -234,14 +234,15 @@ export interface Audio {
 
 export interface Prompt {
   en: string;
-  zh: string;
+  zh?: string;
 }
 
 export interface RenderSettings {
   mode: RenderMode;
   engine?: string;
   version?: string;
-  characterCount: PromptCounter;
+  /** Calculated on the frontend from prompt character length. Optional from backend. */
+  characterCount?: PromptCounter;
 }
 
 export interface PromptCounter {
@@ -264,3 +265,10 @@ export interface UISettings {
 }
 
 export type LayoutType = 'shotCards' | 'shotList' | 'timeline' | 'editor' | 'print';
+
+/** A Claude model option displayed in the dialog. */
+export interface ClaudeModelOption {
+  id: string;
+  name: string;
+  description: string;
+}

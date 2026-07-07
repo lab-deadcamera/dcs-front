@@ -75,6 +75,7 @@ import { SequenceFlow } from '@app/core/interfaces';
         border: 1px solid var(--line, #1e3133);
         border-radius: 3px;
         overflow: hidden;
+        gap: 1px;
         background: #0a1011;
       }
 

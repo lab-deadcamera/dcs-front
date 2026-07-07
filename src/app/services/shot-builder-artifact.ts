@@ -2,6 +2,7 @@
  * Generates the artifact HTML from structured shot list JSON (returned by Claude).
  * Faithful reproduction of artifact-example.html by Dead Camera Studios.
  */
+import { Sequence } from '@app/core/interfaces';
 
 export interface ArtifactData {
   title: string;
@@ -305,7 +306,13 @@ export function parseArtifactData(raw: string): ArtifactData | null {
 
   try {
     const parsed = JSON.parse(clean);
-    if (parsed.shots && Array.isArray(parsed.shots)) {
+    // Old ArtifactData format: has totalDuration AND shots[0].prompt (string, not object)
+    if (
+      parsed.shots &&
+      Array.isArray(parsed.shots) &&
+      typeof parsed.totalDuration === 'number' &&
+      typeof parsed.shots[0]?.prompt === 'string'
+    ) {
       return parsed as ArtifactData;
     }
   } catch {
@@ -313,4 +320,24 @@ export function parseArtifactData(raw: string): ArtifactData | null {
   }
 
   return null;
+}
+
+/**
+ * Compute characterCount for every shot in a Sequence based on prompt length.
+ * Returns a new Sequence with render.characterCount populated.
+ */
+export function computeCharacterCount(seq: Sequence): Sequence {
+  return {
+    ...seq,
+    shots: seq.shots.map((shot) => ({
+      ...shot,
+      render: {
+        ...shot.render,
+        characterCount: {
+          en: shot.prompt.en.length,
+          zh: shot.prompt.zh?.length || 0,
+        },
+      },
+    })),
+  };
 }

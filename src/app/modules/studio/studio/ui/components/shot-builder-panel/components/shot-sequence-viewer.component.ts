@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Sequence, Shot, ReferenceType } from '@app/core/interfaces';
 import { ShotCardPreviewComponent, beatInfoFromSegments } from './shot-card-preview.component';
@@ -117,23 +117,33 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
             [shot]="shot"
             [beat]="beatFor(shot.id, seq)"
             [(approved)]="approvedMap[shot.id]"
+            [showChinese]="showChinese()"
             (promptChange)="onPromptChange(shot.id, $event)"
+            (langChange)="onLangChange(shot.id, $event)"
           />
         }
       </div>
 
-      <!-- Note footer -->
-      @if (seq.directorNotes?.goal) {
-        <div class="note">
-          <h3>Cómo usar este pack</h3>
-          <p>{{ seq.directorNotes?.goal }}</p>
+      <!-- Summary: selected prompt per shot + create button -->
+      <div class="summary">
+        <div class="section-tag">Resumen de prompts</div>
+        <div class="summary-grid">
+          @for (shot of seq.shots; track shot.id) {
+            <div class="summary-row" [class.summary-approved]="approvedMap[shot.id]">
+              <span class="summary-id">{{ shot.id }}</span>
+              <span class="summary-title">{{ shot.title }}</span>
+              <span class="summary-lang">[{{ langMap[shot.id] || 'en' }}]</span>
+              <span class="summary-text">{{ promptPreview(shot) }}</span>
+            </div>
+          }
         </div>
-      }
-
-      <footer class="viewer-footer">
-        Dead Camera Studios · {{ seq.shots.length }} planos · revisar → cargar refs → pegar idioma →
-        generar
-      </footer>
+        <div class="flex w-full justify-end">
+          <button type="button" class="create-btn" (click)="createPrePrompts()">
+            <i class="pi pi-file-export" aria-hidden="true"></i>
+            Crear listado de pre-prompts
+          </button>
+        </div>
+      </div>
     </div>
   `,
   styles: [
@@ -141,7 +151,7 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
       .viewer {
         max-width: 1080px;
         margin: 0 auto;
-        padding: 0 clamp(14px, 4vw, 40px) 80px;
+        padding: 1rem clamp(14px, 4vw, 40px) 40px;
       }
 
       .viewer-header {
@@ -370,6 +380,86 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
         font-style: normal;
         font-weight: 700;
       }
+
+      /* ── Summary ──────────────────────────────────────── */
+      .summary {
+        margin-top: 20px;
+        border-top: 1px solid var(--line, #1e3133);
+        padding-top: 10px;
+      }
+      .summary-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 22px;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .summary-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        border-bottom: 1px solid var(--line, #1e3133);
+        background: var(--panel, #121f21);
+      }
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+      .summary-row.summary-approved {
+        background: rgba(95, 185, 143, 0.06);
+        border-left: 2px solid #5fb98f;
+      }
+      .summary-id {
+        font-weight: 700;
+        color: var(--ink, #ece6d8);
+        min-width: 30px;
+      }
+      .summary-title {
+        color: var(--ink-dim, #9aa6a3);
+        min-width: 120px;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .summary-lang {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: var(--teal, #4fb0b5);
+        min-width: 36px;
+        text-transform: uppercase;
+      }
+      .summary-text {
+        flex: 1;
+        color: var(--ink-faint, #6a7977);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+      .create-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: var(--teal-deep, #2f6e72);
+        color: #eafcfb;
+        border: none;
+        border-radius: 3px;
+        padding: 10px 22px;
+        cursor: pointer;
+        transition: background 0.16s ease;
+      }
+      .create-btn:hover {
+        background: var(--teal, #4fb0b5);
+      }
     `,
   ],
 })
@@ -378,9 +468,18 @@ export class ShotSequenceViewerComponent {
   readonly projectName = input<string>('');
   readonly chapterName = input<string>('');
   readonly sceneName = input<string>('');
+  /** Whether to show the Chinese language toggle on shot cards. */
+  readonly showChinese = input(true);
 
   /** Mutable map of shot ID → approval status. */
   protected readonly approvedMap: Record<string, boolean> = {};
+
+  /** Map of shot ID → selected language. */
+  protected readonly langMap: Record<string, 'en' | 'zh'> = {};
+
+  /** Emitted when the user clicks "Crear listado de pre-prompts". */
+  readonly createPrePromptsClicked =
+    output<{ shotId: string; lang: 'en' | 'zh'; prompt: string }[]>();
 
   protected readonly approvedCount = computed(() => {
     const ids = this.sequence()?.shots.map((s) => s.id) ?? [];
@@ -409,12 +508,36 @@ export class ShotSequenceViewerComponent {
     return beatInfoFromSegments(shotId, seq.sequenceFlow.segments);
   }
 
-  protected onPromptChange(
-    shotId: string,
-    change: { lang: 'en' | 'zh'; value: string },
-  ): void {
+  protected onPromptChange(shotId: string, change: { lang: 'en' | 'zh'; value: string }): void {
     // Log the change — backends can subscribe to this in the future
-    console.log(`[shot-sequence-viewer] Shot ${shotId} ${change.lang} prompt updated`, change.value);
+    console.log(
+      `[shot-sequence-viewer] Shot ${shotId} ${change.lang} prompt updated`,
+      change.value,
+    );
+  }
+
+  protected onLangChange(shotId: string, lang: 'en' | 'zh'): void {
+    this.langMap[shotId] = lang;
+  }
+
+  /** Short preview of the prompt text (first N chars). */
+  protected promptPreview(shot: Shot): string {
+    const lang = this.langMap[shot.id] || 'en';
+    const text = lang === 'en' ? shot.prompt.en : shot.prompt.zh;
+    if (!text) return '(empty)';
+    return text.length > 80 ? text.slice(0, 77) + '…' : text;
+  }
+
+  /** Gather all selected prompts and emit them. */
+  protected createPrePrompts(): void {
+    const seq = this.sequence();
+    if (!seq) return;
+    const list = seq.shots.map((shot) => ({
+      shotId: shot.id,
+      lang: this.langMap[shot.id] || 'en',
+      prompt: (this.langMap[shot.id] === 'zh' ? shot.prompt.zh : shot.prompt.en) || '',
+    }));
+    this.createPrePromptsClicked.emit(list);
   }
 
   protected onShotHighlight(shotId: string): void {

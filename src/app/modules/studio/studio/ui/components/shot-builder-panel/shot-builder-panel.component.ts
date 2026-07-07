@@ -17,8 +17,7 @@ import {
   ShotBuilderShot,
   ShotBuilderResult,
 } from '@app/services/shot-builder.service';
-import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
-import { SkillSelectDialogComponent } from '../skill-select-dialog/skill-select-dialog.component';
+import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-settings-dialog.component';
 
 /** Parse .docx files into HTML for preview. */
 import * as mammoth from 'mammoth';
@@ -28,11 +27,13 @@ import * as XLSX from 'xlsx';
 import {
   generateArtifactHtml,
   parseArtifactData,
+  computeCharacterCount,
   ArtifactData,
 } from '@app/services/shot-builder-artifact';
 import { SHOT_BUILDER_RESPONSE, SHOT_SEQUENCE } from '@app/core/mocks/shots-builder.mock';
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
+import { CLAUDE_MODELS } from '@app/core/constants';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -68,9 +69,8 @@ type UploadedFile = {
     ButtonModule,
     ToastModule,
     TooltipModule,
-    ModelSelectDialogComponent,
-    SkillSelectDialogComponent,
     ShotSequenceViewerComponent,
+    ShotBuilderSettingsDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shot-builder-panel.component.html',
@@ -118,10 +118,23 @@ export class ShotBuilderPanelComponent {
 
   // ── Skill & Model selection ────────────────────────────────────
 
-  protected readonly modelDialogVisible = signal(false);
+  protected readonly settingsDialogVisible = signal(false);
   protected readonly skillDialogVisible = signal(false);
 
-  protected readonly selectedModelName = computed(() => this.studio.modelCode()?.name || null);
+  /** Claude model for the shot builder — independent from studio video model. */
+  private readonly claudeModelName = signal<string>(CLAUDE_MODELS[0].name);
+  /** Whether to generate Chinese prompts (prompt.zh). */
+  protected readonly generateChinese = signal(true);
+
+  protected readonly selectedModelName = computed(() => this.claudeModelName());
+
+  protected onClaudeModelSelected(name: string): void {
+    this.claudeModelName.set(name);
+  }
+
+  protected onGenerateChineseChange(enabled: boolean): void {
+    this.generateChinese.set(enabled);
+  }
 
   /** Index of the currently active file tab. -1 means "Preview" (artifact) tab. */
   readonly activeFileIndex = computed(() => {
@@ -363,9 +376,7 @@ export class ShotBuilderPanelComponent {
     this.rawResponse.set('');
 
     const userName = this.sessionStore.user()?.handle || '';
-
     const selectedSkill = this.studio.selectedSkill();
-    const selectedModel = this.studio.modelCode();
 
     this.shotBuilderService
       .generate({
@@ -373,9 +384,10 @@ export class ShotBuilderPanelComponent {
         sceneId: this.sceneId() || this.studio.sceneId() || '',
         prompt: content,
         systemPrompt: SHOT_BUILDER_SYSTEM_PROMPT,
-        model: selectedModel?.name || undefined,
+        model: this.claudeModelName(),
         skillID: selectedSkill?.id || undefined,
         userName,
+        generateZh: this.generateChinese(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -383,6 +395,11 @@ export class ShotBuilderPanelComponent {
 
           this.shots.set(result.shots);
           this.rawResponse.set(result.rawText);
+
+          // If the result includes rich Sequence data, show the native viewer
+          if (result.sequence) {
+            this.sequenceData.set(result.sequence);
+          }
 
           // Add assistant message to chat
           const shotCount = result.shots.length;
@@ -422,6 +439,7 @@ export class ShotBuilderPanelComponent {
     this.uploadedFiles.set([]);
     this.activeFileId.set(null);
     this.promptText.set('');
+    this.sequenceData.set(null);
   }
 
   copyArtifact(): void {
@@ -435,6 +453,12 @@ export class ShotBuilderPanelComponent {
   /** Set a shot's description as the studio's pre-prompt. */
   useShotAsPrePrompt(shot: ShotBuilderShot): void {
     this.studio.setRawDescription(shot.description);
+  }
+
+  /** Handle the "Crear listado de pre-prompts" button from the sequence viewer. */
+  onCreatePrePrompts(list: { shotId: string; lang: 'en' | 'zh'; prompt: string }[]): void {
+    console.log('[shot-builder] Pre-prompts list:', list);
+    // TODO: implement pre-prompt generation logic
   }
 
   /** Load mock data from SHOT_BUILDER_RESPONSE for testing artifact rendering. */
@@ -468,7 +492,7 @@ export class ShotBuilderPanelComponent {
     this.shots.set([]);
 
     setTimeout(() => {
-      this.sequenceData.set(SHOT_SEQUENCE);
+      this.sequenceData.set(computeCharacterCount(SHOT_SEQUENCE));
       this.chatMessages.update((items) => [
         ...items,
         {
