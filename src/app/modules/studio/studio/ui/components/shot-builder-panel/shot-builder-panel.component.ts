@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -10,6 +10,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import {
@@ -34,6 +35,8 @@ import { SHOT_BUILDER_RESPONSE, SHOT_SEQUENCE } from '@app/core/mocks/shots-buil
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
+import { SceneContext } from '@app/services/shot-builder.service';
+import { AspectRatio } from '@app/core/interfaces/studio.models';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -71,6 +74,7 @@ type UploadedFile = {
     TooltipModule,
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
+    DialogModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shot-builder-panel.component.html',
@@ -204,8 +208,41 @@ export class ShotBuilderPanelComponent {
   /** True when there are parsed shots to show. */
   readonly hasShots = computed(() => this.shots().length > 0);
 
+  /** Super Admin check (roleLevel === 0). */
+  protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
+
+  /** Dialog visibility for the preview modal (JSON dump of current data). */
+  protected readonly previewDialogVisible = signal(false);
+
+  /** Pretty-printed JSON of the current shots + sequence data for the preview modal. */
+  protected readonly previewDataPretty = computed(() => {
+    const snapshot: Record<string, unknown> = {};
+    const shots = this.shots();
+    if (shots.length > 0) snapshot['shots'] = shots;
+    const seq = this.sequenceData();
+    if (seq) snapshot['sequence'] = seq;
+    const raw = this.rawResponse();
+    if (raw) snapshot['rawLength'] = raw.length;
+
+    if (Object.keys(snapshot).length === 0) return 'No data available. Generate shots first.';
+
+    return JSON.stringify(snapshot, null, 2);
+  });
+
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
+
+  /**
+   * Emitted after all generated shots are saved to the backend.
+   * The parent (IndexStudio) navigates to the first shot and loads its pre-prompt.
+   */
+  readonly shotsSaved = output<{
+    projectId: string;
+    chapterId: string;
+    sceneId: string;
+    firstShotId: string;
+    firstShotDescription: string;
+  }>();
 
   /** Structured artifact HTML generated from Claude's JSON response. */
   readonly artifactHtml = computed<string | null>(() => {
@@ -378,6 +415,28 @@ export class ShotBuilderPanelComponent {
     const userName = this.sessionStore.user()?.handle || '';
     const selectedSkill = this.studio.selectedSkill();
 
+    // Build scene context from studio store for richer generation
+    const sceneContext: SceneContext = {
+      description: this.studio.rawDescription() || undefined,
+      characters: this.studio.sceneCharacterData().map((c) => ({
+        name: c.name,
+      })),
+      presets: this.studio.shotPresets().map((p) => ({
+        code: p.code,
+        label: p.label,
+        prompt: p.prompt,
+      })),
+      assets: this.studio.freeAssets().map((a) => ({
+        filename: a.filename,
+        mimeType:
+          a.kind === 'image'
+            ? 'image/png'
+            : a.kind === 'video'
+              ? 'video/mp4'
+              : 'audio/mpeg',
+      })),
+    };
+
     this.shotBuilderService
       .generate({
         projectId: this.projectId() || this.studio.projectId() || '',
@@ -388,6 +447,7 @@ export class ShotBuilderPanelComponent {
         skillID: selectedSkill?.id || undefined,
         userName,
         generateZh: this.generateChinese(),
+        sceneContext,
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -455,10 +515,94 @@ export class ShotBuilderPanelComponent {
     this.studio.setRawDescription(shot.description);
   }
 
-  /** Handle the "Crear listado de pre-prompts" button from the sequence viewer. */
+  /** Handle the "Crear listado de pre-prompts" button from the sequence viewer.
+   *  Saves each shot with the prompt in the selected language as its description,
+   *  then navigates to the first shot so the pre-prompt loads in the PromptBuilder. */
   onCreatePrePrompts(list: { shotId: string; lang: 'en' | 'zh'; prompt: string }[]): void {
-    console.log('[shot-builder] Pre-prompts list:', list);
-    // TODO: implement pre-prompt generation logic
+    const projectId = this.projectId() || this.studio.projectId();
+    const chapterId = this.chapterId() || this.studio.chapterId();
+    const sceneId = this.sceneId() || this.studio.sceneId();
+    const currentShots = this.shots();
+    if (!projectId || !chapterId || !sceneId || list.length === 0) return;
+
+    this.savingShots.set(true);
+    this.error.set(null);
+
+    let index = 0;
+    const total = list.length;
+    const createdIds: string[] = [];
+    const firstDescription = list[0]?.prompt || '';
+
+    const createNext = (): void => {
+      if (index >= total) {
+        this.savingShots.set(false);
+        this.chatMessages.update((items) => [
+          ...items,
+          {
+            id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            role: 'assistant',
+            content: `All ${total} shots saved to the scene successfully.`,
+            timestamp: Date.now(),
+          },
+        ]);
+
+        // Emit the first shot ID so IndexStudio navigates to it
+        if (createdIds.length > 0) {
+          this.shotsSaved.emit({
+            projectId,
+            chapterId,
+            sceneId,
+            firstShotId: createdIds[0],
+            firstShotDescription: firstDescription,
+          });
+        }
+
+        // Apply output format from the Sequence data (shot builder has priority
+        // over the default config). Only override fields the Sequence actually
+        // carries — resolution stays at whatever the user configured.
+        const seq = this.sequenceData();
+        if (seq) {
+          const patch: Record<string, unknown> = {};
+          if (seq.aspectRatio) {
+            patch['aspectRatio'] = seq.aspectRatio as AspectRatio;
+          }
+          if (seq.duration && seq.duration > 0) {
+            // Cap at the slider max (15s) — the Sequence total duration is a
+            // scene-level budget, not a per-generation duration.
+            patch['durationSeconds'] = Math.min(Math.round(seq.duration), 15);
+          }
+          this.studio.patchOutput(patch as any);
+        }
+        return;
+      }
+
+      const item = list[index];
+      const shotRef = currentShots[index];
+      const number = shotRef?.number ?? index + 1;
+      const name = shotRef?.name ?? `Shot ${number}`;
+      const description = item.prompt;
+      index++;
+
+      this.http
+        .post<{ success: boolean; data?: { id: string }; message?: string }>(
+          `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
+          { number, name, description },
+        )
+        .pipe(
+          catchError(() => {
+            createNext();
+            return of(null);
+          }),
+        )
+        .subscribe((res) => {
+          if (res?.data?.id) {
+            createdIds.push(res.data.id);
+          }
+          createNext();
+        });
+    };
+
+    createNext();
   }
 
   /** Load mock data from SHOT_BUILDER_RESPONSE for testing artifact rendering. */
@@ -520,6 +664,7 @@ export class ShotBuilderPanelComponent {
     // Create each shot sequentially
     let index = 0;
     const total = currentShots.length;
+    const createdIds: string[] = [];
 
     const createNext = (): void => {
       if (index >= total) {
@@ -533,6 +678,17 @@ export class ShotBuilderPanelComponent {
             timestamp: Date.now(),
           },
         ]);
+
+        // Emit the first shot ID so the parent can navigate to it
+        if (createdIds.length > 0) {
+          this.shotsSaved.emit({
+            projectId,
+            chapterId,
+            sceneId,
+            firstShotId: createdIds[0],
+            firstShotDescription: currentShots[0].description,
+          });
+        }
         return;
       }
 
@@ -550,7 +706,10 @@ export class ShotBuilderPanelComponent {
             return of(null);
           }),
         )
-        .subscribe(() => {
+        .subscribe((res) => {
+          if (res?.data?.id) {
+            createdIds.push(res.data.id);
+          }
           createNext();
         });
     };

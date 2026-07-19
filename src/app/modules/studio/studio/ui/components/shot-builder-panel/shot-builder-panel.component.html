@@ -113,15 +113,26 @@
                 <span class="text-fg-muted">{{ selectedModelName() }}</span>
               </button>
 
-              <p-button
-                label="Mock Seq"
-                severity="info"
-                [text]="true"
-                size="small"
-                (onClick)="loadSequenceMock()"
-                pTooltip="Load SHOT_SEQUENCE mock for native viewer testing"
-                tooltipPosition="top"
-              />
+              @if (isSuperAdmin()) {
+                <p-button
+                  label="Mock Seq"
+                  severity="info"
+                  [text]="true"
+                  size="small"
+                  (onClick)="loadSequenceMock()"
+                  pTooltip="Load SHOT_SEQUENCE mock for native viewer testing"
+                  tooltipPosition="top"
+                />
+                <p-button
+                  label="Preview"
+                  severity="warn"
+                  [text]="true"
+                  size="small"
+                  (onClick)="previewDialogVisible.set(true)"
+                  pTooltip="Preview shot data as JSON"
+                  tooltipPosition="top"
+                />
+              }
               <p-button
                 label="Clear"
                 severity="secondary"
@@ -231,16 +242,18 @@
             </div>
           } @else if (isPreviewTab() && hasSequenceData()) {
             <!-- Native Angular Sequence viewer -->
-            <div class="h-full overflow-y-auto sequence-viewer-wrap">
-              <app-shot-sequence-viewer
-                class="h-full"
-                [sequence]="sequenceData()!"
-                [projectName]="projectName()"
-                [chapterName]="chapterName()"
-                [sceneName]="sceneName()"
-                [showChinese]="generateChinese()"
-                (createPrePromptsClicked)="onCreatePrePrompts($event)"
-              />
+            <div class="flex h-full flex-col">
+              <div class="flex-1 overflow-y-auto sequence-viewer-wrap">
+                <app-shot-sequence-viewer
+                  class="h-full"
+                  [sequence]="sequenceData()!"
+                  [projectName]="projectName()"
+                  [chapterName]="chapterName()"
+                  [sceneName]="sceneName()"
+                  [showChinese]="generateChinese()"
+                  (createPrePromptsClicked)="onCreatePrePrompts($event)"
+                />
+              </div>
             </div>
           } @else if (isPreviewTab() && rawResponse()) {
             <!-- Markdown rendered as HTML artifact -->
@@ -334,3 +347,33 @@
     </ng-template>
   </p-splitter>
 </div>
+
+<!-- Preview payload dialog (super admin only) -->
+<p-dialog
+  [visible]="previewDialogVisible()"
+  (visibleChange)="previewDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '60rem', maxWidth: '95vw' }"
+  header="Preview — Shot Builder Data"
+>
+  @if (!previewDataPretty()) {
+    <p class="py-4 text-[13px] italic text-fg-muted">No data available. Generate shots first.</p>
+  } @else {
+    <pre
+      class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
+      >{{ previewDataPretty() }}</pre
+    >
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        label="Close"
+        (onClick)="previewDialogVisible.set(false)"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

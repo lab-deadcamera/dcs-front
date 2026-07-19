@@ -1,17 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  model,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, model, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
+import { FloatLabelModule } from 'primeng/floatlabel';
 
 export interface BreadcrumbOption {
   id: string;
@@ -29,6 +23,7 @@ export interface BreadcrumbOption {
     DialogModule,
     SelectModule,
     InputTextModule,
+    FloatLabelModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './studio-breadcrumb.html',

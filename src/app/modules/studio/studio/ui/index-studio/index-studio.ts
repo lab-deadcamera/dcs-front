@@ -421,6 +421,21 @@ export class IndexStudio implements OnInit {
     const chapterId = this.navSelectedChapterId();
     if (projectId && chapterId) {
       this.loadShots(projectId, chapterId, sceneId);
+
+      // Load scene assignments so the shot builder has access to characters,
+      // presets and free assets before generating
+      this.http
+        .get<{ data: any }>(
+          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
+        )
+        .subscribe({
+          next: (res) => {
+            if (res.data) this.studio.setSceneAssignments(res.data);
+          },
+          error: () => {
+            /* assignments not critical */
+          },
+        });
     }
   }
 
@@ -700,6 +715,33 @@ export class IndexStudio implements OnInit {
           });
         });
     });
+  }
+
+  /** Handle the shots saved event from the shot builder panel. */
+  protected onShotsSaved(event: {
+    projectId: string;
+    chapterId: string;
+    sceneId: string;
+    firstShotId: string;
+    firstShotDescription: string;
+  }): void {
+    // Reload shots so the breadcrumb shows the new list
+    this.reloadShots();
+
+    // Set the shot in the breadcrumb model so it gets selected
+    this.navSelectedShotId.set(event.firstShotId);
+
+    // Start session with the newly created first shot
+    this.startSessionWithShot({
+      id: event.firstShotId,
+      number: 1,
+      name: event.firstShotDescription.slice(0, 40) || 'Shot 1',
+    });
+
+    // Restore the first shot's description as the pre-prompt
+    if (event.firstShotDescription) {
+      this.studio.setRawDescription(event.firstShotDescription);
+    }
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────

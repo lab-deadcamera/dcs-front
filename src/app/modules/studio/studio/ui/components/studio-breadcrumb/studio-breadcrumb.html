@@ -4,19 +4,21 @@
     @if (loadingProjects()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-select
-        [options]="projects()"
-        optionLabel="name"
-        optionValue="id"
-        [filter]="projects().length > 2"
-        filterBy="name"
-        class="w-52"
-        [(ngModel)]="selectedProjectId"
-        [placeholder]="'Project'"
-        [showClear]="false"
-        styleClass="studio-bcrumb-select"
-        (onChange)="onProjectChange($event.value)"
-      />
+      <p-floatlabel class="w-full md:w-56" variant="on">
+        <p-select
+          [options]="projects()"
+          optionLabel="name"
+          optionValue="id"
+          [filter]="projects().length > 2"
+          filterBy="name"
+          class="w-52"
+          [(ngModel)]="selectedProjectId"
+          [showClear]="false"
+          styleClass="studio-bcrumb-select"
+          (onChange)="onProjectChange($event.value)"
+        />
+        <label for="on_label">Project</label>
+      </p-floatlabel>
     }
   </div>
 
@@ -29,18 +31,21 @@
     } @else if (loadingChapters()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-select
-        [options]="chapters()"
-        optionLabel="label"
-        optionValue="id"
-        [filter]="chapters().length > 2"
-        filterBy="name"
-        [(ngModel)]="selectedChapterId"
-        [placeholder]="'Episode'"
-        [showClear]="false"
-        styleClass="studio-bcrumb-select"
-        (onChange)="onChapterChange($event.value)"
-      />
+      <p-floatlabel class="w-full md:w-56" variant="on">
+        <p-select
+          [options]="chapters()"
+          optionLabel="label"
+          optionValue="id"
+          [filter]="chapters().length > 2"
+          filterBy="name"
+          [(ngModel)]="selectedChapterId"
+          [placeholder]="'Episode'"
+          [showClear]="false"
+          styleClass="studio-bcrumb-select"
+          (onChange)="onChapterChange($event.value)"
+        />
+        <label for="on_label">Episode</label>
+      </p-floatlabel>
     }
   </div>
 
@@ -53,18 +58,21 @@
     } @else if (loadingScenes()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-select
-        [options]="scenes()"
-        optionLabel="label"
-        optionValue="id"
-        [filter]="scenes().length > 2"
-        filterBy="name"
-        [(ngModel)]="selectedSceneId"
-        [placeholder]="'Scene'"
-        [showClear]="false"
-        styleClass="studio-bcrumb-select"
-        (onChange)="onSceneChange($event.value)"
-      />
+      <p-floatlabel class="w-full md:w-56" variant="on">
+        <p-select
+          [options]="scenes()"
+          optionLabel="label"
+          optionValue="id"
+          [filter]="scenes().length > 2"
+          filterBy="name"
+          [(ngModel)]="selectedSceneId"
+          [placeholder]="'Scene'"
+          [showClear]="false"
+          styleClass="studio-bcrumb-select"
+          (onChange)="onSceneChange($event.value)"
+        />
+        <label for="on_label">Scene</label>
+      </p-floatlabel>
     }
   </div>
 
@@ -77,18 +85,21 @@
     } @else if (loadingShots()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-select
-        [options]="shots()"
-        optionLabel="label"
-        optionValue="id"
-        [filter]="shots().length > 2"
-        filterBy="name"
-        [(ngModel)]="selectedShotId"
-        [placeholder]="'Shot'"
-        [showClear]="true"
-        styleClass="studio-bcrumb-select"
-        (onChange)="onShotChange($event.value)"
-      />
+      <p-floatlabel class="w-full md:w-56" variant="on">
+        <p-select
+          [options]="shots()"
+          optionLabel="label"
+          optionValue="id"
+          [filter]="shots().length > 2"
+          filterBy="name"
+          [(ngModel)]="selectedShotId"
+          [placeholder]="'Shot'"
+          [showClear]="true"
+          styleClass="studio-bcrumb-select"
+          (onChange)="onShotChange($event.value)"
+        />
+        <label for="on_label">Shot</label>
+      </p-floatlabel>
     }
   </div>
 

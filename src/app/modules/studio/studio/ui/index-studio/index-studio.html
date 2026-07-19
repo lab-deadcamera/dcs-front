@@ -74,6 +74,7 @@
                 [projectName]="navSelectedProjectName()"
                 [chapterName]="navSelectedChapterName()"
                 [sceneName]="navSelectedSceneName()"
+                (shotsSaved)="onShotsSaved($event)"
               />
             } @else {
               <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
@@ -163,6 +164,7 @@
         [projectName]="navSelectedProjectName()"
         [chapterName]="navSelectedChapterName()"
         [sceneName]="navSelectedSceneName()"
+        (shotsSaved)="onShotsSaved($event)"
       />
     } @else {
       <div class="flex flex-1 flex-col items-center justify-center gap-4 py-24">
