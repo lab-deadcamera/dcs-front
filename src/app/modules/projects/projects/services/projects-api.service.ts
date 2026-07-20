@@ -87,10 +87,12 @@ export class ProjectsApiService {
   // ---------------------------------------------------------------------------
 
   listChapters(projectId: string): Observable<{ error: boolean; msg: string; data?: Chapter[] }> {
-    return this.http.get<ResponseBase<Chapter[]>>(`${this.apiUrl}/projects/${projectId}/chapters`).pipe(
-      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-      catchError(httpErrorHandler<Chapter[]>),
-    );
+    return this.http
+      .get<ResponseBase<Chapter[]>>(`${this.apiUrl}/projects/${projectId}/chapters`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<Chapter[]>),
+      );
   }
 
   createChapter(
@@ -111,7 +113,9 @@ export class ProjectsApiService {
     payload: UpdateChapterRequest,
   ): Observable<{ error: boolean; msg: string; data?: Chapter }> {
     return this.http
-      .patch<ResponseBase<Chapter>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}`, payload)
+      .patch<
+        ResponseBase<Chapter>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Chapter>),
@@ -136,7 +140,9 @@ export class ProjectsApiService {
     chapterId: string,
   ): Observable<{ error: boolean; msg: string; data?: Scene[] }> {
     return this.http
-      .get<ResponseBase<Scene[]>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`)
+      .get<
+        ResponseBase<Scene[]>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene[]>),
@@ -149,7 +155,9 @@ export class ProjectsApiService {
     payload: CreateSceneRequest,
   ): Observable<{ error: boolean; msg: string; data?: Scene }> {
     return this.http
-      .post<ResponseBase<Scene>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`, payload)
+      .post<
+        ResponseBase<Scene>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene>),
@@ -163,10 +171,9 @@ export class ProjectsApiService {
     payload: UpdateSceneRequest,
   ): Observable<{ error: boolean; msg: string; data?: Scene }> {
     return this.http
-      .patch<ResponseBase<Scene>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`,
-        payload,
-      )
+      .patch<
+        ResponseBase<Scene>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene>),
@@ -179,9 +186,9 @@ export class ProjectsApiService {
     sceneId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
@@ -198,9 +205,9 @@ export class ProjectsApiService {
     sceneId: string,
   ): Observable<{ error: boolean; msg: string; data?: Shot[] }> {
     return this.http
-      .get<ResponseBase<Shot[]>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-      )
+      .get<
+        ResponseBase<Shot[]>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot[]>),
@@ -214,13 +221,28 @@ export class ProjectsApiService {
     payload: CreateShotRequest,
   ): Observable<{ error: boolean; msg: string; data?: Shot }> {
     return this.http
-      .post<ResponseBase<Shot>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-        payload,
-      )
+      .post<
+        ResponseBase<Shot>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot>),
+      );
+  }
+
+  getShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+  ): Observable<{ error: boolean; msg: string; data?: { shot: Shot; takes: Take[] } }> {
+    return this.http
+      .get<
+        ResponseBase<{ shot: Shot; takes: Take[] }>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ shot: Shot; takes: Take[] }>),
       );
   }
 
@@ -232,10 +254,9 @@ export class ProjectsApiService {
     payload: UpdateShotRequest,
   ): Observable<{ error: boolean; msg: string; data?: Shot }> {
     return this.http
-      .patch<ResponseBase<Shot>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`,
-        payload,
-      )
+      .patch<
+        ResponseBase<Shot>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot>),
@@ -249,9 +270,9 @@ export class ProjectsApiService {
     shotId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
@@ -269,9 +290,9 @@ export class ProjectsApiService {
     shotId: string,
   ): Observable<{ error: boolean; msg: string; data?: Take[] }> {
     return this.http
-      .get<Take[]>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes`,
-      )
+      .get<
+        Take[]
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes`)
       .pipe(
         map((r: any) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Take[]>),
@@ -340,9 +361,9 @@ export class ProjectsApiService {
     takeId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${takeId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${takeId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),

@@ -445,7 +445,6 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   uploadFile(ev: FileUploadHandlerEvent) {
-    console.log('file selected');
     this.fileUploadLoading.set(true);
 
     if (!ev.files.length) {

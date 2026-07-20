@@ -344,10 +344,7 @@ export class IndexAdmin implements OnInit {
   }
 
   private loadPage(): void {
-    console.log('Loading page...');
-    console.log(this.page(), this.limit());
     const f = this.filters();
-    console.log(f);
     this.loading.set(true);
     this.genLogs
       .getLogs({

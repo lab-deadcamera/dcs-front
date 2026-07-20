@@ -11,6 +11,7 @@ import {
   PROMPT_TEMPLATE,
   ReferenceAsset,
   UsedAsset,
+  UsedAssetKind,
 } from '../interfaces/studio.models';
 import { ModelData } from '../interfaces';
 
@@ -90,9 +91,15 @@ export class StudioStore {
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
   // ── Shot Resources (loaded when a shot is selected) ────────────────
-  private readonly _shotCharacters = signal<Array<{ id: string; characterId: string; name: string }>>([]);
-  private readonly _shotAssets = signal<Array<{ id: string; fileId: string; filename: string; mimeType: string; slot: string }>>([]);
-  private readonly _shotPresets = signal<Array<{ id: string; presetId: string; code: string; label: string; prompt: string }>>([]);
+  private readonly _shotCharacters = signal<
+    Array<{ id: string; characterId: string; name: string }>
+  >([]);
+  private readonly _shotAssets = signal<
+    Array<{ id: string; fileId: string; filename: string; mimeType: string; slot: string }>
+  >([]);
+  private readonly _shotPresets = signal<
+    Array<{ id: string; presetId: string; code: string; label: string; prompt: string }>
+  >([]);
   private readonly _shotResourcesLoaded = signal(false);
 
   readonly shotCharacters = this._shotCharacters.asReadonly();
@@ -103,19 +110,65 @@ export class StudioStore {
   /** Load shot resources (characters, assets, presets) from the backend. */
   loadShotResources(data: {
     characters: Array<{ id: string; character_id: string; name: string }>;
-    assets: Array<{ id: string; file_id: string; filename: string; mime_type: string; slot: string }>;
+    assets: Array<{
+      id: string;
+      file_id: string;
+      filename: string;
+      mime_type: string;
+      slot: string;
+    }>;
     presets: Array<{ id: string; preset_id: string; code: string; label: string; prompt: string }>;
   }): void {
     this._shotCharacters.set(
-      data.characters?.map((c: any) => ({ id: c.id, characterId: c.character_id, name: c.name })) ?? [],
+      data.characters?.map((c: any) => ({ id: c.id, characterId: c.character_id, name: c.name })) ??
+        [],
     );
     this._shotAssets.set(
-      data.assets?.map((a: any) => ({ id: a.id, fileId: a.file_id, filename: a.filename, mimeType: a.mime_type, slot: a.slot })) ?? [],
+      data.assets?.map((a: any) => ({
+        id: a.id,
+        fileId: a.file_id,
+        filename: a.filename,
+        mimeType: a.mime_type,
+        slot: a.slot,
+      })) ?? [],
     );
     this._shotPresets.set(
-      data.presets?.map((p: any) => ({ id: p.id, presetId: p.preset_id, code: p.code, label: p.label, prompt: p.prompt })) ?? [],
+      data.presets?.map((p: any) => ({
+        id: p.id,
+        presetId: p.preset_id,
+        code: p.code,
+        label: p.label,
+        prompt: p.prompt,
+      })) ?? [],
     );
     this._shotResourcesLoaded.set(true);
+
+    // Auto-load shot characters and assets as used assets so they appear
+    // as chips in the PromptBuilder without manual selection.
+    this._usedAssets.set([]);
+    for (const c of this._shotCharacters()) {
+      this.useAsset({
+        fileId: c.characterId,
+        characterId: c.characterId,
+        name: c.name,
+        filename: c.name,
+        kind: 'image',
+      });
+    }
+    for (const a of this._shotAssets()) {
+      const kind: UsedAssetKind = a.mimeType.startsWith('video')
+        ? 'video'
+        : a.mimeType.startsWith('audio')
+          ? 'audio'
+          : 'image';
+      this.useAsset({
+        fileId: a.fileId,
+        characterId: '',
+        name: a.filename,
+        filename: a.filename,
+        kind,
+      });
+    }
   }
 
   clearShotResources(): void {
@@ -328,8 +381,6 @@ export class StudioStore {
   toggleTake(takeIndex: number): void {
     const list = this._takes();
     const target = list.find((t) => t.index === takeIndex);
-    console.log({ list, target, takeIndex });
-
     if (!target) return;
     const willBeDone = target.status === 'pending';
 

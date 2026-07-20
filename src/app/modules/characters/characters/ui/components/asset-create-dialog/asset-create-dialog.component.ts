@@ -322,7 +322,6 @@ export class AssetCreateDialogComponent implements OnDestroy {
         metadata: { assetType: type, fileKind },
       })
       .subscribe((res) => {
-        console.log({ res });
         if (res.error || !res.data) {
           this.submitting.set(false);
           this.toast.add({

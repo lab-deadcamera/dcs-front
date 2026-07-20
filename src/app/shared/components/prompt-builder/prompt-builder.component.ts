@@ -349,7 +349,6 @@ export class PromptBuilderComponent implements OnInit {
     // onTextChange, but we set the flag preemptively in case the event
     // path is suppressed for `api`-source edits.
     this.skipStoreSync = true;
-    console.log({ txt: quill.getText() });
     this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
   }
 }
