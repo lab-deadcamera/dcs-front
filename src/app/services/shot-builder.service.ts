@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
-import { catchError, finalize, map, of } from 'rxjs';
+import { catchError, finalize, map, of, throwError } from 'rxjs';
 import { parseArtifactData, computeCharacterCount } from './shot-builder-artifact';
 import { Sequence } from '@app/core/interfaces';
 
@@ -25,7 +25,7 @@ export interface SceneContext {
   description?: string;
   characters?: Array<{ name: string; description?: string }>;
   presets?: Array<{ code: string; label: string; prompt?: string }>;
-  assets?: Array<{ filename: string; mimeType: string }>;
+  assets?: Array<{ id?: string; filename: string; mimeType: string }>;
 }
 
 /** Result from the proncer endpoint. */
@@ -59,8 +59,6 @@ export class ShotBuilderService {
     sceneContext?: SceneContext;
     generateZh?: boolean;
   }) {
-    console.log({ request });
-
     if (!request.sceneId || !request.projectId) {
       return of({ shots: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
         this.error.set('Select a scene before generating shots');
@@ -116,7 +114,7 @@ export class ShotBuilderService {
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not generate shot list';
           this.error.set(message);
-          return of({ shots: [], rawText: '' } as ShotBuilderResult);
+          return throwError(() => new Error(message));
         }),
         finalize(() => this.loading.set(false)),
       );
@@ -272,6 +270,42 @@ export class ShotBuilderService {
     // In practice, the component will call this sequentially.
   }
 
+  /**
+   * Create a single shot record in the backend via POST.
+   */
+  createShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    payload: {
+      number: number;
+      name: string;
+      description: string;
+      aspect_ratio?: string;
+      duration_seconds?: number;
+    },
+  ) {
+    return this.http
+      .post<{
+        success: boolean;
+        data?: { id: string };
+        message?: string;
+      }>(
+        `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
+        payload,
+      )
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to create shot:', payload.name, err);
+          return of({
+            success: false,
+            data: undefined,
+            message: err?.error?.message || err?.message || 'Unknown error',
+          });
+        }),
+      );
+  }
+
   // ── Private helpers ───────────────────────────────────────────────
 
   private parseShotsResponse(data: {
@@ -355,7 +389,9 @@ export class ShotBuilderService {
         if (Array.isArray(parsed)) {
           return parsed as ShotBuilderShot[];
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       return null;
     };
 

@@ -1,4 +1,5 @@
 <div class="flex flex-col gap-4 h-full">
+  <p-toast position="top-right" />
   <h2 class="text-base font-semibold text-fg">Shot Builder</h2>
 
   <p-splitter class="shot-builder-splitter h-full" [panelSizes]="[55, 45]">
@@ -44,6 +45,98 @@
           [disabled]="loading()"
           [(ngModel)]="promptText"
         ></textarea>
+
+        <!-- Scene assets preview (loaded from scene assignments) -->
+        @if (assignmentsLoaded()) {
+          <div class="border-t border-ink-700 pt-2">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg"
+              (click)="sceneAssetsExpanded.set(!sceneAssetsExpanded())"
+              [attr.aria-expanded]="sceneAssetsExpanded()"
+            >
+              <span>Scene Assets</span>
+              <span
+                aria-hidden="true"
+                class="inline-block transition-transform duration-150"
+                [class.rotate-180]="sceneAssetsExpanded()"
+                >▾</span
+              >
+            </button>
+
+            @if (sceneAssetsExpanded()) {
+              <!-- Characters -->
+              @if (studio.sceneCharacterData().length > 0) {
+                <div class="mt-2">
+                  <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                    Characters
+                  </span>
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    @for (c of studio.sceneCharacterData(); track c.id) {
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500"
+                      >
+                        <i class="pi pi-user text-[10px]" aria-hidden="true"></i>
+                        {{ c.name }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Free Assets (images, video, audio) -->
+              @if (studio.freeAssets().length > 0) {
+                <div class="mt-2">
+                  <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+                    Free Assets
+                  </span>
+                  <div class="mt-1 flex flex-wrap gap-1.5">
+                    @for (a of studio.freeAssets(); track a.id) {
+                      <div
+                        class="group relative h-12 w-12 overflow-hidden rounded border border-ink-600 bg-ink-800"
+                        [title]="a.filename"
+                      >
+                        @if (a.kind === 'image' && !isThumbBroken(a.id)) {
+                          <img
+                            [src]="a.id | sourceAsset"
+                            [alt]="a.filename"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                            (error)="onThumbError(a.id)"
+                          />
+                        } @else {
+                          <div
+                            class="flex h-full w-full items-center justify-center text-[11px] text-fg-muted"
+                          >
+                            <i
+                              class="pi"
+                              [class.pi-image]="a.kind === 'image'"
+                              [class.pi-video]="a.kind === 'video'"
+                              [class.pi-volume-up]="a.kind === 'audio'"
+                              aria-hidden="true"
+                            ></i>
+                          </div>
+                        }
+                        <span
+                          class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/70 px-0.5 text-[8px] leading-tight text-fg-muted"
+                        >
+                          {{ a.filename }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Empty state -->
+              @if (studio.sceneCharacterData().length === 0 && studio.freeAssets().length === 0) {
+                <p class="mt-2 text-[11px] italic text-fg-muted">
+                  No assets assigned to this scene.
+                </p>
+              }
+            }
+          </div>
+        }
 
         <!-- Bottom bar: file list + actions -->
         <div class="border-t border-ink-700 pt-2">
@@ -377,3 +470,40 @@
     </div>
   </ng-template>
 </p-dialog>
+
+@if (modelWarningVisible()) {
+  <p-dialog
+    [visible]="true"
+    [modal]="true"
+    [closable]="false"
+    [draggable]="false"
+    [style]="{ width: '28rem', maxWidth: '95vw' }"
+    header="Model Required"
+  >
+    <div class="flex flex-col gap-4 py-2">
+      <p class="text-[13px] leading-relaxed text-fg">
+        The Shot Builder requires a model named
+        <code class="rounded bg-ink-800 px-1 py-0.5 font-mono text-[12px] text-amber-400">claude-shot-builder</code>
+        of type <strong>text</strong> to function.
+      </p>
+      <p class="text-[13px] leading-relaxed text-fg-muted">
+        Please create this model in the <strong>Providers</strong> section before using the Shot Builder.
+      </p>
+    </div>
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          severity="primary"
+          label="Go to Providers"
+          (onClick)="onGoToProviders()"
+        />
+        <p-button
+          severity="secondary"
+          [text]="true"
+          label="Dismiss"
+          (onClick)="modelWarningVisible.set(false)"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
+}

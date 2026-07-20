@@ -10,8 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@environment/environment';
+import { StudioApiService } from '@app/services/studio-api.service';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
@@ -115,8 +114,7 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
-  private readonly http = inject(HttpClient);
-  protected readonly environment = environment;
+  private readonly studioApi = inject(StudioApiService);
 
   // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
 
@@ -424,18 +422,14 @@ export class IndexStudio implements OnInit {
 
       // Load scene assignments so the shot builder has access to characters,
       // presets and free assets before generating
-      this.http
-        .get<{ data: any }>(
-          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
-        )
-        .subscribe({
-          next: (res) => {
-            if (res.data) this.studio.setSceneAssignments(res.data);
-          },
-          error: () => {
-            /* assignments not critical */
-          },
-        });
+      this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+        next: (res) => {
+          if (res.data) this.studio.setSceneAssignments(res.data);
+        },
+        error: () => {
+          /* assignments not critical */
+        },
+      });
     }
   }
 
@@ -457,14 +451,12 @@ export class IndexStudio implements OnInit {
     this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
-        const items = res.data
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((sh) => ({
-            id: sh.id,
-            number: sh.number,
-            name: sh.name,
-            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
-          }));
+        const items = res.data.map((sh) => ({
+          id: sh.id,
+          number: sh.number,
+          name: sh.name,
+          label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+        }));
         this.navShots.set(items);
         this.autoSelectShot(items);
       }
@@ -513,14 +505,12 @@ export class IndexStudio implements OnInit {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
         this.navShots.set(
-          res.data
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((sh) => ({
-              id: sh.id,
-              number: sh.number,
-              name: sh.name,
-              label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
-            })),
+          res.data.map((sh) => ({
+            id: sh.id,
+            number: sh.number,
+            name: sh.name,
+            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+          })),
         );
         // Auto-select if the previously selected shot is now in the list
         const saved = this.savedNav;
@@ -605,6 +595,9 @@ export class IndexStudio implements OnInit {
     const chapter = this.navChapters().find((c) => c.id === chapterId);
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
 
+    // Clear previous used assets before loading a new shot
+    this.studio.clearUsedAssets();
+
     this.projectsApi.listTakes(projectId, chapterId, sceneId, shot.id).subscribe((takesRes) => {
       const backendTakes = takesRes.error || !takesRes.data ? [] : takesRes.data;
       const totalTakes = Math.max(
@@ -632,34 +625,51 @@ export class IndexStudio implements OnInit {
         handle,
       });
 
-      this.http
-        .get<{ data: any }>(
-          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
-        )
-        .subscribe({
-          next: (res) => {
-            if (res.data) this.studio.setSceneAssignments(res.data);
-          },
-          error: () => {
-            /* assignments not critical */
-          },
-        });
+      // Load the shot's description (pre-prompt) and restore it
+      this.projectsApi.getShot(projectId, chapterId, sceneId, shot.id).subscribe({
+        next: (res) => {
+          if (!res.error && res.data?.shot.description) {
+            this.studio.setRawDescription(res.data.shot.description);
+          }
 
-      // Load shot resources (characters, assets, presets) for the selected shot
-      this.http
-        .get<{ success: boolean; data: any }>(
-          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shot.id}/resources`,
-        )
-        .subscribe({
-          next: (res) => {
-            if (res.success && res.data) {
-              this.studio.loadShotResources(res.data);
+          // Restore output format from the shot's persisted values
+          if (!res.error && res.data?.shot) {
+            const backendShot = res.data.shot;
+            const patch: Record<string, unknown> = {};
+            if (backendShot.aspect_ratio) {
+              patch['aspectRatio'] = backendShot.aspect_ratio;
             }
-          },
-          error: () => {
-            /* shot resources not critical */
-          },
-        });
+            if (backendShot.duration_seconds && backendShot.duration_seconds > 0) {
+              patch['durationSeconds'] = backendShot.duration_seconds;
+            }
+            if (Object.keys(patch).length > 0) {
+              this.studio.patchOutput(patch as any);
+            }
+          }
+        },
+      });
+
+      this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+        next: (res) => {
+          if (res.data) this.studio.setSceneAssignments(res.data);
+        },
+        error: () => {
+          /* assignments not critical */
+        },
+      });
+
+      // Load shot resources (characters, assets, presets) for the selected shot.
+      // loadShotResources() also auto-registers them as usedAssets in the store.
+      this.studioApi.getShotResources(projectId, chapterId, sceneId, shot.id).subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.studio.loadShotResources(res.data);
+          }
+        },
+        error: () => {
+          /* shot resources not critical */
+        },
+      });
     });
   }
 

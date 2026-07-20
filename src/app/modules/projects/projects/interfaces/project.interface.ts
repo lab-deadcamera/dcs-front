@@ -42,6 +42,8 @@ export interface Shot {
   description: string;
   active: boolean;
   take_count: number;
+  aspect_ratio?: string;
+  duration_seconds?: number;
   created_at: string;
   updated_at: string;
 }

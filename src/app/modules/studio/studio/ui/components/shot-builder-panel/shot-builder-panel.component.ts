@@ -1,16 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@environment/environment';
-import { catchError, of } from 'rxjs';
 import { SplitterModule } from 'primeng/splitter';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
+import { MessageService } from 'primeng/api';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import {
@@ -36,7 +42,10 @@ import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
 import { SceneContext } from '@app/services/shot-builder.service';
+import { ModelService } from '@app/services/model.service';
 import { AspectRatio } from '@app/core/interfaces/studio.models';
+import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
+import { StudioApiService } from '@app/services/studio-api.service';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -75,12 +84,36 @@ type UploadedFile = {
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
     DialogModule,
+    SourceAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shot-builder-panel.component.html',
   styleUrls: ['./shot-builder-panel.component.css'],
+  providers: [MessageService],
 })
 export class ShotBuilderPanelComponent {
+  constructor() {
+    this.validateClaudeModel();
+  }
+
+  /** Check that a text-type model named 'claude-shot-builder' exists and is active. */
+  private validateClaudeModel(): void {
+    this.modelService.getAllModels('text').subscribe((res) => {
+      this.modelCheckDone.set(true);
+      if (res.error || !res.data) {
+        return;
+      }
+      const target = res.data.find((m) => m.name === 'claude-shot-builder');
+      if (!target) {
+        this.modelMissing.set(true);
+        this.modelWarningVisible.set(true);
+      } else if (!target.active) {
+        this.modelMissing.set(true);
+        this.modelWarningVisible.set(true);
+      }
+    });
+  }
+
   /** Optional: allow parent to pass project/scene IDs directly.
    *  Falls back to StudioStore values if not provided. */
   readonly sceneId = input<string | null>(null);
@@ -94,8 +127,10 @@ export class ShotBuilderPanelComponent {
   protected readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
+  private readonly studioApiService = inject(StudioApiService);
+  private readonly modelService = inject(ModelService);
+  private readonly toast = inject(MessageService);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly http = inject(HttpClient);
 
   readonly promptText = signal('');
   readonly chatMessages = signal<ChatMessage[]>([]);
@@ -109,6 +144,13 @@ export class ShotBuilderPanelComponent {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  /** True after the claude-shot-builder model check completes. */
+  readonly modelCheckDone = signal(false);
+  /** True when the claude-shot-builder model was NOT found. */
+  readonly modelMissing = signal(false);
+  /** Dialog visibility for the missing model warning. */
+  protected readonly modelWarningVisible = signal(false);
 
   /** Typed Sequence data for the native Angular viewer. */
   readonly sequenceData = signal<Sequence | null>(null);
@@ -228,6 +270,35 @@ export class ShotBuilderPanelComponent {
 
     return JSON.stringify(snapshot, null, 2);
   });
+
+  // ── Scene Assets preview ───────────────────────────────────────────
+
+  /** Collapsed/expanded state for the scene assets section. */
+  protected readonly sceneAssetsExpanded = signal(true);
+
+  /** Navigate to the Providers section so the user can create the missing model. */
+  protected onGoToProviders(): void {
+    this.modelWarningVisible.set(false);
+    window.location.href = '/providers';
+  }
+
+  /** True when scene assignments have been loaded at least once. */
+  protected readonly assignmentsLoaded = computed(() => this.studio.assignmentsLoaded());
+
+  /** IDs of thumbnails that failed to load. */
+  private readonly brokenThumbs = signal<Set<string>>(new Set());
+
+  protected isThumbBroken(id: string): boolean {
+    return this.brokenThumbs().has(id);
+  }
+
+  protected onThumbError(id: string): void {
+    this.brokenThumbs.update((s) => {
+      const next = new Set(s);
+      next.add(id);
+      return next;
+    });
+  }
 
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
@@ -415,25 +486,19 @@ export class ShotBuilderPanelComponent {
     const userName = this.sessionStore.user()?.handle || '';
     const selectedSkill = this.studio.selectedSkill();
 
-    // Build scene context from studio store for richer generation
+    // Build scene context from the store for richer generation:
+    // characters + free assets loaded via setSceneAssignments()
+    // when the scene was selected (handleSceneSelected).
     const sceneContext: SceneContext = {
       description: this.studio.rawDescription() || undefined,
       characters: this.studio.sceneCharacterData().map((c) => ({
         name: c.name,
       })),
-      presets: this.studio.shotPresets().map((p) => ({
-        code: p.code,
-        label: p.label,
-        prompt: p.prompt,
-      })),
       assets: this.studio.freeAssets().map((a) => ({
+        id: a.id,
         filename: a.filename,
         mimeType:
-          a.kind === 'image'
-            ? 'image/png'
-            : a.kind === 'video'
-              ? 'video/mp4'
-              : 'audio/mpeg',
+          a.kind === 'image' ? 'image/png' : a.kind === 'video' ? 'video/mp4' : 'audio/mpeg',
       })),
     };
 
@@ -451,8 +516,6 @@ export class ShotBuilderPanelComponent {
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
-          console.log('SHOT BUILDER RESULT', result);
-
           this.shots.set(result.shots);
           this.rawResponse.set(result.rawText);
 
@@ -483,10 +546,16 @@ export class ShotBuilderPanelComponent {
         error: (err: unknown) => {
           const message = err instanceof Error ? err.message : 'Failed to generate shots';
           this.error.set(message);
+          this.loading.set(false);
+          this.toast.add({
+            severity: 'error',
+            summary: 'Shot Builder',
+            detail: message,
+            life: 6000,
+          });
         },
         complete: () => {
           this.loading.set(false);
-          console.log(this.shotBuilderService.errorMessage());
         },
       });
   }
@@ -572,6 +641,21 @@ export class ShotBuilderPanelComponent {
             patch['durationSeconds'] = Math.min(Math.round(seq.duration), 15);
           }
           this.studio.patchOutput(patch as any);
+
+          // Persist aspect_ratio and duration_seconds to every created shot
+          // so the format survives page reloads.
+          const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
+          if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
+          if (patch['durationSeconds'])
+            formatPayload['duration_seconds'] = patch['durationSeconds'] as number;
+
+          if (Object.keys(formatPayload).length > 0) {
+            for (const shotId of createdIds) {
+              this.studioApiService
+                .updateShotFormat(projectId, chapterId, sceneId, shotId, formatPayload)
+                .subscribe();
+            }
+          }
         }
         return;
       }
@@ -579,21 +663,15 @@ export class ShotBuilderPanelComponent {
       const item = list[index];
       const shotRef = currentShots[index];
       const number = shotRef?.number ?? index + 1;
-      const name = shotRef?.name ?? `Shot ${number}`;
+      // Use the Sequence shot title (generated by the AI) as the shot name,
+      // falling back to shotRef.name or a default.
+      const seqShot = this.sequenceData()?.shots[index];
+      const name = seqShot?.title || shotRef?.name || `Shot ${number}`;
       const description = item.prompt;
       index++;
 
-      this.http
-        .post<{ success: boolean; data?: { id: string }; message?: string }>(
-          `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-          { number, name, description },
-        )
-        .pipe(
-          catchError(() => {
-            createNext();
-            return of(null);
-          }),
-        )
+      this.shotBuilderService
+        .createShot(projectId, chapterId, sceneId, { number, name, description })
         .subscribe((res) => {
           if (res?.data?.id) {
             createdIds.push(res.data.id);
@@ -688,6 +766,23 @@ export class ShotBuilderPanelComponent {
             firstShotId: createdIds[0],
             firstShotDescription: currentShots[0].description,
           });
+
+          // Persist output format to each created shot
+          const seq = this.sequenceData();
+          if (seq) {
+            const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
+            if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
+            if (seq.duration && seq.duration > 0) {
+              formatPayload['duration_seconds'] = Math.min(Math.round(seq.duration), 15);
+            }
+            if (Object.keys(formatPayload).length > 0) {
+              for (const shotId of createdIds) {
+                this.studioApiService
+                  .updateShotFormat(projectId, chapterId, sceneId, shotId, formatPayload)
+                  .subscribe();
+              }
+            }
+          }
         }
         return;
       }
@@ -695,17 +790,12 @@ export class ShotBuilderPanelComponent {
       const shot = currentShots[index];
       index++;
 
-      this.http
-        .post<{ success: boolean; data?: { id: string }; message?: string }>(
-          `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-          { number: shot.number, name: shot.name, description: shot.description },
-        )
-        .pipe(
-          catchError(() => {
-            createNext();
-            return of(null);
-          }),
-        )
+      this.shotBuilderService
+        .createShot(projectId, chapterId, sceneId, {
+          number: shot.number,
+          name: shot.name,
+          description: shot.description,
+        })
         .subscribe((res) => {
           if (res?.data?.id) {
             createdIds.push(res.data.id);
