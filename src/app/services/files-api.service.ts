@@ -8,6 +8,8 @@ import {
   FileEntity,
   FileStorage,
   FileWire,
+  PaginatedFiles,
+  PaginatedFilesResponse,
   ResponseBase,
   UploadParams,
 } from '@app/core/interfaces';
@@ -24,6 +26,53 @@ import {
 export class FilesApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.API_URL + '/files';
+
+  /**
+   * Paginated list with optional search.
+   */
+  listPage(params: {
+    page: number;
+    pageSize: number;
+    category?: FileCategory | string;
+    storage?: FileStorage | string;
+    q?: string;
+  }): Observable<{
+    error: boolean;
+    msg: string;
+    data?: PaginatedFiles;
+  }> {
+    const qs = new URLSearchParams();
+    qs.set('page', String(params.page));
+    qs.set('pageSize', String(params.pageSize));
+    if (params.category) qs.set('category', params.category);
+    if (params.storage) qs.set('storage', params.storage);
+    if (params.q) qs.set('q', params.q);
+
+    const res = {
+      error: true,
+      msg: 'Error undefined',
+      data: undefined as PaginatedFiles | undefined,
+    };
+
+    return this.http
+      .get<{ success: boolean; data?: PaginatedFiles; message?: string }>(
+        `${this.apiUrl}/page?${qs.toString()}`,
+      )
+      .pipe(
+        map((r) => {
+          res.error = !r.success;
+          res.msg = r.message;
+          if (r.data) {
+            res.data = {
+              ...r.data,
+              items: r.data.items.map((w: any) => this.toEntity(w)),
+            };
+          }
+          return res;
+        }),
+        catchError(httpErrorHandler<PaginatedFiles>),
+      );
+  }
 
   /** Compute the public serve URL for a file id. */
   serveUrl(id: string): string {

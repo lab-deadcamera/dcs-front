@@ -3,3 +3,4 @@ export * from './character.util';
 export * from './common.util';
 export * from './file.util';
 export * from './crypto.util';
+export * from './array.utils';

@@ -17,6 +17,7 @@ import { FileCategory, FileEntity, UploadParams } from '../../interfaces';
 import { FileLinkDialogComponent } from '../components/file-link-dialog/file-link-dialog.component';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
 import { DialogModule } from 'primeng/dialog';
+import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { DOWNLOAD_VIDEO, GENERATE_URL_FILE } from '@app/shared/utils';
@@ -36,6 +37,7 @@ type ViewTab = FileCategory | 'trash';
  */
 @Component({
   imports: [
+    FormsModule,
     TranslatePipe,
     ButtonModule,
     ConfirmDialogModule,
@@ -77,6 +79,40 @@ export class IndexFiles implements OnInit {
 
   protected readonly active = computed<ViewTab>(() => this.files.category());
   protected readonly isTrash = computed(() => this.active() === 'trash');
+
+  // ── Search ──────────────────────────────────────────────────────
+  protected readonly searchValue = signal('');
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Debounced search — fires 400ms after the user stops typing. */
+  protected onSearchInput(value: string): void {
+    this.searchValue.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.files.setSearchQuery(value);
+    }, 400);
+  }
+
+  // ── Pagination ──────────────────────────────────────────────────
+  protected readonly pages = computed(() => {
+    const total = this.files.totalPages();
+    return total <= 1 ? [] : Array.from({ length: total }, (_, i) => i + 1);
+  });
+
+  protected readonly prevDisabled = computed(() => this.files.page() <= 1);
+  protected readonly nextDisabled = computed(() => this.files.page() >= this.files.totalPages());
+
+  protected onPrevPage(): void {
+    this.files.goToPage(this.files.page() - 1);
+  }
+
+  protected onNextPage(): void {
+    this.files.goToPage(this.files.page() + 1);
+  }
+
+  protected onGoToPage(page: number): void {
+    this.files.goToPage(page);
+  }
 
   ngOnInit(): void {
     this.files.load().subscribe();
