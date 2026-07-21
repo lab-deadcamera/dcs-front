@@ -21,7 +21,7 @@ export class FilesService {
   private readonly _total = signal(0);
   private readonly _page = signal(1);
   private readonly _totalPages = signal(0);
-  private readonly _pageSize = signal(50);
+  private readonly _pageSize = signal(20);
 
   readonly items = this._items.asReadonly();
   readonly loading = this._loading.asReadonly();
@@ -149,3 +149,4 @@ export class FilesService {
     return this.api.serveUrl(id);
   }
 }
+

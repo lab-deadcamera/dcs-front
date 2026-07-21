@@ -61,7 +61,7 @@ export class FilesApiService {
       .pipe(
         map((r) => {
           res.error = !r.success;
-          res.msg = r.message;
+          res.msg = r.message || '';
           if (r.data) {
             res.data = {
               ...r.data,

@@ -43,7 +43,7 @@ export class CharactersApiService {
       .pipe(
         map((r) => {
           res.error = !r.success;
-          res.msg = r.message;
+          res.msg = r.message || '';
           res.data = r.data;
           return res;
         }),
