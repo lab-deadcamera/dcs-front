@@ -67,3 +67,11 @@ export interface UpdateCharacterRequest {
   name?: string;
   description?: string;
 }
+
+export interface PaginatedCharacters {
+  items: CharacterWithFiles[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}

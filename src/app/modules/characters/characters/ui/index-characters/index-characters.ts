@@ -16,6 +16,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { from, map, mergeMap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 import { CharactersService } from '../../services';
 import {
@@ -48,6 +49,7 @@ import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 @Component({
   selector: 'app-index-characters',
   imports: [
+    FormsModule,
     TranslatePipe,
     ButtonModule,
     ConfirmDialogModule,
@@ -121,7 +123,40 @@ export class IndexCharacters implements OnInit {
     () => this.characters.itemsByType()[this.activeType()] ?? [],
   );
 
-  // Edit dialog (name / description) — reused for any type.
+  // ── Search ──────────────────────────────────────────────────────
+  protected readonly searchValue = signal('');
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected onSearchInput(value: string): void {
+    this.searchValue.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.characters.setSearchQuery(value);
+    }, 400);
+  }
+
+  // ── Pagination ──────────────────────────────────────────────────
+  protected readonly pages = computed(() => {
+    const total = this.characters.totalPages();
+    return total <= 1 ? [] : Array.from({ length: total }, (_, i) => i + 1);
+  });
+
+  protected readonly prevDisabled = computed(() => this.characters.page() <= 1);
+  protected readonly nextDisabled = computed(() => this.characters.page() >= this.characters.totalPages());
+
+  protected onPrevPage(): void {
+    this.characters.goToPage(this.characters.page() - 1);
+  }
+
+  protected onNextPage(): void {
+    this.characters.goToPage(this.characters.page() + 1);
+  }
+
+  protected onGoToPage(page: number): void {
+    this.characters.goToPage(page);
+  }
+
+  // ── Edit / File / Create ────────────────────────────────────────
   protected readonly editDialogVisible = signal(false);
   protected readonly editDialogTarget = signal<Character | null>(null);
   protected readonly submitting = signal(false);
@@ -140,7 +175,10 @@ export class IndexCharacters implements OnInit {
 
   protected loadAssets(): void {
     this.characters.load().subscribe((res) => {
-      if (!res.error && res.data) this.loadPreviews(res.data.map((c) => toCharacter(c.character)));
+      if (!res.error && res.data) {
+        const chars = res.data.items.map((c: any) => toCharacter(c.character));
+        this.loadPreviews(chars);
+      }
     });
   }
 

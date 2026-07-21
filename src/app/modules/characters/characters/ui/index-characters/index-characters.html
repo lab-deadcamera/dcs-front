@@ -69,6 +69,19 @@
     }
   </div>
 
+  <!-- Search bar -->
+  <div class="mb-4 flex items-center gap-3">
+    <span class="pi pi-search text-sm" style="color: var(--text-muted)"></span>
+    <input
+      type="text"
+      class="w-full max-w-xs rounded border bg-transparent px-3 py-1.5 font-mono text-[12px] outline-none transition-colors focus:border-primary-500"
+      style="border-color: var(--border-color); color: var(--text-primary)"
+      placeholder="Search by name..."
+      [ngModel]="searchValue()"
+      (ngModelChange)="onSearchInput($event)"
+    />
+  </div>
+
   <!-- Assets grid for the active type -->
   @if (characters.loading()) {
     <p class="py-8 text-center italic" style="color: var(--text-muted)">
@@ -240,6 +253,43 @@
     [character]="filesDialogTarget()"
     (visibleChange)="filesDialogVisible.set($event)"
   />
+
+  <!-- Pagination -->
+  @if (pages().length > 0) {
+    <div class="mt-4 flex items-center justify-center gap-2">
+      <p-button
+        icon="pi pi-chevron-left"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        [disabled]="prevDisabled()"
+        (onClick)="onPrevPage()"
+        [attr.aria-label]="'Previous page'"
+      />
+      @for (p of pages(); track p) {
+        <button
+          type="button"
+          class="min-w-[32px] rounded px-2 py-1 font-mono text-[12px] transition-colors"
+          [class.bg-primary-500]="characters.page() === p"
+          [class.text-white]="characters.page() === p"
+          [class.text-fg-muted]="characters.page() !== p"
+          [class.hover:bg-primary-500/20]="characters.page() !== p"
+          (click)="onGoToPage(p)"
+        >
+          {{ p }}
+        </button>
+      }
+      <p-button
+        icon="pi pi-chevron-right"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        [disabled]="nextDisabled()"
+        (onClick)="onNextPage()"
+        [attr.aria-label]="'Next page'"
+      />
+    </div>
+  }
 
   <p-confirmDialog />
   <p-toast position="bottom-right" />

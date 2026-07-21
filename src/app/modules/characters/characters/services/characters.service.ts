@@ -18,9 +18,21 @@ export class CharactersService {
 
   private readonly _items = signal<CharacterWithFiles[]>([]);
   private readonly _loading = signal(false);
+  private readonly _searchQuery = signal<string>('');
+
+  // Pagination state
+  private readonly _total = signal(0);
+  private readonly _page = signal(1);
+  private readonly _totalPages = signal(0);
+  private readonly _pageSize = signal(50);
 
   readonly items = this._items.asReadonly();
   readonly loading = this._loading.asReadonly();
+  readonly searchQuery = this._searchQuery.asReadonly();
+  readonly total = this._total.asReadonly();
+  readonly page = this._page.asReadonly();
+  readonly totalPages = this._totalPages.asReadonly();
+  readonly pageSize = this._pageSize.asReadonly();
   readonly count = computed(() => this._items().length);
 
   /** Items bucketed by asset type. Untyped rows fall into `character`. */
@@ -64,12 +76,31 @@ export class CharactersService {
     };
   });
 
+  /** Set search query and reload from page 1. */
+  setSearchQuery(q: string): void {
+    this._searchQuery.set(q);
+    this._page.set(1);
+    this.load().subscribe();
+  }
+
+  /** Go to a specific page. */
+  goToPage(page: number): void {
+    if (page < 1 || (this._totalPages() > 0 && page > this._totalPages())) return;
+    this._page.set(page);
+    this.load().subscribe();
+  }
+
   /** Refresh the in-memory cache from the backend. */
-  load(): Observable<{ error: boolean; msg: string; data?: CharacterWithFiles[] }> {
+  load(): Observable<{ error: boolean; msg: string; data?: any }> {
     this._loading.set(true);
-    return this.api.list().pipe(
+    return this.api.listPage({ page: this._page(), pageSize: this._pageSize(), q: this._searchQuery() || undefined }).pipe(
       tap((res) => {
-        if (!res.error && res.data) this._items.set(res.data);
+        if (!res.error && res.data) {
+          this._items.set(res.data.items);
+          this._total.set(res.data.total);
+          this._page.set(res.data.page);
+          this._totalPages.set(res.data.totalPages);
+        }
         this._loading.set(false);
       }),
     );
