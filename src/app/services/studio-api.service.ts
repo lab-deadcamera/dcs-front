@@ -18,15 +18,6 @@ export class StudioApiService {
   }
 
   /**
-   * Load shot-level resources (characters, assets, presets).
-   */
-  getShotResources(projectId: string, chapterId: string, sceneId: string, shotId: string) {
-    return this.http.get<{ success: boolean; data: any }>(
-      `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources`,
-    );
-  }
-
-  /**
    * Persist output format (aspect ratio, duration) to a shot so it survives
    * page reloads and is restored when the shot is loaded again.
    */

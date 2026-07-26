@@ -673,17 +673,6 @@ export class IndexStudio implements OnInit {
         },
       });
 
-      // Shot-level presets are still loaded from the resources endpoint.
-      this.studioApi.getShotResources(projectId, chapterId, sceneId, shot.id).subscribe({
-        next: (res) => {
-          if (res.success && res.data) {
-            this.studio.loadShotResources(res.data);
-          }
-        },
-        error: () => {
-          /* shot resources not critical */
-        },
-      });
     });
   }
 

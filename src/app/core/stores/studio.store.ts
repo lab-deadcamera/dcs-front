@@ -92,83 +92,6 @@ export class StudioStore {
   private readonly _assignmentsLoaded = signal(false);
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
-  // ── Shot Resources (loaded when a shot is selected) ────────────────
-  private readonly _shotCharacters = signal<
-    Array<{ id: string; characterId: string; name: string; slot: string; fileId: string }>
-  >([]);
-  private readonly _shotAssets = signal<
-    Array<{ id: string; fileId: string; filename: string; mimeType: string; slot: string }>
-  >([]);
-  private readonly _shotPresets = signal<
-    Array<{ id: string; presetId: string; code: string; label: string; prompt: string }>
-  >([]);
-  private readonly _shotResourcesLoaded = signal(false);
-
-  readonly shotCharacters = this._shotCharacters.asReadonly();
-  readonly shotAssets = this._shotAssets.asReadonly();
-  readonly shotPresets = this._shotPresets.asReadonly();
-  readonly shotResourcesLoaded = this._shotResourcesLoaded.asReadonly();
-
-  /** Load shot resources (presets) from the backend.
-   *
-   * Character and asset registration is now handled by
-   * `registerUsedAssetsFromDescription` which matches @image/video/audio
-   * tokens in the pre-prompt against scene-level assignments — this is
-   * more reliable because scene assignments already carry the correct
-   * slot mappings and fileId values. */
-  loadShotResources(data: {
-    characters?: Array<{ id: string; character_id: string; name: string; slot?: string; file_id?: string }>;
-    assets?: Array<{
-      id: string;
-      file_id: string;
-      filename: string;
-      mime_type: string;
-      slot: string;
-    }>;
-    presets: Array<{ id: string; preset_id: string; code: string; label: string; prompt: string }>;
-  }): void {
-    this._shotCharacters.set(
-      data.characters?.map((c: any) => ({
-        id: c.id,
-        characterId: c.character_id,
-        name: c.name,
-        slot: c.slot ?? '',
-        fileId: c.file_id ?? '',
-      })) ?? [],
-    );
-    this._shotAssets.set(
-      data.assets?.map((a: any) => ({
-        id: a.id,
-        fileId: a.file_id,
-        filename: a.filename,
-        mimeType: a.mime_type,
-        slot: a.slot,
-      })) ?? [],
-    );
-    this._shotPresets.set(
-      data.presets?.map((p: any) => ({
-        id: p.id,
-        presetId: p.preset_id,
-        code: p.code,
-        label: p.label,
-        prompt: p.prompt,
-      })) ?? [],
-    );
-    this._shotResourcesLoaded.set(true);
-    // Note: characters/assets are NOT auto-registered as usedAssets here.
-    // That is handled by registerUsedAssetsFromDescription which is called
-    // from index-studio after both the shot description and scene
-    // assignments are available — it matches @image/video/audio tokens in
-    // the pre-prompt against scene-level slot values, which is far more
-    // reliable than relying on the shot-resources endpoint.
-  }
-
-  clearShotResources(): void {
-    this._shotCharacters.set([]);
-    this._shotAssets.set([]);
-    this._shotPresets.set([]);
-    this._shotResourcesLoaded.set(false);
-  }
 
   /**
    * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
@@ -492,7 +415,7 @@ export class StudioStore {
     this._sceneCharacterData.set([]);
     this._sceneAssetIds.set(new Set());
     this._assignmentsLoaded.set(false);
-    this.clearShotResources();
+		// shot resources removed — using scene assignments only
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
