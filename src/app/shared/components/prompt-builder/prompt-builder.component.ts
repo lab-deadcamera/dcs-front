@@ -162,9 +162,9 @@ export class PromptBuilderComponent implements OnInit {
       this.prevCounts = next;
       if (!shrunk.image && !shrunk.video && !shrunk.audio) return;
       queueMicrotask(() => {
-        if (shrunk.image) this.pruneStaleTokens('Image', next.image);
-        if (shrunk.video) this.pruneStaleTokens('Video', next.video);
-        if (shrunk.audio) this.pruneStaleTokens('Audio', next.audio);
+        if (shrunk.image) this.pruneStaleTokens('image', next.image);
+        if (shrunk.video) this.pruneStaleTokens('video', next.video);
+        if (shrunk.audio) this.pruneStaleTokens('audio', next.audio);
       });
     });
   }
@@ -218,7 +218,7 @@ export class PromptBuilderComponent implements OnInit {
     // Quill always appends a trailing newline → length-1 is the end of content.
     const fallbackEnd = Math.max(0, quill.getLength() - 1);
     const cursorPosition = selection?.index ?? fallbackEnd;
-    const text = ` [${reference}]`;
+    const text = ` @${reference}`;
     quill.insertText(cursorPosition, text);
     quill.setSelection(cursorPosition + text.length, 0);
   }
@@ -295,19 +295,19 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * Canonical English label for a chip kind. Hardcoded (not translated)
+   * Canonical lowercase label for a chip kind. Hardcoded (not translated)
    * because the token also ships to the model in the payload and must
-   * match the frame hint vocabulary ("Image 1", "Video 1", "Audio 1").
+   * match the frame hint vocabulary ("@image1", "@video1", "@audio1").
    */
-  protected labelFor(kind: UsedAssetKind): 'Image' | 'Video' | 'Audio' {
-    if (kind === 'video') return 'Video';
-    if (kind === 'audio') return 'Audio';
-    return 'Image';
+  protected labelFor(kind: UsedAssetKind): 'image' | 'video' | 'audio' {
+    if (kind === 'video') return 'video';
+    if (kind === 'audio') return 'audio';
+    return 'image';
   }
 
   /**
    * Inserts a reference label whose number matches the chip the user just
-   * picked from the library (e.g. picking a third image emits `[Image3]`).
+   * picked from the library (e.g. picking a third image emits `@image3`).
    * Reads the count from the same filtered signals that render the chip
    * strip so labels stay in sync with what the user sees.
    */
@@ -323,17 +323,17 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * Remove every `[<label>N]` token whose N exceeds `maxAllowed`. Iterates
+   * Remove every `@<label>N` token whose N exceeds `maxAllowed`. Iterates
    * in reverse so deletions don't shift the indices of earlier matches.
    * Absorbs a single leading space so we don't leave double spaces behind
    * the way `addReference` inserts them.
    */
-  private pruneStaleTokens(label: 'Image' | 'Video' | 'Audio', maxAllowed: number): void {
+  private pruneStaleTokens(label: 'image' | 'video' | 'audio', maxAllowed: number): void {
     if (!this.editorRef) return;
     const quill = this.editorRef.getQuill();
     if (!quill) return;
     const text = quill.getText();
-    const pattern = new RegExp(` ?\\[${label}(\\d+)\\]`, 'g');
+    const pattern = new RegExp(` ?@${label}(\\d+)`, 'g');
     const stale: Array<{ index: number; length: number }> = [];
     let m: RegExpExecArray | null;
     while ((m = pattern.exec(text)) !== null) {

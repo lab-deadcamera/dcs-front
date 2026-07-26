@@ -1759,3 +1759,1497 @@ export const SHOT_RESPONSE: Sequence = {
     },
   ],
 };
+
+export const RESPONSE = {
+  description: 'Mike & Wyatt (gafas) - Confrontación fraternal en la sala',
+  duration: 40,
+  mode: 'M1',
+  aspectRatio: '9:16',
+  references: [
+    { slot: '@image1', assetId: 'mike', type: 'character' },
+    { slot: '@image2', assetId: 'wyatt-gafas', type: 'character' },
+    { slot: '@image3', assetId: 'plate-sala', type: 'plate' },
+  ],
+  sequenceFlow: {
+    title: 'Time budget',
+    subtitle: 'De la tensión fría al silencio roto',
+    duration: 40,
+    metric: 'dramaticIntensity',
+    scale: { start: 'Cold', middle: 'Hot', end: 'Empty' },
+    segments: [
+      { id: 'A', shotId: 'A', label: 'Hook', start: 0, end: 9, intensity: 0.25, color: '#3d8b8f' },
+      {
+        id: 'B',
+        shotId: 'B',
+        label: 'Friction',
+        start: 9,
+        end: 20,
+        intensity: 0.55,
+        color: '#c47c2b',
+      },
+      {
+        id: 'C',
+        shotId: 'C',
+        label: 'Spike',
+        start: 20,
+        end: 32,
+        intensity: 0.92,
+        color: '#b83232',
+      },
+      {
+        id: 'D',
+        shotId: 'D',
+        label: 'Button',
+        start: 32,
+        end: 40,
+        intensity: 0.18,
+        color: '#4a4a5a',
+      },
+    ],
+  },
+  directorNotes: {
+    goal: 'El espectador debe sentir que Mike ha cruzado una línea que Wyatt no puede ignorar — la sala se convierte en un ring donde nadie gana.',
+    styleGuide:
+      'teal-amber grade - spherical rectilinear lens - flat field no vignette - 24fps 180 degree - diegetic audio only - prompt in positive - analog grain visible',
+    warnings: [
+      'Cargar @image1 Mike y @image2 Wyatt (gafas) antes de generar cualquier shot',
+      '@image3 plate-sala se usa como entorno de fondo — no reemplazar con entorno sintético',
+      'Nunca cruzar el eje 180° entre @image1 y @image2 dentro del mismo shot',
+      'Mantener las gafas de Wyatt visibles y consistentes en todos los planos — rasgo de identidad clave',
+      'No usar música extradiegética — solo audio ambiente de sala y efectos físicos',
+    ],
+  },
+  shots: [
+    {
+      id: 'A',
+      title: 'Wyatt planta los pies — Mike entra al territorio',
+      description:
+        'Wyatt está de pie en la sala, inmóvil, con los brazos cruzados. Mike entra al fondo del plano y avanza hacia él sin decir nada todavía.',
+      duration: 9,
+      start: 0,
+      end: 9,
+      camera: {
+        lens: '40mm',
+        framing: 'Wide two-shot estático con sala visible',
+        movement: 'Near-static, ligera respiración de cámara handheld',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          '0-9s: Wide two-shot. @image2 izquierda x=28%, primer plano, brazos cruzados, de frente a cámara. @image1 derecha x=72%, fondo medio, avanzando hacia centro. Sala (@image3) visible en profundidad de campo.',
+        subjectLock:
+          '@image2: gafas visibles, camisa consistente, brazos cruzados al pecho. @image1: ropa consistente, postura erguida avanzando.',
+        crossFrameRules:
+          '@image2 izquierda fija, @image1 derecha entrando — ninguno cruza el eje central. Hombros de @image2 escuadrados a cámara.',
+        focus: 'Foco en @image2 primer plano, @image1 ligeramente desenfocado al fondo.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central, @image3 plate visible al fondo',
+        movement:
+          '0-9s: @image2 plantado izquierda, brazos cruzados, peso atrás en los talones. @image1 entra derecha-fondo y avanza lentamente hacia centro sin detenerse.',
+        interaction: 'Wide two-shot, nunca cara a cara directa — ángulo ligeramente escorzado.',
+        positions: [
+          {
+            subjectId: '@image2',
+            description: 'Izquierda x=28%, primer plano, inmóvil, brazos cruzados, gafas al frente',
+          },
+          {
+            subjectId: '@image1',
+            description: 'Derecha x=72%, fondo medio, avanzando lentamente hacia cámara',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Tensión fría / territorio marcado',
+        bodyLanguage:
+          '@image2: mandíbula apretada, hombros bajos y anchos, peso distribuido en ambos pies, brazos cruzados bloqueando el pecho. @image1: paso deliberado y lento, mirada fija en @image2, mentón nivelado.',
+        dialogue: '',
+        microExpressions: [
+          'Respiración visible en el pecho de @image2',
+          'Pisadas lentas y deliberadas de @image1',
+          'Músculos del antebrazo de @image2 apretados',
+        ],
+      },
+      timeline: {
+        duration: 9,
+        segments: [{ start: 0, end: 9, label: 'Wide two-shot — entrada silenciosa' }],
+        beats: [
+          { start: 0, end: 3, description: '@image2 plantado, cámara lo descubre' },
+          {
+            start: 3,
+            end: 9,
+            description: '@image1 entra al fondo y avanza hacia el territorio de @image2',
+          },
+        ],
+      },
+      audio: {
+        dialogue: '',
+        ambient: 'Sala en silencio — tono de habitación, leve zumbido de ciudad al fondo',
+        sfx: ['Pisadas lentas sobre suelo de madera o parquet', 'Crujido leve del suelo'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'mike', type: 'character' },
+        { slot: '@image2', assetId: 'wyatt-gafas', type: 'character' },
+        { slot: '@image3', assetId: 'plate-sala', type: 'plate' },
+      ],
+      prompt: {
+        en: "SCENE: Living room interior, natural daylight from one side, warm-teal color grade, analog film grain, flat field, no vignette, spherical rectilinear lens 40mm. Plate background @image3 sala visible in depth. FRAME MAP: Wide two-shot, 9:16 vertical aspect ratio. @image2 (Wyatt with glasses) left third x=28%, foreground, stationary, arms crossed over chest, glasses clearly visible, shoulders square to camera, weight back on both feet, jaw tight, eyes fixed forward. @image1 (Mike) right third x=72%, midground-background, advancing slowly toward center frame at deliberate walking pace, chin level, gaze locked on @image2. @image2 sharp focus foreground, @image1 slightly soft in depth — shallow DOF. Neither subject crosses center axis. BLOCKING: @image2 holds position entire 9 seconds — planted, unmovable. @image1 enters right side of frame at second 0 from background distance and walks steadily closer, closing distance by 60% over 9 seconds. No dialogue. ACTING: @image2 — arms crossed blocking chest, forearm muscles visibly tensed, chest rising with controlled breath, jaw clamped shut, weight evenly on both feet, body language reads 'this is my territory'. @image1 — slow deliberate footsteps, erect posture, unhurried advance, chin level, eyes never leave @image2. LAST FRAME: @image1 has closed to mid-distance, @image2 still planted left, tension visibly established between both bodies. AUDIO: Room tone silence, faint city hum beyond walls, slow deliberate footsteps on wood floor, minor floor creak. CAPTURE: 40mm spherical rectilinear, 24fps, 180-degree shutter, 9:16 aspect ratio, handheld near-static with subtle breathing movement, total duration 9 seconds.",
+        zh: "场景：室内客厅，单侧自然日光，暖青色调，模拟胶片颗粒，平坦画面，无晕影，球面直线镜头40mm。背景底板@image3 sala在景深中可见。构图：宽幅双人画面，9:16竖向比例。@image2（戴眼镜的Wyatt）左三分之一x=28%，前景，静止，双臂交叉于胸前，眼镜清晰可见，双肩正对镜头，重心后移，下颌咬紧，目视前方。@image1（Mike）右三分之一x=72%，中远景，以缓慢而刻意的步伐向画面中央走来，下巴水平，目光锁定@image2。@image2前景清晰对焦，@image1在景深中略微虚化——浅景深。两个主体均不越过画面中轴。走位：@image2全程9秒保持原位——planted，不动如山。@image1在第0秒从右侧背景距离入画，稳步向前，9秒内缩短约60%距离。无台词。表演：@image2——双臂交叉挡住胸口，前臂肌肉明显绷紧，胸部随控制呼吸起伏，下颌紧闭，重心平均分布双脚，肢体语言传达'这是我的地盘'。@image1——步伐缓慢刻意，身姿挺直，不紧不慢地走近，下巴水平，眼神始终不离@image2。最后一帧：@image1已缩短至中等距离，@image2仍植于左侧，双人之间的张力已清晰建立。音频：室内静音房间音，远处城市低鸣，木地板上缓慢有力的脚步声，轻微地板嘎吱声。拍摄参数：40mm球面直线镜头，24fps，180度快门，9:16比例，手持近静态带轻微呼吸晃动，总时长9秒。",
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: ['Cargar @image1 Mike', 'Cargar @image2 Wyatt (gafas)', 'Cargar @image3 plate-sala'],
+        warnings: [
+          'Verificar que las gafas de @image2 sean visibles desde el inicio',
+          'Confirmar que @image1 no llega demasiado cerca al final — debe conservar distancia media',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'B',
+      title: 'Mike lanza el primer golpe verbal',
+      description:
+        'Singles alternados OTS: Mike habla directo a Wyatt, luego Wyatt escucha con la mandíbula apretada. La fricción se instala.',
+      duration: 11,
+      start: 9,
+      end: 20,
+      camera: {
+        lens: '55mm, 75mm',
+        framing: 'OTS @image1 sobre @image2, luego OTS @image2 sobre @image1',
+        movement: 'Handheld stable',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Corte 1 (9-14s): OTS @image2 — hombro izquierdo de @image2 x=15% ocupa esquina, @image1 en foco x=60% pecho-arriba, mirando a @image2. Corte 2 (14-20s): OTS @image1 — hombro derecho de @image1 x=85% esquina, @image2 en foco x=38% pecho-arriba, gafas visibles.',
+        subjectLock:
+          '@image1 + @image2: ropa y facciones idénticas a shot A. @image2 gafas siempre visibles. Hombros escuadrados.',
+        crossFrameRules:
+          '@image1 siempre mira izquierda-dentro, @image2 siempre mira derecha-dentro — miradas conectan a través del corte. No cruzar eje 180°.',
+        focus: 'Corte 1: foco en @image1. Corte 2: foco en @image2.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central, distancia media entre personajes',
+        movement:
+          'Corte 1: @image1 habla, mentón empujando hacia adelante, mano cortando el aire. Corte 2: @image2 escucha inmóvil, mandíbula apretada, luego gira levemente la cabeza mirando de reojo.',
+        interaction: 'OTS alternado — nunca cara a cara directa, siempre ángulo escorzado.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description:
+              'Corte 1: centro-derecho x=60%, en foco, pecho-arriba. Corte 2: hombro derecho x=85%, fuera de foco, esquina',
+          },
+          {
+            subjectId: '@image2',
+            description:
+              'Corte 1: hombro izquierdo x=15%, fuera de foco, esquina. Corte 2: centro-izquierdo x=38%, en foco, pecho-arriba, gafas visibles',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Friccción verbal / presión acumulada',
+        bodyLanguage:
+          '@image1: mentón empujando hacia arriba y adelante, mano derecha cortando el aire en gesto de acusación, torso inclinado hacia @image2, peso sobre pie adelantado. @image2: mandíbula apretada, músculos temporales visibles, gira la cabeza 5° de reojo — señal de control máximo antes de estallar.',
+        dialogue: "'¿En serio vas a hacer esto otra vez?'",
+        microExpressions: [
+          'Mentón de @image1 empujando hacia adelante',
+          'Mano de @image1 cortando el aire',
+          'Músculo temporal de @image2 pulsando',
+          'Giro de cabeza de @image2 de 5° al final',
+        ],
+      },
+      timeline: {
+        duration: 11,
+        segments: [
+          { start: 9, end: 14, label: 'Corte 1 — OTS @image1 hablando' },
+          { start: 14, end: 20, label: 'Corte 2 — OTS @image2 escuchando' },
+        ],
+        beats: [
+          { start: 9, end: 12, description: '@image1 lanza la acusación verbal, mentón adelante' },
+          { start: 12, end: 14, description: '@image1 termina frase, mano corta el aire' },
+          { start: 14, end: 18, description: '@image2 absorbe el golpe, mandíbula apretada' },
+          {
+            start: 18,
+            end: 20,
+            description: '@image2 gira la cabeza levemente de reojo — control al límite',
+          },
+        ],
+      },
+      audio: {
+        dialogue: "'¿En serio vas a hacer esto otra vez?'",
+        ambient: 'Sala en silencio, tono de habitación',
+        sfx: ['Mano golpeando el aire suavemente'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'mike', type: 'character' },
+        { slot: '@image2', assetId: 'wyatt-gafas', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE: Living room interior, natural daylight, warm-teal color grade, analog film grain, flat field, no vignette, spherical rectilinear lens alternating 55mm to 75mm across two cuts. 9:16 vertical aspect ratio. FRAME MAP — CUT 1 (0-5s within shot): OTS @image2 (Wyatt with glasses) — @image2 left shoulder x=15% foreground out-of-focus corner element. @image1 (Mike) in sharp focus center-right x=60%, chest-up framing, speaking directly toward @image1 eyeline. Shallow DOF. CUT 2 (5-11s within shot): OTS @image1 (Mike) — @image1 right shoulder x=85% foreground out-of-focus corner element. @image2 (Wyatt with glasses) in sharp focus center-left x=38%, chest-up framing, glasses clearly visible, listening. Shallow DOF. CROSS-FRAME RULES: @image1 always looks left-into-frame, @image2 always looks right-into-frame — eyelines connect across the cut. 180-degree axis never crossed. BLOCKING: Cut 1 — @image1 speaks with chin pushing forward and upward, right hand cutting the air in accusatory gesture, torso leaning toward @image2, weight on front foot. Cut 2 — @image2 stands completely still, jaw clenched, temporal muscles visibly tight, at second 4 of cut 2 turns head 5 degrees looking sideways — maximum controlled restraint before breaking point. ACTING: @image1 — aggressive-forward energy, chin jutting, hand slicing downward through air. @image2 — stillness as weapon, controlled breath, micro-jaw-clench visible, side-eye glance at end. DIALOGUE: @image1 says 'Are you seriously going to do this to me again?' in cut 1. @image2 silent in cut 2. LAST FRAME: @image2 in tight OTS, jaw hard, gaze shifted 5 degrees, glasses visible, tension maximal. AUDIO: Room tone, single hand gesture through air, near-silence otherwise. CAPTURE: 55mm for cut 1, 75mm for cut 2, 24fps, 180-degree shutter, 9:16, handheld stable, total duration 11 seconds.",
+        zh: "场景：室内客厅，自然日光，暖青色调，模拟胶片颗粒，平坦画面，无晕影，球面直线镜头在两个剪切间交替使用55mm和75mm。9:16竖向比例。构图——剪切1（镜头内0-5秒）：@image2（戴眼镜的Wyatt）过肩拍——@image2左肩x=15%前景失焦角落元素。@image1（Mike）中右位置x=60%清晰对焦，胸部以上取景，直视@image2方向说话。浅景深。剪切2（镜头内5-11秒）：@image1（Mike）过肩拍——@image1右肩x=85%前景失焦角落元素。@image2（戴眼镜的Wyatt）中左位置x=38%清晰对焦，胸部以上取景，眼镜清晰可见，正在倾听。浅景深。跨帧规则：@image1始终向左看入画面，@image2始终向右看入画面——视线在剪切间连接。180度轴线从不越过。走位：剪切1——@image1说话时下巴向前向上推，右手切割空气做出指责手势，上身向@image2倾斜，重心在前脚。剪切2——@image2完全静止，下颌咬紧，颞肌明显紧绷，剪切2第4秒头部转动5度向侧面瞥视——在爆发临界点前的最大克制控制。表演：@image1——攻击性向前能量，下巴突出，手向下切空气。@image2——静止作为武器，控制呼吸，微观下颌咬紧可见，结尾处斜眼一瞥。台词：@image1在剪切1说'你真的要再这样对我吗？'@image2在剪切2沉默。最后一帧：@image2紧凑过肩特写，下颌坚硬，目光偏移5度，眼镜可见，张力最大化。音频：室内音，单次手势切空气声，其余近乎静默。拍摄参数：剪切1用55mm，剪切2用75mm，24fps，180度快门，9:16，手持稳定，总时长11秒。",
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirmar eyeline de @image1 hacia izquierda y @image2 hacia derecha',
+          'Verificar gafas de @image2 en corte 2',
+        ],
+        warnings: [
+          'El OTS de @image2 debe mostrar hombro claramente como elemento de profundidad — no recortarlo',
+          'El giro de cabeza de @image2 al final debe ser sutil — 5° máximo, no exagerar',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'C',
+      title: 'Wyatt rompe — contraataca directo a la cara de Mike',
+      description:
+        'Wyatt descruza los brazos y avanza medio paso hacia Mike, lanzando su respuesta al pecho. La temperatura explota. Singles rápidos en empuje-respuesta.',
+      duration: 12,
+      start: 20,
+      end: 32,
+      camera: {
+        lens: '75mm to 85mm',
+        framing: 'Single @image2 pecho-arriba con push-in lento, luego single @image1 reacción',
+        movement: 'Push-in lento continuo en @image2, corte a handheld stable @image1',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Corte 1 (20-27s): Single @image2 pecho-arriba, x=50% centro, push-in lento de 75mm a 85mm durante 7s. @image2 descruza brazos y da medio paso hacia cámara. Corte 2 (27-32s): Single @image1 pecho-arriba x=50% centro, reacción — mandíbula apretada, retrocede medio paso.',
+        subjectLock:
+          '@image2 gafas visibles y consistentes. @image1 ropa y facciones idénticas al shot anterior. Hombros escuadrados en ambos singles.',
+        crossFrameRules:
+          'Singles independientes — cada uno centrado. Sin cruce de eje. Eyelines conectan a través del corte.',
+        focus:
+          'Corte 1: foco en @image2 todo el tiempo, push-in tightens encuadre. Corte 2: foco en @image1.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central, distancia cercana entre personajes',
+        movement:
+          'Corte 1: @image2 descruza los brazos (segundo 0 del corte), da medio paso adelante, torso inclinado hacia cámara, palabras disparadas a la garganta. Corte 2: @image1 absorbe el contraataque, retrocede medio paso involuntario, mandíbula apretada, ojos entrecerrados.',
+        interaction: 'Singles en empuje-respuesta — presión física sin contacto.',
+        positions: [
+          {
+            subjectId: '@image2',
+            description:
+              'Centro x=50%, pecho-arriba, avanzando medio paso hacia cámara durante corte 1',
+          },
+          {
+            subjectId: '@image1',
+            description:
+              'Centro x=50%, pecho-arriba, retrocediendo medio paso en corte 2, reacción de impacto',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Explosión controlada / contraataque con precisión',
+        bodyLanguage:
+          '@image2: descruza los brazos de golpe liberando energía contenida, da medio paso adelante, torso inclinado hacia adelante, dedos abiertos apuntando al pecho de @image1, voz baja y directa pero cargada. @image1: absorbe el golpe verbal, retrocede involuntariamente medio paso, mandíbula apretada, ojos entrecerrados, mano aprieta el costado del muslo.',
+        dialogue: "'Tú sabes exactamente lo que hiciste.'",
+        microExpressions: [
+          'Brazos de @image2 descruzan de golpe',
+          'Dedo de @image2 apuntando al pecho',
+          'Retroceso involuntario de @image1',
+          'Mano de @image1 apretando el muslo',
+          'Ojos entrecerrados de @image1',
+        ],
+      },
+      timeline: {
+        duration: 12,
+        segments: [
+          { start: 20, end: 27, label: 'Corte 1 — Single @image2 con push-in, contraataque' },
+          { start: 27, end: 32, label: 'Corte 2 — Single @image1 reacción de impacto' },
+        ],
+        beats: [
+          { start: 20, end: 21, description: '@image2 descruza los brazos de golpe' },
+          {
+            start: 21,
+            end: 23,
+            description: '@image2 da medio paso adelante, cámara push-in comienza',
+          },
+          {
+            start: 23,
+            end: 27,
+            description: '@image2 dispara las palabras, dedo apuntando, push-in completa',
+          },
+          { start: 27, end: 29, description: '@image1 absorbe el golpe, retroceso involuntario' },
+          {
+            start: 29,
+            end: 32,
+            description: '@image1 se recompone, mandíbula apretada, mano aprieta muslo',
+          },
+        ],
+      },
+      audio: {
+        dialogue: "'Tú sabes exactamente lo que hiciste.'",
+        ambient: 'Sala silencio tenso — room tone mínimo',
+        sfx: ['Brazos descruzados con fricción de ropa', 'Medio paso sobre suelo de madera'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'mike', type: 'character' },
+        { slot: '@image2', assetId: 'wyatt-gafas', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE: Living room interior, natural daylight, warm-teal color grade, analog film grain, flat field, no vignette, spherical rectilinear lens 75mm to 85mm push-in for cut 1, 75mm static for cut 2. 9:16 vertical aspect ratio. FRAME MAP — CUT 1 (0-7s within shot): Single @image2 (Wyatt with glasses), chest-up, centered x=50%. Slow continuous push-in from 75mm to 85mm over 7 seconds, tightening on @image2's face. Shallow DOF, @image2 sharp. CUT 2 (7-12s within shot): Single @image1 (Mike), chest-up, centered x=50%, handheld stable, @image1 sharp, shallow DOF. BLOCKING — CUT 1: At second 0 @image2 suddenly uncrosses arms releasing stored energy — motion is abrupt not smooth. Takes one half-step forward toward camera, torso leans forward, right hand fingers open pointing at chest level toward @image1 offscreen. Voice is low, direct, precise — not shouting, stabbing. Push-in camera mirrors the advance, tightening frame. CUT 2: @image1 receives the verbal impact — involuntary half-step backward, weight shifts to back foot, jaw clamps shut, eyes narrow, right hand clenches against outer thigh. ACTING: @image2 — uncrossing arms is the explosion of contained energy, controlled fury not rage, finger points like a blade not a fist. @image1 — the backward step is not retreat but absorption, body betrays what the face tries to hide — hand squeezing thigh is the tell. DIALOGUE: @image2 says 'You know exactly what you did.' in cut 1 — delivered low, direct. @image1 silent in cut 2. LAST FRAME: @image1 tight single, jaw clamped, eyes narrowed, hand pressing into thigh, face working to stay neutral. AUDIO: Room silence, abrupt cloth-on-cloth sound of arms uncrossing, half-step on wood floor, near-silence. CAPTURE: 75mm-to-85mm push-in for cut 1, 75mm stable for cut 2, 24fps, 180-degree shutter, 9:16, total duration 12 seconds.",
+        zh: "场景：室内客厅，自然日光，暖青色调，模拟胶片颗粒，平坦画面，无晕影，球面直线镜头剪切1为75mm到85mm推进，剪切2为75mm固定。9:16竖向比例。构图——剪切1（镜头内0-7秒）：@image2（戴眼镜的Wyatt）单人，胸部以上，居中x=50%。在7秒内从75mm到85mm缓慢连续推进，收紧@image2面部。浅景深，@image2清晰对焦。剪切2（镜头内7-12秒）：@image1（Mike）单人，胸部以上，居中x=50%，手持稳定，@image1清晰对焦，浅景深。走位——剪切1：第0秒@image2突然解开双臂，释放储存的能量——动作突然而非顺滑。向镜头方向迈半步，上身前倾，右手手指张开指向胸口高度朝向画面外的@image1。声音低沉、直接、精准——不是喊叫，而是刺入。推进镜头与前进动作呼应，收紧构图。剪切2：@image1接受言语冲击——不由自主地向后退半步，重心移向后脚，下颌咬紧，眼睛眯起，右手握紧贴于大腿外侧。表演：@image2——解开双臂是积累能量的爆炸，是控制的愤怒而非狂暴，手指像刀刃而非拳头指向对方。@image1——向后退步不是撤退而是吸收，身体出卖了脸部试图隐藏的东西——挤压大腿的手是泄露的破绽。台词：@image2在剪切1低声说'你很清楚自己做了什么。'@image1在剪切2沉默。最后一帧：@image1紧凑单人，下颌咬紧，眼睛眯起，手按在大腿上，面部努力保持平静。音频：室内静默，手臂解开时衣物摩擦的突然声响，木地板上半步声，近乎静默。拍摄参数：剪切1用75mm到85mm推进，剪切2用75mm固定，24fps，180度快门，9:16，总时长12秒。",
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirmar push-in fluido en corte 1 — no jerky',
+          'Verificar retroceso involuntario de @image1 — debe parecer instintivo',
+        ],
+        warnings: [
+          'El push-in debe ser lento y continuo — no un zoom brusco',
+          'El retroceso de @image1 es medio paso — no exagerar la retirada',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'D',
+      title: 'El silencio después — nadie gana',
+      description:
+        'Wide two-shot estático. Ambos personajes en sus lados del encuadre, sin hablar. Mike mira al suelo. Wyatt vuelve a cruzar los brazos. La sala los separa.',
+      duration: 8,
+      start: 32,
+      end: 40,
+      camera: {
+        lens: '40mm',
+        framing: 'Wide two-shot estático — espejo del shot A',
+        movement: 'Near-static, levísima respiración handheld',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          '32-40s: Wide two-shot. @image2 izquierda x=28%, foreground, vuelve a cruzar lentamente los brazos. @image1 derecha x=72%, midground, mira al suelo. Espacio vacío entre ellos en el tercio central. Sala @image3 visible al fondo.',
+        subjectLock:
+          '@image2 gafas visibles. Ropa idéntica a shots anteriores. Distancia entre ellos mayor que en shot C.',
+        crossFrameRules:
+          '@image2 izquierda, @image1 derecha — espejo de shot A. Ninguno cruza el eje central. El espacio vacío entre ellos es el protagonista.',
+        focus:
+          'Ambos en el mismo plano focal, foco repartido — sala @image3 ligeramente desenfocada al fondo.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central, @image3 plate visible al fondo',
+        movement:
+          '32-40s: @image2 en posición izquierda descruza y vuelve a cruzar lentamente los brazos — movimiento de cierre. @image1 baja la mirada al suelo, desplaza el peso al pie trasero. Ninguno se mueve del sitio.',
+        interaction: 'Wide two-shot — el espacio vacío entre ellos es la distancia emocional.',
+        positions: [
+          {
+            subjectId: '@image2',
+            description:
+              'Izquierda x=28%, foreground, cruzando los brazos lentamente, gafas visibles',
+          },
+          {
+            subjectId: '@image1',
+            description: 'Derecha x=72%, midground, mirada al suelo, peso atrás',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Vacío / tabique roto / nadie gana',
+        bodyLanguage:
+          '@image2: reconstruye lentamente la barrera de brazos cruzados — este cruce es diferente, ya no es territorio sino escudo. Mirada fija adelante pero vaciada. @image1: baja los ojos al suelo, el cuerpo cede ligeramente hacia atrás, hombros caen 2° — no derrota, pero sí peso.',
+        dialogue: '',
+        microExpressions: [
+          'Brazos de @image2 cruzándose lentamente',
+          'Mirada de @image1 cayendo al suelo',
+          'Hombros de @image1 cediendo 2°',
+          'Respiración visible y lenta en @image2',
+        ],
+      },
+      timeline: {
+        duration: 8,
+        segments: [{ start: 32, end: 40, label: 'Wide two-shot — silencio y distancia' }],
+        beats: [
+          { start: 32, end: 34, description: '@image1 baja la mirada al suelo' },
+          { start: 34, end: 37, description: '@image2 empieza a cruzar lentamente los brazos' },
+          {
+            start: 37,
+            end: 40,
+            description: 'Ambos inmóviles — el silencio sostiene el plano hasta el corte',
+          },
+        ],
+      },
+      audio: {
+        dialogue: '',
+        ambient: 'Sala silencio bajo — room tone, leve respiración de los cuerpos, ciudad lejana',
+        sfx: ['Fricción suave de ropa al cruzar los brazos'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'mike', type: 'character' },
+        { slot: '@image2', assetId: 'wyatt-gafas', type: 'character' },
+        { slot: '@image3', assetId: 'plate-sala', type: 'plate' },
+      ],
+      prompt: {
+        en: "SCENE: Living room interior, natural daylight slightly reduced — emotional cooldown, warm-teal color grade leaning cooler on the teal, analog film grain, flat field, no vignette, spherical rectilinear lens 40mm. Plate background @image3 sala visible in depth, slightly out of focus. FRAME MAP: Wide two-shot, 9:16 vertical aspect ratio, mirroring shot A composition. @image2 (Wyatt with glasses) left third x=28%, foreground, arms beginning to slowly cross over chest — this arm-cross is a shield not a wall. Glasses clearly visible. Eyes forward but emptied of heat. @image1 (Mike) right third x=72%, midground, eyes cast downward toward floor, weight shifts subtly to back foot, shoulders drop 2 degrees. Empty space in center third between them is intentional and compositionally heavy. @image3 sala plate faintly visible in depth, desaturated. BLOCKING: @image2 stands left, slowly reconstructs arm-cross over 3 seconds — movement is deliberate and quiet, not aggressive. Eyes stay forward and flat. @image1 stands right, lowers gaze to floor at second 1, slight weight shift back, shoulders yield imperceptibly — not defeat, but weight. Neither subject moves their feet. No dialogue. ACTING: @image2 — the slow arm-cross is closing off, withdrawal into armor. Breath visible in chest, controlled, returning to baseline. @image1 — eyes on floor is the cost of what was said. Shoulders yield 2 degrees — the body carries the blow the face won't show. LAST FRAME: Both subjects fixed in position, center space empty between them, @image2 arms fully crossed, @image1 eyes down — the room holds the distance. @image3 sala plate in soft depth behind. AUDIO: Near-silence, low room tone, soft cloth sound of arms crossing, distant city hum. CAPTURE: 40mm spherical rectilinear, 24fps, 180-degree shutter, 9:16, near-static handheld with subtle breathing, total duration 8 seconds.",
+        zh: '场景：室内客厅，自然日光略有减弱——情绪冷却，暖青色调偏向更冷的青色，模拟胶片颗粒，平坦画面，无晕影，球面直线镜头40mm。背景底板@image3 sala在景深中隐约可见，略微失焦。构图：宽幅双人画面，9:16竖向比例，与镜头A构图呼应形成镜像。@image2（戴眼镜的Wyatt）左三分之一x=28%，前景，双臂开始缓慢交叉于胸前——这次交叉是盾牌而非壁垒。眼镜清晰可见。眼睛向前但已失去热度。@image1（Mike）右三分之一x=72%，中景，眼神投向地面，重心微妙地移向后脚，肩膀下沉2度。画面中央三分之一的空白空间是刻意的，在构图上具有重量感。@image3 sala底板在景深中隐约可见，去饱和处理。走位：@image2站左侧，在3秒内缓慢重建交叉双臂——动作刻意而安静，不具攻击性。眼睛保持向前，表情平淡。@image1站右侧，第1秒将目光投向地面，重心轻微后移，肩膀几乎察觉不到地向后退——不是失败，而是承受重量。两人均不移动脚步。无台词。表演：@image2——缓慢交叉双臂是关闭自我、退回铠甲的行为。胸口呼吸可见，受控，回归基线。@image1——目光看地是付出的代价，是已说出口的话的重量。肩膀退让2度——身体承受着脸部不愿展示的打击。最后一帧：两个主体固定在各自位置，中央空间空旷，@image2双臂完全交叉，@image1眼神向下——这个房间承载着彼此的距离。@image3 sala底板柔和地在背景景深中。音频：近乎静默，低沉室内音，双臂交叉时柔和的衣物声，远处城市低鸣。拍摄参数：40mm球面直线镜头，24fps，180度快门，9:16，手持近静态带轻微呼吸晃动，总时长8秒。',
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirmar que el espacio vacío central entre @image1 y @image2 es visible y no recortado',
+          'Incluir @image3 plate-sala en el fondo',
+        ],
+        warnings: [
+          'El cruce de brazos de @image2 debe ser LENTO — si es rápido pierde el significado emocional de cierre',
+          'El plano debe cortar en seco — sin fade out ni transición suave',
+        ],
+        approved: false,
+      },
+    },
+  ],
+};
+
+export const RESPONSE_2 = {
+  description: 'Mike & Wyatt - Confrontación fraternal en la sala',
+  duration: 79,
+  mode: 'M1',
+  aspectRatio: '9:16',
+  references: [
+    { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+    { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+    { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+  ],
+  sequenceFlow: {
+    title: 'Time budget',
+    subtitle: 'La tensión se acumula hasta el silencio definitivo',
+    duration: 79,
+    metric: 'dramaticIntensity',
+    scale: { start: 'Cold', middle: 'Hot', end: 'Empty' },
+    segments: [
+      { id: 'A', shotId: 'A', label: 'Hook', start: 0, end: 11, intensity: 0.25, color: '#3d6e8f' },
+      {
+        id: 'B',
+        shotId: 'B',
+        label: 'Friction',
+        start: 11,
+        end: 27,
+        intensity: 0.55,
+        color: '#7a5c2e',
+      },
+      {
+        id: 'C',
+        shotId: 'C',
+        label: 'Friction',
+        start: 27,
+        end: 43,
+        intensity: 0.72,
+        color: '#a04a20',
+      },
+      {
+        id: 'D',
+        shotId: 'D',
+        label: 'Spike',
+        start: 43,
+        end: 60,
+        intensity: 0.95,
+        color: '#c0391a',
+      },
+      {
+        id: 'E',
+        shotId: 'E',
+        label: 'Button',
+        start: 60,
+        end: 79,
+        intensity: 0.15,
+        color: '#4a4a4a',
+      },
+    ],
+  },
+  directorNotes: {
+    goal: 'El espectador debe sentir el peso irresuelto de una herida vieja que ninguno de los dos puede nombrar, y quedarse con el vacío cuando Wyatt da la espalda.',
+    styleGuide:
+      'tungsten-teal grade - spherical rectilinear lens - flat field no vignette - 24fps 180 degree - diegetic audio only - prompt in positive imperative',
+    warnings: [
+      'Never cross the 180-degree line between @image1 and @image3 across consecutive shots.',
+      '@image1 (Mike) always occupies frame left; @image3 (Wyatt con gafas) always occupies frame right.',
+      '@image2 (Plate sala) must appear in every shot as background environment — do NOT generate a new room.',
+      'Shallow DOF on singles; rack focus only on cue, never mid-action.',
+      'No music. Room tone and diegetic SFX only.',
+    ],
+  },
+  shots: [
+    {
+      id: 'A',
+      title: 'Mike irrumpe — primer golpe verbal',
+      description:
+        'Mike entra en la sala y lanza la primera acusación; Wyatt está de espaldas junto a la ventana y se tensa sin girar.',
+      duration: 11,
+      start: 0,
+      end: 11,
+      camera: {
+        lens: '40mm',
+        framing:
+          'Wide two-shot estancado — Wyatt de espaldas en foreground derecho, Mike entrando por izquierda',
+        movement: 'Handheld leve, deriva lateral mínima hacia Mike',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut único (0-11s): Wide two-shot. @image3 (Wyatt) espalda al cámara, right third x=68%, foreground. @image1 (Mike) entrando left third x=28%, midground. @image2 (Plate sala) ocupa el fondo completo.',
+        subjectLock:
+          '@image3: espalda visible, camiseta oscura, gafas colgando. @image1: cara frontal visible, mandíbula apretada. Wardrobe consistente con referencia.',
+        crossFrameRules:
+          '@image1 siempre izquierda, @image3 siempre derecha. Nunca cruzar la línea de 180°. Hombros de @image1 cuadrados a cámara.',
+        focus: 'Foco en @image1 (Mike) — @image3 desenfocado en foreground.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona entrada, junto a la puerta',
+        movement:
+          'Cut único: @image1 entra por izquierda, da tres pasos al interior y se planta. @image3 permanece quieto de espaldas junto a la ventana derecha, hombros subiéndole lentamente.',
+        interaction: 'Wide two-shot sin contacto visual; eyelines no se cruzan en este corte.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description: 'Left third x=28%, midground, recién entrado, pie izquierdo adelantado',
+          },
+          {
+            subjectId: '@image3',
+            description: 'Right third x=68%, foreground, de espaldas a cámara, junto a ventana',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Indignación acumulada buscando descarga',
+        bodyLanguage:
+          '@image1: mandíbula hacia adelante, peso en pie delantero, manos abiertas a los costados. @image3: hombros suben 2 cm, nuca tensa, sin girarse.',
+        dialogue: "'¿En serio me vas a hacer esto otra vez?'",
+        microExpressions: [
+          'Mandíbula de @image1 proyectada hacia delante',
+          'Hombros de @image3 elevándose en silencio',
+          'Manos de @image1 abriéndose y cerrándose',
+        ],
+      },
+      timeline: {
+        duration: 11,
+        segments: [
+          { start: 0, end: 4, label: 'Mike entra y planta los pies' },
+          { start: 4, end: 11, label: 'Wyatt no se gira — tensión silenciosa' },
+        ],
+        beats: [
+          { start: 0, end: 2, description: '@image1 cruza el umbral, puerta cierra sola' },
+          { start: 2, end: 6, description: '@image1 avanza tres pasos y se detiene' },
+          {
+            start: 6,
+            end: 11,
+            description: '@image1 dispara la primera línea; @image3 absorbe sin moverse',
+          },
+        ],
+      },
+      audio: {
+        dialogue: "'¿En serio me vas a hacer esto otra vez?'",
+        ambient: 'Room tone de sala residencial — leve zumbido de calle lejana',
+        sfx: ['Puerta cerrándose con peso controlado', 'Pisadas sobre suelo de madera'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE — Interior living room, daytime. Use @image2 as the complete background environment (do not generate a new room). Tungsten-teal color grade, flat lighting, no vignette, analog film texture.\n\nFRAME MAP (0–11s, single cut, wide two-shot, 40mm spherical lens, 9:16 aspect ratio, 24fps, 180-degree shutter):\n— @image3 (Wyatt, glasses man) occupies right third of frame at x=68%, in the foreground, facing AWAY from camera. His back is visible: dark shirt, glasses hanging from collar. He stands motionless beside a window on the right side of the room.\n— @image1 (Mike) enters from screen left at x=28%, midground, walking toward camera and stopping after three steps. His face is fully visible, jaw jutting forward, weight on front foot, hands open at his sides.\n— @image2 plate fills the entire background behind both subjects.\n— Shallow DOF: focus locked on @image1; @image3 foreground is slightly soft.\n\nBLOCKING — @image1 enters through the left doorway, door swings closed behind him with controlled weight. He takes exactly three deliberate steps into the room and plants his feet, left foot slightly forward. @image3 does not turn. His shoulders rise 2 centimeters as @image1 speaks. No other movement.\n\nACTING — @image1 (Mike): jaw projected forward, transitive verb 'ACCUSE' — his chin drives the line of accusation. Hands open and close once at his sides. Eyes fixed on the back of @image3's head. @image3 (Wyatt): absorbs the blow without turning. Nape of neck visible and rigid. Shoulders climb in one slow involuntary breath.\n\nDIALOGUE — @image1 speaks: 'Are you seriously going to do this to me again?' Voice taut, restrained fury, not a shout.\n\nAUDIO — Room tone of a residential living room, faint street noise through glass. SFX: door closing with weight on beat 2s; footfalls on hardwood floor beats 2–5s.\n\nLAST FRAME (11s) — @image1 planted left third, jaw set, staring at @image3's back. @image3 back to camera right third, shoulders raised, not turned. @image2 fills background. Hold.\n\nCAMERA — 40mm spherical rectilinear lens. Light handheld drift left toward @image1, no more than 3cm lateral movement total. 9:16 vertical frame. 24fps, 180-degree shutter angle. Duration: 11 seconds.",
+        zh: "场景——日景室内客厅。使用 @image2 作为完整背景环境（不要生成新的房间）。钨光-青色调色，平光照明，无暗角，模拟胶片质感。\n\n画面布局（0–11秒，单个剪辑，宽双人镜，40毫米球形镜头，9:16比例，24帧，180度快门角）：\n— @image3（Wyatt，戴眼镜男子）位于画面右三分之一处x=68%，处于前景，背对摄像机。背部可见：深色衬衫，眼镜挂在领口。他静立在房间右侧窗边。\n— @image1（Mike）从画面左侧x=28%中景入画，走向摄像机方向，迈三步后停下。面部完全可见，下颌前伸，重心压在前脚，双手在身侧张开。\n— @image2 底板铺满整个背景。\n— 浅景深：焦点锁定在 @image1；@image3 前景略微虚焦。\n\n走位——@image1 从左侧门道进入，门在身后带重量地关上。他迈出恰好三步，停稳，左脚微微前踏。@image3 没有转身。当 @image1 说话时，他的肩膀不由自主地上抬2厘米。无其他动作。\n\n表演——@image1（Mike）：下颌前推，及物动词'指控'——下巴引领指控的走向。双手在身侧开合一次。目光锁定 @image3 的后脑勺。@image3（Wyatt）：不转身承受冲击。颈背紧绷可见。肩膀在一次缓慢的不自觉呼吸中上升。\n\n台词——@image1 说道：'你是认真的吗？你还要这样对我？'声音绷紧，克制的愤怒，不是喊叫。\n\n音频——住宅客厅室内音，玻璃外隐约的街道噪音。音效：2秒时门带重量关上；2–5秒时木地板脚步声。\n\n最后一帧（11秒）——@image1 站稳左三分之一处，下颌绷紧，凝视 @image3 的背部。@image3 背对镜头右三分之一处，肩膀抬高，未转身。@image2 铺满背景。定格。\n\n摄影机——40毫米球形直线镜头。轻微手持横向漂移向 @image1，总横向位移不超过3厘米。9:16竖幅画面。24帧，180度快门角。时长：11秒。",
+      },
+      render: { mode: 'M1', engine: 'Seedance' },
+      notes: {
+        todos: ['Cargar @image1 Mike', 'Cargar @image2 Plate sala', 'Cargar @image3 Wyatt (gafas)'],
+        warnings: [
+          '@image3 debe aparecer de espaldas — no mostrar su cara en este shot.',
+          'Mantener la línea de 180° intacta.',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'B',
+      title: 'Wyatt se gira — contraataca con frialdad',
+      description:
+        'Wyatt se da la vuelta despacio y mira a Mike fijamente; su respuesta llega en voz baja y más letal que un grito.',
+      duration: 16,
+      start: 11,
+      end: 27,
+      camera: {
+        lens: '55mm',
+        framing: 'OTS de @image1 sobre hombro izquierdo viendo a @image3, luego single de @image3',
+        movement: 'Handheld estable — ligero push-in lento sobre @image3 al final',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (0-8s): OTS de @image1 hombro izquierdo en frame left, @image3 chest-up en frame center-right x=62%. Cut 2 (8-16s): Single @image3 chest-up, x=55% center, leve push-in de 55mm a 62mm.',
+        subjectLock:
+          '@image3: gafas en rostro, camiseta oscura, expresión contenida. @image1: hombro y parte de perfil visible en cut 1. Wardrobe idéntico al shot A.',
+        crossFrameRules:
+          '@image1 permanece izquierda en cut 1. En cut 2 solo @image3 en frame. Eyeline de @image3 ligeramente por encima del eje de cámara.',
+        focus: 'Cut 1: foco en @image3. Cut 2: foco en @image3, rack out muy leve al final.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central-derecha, frente a la ventana',
+        movement:
+          'Cut 1: @image3 completa el giro de 180° durante los primeros 3s hasta quedar cara a cara con @image1, se planta. @image1 visible como hombro OTS. Cut 2: @image3 solo, responde en voz baja.',
+        interaction:
+          'OTS conecta eyelines a través del corte; en single @image3 habla directamente a cámara-axis.',
+        positions: [
+          {
+            subjectId: '@image3',
+            description: 'Center-right x=62%, chest-up, cara visible, gafas puestas, de frente',
+          },
+          {
+            subjectId: '@image1',
+            description: 'Left edge, hombro y perfil OTS en cut 1, fuera de cuadro en cut 2',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Frialdad como arma — control que duele más que la ira',
+        bodyLanguage:
+          '@image3: giro lento y deliberado, aterriza con los pies separados al ancho de hombros. Barbilla levemente baja. Párpados relajados. @image1 (OTS): hombros cuadrados, fijos.',
+        dialogue: "'Yo no te estoy haciendo nada. Tú llevas años haciéndotelo a ti mismo.'",
+        microExpressions: [
+          'Giro de @image3 lento y medido',
+          'Párpados entrecerrados de @image3',
+          'Pausa de 1 segundo antes de hablar',
+        ],
+      },
+      timeline: {
+        duration: 16,
+        segments: [
+          { start: 0, end: 8, label: 'Cut 1 — OTS Wyatt completa el giro' },
+          { start: 8, end: 16, label: 'Cut 2 — Single Wyatt responde en frío' },
+        ],
+        beats: [
+          { start: 0, end: 3, description: '@image3 completa el giro, se planta' },
+          { start: 3, end: 8, description: 'Silencio cargado — ambos se miden' },
+          { start: 8, end: 10, description: 'Cut a single @image3, pausa antes de hablar' },
+          { start: 10, end: 16, description: '@image3 dispara la línea en voz baja' },
+        ],
+      },
+      audio: {
+        dialogue: "'Yo no te estoy haciendo nada. Tú llevas años haciéndotelo a ti mismo.'",
+        ambient: 'Room tone — silencio residencial, casi opresivo',
+        sfx: ['Crujido leve de suelo al girar @image3', 'Exhalación nasal de @image1 audible'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE — Interior living room, daytime, continuous from previous shot. @image2 fills the entire background (same room as before, do not generate a new environment). Tungsten-teal color grade, flat field, no vignette, analog film texture.\n\nFRAME MAP (16 seconds total, 55mm spherical lens, 9:16, 24fps, 180-degree shutter):\nCUT 1 (0–8s): OTS shot. @image1 (Mike) visible as left-edge shoulder and partial profile, x=18%, in-focus foreground left. @image3 (Wyatt, glasses on face) chest-up at x=62% center-right, fully visible, face toward camera. @image2 background behind @image3.\nCUT 2 (8–16s): Single on @image3 (Wyatt), chest-up, x=55% center. Slow push-in: lens drifts 55mm toward 62mm equivalent over 8 seconds. @image2 background. @image1 out of frame.\n\nBLOCKING — Cut 1: @image3 completes a slow 180-degree pivot during the first 3 seconds, landing feet shoulder-width apart, facing @image1 and camera axis. Both characters hold position for 5 seconds of charged silence. Cut 2: @image3 alone, chin slightly lowered, delivers his line in a measured low voice. Camera pushes in slowly.\n\nACTING — @image3 (Wyatt): transitive verb 'DISMISS' — he does not raise his voice. The slowness of his pivot is the weapon. Eyelids relaxed, almost half-closed. A 1-second pause before speaking. @image1 (OTS, cut 1 only): shoulders square, fixed, receiving.\n\nDIALOGUE — @image3 speaks quietly: 'I am not doing anything to you. You have been doing this to yourself for years.' One beat of silence after the last word.\n\nAUDIO — Room tone, near-silence, oppressive stillness. SFX: light floor creak as @image3 pivots (beat 2s); audible nasal exhale from @image1 off-screen (beat 9s).\n\nLAST FRAME (16s) — @image3 single chest-up center frame, slightly closer due to push-in, chin down, eyes level, mouth closed after delivering line. @image2 background behind him.\n\nCAMERA — 55mm spherical rectilinear lens. Cut 1: handheld stable, no drift. Cut 2: slow continuous push-in, total zoom equivalent drift of ~7mm over 8 seconds. 9:16 vertical. 24fps, 180-degree shutter. Duration: 16 seconds.",
+        zh: "场景——日景室内客厅，与上一镜头连续。@image2 铺满整个背景（与之前同一房间，不要生成新环境）。钨光-青色调色，平光，无暗角，模拟胶片质感。\n\n画面布局（共16秒，55毫米球形镜头，9:16，24帧，180度快门）：\n剪辑1（0–8秒）：过肩镜头。@image1（Mike）作为左侧边缘肩部和部分侧脸可见，x=18%，前景左侧清晰。@image3（Wyatt，戴眼镜）正面胸部以上，x=62%中右，面向摄像机。@image2 背景在 @image3 身后。\n剪辑2（8–16秒）：@image3（Wyatt）单人镜，胸部以上，x=55%居中。缓慢推镜：镜头焦距在8秒内从55毫米等效漂移至62毫米。@image2 背景。@image1 出画。\n\n走位——剪辑1：@image3 在前3秒完成缓慢的180度转身，双脚以肩宽落地，面向 @image1 和摄像机轴线。两人保持姿势5秒沉默对视。剪辑2：@image3 独自入画，下颌微低，用低沉平稳的声音说出台词。摄像机缓慢推进。\n\n表演——@image3（Wyatt）：及物动词'驳回'——他不提高声音。转身的缓慢本身就是武器。眼睑放松，几乎半闭。开口前停顿1秒。@image1（过肩，仅剪辑1）：肩膀方正，固定，承受中。\n\n台词——@image3 低声说道：'我没有对你做任何事。你自己折磨自己已经好多年了。'最后一个字后停顿一拍。\n\n音频——室内音，近乎静默，压迫感。音效：@image3 转身时地板轻微嘎吱（第2秒）；@image1 在画外的鼻腔呼气声（第9秒）。\n\n最后一帧（16秒）——@image3 单人胸部以上居中，因推镜稍近，下颌低垂，目光平视，说完台词后嘴唇合上。@image2 背景在其身后。\n\n摄影机——55毫米球形直线镜头。剪辑1：手持稳定，无漂移。剪辑2：缓慢连续推镜，8秒内等效焦距漂移约7毫米。9:16竖幅。24帧，180度快门角。时长：16秒。",
+      },
+      render: { mode: 'M1', engine: 'Seedance' },
+      notes: {
+        todos: ['Verificar que @image3 lleve las gafas puestas en este shot'],
+        warnings: [
+          'El giro de @image3 debe ser lento — no brusco. Si el modelo lo acelera, ajustar en prompt.',
+          'Push-in sutil — no zoom óptico visible, movimiento de cámara físico.',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'C',
+      title: 'Mike escala — dos singles alternados',
+      description:
+        'Mike sube el tono y da un paso adelante; los singles alternados comprimen el espacio entre ellos sin que se toquen.',
+      duration: 16,
+      start: 27,
+      end: 43,
+      camera: {
+        lens: '75mm',
+        framing: 'Singles alternados — primero single Mike, luego single Wyatt más cerrado',
+        movement: 'Handheld con deriva imperceptible hacia sujeto en cada single',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (0-8s): Single @image1 (Mike) chest-up, x=38% frame left. Cut 2 (8-16s): Single @image3 (Wyatt) chin-up close, x=60% frame right. @image2 visible as background in both cuts.',
+        subjectLock:
+          '@image1: mismo wardrobe, cara frontal, venas del cuello ligeramente marcadas. @image3: gafas puestas, expresión inamovible.',
+        crossFrameRules:
+          '@image1 frame left en su single, @image3 frame right en su single. Eyelines opuestos crean el eje imaginario entre ambos.',
+        focus: 'Cut 1: foco total en @image1. Cut 2: foco total en @image3.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central, ambos de pie a 1.5 metros de distancia',
+        movement:
+          'Cut 1: @image1 da un paso adelante durante la primera mitad del cut, se detiene. Cut 2: @image3 no se mueve — su quietud es la respuesta.',
+        interaction:
+          'Singles que se responden — la edición crea la confrontación sin que los cuerpos se toquen.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description: 'Frame left x=38%, chest-up, un paso más cerca que en shot A',
+          },
+          { subjectId: '@image3', description: 'Frame right x=60%, chin-up close, inmóvil' },
+        ],
+      },
+      acting: {
+        emotion: 'Rabia que busca fisura — desesperación disfrazada de ataque',
+        bodyLanguage:
+          "@image1: paso adelante, vena del cuello visible, mano izquierda cerrándose en puño y abriéndose. @image3: mentón muy levemente elevado — transitive verb 'WITHSTAND' — absorbe sin ceder un milímetro.",
+        dialogue: "'¡No me vengas con esa mierda filosófica! ¡Me debes una explicación!'",
+        microExpressions: [
+          'Vena del cuello de @image1 pulsando',
+          'Puño de @image1 abriéndose y cerrándose',
+          'Párpado de @image3 sin parpadear durante 4 segundos',
+        ],
+      },
+      timeline: {
+        duration: 16,
+        segments: [
+          { start: 0, end: 8, label: 'Cut 1 — Single Mike escala' },
+          { start: 8, end: 16, label: 'Cut 2 — Single Wyatt aguanta' },
+        ],
+        beats: [
+          { start: 0, end: 3, description: '@image1 da el paso, voz sube' },
+          { start: 3, end: 8, description: '@image1 dispara la línea agresiva' },
+          { start: 8, end: 12, description: 'Cut a @image3 — silencio sostenido' },
+          {
+            start: 12,
+            end: 16,
+            description: '@image3 aguanta sin pestañear, mínima reacción en párpado',
+          },
+        ],
+      },
+      audio: {
+        dialogue: "'¡No me vengas con esa mierda filosófica! ¡Me debes una explicación!'",
+        ambient: 'Room tone tenso — silencio después del grito que resuena',
+        sfx: ['Pisada de @image1 sobre madera (beat 2s)', 'Eco breve del grito en la sala'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE — Interior living room, daytime, continuous. @image2 fills the background in both cuts (same room, do not generate a new environment). Tungsten-teal color grade, flat field, no vignette, analog film texture.\n\nFRAME MAP (16 seconds total, 75mm spherical lens, 9:16, 24fps, 180-degree shutter):\nCUT 1 (0–8s): Single on @image1 (Mike), chest-up, positioned at x=38% frame left. Face fully visible, neck tendons slightly raised. @image2 background behind him.\nCUT 2 (8–16s): Single on @image3 (Wyatt, glasses on), chin-up close framing, x=60% frame right. Utterly still. @image2 background behind him.\n\nBLOCKING — Cut 1: @image1 takes one decisive step forward during the first 3 seconds, stops. His left fist closes and opens once. His voice rises. Cut 2: @image3 does not move a single centimeter. His stillness is the answer. He does not blink for 4 continuous seconds.\n\nACTING — @image1 (Mike): transitive verb 'DEMAND' — voice breaks upward, neck vein visible, jaw drives each word. Left hand opens and closes at his side. Eyes wide. @image3 (Wyatt): transitive verb 'WITHSTAND' — chin fractionally elevated, eyelids locked open, jaw relaxed. Not a single muscle responds to the escalation.\n\nDIALOGUE — @image1 shouts: 'Don't give me that philosophical bullshit! You owe me an explanation!' Voice peaks on the second sentence.\n\nAUDIO — Cut 1: room tone + shout fills the space. Cut 2: abrupt silence after the shout — the echo settles. SFX: footstep on hardwood (beat 2s, cut 1); brief acoustic ring as voice hits the walls.\n\nLAST FRAME (16s) — @image3 single, x=60% right, chin up, eyes unblinking, mouth closed, after receiving the outburst. Shallow DOF, @image2 background softly out of focus behind him.\n\nCAMERA — 75mm spherical rectilinear lens. Cut 1: light handheld drift 2cm toward @image1. Cut 2: near-static, barely perceptible drift toward @image3. 9:16 vertical. 24fps, 180-degree shutter. Duration: 16 seconds.",
+        zh: "场景——日景室内客厅，与上一镜头连续。@image2 在两个剪辑中铺满背景（同一房间，不要生成新环境）。钨光-青色调色，平光，无暗角，模拟胶片质感。\n\n画面布局（共16秒，75毫米球形镜头，9:16，24帧，180度快门）：\n剪辑1（0–8秒）：@image1（Mike）单人镜，胸部以上，x=38%画面左侧。面部完全可见，颈部肌腱略微凸出。@image2 背景在其身后。\n剪辑2（8–16秒）：@image3（Wyatt，戴眼镜）单人镜，下颌以上特写，x=60%画面右侧。纹丝不动。@image2 背景在其身后。\n\n走位——剪辑1：@image1 在前3秒迈出决定性的一步，停下。左拳握紧再松开一次。声音提高。剪辑2：@image3 一厘米都不动。他的静止就是回应。他持续4秒不眨眼。\n\n表演——@image1（Mike）：及物动词'索取'——声音向上破裂，颈部青筋可见，下颌驱动每个字。左手在身侧开合。眼睛睁大。@image3（Wyatt）：及物动词'承受'——下颌微微抬高，眼睑锁定睁开，下颌放松。对于升级没有一块肌肉作出反应。\n\n台词——@image1 大喊：'别跟我来那套哲学废话！你欠我一个解释！'第二句声音达到峰值。\n\n音频——剪辑1：室内音+喊声充满空间。剪辑2：喊声后骤然静默——回声平息。音效：木地板脚步声（第2秒，剪辑1）；声音撞墙后短暂的声学余响。\n\n最后一帧（16秒）——@image3 单人镜，x=60%右侧，下颌抬起，双眼不眨，嘴唇合拢，承受完爆发。浅景深，@image2 背景在其身后柔和虚焦。\n\n摄影机——75毫米球形直线镜头。剪辑1：轻微手持漂移向 @image1 约2厘米。剪辑2：近似静止，几乎察觉不到地向 @image3 漂移。9:16竖幅。24帧，180度快门角。时长：16秒。",
+      },
+      render: { mode: 'M1', engine: 'Seedance' },
+      notes: {
+        todos: ['Confirmar que la voz de @image1 se graba por separado en postproducción'],
+        warnings: [
+          'El grito de @image1 no debe hacer que @image3 retroceda físicamente — queda plantado.',
+          '@image3 debe llevar las gafas durante todo el shot.',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'D',
+      title: 'El golpe más bajo — insert de manos + single Wyatt roto',
+      description:
+        'Wyatt baja las gafas lentamente como acto de rendición parcial, luego dice la verdad más cruel en susurro.',
+      duration: 17,
+      start: 43,
+      end: 60,
+      camera: {
+        lens: '85mm, 100mm',
+        framing: 'Insert manos @image3 bajan gafas, luego single @image3 cara close-up',
+        movement: 'Estático en insert; micro push-in en close-up',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (0-5s): Insert 85mm — manos de @image3 en frame center, gafas bajando desde rostro hasta colgar del dedo. Cut 2 (5-17s): Single 100mm — @image3 close-up cara, x=52% center, micro push-in lento.',
+        subjectLock:
+          '@image3: gafas colgando del dedo en cut 1, sin gafas en cut 2. Continuidad de wardrobe.',
+        crossFrameRules:
+          'Solo @image3 en frame. @image1 fuera de cuadro — su presencia solo en audio.',
+        focus: 'Cut 1: foco en gafas y dedos. Cut 2: foco en ojos de @image3.',
+        depth: 'Shallow DOF — máxima en cut 2',
+      },
+      blocking: {
+        location: 'Sala — zona central, mismo punto que shot C',
+        movement:
+          'Cut 1: las manos de @image3 suben al rostro, toman las gafas y las bajan con control hasta colgar del dedo índice. Cut 2: @image3 cara sin gafas, ojos directamente al eje de cámara.',
+        interaction:
+          'Solo @image3 en frame. Ausencia de @image1 convierte la cámara en testigo directo.',
+        positions: [
+          {
+            subjectId: '@image3',
+            description: 'Cut 1: manos center frame. Cut 2: cara close-up x=52% center',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Gut-punch deliberado — crueldad nacida del agotamiento',
+        bodyLanguage:
+          '@image3: gesto de bajar las gafas lento y consciente como un desarme. En cut 2: ojos ligeramente enrojecidos en los bordes, respiración nasal visible, boca cerrada hasta el momento exacto de hablar.',
+        dialogue: "'Lo que más te duele no soy yo. Eres tú cuando te miras al espejo.'",
+        microExpressions: [
+          'Gafas bajando frame-by-frame',
+          'Borde de párpado inferior levemente húmedo',
+          'Respiración nasal visible antes de hablar',
+        ],
+      },
+      timeline: {
+        duration: 17,
+        segments: [
+          { start: 0, end: 5, label: 'Cut 1 — Insert gafas bajando' },
+          { start: 5, end: 17, label: 'Cut 2 — Close-up Wyatt dispara la verdad' },
+        ],
+        beats: [
+          { start: 0, end: 5, description: 'Manos de @image3 bajan gafas — silencio total' },
+          { start: 5, end: 9, description: '@image3 cara sin gafas — pausa antes de hablar' },
+          { start: 9, end: 17, description: '@image3 dice la línea en susurro; push-in termina' },
+        ],
+      },
+      audio: {
+        dialogue: "'Lo que más te duele no soy yo. Eres tú cuando te miras al espejo.'",
+        ambient: 'Silencio casi total — room tone mínimo',
+        sfx: [
+          'Leve roce de plástico de gafas contra dedos',
+          'Respiración nasal de @image3 audible antes de la línea',
+        ],
+        music: false,
+      },
+      references: [
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE — Interior living room, daytime, continuous. @image2 visible as background in both cuts. Tungsten-teal color grade, maximum shallow DOF in cut 2, flat field, no vignette, analog film texture.\n\nFRAME MAP (17 seconds total, two cuts, 9:16, 24fps, 180-degree shutter):\nCUT 1 (0–5s): Insert shot, 85mm. Frame filled by @image3's hands in center frame. @image3 raises both hands to his face, grasps his glasses, and lowers them slowly until they hang from his right index finger. The gesture takes the full 5 seconds — deliberate, controlled, weaponized. @image2 background softly visible behind.\nCUT 2 (5–17s): Single close-up on @image3 (Wyatt, without glasses now), face x=52% center. 100mm lens. Micro push-in over 12 seconds — total drift equivalent of approximately 5mm. Eyes visible: slight redness at lower eyelid rim. Mouth closed until the moment of speaking.\n\nBLOCKING — Cut 1: hands move upward to face, grasp glasses at temples, lower in one unbroken motion. No tremor, no hesitation. Cut 2: @image3 holds eye contact with camera axis. Nasal breath audible before speaking. He delivers the line in a controlled whisper. @image1 is entirely off-screen — present only in audio if reacting.\n\nACTING — @image3 (Wyatt): transitive verb 'WOUND' — the slow removal of glasses is a ritual that announces the final blow. In cut 2: lower eyelid rim slightly moist, nasal breathing visible (nostrils expand once before speech), jaw loose, voice a near-whisper.\n\nDIALOGUE — @image3 whispers: 'What hurts you most is not me. It is you, when you look in the mirror.' Full pause before the second sentence.\n\nAUDIO — Near total silence. Room tone minimum. SFX: faint plastic-on-finger sound as glasses slide down (cut 1, beat 2s); audible nasal inhale from @image3 (cut 2, beat 8s).\n\nLAST FRAME (17s) — @image3 close-up, x=52% center, slightly closer due to push-in, eyes forward, mouth closed after final word, glasses gone from face. @image2 background behind him, very shallow focus.\n\nCAMERA — Cut 1: 85mm spherical, static tripod-style, no movement. Cut 2: 100mm spherical, micro push-in, barely perceptible, over 12 seconds. 9:16 vertical. 24fps, 180-degree shutter. Duration: 17 seconds.",
+        zh: "场景——日景室内客厅，与上一镜头连续。@image2 在两个剪辑中作为背景可见。钨光-青色调色，剪辑2最大浅景深，平光，无暗角，模拟胶片质感。\n\n画面布局（共17秒，两个剪辑，9:16，24帧，180度快门）：\n剪辑1（0–5秒）：插入镜头，85毫米。画面充满 @image3 的双手，居中画面。@image3 双手上移至脸部，握住眼镜，缓慢将其放下，直到挂在右手食指上。这个动作持续完整的5秒——刻意、克制、被武器化。@image2 背景在后方柔和可见。\n剪辑2（5–17秒）：@image3（Wyatt，此时不戴眼镜）单人特写，面部x=52%居中。100毫米镜头。12秒内微推镜——总漂移等效约5毫米。眼睛可见：下眼睑边缘轻微泛红。嘴唇合拢至开口说话的那一刻。\n\n走位——剪辑1：双手向上移至脸部，握住眼镜镜腿，一气呵成地放下。无颤抖，无犹豫。剪辑2：@image3 与摄像机轴线保持眼神接触。开口前鼻腔呼吸可听见。他用克制的低语说出台词。@image1 完全在画外——仅通过音频存在。\n\n表演——@image3（Wyatt）：及物动词'伤害'——缓慢摘下眼镜是一个仪式，宣告最后一击。剪辑2：下眼睑边缘略微湿润，鼻腔呼吸可见（说话前鼻孔扩张一次），下颌放松，声音几乎是低语。\n\n台词——@image3 低语道：'最让你痛苦的不是我。是你照镜子时看到的自己。'两句之间完整停顿。\n\n音频——近乎完全的静默。室内音极低。音效：眼镜沿手指滑落时轻微的塑料摩擦声（剪辑1，第2秒）；@image3 可听见的鼻腔吸气声（剪辑2，第8秒）。\n\n最后一帧（17秒）——@image3 特写，x=52%居中，因推镜稍近，目光向前，说完最后一个字后嘴唇合上，脸上已无眼镜。@image2 背景在其身后，焦点极浅。\n\n摄影机——剪辑1：85毫米球形镜，静态三脚架风格，无运动。剪辑2：100毫米球形，微推镜，几乎察觉不到，持续12秒。9:16竖幅。24帧，180度快门角。时长：17秒。",
+      },
+      render: { mode: 'M1', engine: 'Seedance' },
+      notes: {
+        todos: [
+          'En cut 2 @image3 aparece SIN gafas — verificar continuidad con cut 1 donde las baja',
+        ],
+        warnings: [
+          'El insert de manos debe mostrar claramente las gafas siendo bajadas — no omitir la continuidad del objeto prop.',
+          '@image1 no aparece en ningún frame de este shot — solo audio off-screen.',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'E',
+      title: 'El vacío — Wyatt da la espalda y Mikexx se desmorona',
+      description:
+        'Wyatt se vuelve de espaldas y sale de cuadro; Mike queda solo en sala vacía, inmóvil.',
+      duration: 19,
+      start: 60,
+      end: 79,
+      camera: {
+        lens: '40mm',
+        framing: 'Wide two-shot, luego single Mike — Wyatt desaparece del cuadro',
+        movement: 'Estático — cámara no sigue a nadie',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (0-9s): Wide two-shot retomando composición de Shot A. @image1 left third x=30%, @image3 right third x=67% de espaldas y caminando hacia fondo. Cut 2 (9-19s): Single @image1 left third x=32%, chest-up, Mike solo. @image2 fondo vacío. Cámara estática.',
+        subjectLock:
+          '@image1: mismo wardrobe, cara frontal ahora caída. @image3: de espaldas, sin gafas en la mano, camina al fondo hasta desaparecer.',
+        crossFrameRules:
+          '@image1 izquierda durante todo el shot. @image3 se mueve hacia el fondo derecho y sale de cuadro. Cámara no lo sigue.',
+        focus:
+          'Cut 1: foco en @image1, @image3 se vuelve borroso al alejarse. Cut 2: foco total en @image1.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Sala — zona central; @image3 camina hacia el fondo derecho y desaparece',
+        movement:
+          'Cut 1: @image3 se gira de espaldas lentamente y camina en profundidad hacia el fondo derecho de @image2, saliendo de cuadro entre 7-9s. @image1 permanece inmóvil izquierda. Cut 2: @image1 solo, no se mueve durante 10 segundos completos.',
+        interaction:
+          'La distancia creciente entre @image3 alejándose y @image1 plantado es la acción dramática principal.',
+        positions: [
+          { subjectId: '@image1', description: 'Left third x=30–32%, inmóvil, peso hundido' },
+          {
+            subjectId: '@image3',
+            description:
+              'Right third x=67% al inicio, caminando en profundidad hasta salir de cuadro en 9s',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'El vacío después del golpe — Mike no persigue, no habla',
+        bodyLanguage:
+          '@image3 (Wyatt): giro limpio de espaldas, paso largo y deliberado sin mirar atrás. @image1 (Mike): hombros caen 3 cm, respiración visible en pecho, cabeza baja 2 grados. Manos sueltas a los costados.',
+        dialogue: '',
+        microExpressions: [
+          'Hombros de @image1 hundiéndose progresivamente',
+          'Respiración pectoral visible de @image1',
+          'Manos de @image1 abriéndose en rendición',
+        ],
+      },
+      timeline: {
+        duration: 19,
+        segments: [
+          { start: 0, end: 9, label: 'Cut 1 — Wyatt da la espalda y se aleja' },
+          { start: 9, end: 19, label: 'Cut 2 — Mike solo en sala vacía' },
+        ],
+        beats: [
+          { start: 0, end: 3, description: '@image3 inicia el giro de espaldas' },
+          { start: 3, end: 9, description: '@image3 camina en profundidad hasta salir de cuadro' },
+          { start: 9, end: 14, description: 'Cut a single @image1 — proceso de hundimiento' },
+          { start: 14, end: 19, description: '@image1 quieto, sala vacía — hold final' },
+        ],
+      },
+      audio: {
+        dialogue: '',
+        ambient: 'Room tone desnudo — silencio residencial con levísimo zumbido eléctrico',
+        sfx: [
+          'Pasos de @image3 alejándose sobre madera (beats 3-9s)',
+          'Crujido de puerta lejana o pasos en pasillo (beat 10s)',
+        ],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SCENE — Interior living room, daytime, continuous. @image2 fills the entire background throughout both cuts (same room, do not generate a new environment). Tungsten-teal color grade, flat field, no vignette, analog film texture.\n\nFRAME MAP (19 seconds total, 40mm spherical lens, 9:16, 24fps, 180-degree shutter):\nCUT 1 (0–9s): Wide two-shot. @image1 (Mike) left third x=30%, chest-up, stationary, face visible and falling. @image3 (Wyatt, no glasses on face, glasses held loosely at side or placed on nearby surface) right third x=67%, executing a slow turn to face away from camera. From second 3 onward @image3 walks in depth toward the background-right of @image2 until he exits frame completely by second 9. Camera is static — it does not follow @image3.\nCUT 2 (9–19s): Single on @image1 (Mike), chest-up, x=32% left third. @image3 is completely gone. @image2 background is the entire visible environment. Camera static. @image1 does not move for 10 full seconds.\n\nBLOCKING — Cut 1: @image3 turns his back in a single clean pivot (3 seconds), then walks in perspective depth toward the far right background, footsteps audible on hardwood, disappearing into the @image2 room depth. @image1 stands fixed, receiving. Shoulders drop 3 centimeters progressively as @image3 retreats. Cut 2: @image1 alone. Weight sunken. Head lowers 2 degrees. Hands open at sides. Chest breathing visible.\n\nACTING — @image3 (Wyatt): transitive verb 'ABANDON' — the walk away is final, no hesitation, no backward glance. @image1 (Mike): transitive verb 'COLLAPSE INWARD' — he does not pursue, does not speak. His body slowly absorbs the absence. Not a dramatic breakdown — a quiet implosion.\n\nDIALOGUE — No dialogue. Complete silence.\n\nAUDIO — Bare room tone: residential silence with the faintest electrical hum. SFX: footsteps of @image3 on hardwood receding (beats 3–9s, cut 1); distant hallway creak or soft door sound (beat 10s, cut 2).\n\nLAST FRAME (19s) — @image1 alone, left third x=32%, chest-up, head 2 degrees lower than start, hands open, eyes forward but unfocused. @image2 fills the background — the empty room around him. Hold for 3 seconds. Fade to cut.\n\nCAMERA — 40mm spherical rectilinear lens. Both cuts: completely static, tripod-locked. No drift, no movement. Camera refuses to follow @image3. 9:16 vertical. 24fps, 180-degree shutter. Duration: 19 seconds.",
+        zh: "场景——日景室内客厅，与上一镜头连续。@image2 在两个剪辑中铺满整个背景（同一房间，不要生成新环境）。钨光-青色调色，平光，无暗角，模拟胶片质感。\n\n画面布局（共19秒，40毫米球形镜头，9:16，24帧，180度快门）：\n剪辑1（0–9秒）：宽双人镜。@image1（Mike）左三分之一处x=30%，胸部以上，静止，面部可见且正在垮掉。@image3（Wyatt，脸上无眼镜，眼镜松散地拿在手侧或放在附近）右三分之一处x=67%，执行缓慢的背身转动。从第3秒起 @image3 向 @image2 背景右侧深处走去，至第9秒完全出画。摄像机静止——不跟随 @image3。\n剪辑2（9–19秒）：@image1（Mike）单人镜，胸部以上，x=32%左三分之一处。@image3 完全消失。@image2 背景是全部可见的环境。摄像机静止。@image1 在完整的10秒内不移动。\n\n走位——剪辑1：@image3 在3秒内完成单次干净的背身转动，然后向背景右侧深处走去，脚步声在木地板上可听见，消失在 @image2 的房间纵深中。@image1 固定站立，承受。随着 @image3 后退，肩膀逐渐下沉3厘米。剪辑2：@image1 独自在场。重心下沉。头部低下2度。双手在身侧张开。胸部呼吸可见。\n\n表演——@image3（Wyatt）：及物动词'离弃'——离开是决定性的，无犹豫，无回头。@image1（Mike）：及物动词'向内崩塌'——他不追，不说话。他的身体缓慢吸收这个空缺。不是戏剧性崩溃——是安静的内爆。\n\n台词——无台词。完全静默。\n\n音频——裸露的室内音：住宅静默加上极其微弱的电气嗡鸣。音效：@image3 脚步声在木地板上远去（剪辑1，第3–9秒）；遥远走廊的嘎吱声或轻柔的门声（剪辑2，第10秒）。\n\n最后一帧（19秒）——@image1 独自，左三分之一处x=32%，胸部以上，头部比开始时低2度，双手张开，目光向前但失焦。@image2 铺满背景——他周围空旷的房间。定格3秒。淡出至剪辑。\n\n摄影机——40毫米球形直线镜头。两个剪辑均完全静止，三脚架锁定。无漂移，无运动。摄像机拒绝跟随 @image3。9:16竖幅。24帧，180度快门角。时长：19秒。",
+      },
+      render: { mode: 'M1', engine: 'Seedance' },
+      notes: {
+        todos: [
+          'Confirmar que @image3 sale de cuadro antes del corte a cut 2',
+          'Verificar que @image2 no cambie entre cuts — mismo fondo',
+        ],
+        warnings: [
+          'Cámara ESTÁTICA en ambos cuts — no seguir a @image3 cuando se aleja. Esta es la decisión clave del shot.',
+          '@image3 en cut 1 debe ser sin gafas en el rostro (continuidad desde shot D).',
+        ],
+        approved: false,
+      },
+    },
+  ],
+};
+
+export const SCENES_35_MOCK = {
+  description: 'Mike vs Wyatt - Confrontación fraternal en la sala',
+  duration: 40,
+  mode: 'M1',
+  aspectRatio: '9:16',
+  references: [
+    { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+    { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+    { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+  ],
+  sequenceFlow: {
+    title: 'Time budget',
+    subtitle: 'La tensión sube hasta el silencio que lo dice todo',
+    duration: 40,
+    metric: 'dramaticIntensity',
+    scale: { start: 'Frío', middle: 'Ignición', end: 'Ceniza' },
+    segments: [
+      { id: 'A', shotId: 'A', label: 'Hook', start: 0, end: 10, intensity: 0.25, color: '#3d6e8f' },
+      {
+        id: 'B',
+        shotId: 'B',
+        label: 'Friction',
+        start: 10,
+        end: 22,
+        intensity: 0.65,
+        color: '#c87c2a',
+      },
+      {
+        id: 'C',
+        shotId: 'C',
+        label: 'Spike',
+        start: 22,
+        end: 33,
+        intensity: 0.95,
+        color: '#c03030',
+      },
+      {
+        id: 'D',
+        shotId: 'D',
+        label: 'Button',
+        start: 33,
+        end: 40,
+        intensity: 0.3,
+        color: '#5a5a5a',
+      },
+    ],
+  },
+  directorNotes: {
+    goal: 'El espectador debe sentir que una palabra más rompe algo irreparable entre estos dos hombres.',
+    styleGuide:
+      'teal-amber grade - 35mm spherical rectilinear lens - flat field no vignette - 24fps 180 degree shutter - diegetic audio only - prompt in positive imperative - analog film grain',
+    warnings: [
+      'Do NOT generate abstract or metaphorical visuals; all emotion must be expressed through observable physical action.',
+      'Keep @image1 (Mike) always left of center; keep @image3 (Wyatt) always right of center in two-shot frames.',
+      'Use @image2 as the living room environment plate — never reinterpret the space.',
+      'Do NOT cross the 180-degree line between characters.',
+      'Shallow DOF on all shots; background plate @image2 must remain recognizable but soft.',
+    ],
+  },
+  shots: [
+    {
+      id: 'A',
+      title: 'Mike entra y planta los pies',
+      description:
+        'Mike entra en la sala con paso decidido y se detiene en el centro, mirando a Wyatt que ya está en el cuarto.',
+      duration: 10,
+      start: 0,
+      end: 10,
+      camera: {
+        lens: '35mm',
+        framing: 'Full shot staggered two-shot',
+        movement: 'Handheld slight drift toward subjects',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          '0-10s: Staggered two-shot. @image1 (Mike) enters from bottom-left, plants at left third x=30%. @image3 (Wyatt) stands right third x=72%, slightly deeper in frame. Both visible waist-to-head. @image2 living room plate fills background, soft and warm.',
+        subjectLock:
+          '@image1 Mike: dark casual clothes, tense jaw, fists loosely at sides. @image3 Wyatt: glasses, arms crossed, weight on back foot. Identical wardrobe and face across all shots.',
+        crossFrameRules:
+          '@image1 always left of center, @image3 always right of center. Never cross the axis. Shoulders angled 15 degrees toward each other, not full profile.',
+        focus: 'Rack focus from @image1 entering to both in plane by second 4.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Living room - entrance area, using @image2 plate',
+        movement:
+          '0-4s: @image1 walks in from bottom-left frame edge, footfalls audible on hardwood floor; stops at x=30%. 4-10s: Both men hold position; @image1 exhales through nose, weight shifts forward onto toes.',
+        interaction:
+          'Staggered two-shot. @image1 advances slightly; @image3 does not retreat. Eyelines lock across the frame.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description:
+              'Left third x=30%, foreground, stopped mid-stride, slightly closer to camera',
+          },
+          {
+            subjectId: '@image3',
+            description: 'Right third x=72%, midground, arms crossed, weight back',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Cold confrontation arriving',
+        bodyLanguage:
+          '@image1 (Mike): jaw clenched, chin level, fists loosely closed at hips, plants feet wide. @image3 (Wyatt): arms crossed tight over chest, glasses slightly down nose, eyebrows flat.',
+        dialogue: '',
+        microExpressions: [
+          'Mike: nostril flare on entry',
+          'Wyatt: chin tilts up 2 degrees as Mike stops',
+          'Mike: slow exhale visible through parted lips',
+        ],
+      },
+      timeline: {
+        duration: 10,
+        segments: [
+          { start: 0, end: 4, label: 'Mike enters and closes distance' },
+          { start: 4, end: 10, label: 'Both locked in silent standoff' },
+        ],
+        beats: [
+          {
+            start: 0,
+            end: 4,
+            description: '@image1 enters frame, footsteps on hardwood, plants feet',
+          },
+          {
+            start: 4,
+            end: 10,
+            description: 'Mutual eyeline lock; charged stillness; @image1 exhales',
+          },
+        ],
+      },
+      audio: {
+        dialogue: '',
+        ambient: 'Low room tone, distant street hum, house creak',
+        sfx: ['Footsteps on hardwood floor', 'Subtle exhale'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: 'SHOT A — Hook — 10 seconds — 9:16 — 24fps — 180-degree shutter — Seedance M1.\n\nSCENE: Interior living room, warm late-afternoon light, teal-amber color grade, analog film grain. The room is furnished and lived-in; background comes from reference plate @image2, kept soft and slightly out of focus.\n\nFRAME MAP: Staggered two-shot for the full 10 seconds. @image1 (Mike) occupies the LEFT THIRD of the frame at horizontal position x=30%, slightly closer to camera, visible from waist to head. @image3 (Wyatt, glasses) occupies the RIGHT THIRD at x=72%, slightly deeper in frame, also waist-to-head. Neither subject crosses the center axis at any point.\n\nSUBJECT LOCK — @image1 Mike: dark casual clothes, strong jaw tightly clenched, fists loosely closed at hips. Must match @image1 reference exactly in face and wardrobe throughout shot. @image3 Wyatt: glasses worn on face, arms crossed firmly over chest, weight on back foot. Must match @image3 reference exactly.\n\nBLOCKING AND MOVEMENT: 0-4s — @image1 enters from the bottom-left edge of frame walking with deliberate, heavy footsteps; audible on hardwood floor; stops at x=30% with feet planted wide. Camera drifts slightly forward on a handheld rig, closing the implied distance. 4-10s — Both men hold their positions. @image1 exhales slowly through parted lips. @image3 tilts chin up approximately 2 degrees. Neither man retreats. Eyelines connect across the frame.\n\nACTING MICRO-BEATS: @image1 nostril flare on entry (second 1). @image3 chin tilts up as @image1 stops (second 4). @image1 slow exhale visible as chest drops (second 6). Both hold the lock through second 10.\n\nLAST FRAME: Full staggered two-shot. @image1 left, feet wide, jaw tight. @image3 right, arms crossed, chin up. Eyelines locked. Room behind them soft and warm.\n\nCAMERA: 35mm spherical rectilinear lens. Handheld with slight drift toward subjects. Shallow depth of field — both subjects in focus plane, background @image2 plate rendered soft. Flat field, no vignette. 24fps, 180-degree shutter angle.\n\nAUDIO: Footsteps on hardwood floor during entry. Subtle exhale at second 6. Low room tone, distant street hum, house creak throughout. No music. Diegetic audio only.\n\nCOLOR: Teal-amber grade. Warm practical light from room. Analog film grain texture.',
+        zh: '镜头A — 钩子 — 10秒 — 9:16 — 24帧/秒 — 180度快门 — Seedance M1。\n\n场景：室内客厅，温暖的午后光线，青绿-琥珀色调，模拟胶片颗粒感。房间陈设真实、有生活感；背景来自参考板 @image2，保持柔和略微失焦。\n\n构图：全程10秒使用错位双人镜头。@image1（Mike）占据画面左三分之一，水平位置x=30%，略靠近摄影机，腰部至头部可见。@image3（Wyatt，戴眼镜）占据右三分之一，x=72%，略深入画面，同样腰部至头部可见。两人始终不越过中心轴。\n\n角色锁定 — @image1 Mike：深色休闲服，下颌紧咬，拳头在臀部侧松握。整个镜头中面部和服装必须与 @image1 参考完全一致。@image3 Wyatt：戴眼镜，双臂紧抱胸前，重心后移。面部和服装必须与 @image3 参考完全一致。\n\n走位与动作：0-4秒 — @image1 从画面左下角入画，步伐沉稳有力，木地板脚步声清晰可辨；停在x=30%处，双脚踩实。手持摄影机略微向前漂移，缩小隐含距离。4-10秒 — 两人保持位置。@image1 从嘴唇间缓缓呼气。@image3 下颌抬高约2度。无人退后。眼神在画面中交锁。\n\n表演微节拍：@image1 入场时鼻孔张开（第1秒）。@image1 停步时 @image3 下颌上抬（第4秒）。@image1 缓慢呼气可见胸腔下沉（第6秒）。两人对视保持至第10秒。\n\n末帧：完整错位双人镜头。@image1 在左，双脚踩实，下颌紧绷。@image3 在右，双臂抱胸，下颌上扬。眼神交锁。身后房间柔和温暖。\n\n摄影机：35mm球面直线镜头。手持略微向前漂移。浅景深——两个角色在同一焦平面，背景 @image2 板渲染柔和。平坦画面，无暗角。24帧/秒，180度快门角。\n\n音频：入场时木地板脚步声。第6秒轻微呼气声。全程低沉室内音，远处街道嗡嗡声，房屋轻微咯吱声。无音乐。仅叙事性音频。\n\n色调：青绿-琥珀调。房间暖光。模拟胶片颗粒质感。',
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Load @image1 Mike reference',
+          'Load @image2 living room plate',
+          'Load @image3 Wyatt reference',
+        ],
+        warnings: [
+          'Ensure @image1 and @image3 never cross the center axis in the frame',
+          'Background plate @image2 must remain recognizable but kept soft — shallow DOF',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'B',
+      title: 'Wyatt acusa — Mike absorbe el golpe',
+      description:
+        'Wyatt señala con el dedo y dispara palabras como cuchillos; Mike encaja el impacto sin retroceder, la mandíbula se aprieta más.',
+      duration: 12,
+      start: 10,
+      end: 22,
+      camera: {
+        lens: '55mm, 75mm',
+        framing: 'OTS Wyatt on Mike, cut to OTS Mike on Wyatt',
+        movement: 'Handheld stable — barely breathing',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (10-16s): OTS — @image3 shoulder fills left edge x=15% soft, @image1 face dominates center x=50%, chest-up. Cut 2 (16-22s): OTS — @image1 shoulder fills right edge x=85% soft, @image3 face dominates center x=50%, chest-up. Eyelines angled across center; 180-degree line maintained.',
+        subjectLock:
+          '@image1 Mike: same dark clothes, jaw clenching visibly, no retreat. @image3 Wyatt: same glasses, same clothes, finger raised, eyes narrowed.',
+        crossFrameRules:
+          'OTS axis holds: in Cut 1 @image1 faces screen-right; in Cut 2 @image3 faces screen-left. The 180-degree line between them is never crossed.',
+        focus:
+          'Cut 1: sharp on @image1 face, @image3 shoulder soft. Cut 2: sharp on @image3 face, @image1 shoulder soft.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Living room - center, same @image2 plate',
+        movement:
+          'Cut 1 (10-16s): @image3 raises right index finger and drives it forward toward @image1 repeatedly with punctuating jabs — transitive verb: TO STAB. @image1 absorbs each verbal blow; jaw muscles flex, eyes hold steady, no step back. Cut 2 (16-22s): @image3 finishes the accusation; @image1 swallows hard, chin dips a fraction, then rises back.',
+        interaction: 'Over-the-shoulder coverage; characters never face each other symmetrically.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description: 'Cut 1: face center frame x=50%, OTS from @image3 shoulder on left',
+          },
+          {
+            subjectId: '@image3',
+            description: 'Cut 2: face center frame x=50%, OTS from @image1 shoulder on right',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Cold demand vs cold fury',
+        bodyLanguage:
+          '@image3 (Wyatt): index finger stabs the air rhythmically with each accusatory phrase, chin pushed forward, lips thin and precise. @image1 (Mike): jaw muscles bulge, eyes unblinking, weight slightly forward — he does not retreat — absorbs each jab like a post taking a hammer.',
+        dialogue: "'You always do this. Every single time.'",
+        microExpressions: [
+          'Wyatt: finger-jab punctuating each syllable',
+          'Mike: visible jaw clench after each jab',
+          'Mike: single slow blink as he swallows the accusation',
+          'Wyatt: nostrils flare at end of speech',
+        ],
+      },
+      timeline: {
+        duration: 12,
+        segments: [
+          { start: 10, end: 16, label: 'Cut 1 - OTS Wyatt on Mike / accusation lands' },
+          { start: 16, end: 22, label: 'Cut 2 - OTS Mike on Wyatt / Mike absorbs' },
+        ],
+        beats: [
+          { start: 10, end: 13, description: '@image3 raises finger, first jab' },
+          {
+            start: 13,
+            end: 16,
+            description: '@image1 jaw clenches, holds eye contact, does not retreat',
+          },
+          { start: 16, end: 19, description: '@image3 finishes accusation, nostrils flare' },
+          {
+            start: 19,
+            end: 22,
+            description: '@image1 swallows, chin dips, rises back — contained fury',
+          },
+        ],
+      },
+      audio: {
+        dialogue: "'You always do this. Every single time.'",
+        ambient: 'Room tone, slight hum of the room',
+        sfx: ['Cloth shift as arm rises', 'Subtle breath catch'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SHOT B — Friction — 12 seconds — 9:16 — 24fps — 180-degree shutter — Seedance M1.\n\nSCENE: Interior living room, same location as Shot A. Background plate @image2 visible and soft behind both subjects. Warm teal-amber grade, analog film grain, flat field, no vignette.\n\nTHIS SHOT CONTAINS TWO INTERNAL CUTS.\n\nCUT 1 (seconds 0-6 of this shot, scene time 10-16s): Over-the-shoulder shot — @image3 (Wyatt, glasses) provides the background shoulder at LEFT EDGE x=15%, soft and out of focus. @image1 (Mike) fills CENTER FRAME at x=50%, chest-up, face sharp. @image3 raises his right index finger and drives it forward toward @image1 repeatedly in rhythmic pointed jabs — each jab coincides with a spoken phrase: 'You always do this. Every single time.' @image1 receives each verbal blow; his jaw muscles visibly clench after each jab; his eyes are unblinking and fixed on @image3; he does not retreat one centimeter. He absorbs like a post taking a hammer — transitive action: TO ABSORB. 55mm lens. Handheld barely breathing.\n\nCUT 2 (seconds 6-12 of this shot, scene time 16-22s): Over-the-shoulder shot — @image1 (Mike) provides the background shoulder at RIGHT EDGE x=85%, soft and out of focus. @image3 (Wyatt, glasses) fills CENTER FRAME at x=50%, chest-up, face sharp. @image3 finishes his accusation; nostrils flare. Then @image1 reacts: chin dips one fraction, a single slow blink, then chin rises back to level — fury contained under pressure. @image1 does not speak. 75mm lens. Handheld barely breathing.\n\nSUBJECT LOCK — @image1 Mike: same dark casual clothes as Shot A. Jaw visibly clenching. @image3 Wyatt: same clothes, glasses on face, finger raised in Cut 1.\n\n180-DEGREE RULE: In Cut 1 @image1 faces screen-right; in Cut 2 @image3 faces screen-left. The spatial axis between them is never broken.\n\nFOCUS: Cut 1 — sharp on @image1 face, @image3 shoulder soft. Cut 2 — sharp on @image3 face, @image1 shoulder soft. Shallow DOF throughout.\n\nLAST FRAME: OTS @image1 shoulder right, @image3 face center, jaw set, glasses slightly fogged from confrontation heat.\n\nAUDIO: Dialogue — 'You always do this. Every single time.' (from @image3). Cloth shift sound as arm raises. Subtle breath catch from @image1. Room tone throughout. No music.\n\nCOLOR: Teal-amber grade, warm practical light, analog film grain.",
+        zh: "镜头B — 摩擦 — 12秒 — 9:16 — 24帧/秒 — 180度快门 — Seedance M1。\n\n场景：与镜头A相同的室内客厅。背景板 @image2 在两位角色身后可见且柔和。温暖的青绿-琥珀色调，模拟胶片颗粒感，平坦画面，无暗角。\n\n本镜头包含两个内部切换。\n\n切换1（本镜头第0-6秒，场景时间10-16秒）：过肩镜头——@image3（Wyatt，戴眼镜）的肩膀在画面左边缘x=15%提供背景，柔和失焦。@image1（Mike）占据画面中心x=50%，胸部以上，面部清晰。@image3 抬起右手食指，随着每个指控短语向 @image1 反复刺戳：'你总是这样。每一次都是。' @image1 承受每次言语打击；每次刺戳后下颌肌肉明显紧绷；眼神不眨一眨地盯住 @image3；一厘米都不退后。他像承受锤击的木柱一样吸收——及物动词：承受。55mm镜头。手持几乎不动。\n\n切换2（本镜头第6-12秒，场景时间16-22秒）：过肩镜头——@image1（Mike）的肩膀在画面右边缘x=85%提供背景，柔和失焦。@image3（Wyatt，戴眼镜）占据画面中心x=50%，胸部以上，面部清晰。@image3 完成指控，鼻孔张开。然后 @image1 做出反应：下颌微微下沉一分，一次缓慢的单眨，然后下颌恢复水平——在压力下被压制的愤怒。@image1 不说话。75mm镜头。手持几乎不动。\n\n角色锁定 — @image1 Mike：与镜头A相同的深色休闲服。下颌明显紧绷。@image3 Wyatt：相同服装，眼镜戴在脸上，切换1中食指抬起。\n\n180度规则：切换1中 @image1 面朝画面右侧；切换2中 @image3 面朝画面左侧。两人之间的空间轴线始终不被打破。\n\n焦点：切换1——@image1 面部清晰，@image3 肩膀柔和。切换2——@image3 面部清晰，@image1 肩膀柔和。全程浅景深。\n\n末帧：过肩，@image1 肩膀在右，@image3 面孔居中，下颌紧绷，眼镜略微因对峙热度蒙雾。\n\n音频：对白——'你总是这样。每一次都是。'（来自 @image3）。手臂抬起时衣物摩擦声。@image1 的轻微喘息声。全程室内音。无音乐。\n\n色调：青绿-琥珀调，温暖实际光源，模拟胶片颗粒感。",
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirm 180-degree axis is maintained across Cut 1 and Cut 2',
+          'Verify @image3 finger-jab reads clearly on 9:16 frame',
+        ],
+        warnings: [
+          'Do not let @image1 step back even one frame — he must hold ground physically at all times',
+          'OTS shoulder must remain soft — do not accidentally bring it into focus',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'C',
+      title: 'Mike explota — el quiebre',
+      description:
+        'Mike da un paso al frente y lanza su verdad al aire; su cuerpo es un muelle soltado — Wyatt retrocede un paso involuntario.',
+      duration: 11,
+      start: 22,
+      end: 33,
+      camera: {
+        lens: '40mm to 50mm',
+        framing: 'Single Mike chest-up, push-in slow, then cut to single Wyatt chest-up',
+        movement: 'Push-in lento continuo on @image1, cut to near-static on @image3',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          'Cut 1 (22-29s): Single @image1 (Mike) chest-up, centered x=50%. Camera pushes in slowly from 40mm to 50mm equivalent. Cut 2 (29-33s): Single @image3 (Wyatt) chest-up, centered x=50%. Near-static. Both in separate singles — no two-shot in this segment.',
+        subjectLock:
+          '@image1 Mike: same dark clothes, face contorted with released fury, chin driving forward, hand cutting the air. @image3 Wyatt: glasses, face absorbs impact, involuntary step back visible.',
+        crossFrameRules:
+          'Singles only — no shared frame. Eyelines connect across the cut (screen-left to screen-right convention maintained).',
+        focus: 'Both singles: face in sharp focus, background @image2 soft.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Living room - center, @image2 plate behind',
+        movement:
+          'Cut 1 (22-29s): @image1 steps forward one full stride, chin drives forward and up, right hand cuts the air palm-down — transitive verb: TO CUT. He speaks fast and hard. Camera pushes in slowly to match his advance. Cut 2 (29-33s): @image3 takes one involuntary half-step backward — his body speaks before his mind; glasses shift slightly; mouth opens a fraction then closes.',
+        interaction:
+          'Singles — cutting between the two men during the peak exchange. Eyelines connect across cuts.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description: 'Cut 1: center frame x=50%, stepping forward, dominant',
+          },
+          {
+            subjectId: '@image3',
+            description: 'Cut 2: center frame x=50%, absorbing, half-step back',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Rage detonated',
+        bodyLanguage:
+          '@image1 (Mike): chin juts forward, right hand slashes the air palm-down with each clause, voice projects from chest, veins in neck visible, body fully forward. @image3 (Wyatt): one involuntary half-step back, mouth opens slightly then closes, glasses shift on nose bridge, jaw works silently.',
+        dialogue: "'You want the truth? Fine. Here it is.'",
+        microExpressions: [
+          'Mike: hand slashing the air palm-down',
+          'Mike: veins visible in neck',
+          'Wyatt: involuntary half-step backward',
+          'Wyatt: glasses shift on nose bridge',
+          'Wyatt: mouth opens then closes without sound',
+        ],
+      },
+      timeline: {
+        duration: 11,
+        segments: [
+          { start: 22, end: 29, label: 'Cut 1 - Single Mike / detonation' },
+          { start: 29, end: 33, label: 'Cut 2 - Single Wyatt / absorbs the blast' },
+        ],
+        beats: [
+          { start: 22, end: 24, description: '@image1 steps forward, chin drives up' },
+          { start: 24, end: 29, description: '@image1 hand cuts air, delivers the truth' },
+          { start: 29, end: 31, description: '@image3 involuntary half-step back' },
+          { start: 31, end: 33, description: '@image3 mouth works silently, glasses shift' },
+        ],
+      },
+      audio: {
+        dialogue: "'You want the truth? Fine. Here it is.'",
+        ambient: 'Room tone drops slightly — the world holds its breath',
+        sfx: ['Foot plant on hardwood — one heavy step', 'Cloth snap as hand cuts air'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: "SHOT C — Spike — 11 seconds — 9:16 — 24fps — 180-degree shutter — Seedance M1.\n\nSCENE: Interior living room, same space as previous shots. Background plate @image2 behind both subjects, rendered soft. Warm teal-amber color grade, analog film grain, flat field, no vignette.\n\nTHIS SHOT CONTAINS TWO INTERNAL CUTS.\n\nCUT 1 (seconds 0-7 of this shot, scene time 22-29s): Single on @image1 (Mike). Chest-up, centered in frame at x=50%. @image1 takes one full deliberate stride forward — his foot plants hard on the hardwood floor, audible impact. His chin drives forward and upward. His right hand rises and slashes the air palm-down in a cutting motion on each clause — transitive verb: TO CUT. He speaks fast and from the chest: 'You want the truth? Fine. Here it is.' Veins are visible in his neck. His body is fully committed forward, not a single muscle held back. Camera executes a slow continuous push-in from 40mm to 50mm equivalent focal length as he advances. Face sharp, background @image2 soft. Shallow DOF.\n\nCUT 2 (seconds 7-11 of this shot, scene time 29-33s): Single on @image3 (Wyatt, glasses). Chest-up, centered at x=50%. @image3 takes one involuntary half-step backward — his body moves before his mind gives permission. His glasses shift slightly on his nose bridge. His mouth opens a fraction — and then closes without producing a single word. His jaw works silently. He has absorbed the blast. Near-static camera, barely breathing. Face sharp, background soft. Shallow DOF.\n\nSUBJECT LOCK — @image1 Mike: same dark casual clothes, face contorted with released fury. @image3 Wyatt: same clothes, glasses on face, glasses shift moment must read clearly on 9:16 frame.\n\nEYELINE CONTINUITY: In Cut 1 @image1 looks screen-left (toward where @image3 would be). In Cut 2 @image3 looks screen-right (toward where @image1 would be). The spatial relationship is maintained across the cut.\n\nLAST FRAME: @image3 face center, mouth closed, jaw working, glasses slightly shifted, the half-step backward frozen in the aftermath.\n\nAUDIO: Dialogue 'You want the truth? Fine. Here it is.' delivered by @image1 in Cut 1. One heavy foot plant on hardwood at scene second 22. Cloth snap as hand cuts air. Room tone drops very slightly in Cut 2 — a held breath. No music. Diegetic only.\n\nCOLOR: Teal-amber grade, analog film grain.",
+        zh: "镜头C — 高峰 — 11秒 — 9:16 — 24帧/秒 — 180度快门 — Seedance M1。\n\n场景：与前几个镜头相同的室内客厅。背景板 @image2 在两位角色身后，渲染柔和。温暖的青绿-琥珀色调，模拟胶片颗粒感，平坦画面，无暗角。\n\n本镜头包含两个内部切换。\n\n切换1（本镜头第0-7秒，场景时间22-29秒）：@image1（Mike）单人镜头。胸部以上，画面中心x=50%。@image1 向前迈出一步——脚掌重重踩在木地板上，可听见冲击声。下颌向前向上推进。右手上扬，在每个子句上手掌向下劈砍空气——及物动词：切割。他急速从胸腔发声：'你想要真相？好。听着。' 颈部青筋可见。整个身体毫无保留地向前压。摄影机随着他的推进，以40mm到50mm等效焦距执行缓慢连续推镜。面部清晰，背景 @image2 柔和。浅景深。\n\n切换2（本镜头第7-11秒，场景时间29-33秒）：@image3（Wyatt，戴眼镜）单人镜头。胸部以上，画面中心x=50%。@image3 不由自主地向后退了半步——身体先于意识做出反应。眼镜在鼻梁上略微移位。嘴巴张开一分——然后无声合上，一个字也没说出来。下颌无声地动着。他承受了这次爆炸。摄影机几乎静止不动，几乎不呼吸。面部清晰，背景柔和。浅景深。\n\n角色锁定 — @image1 Mike：相同的深色休闲服，面部因释放的愤怒而扭曲。@image3 Wyatt：相同服装，眼镜戴在脸上，眼镜移位的瞬间必须在9:16画面中清晰可见。\n\n视线连续性：切换1中 @image1 看向画面左侧（朝向 @image3 所在方向）。切换2中 @image3 看向画面右侧（朝向 @image1 所在方向）。两次切换之间空间关系保持不变。\n\n末帧：@image3 面孔居中，嘴巴合拢，下颌无声运动，眼镜略微移位，向后半步的动作定格在事后。\n\n音频：切换1中 @image1 说出对白'你想要真相？好。听着。'。场景第22秒一次沉重的脚踩木地板声。手劈空气时的衣物破风声。切换2中室内音略微降低——憋住的呼吸。无音乐。仅叙事性音频。\n\n色调：青绿-琥珀调，模拟胶片颗粒感。",
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirm push-in on Cut 1 is slow and controlled — not aggressive zoom',
+          'Verify glasses-shift micro-beat reads on @image3 in Cut 2',
+        ],
+        warnings: [
+          '@image1 must advance — if he stays static the beat is lost',
+          '@image3 half-step back must be involuntary-looking, not theatrical — keep it small',
+        ],
+        approved: false,
+      },
+    },
+    {
+      id: 'D',
+      title: 'El silencio entre los dos — button',
+      description:
+        'Los dos hombres se miran desde su distancia; Wyatt se gira levemente, no huye pero tampoco puede sostenerse; Mike se queda quieto como piedra.',
+      duration: 7,
+      start: 33,
+      end: 40,
+      camera: {
+        lens: '85mm',
+        framing: 'Wide staggered two-shot, pulling back slowly',
+        movement: 'Near-static with imperceptible pull-back',
+        fps: 24,
+        shutter: '180 degree',
+        aspectRatio: '9:16',
+      },
+      composition: {
+        frameMap:
+          '33-40s: Staggered two-shot. @image1 (Mike) left third x=28%, @image3 (Wyatt) right third x=74%. Both chest-up fading to waist-up as camera imperceptibly pulls back. @image2 background plate visible and slightly more revealed as pull-back opens frame.',
+        subjectLock:
+          '@image1 Mike: same dark clothes, face returned to stone, arms at sides. @image3 Wyatt: same clothes, glasses, turned 10 degrees away from @image1 — not a full turn, just a deflection.',
+        crossFrameRules:
+          '@image1 left, @image3 right. Never cross center. The space between them is the subject of this shot.',
+        focus: 'Both subjects in plane — equally sharp. Background @image2 soft.',
+        depth: 'Shallow DOF',
+      },
+      blocking: {
+        location: 'Living room - center, @image2 plate behind',
+        movement:
+          '33-37s: Both men hold position. @image3 slowly turns his torso 10 degrees away from @image1 — not a retreat, a deflection — transitive verb: TO DEFLECT. @image1 does not move a muscle. 37-40s: @image3 drops his gaze to the floor for one beat, then raises it to the middle distance — not to @image1. @image1 watches him with the stillness of someone who has said everything.',
+        interaction:
+          'Two-shot: the empty space between them carries the drama. Neither man leaves the frame.',
+        positions: [
+          {
+            subjectId: '@image1',
+            description: 'Left third x=28%, stone still, arms at sides, watching @image3',
+          },
+          {
+            subjectId: '@image3',
+            description:
+              'Right third x=74%, torso 10 degrees deflected away, gaze drops then rises to middle distance',
+          },
+        ],
+      },
+      acting: {
+        emotion: 'Empty — aftermath; the silence that holds everything',
+        bodyLanguage:
+          '@image1 (Mike): arms fall to sides, face returns to stone mask, breath barely visible, eyes track @image3 without blinking. @image3 (Wyatt): torso rotates 10 degrees away — small, involuntary — glasses catch the light as his head drops, then his gaze rises to middle distance, refusing to find @image1 again.',
+        dialogue: '',
+        microExpressions: [
+          'Mike: single blink after Wyatt deflects',
+          'Wyatt: gaze drops to floor then rises to middle distance',
+          'Wyatt: glasses catch warm light on the turn',
+          'The space between them widens as camera pulls back',
+        ],
+      },
+      timeline: {
+        duration: 7,
+        segments: [
+          { start: 33, end: 37, label: 'Wyatt deflects — Mike holds' },
+          { start: 37, end: 40, label: 'The aftermath silence — neither man moves' },
+        ],
+        beats: [
+          { start: 33, end: 35, description: 'Both men in charged stillness' },
+          { start: 35, end: 37, description: '@image3 torso deflects 10 degrees away' },
+          { start: 37, end: 39, description: '@image3 gaze drops to floor' },
+          {
+            start: 39,
+            end: 40,
+            description: '@image3 gaze rises to middle distance; @image1 watches; camera settles',
+          },
+        ],
+      },
+      audio: {
+        dialogue: '',
+        ambient: 'Near-silence — low room tone, single house creak, distant street',
+        sfx: ['Single house creak', 'Very faint ambient breath from both men'],
+        music: false,
+      },
+      references: [
+        { slot: '@image1', assetId: 'cc36a4e5-2afa-473c-bdbc-e06d8ad79723', type: 'character' },
+        { slot: '@image2', assetId: '50e9c5a0-4a63-46e9-a0d8-3d7ebf4760e1', type: 'plate' },
+        { slot: '@image3', assetId: '01d03f57-5b6e-4445-a97e-3526069528bc', type: 'character' },
+      ],
+      prompt: {
+        en: 'SHOT D — Button — 7 seconds — 9:16 — 24fps — 180-degree shutter — Seedance M1.\n\nSCENE: Interior living room, same space throughout this scene. Background plate @image2 behind both subjects, slightly more revealed as the camera imperceptibly pulls back during the shot. Warm teal-amber color grade. Analog film grain. Flat field, no vignette.\n\nFRAME MAP: Staggered two-shot for the full 7 seconds. @image1 (Mike) occupies the LEFT THIRD at horizontal position x=28%, starting chest-up and opening to waist-up by the end as the camera pulls back. @image3 (Wyatt, glasses) occupies the RIGHT THIRD at x=74%, same framing. Neither man crosses the center axis. The empty space between them is the visual and dramatic subject of this shot.\n\nSUBJECT LOCK — @image1 Mike: same dark casual clothes as all previous shots. Arms fall to sides. Face returned to stone mask — neutral, contained, final. @image3 Wyatt: same clothes, glasses on face catching warm light on the turn. Torso rotates 10 degrees away from @image1 during the shot.\n\nBLOCKING AND MOVEMENT: Seconds 33-37 (shot-internal 0-4s) — Both men hold position in charged silence. Then @image3 slowly rotates his torso 10 degrees away from @image1 — this is a deflection, not a retreat; his feet do not move; it is the smallest possible turn, barely perceptible but unmistakable — transitive verb: TO DEFLECT. @image1 does not move a single muscle. His eyes track @image3 without blinking. Seconds 37-40 (shot-internal 4-7s) — @image3 drops his gaze to the floor for one beat; his glasses catch the warm ambient light. Then his gaze rises to the middle distance — not to @image1, not to any specific point. He is nowhere. @image1 watches him with the stillness of someone who has said everything and has nothing left to add. Camera executes an imperceptible, near-static pull-back — almost breathing rather than moving — opening the frame slightly to reveal more of the space between them.\n\nFOCUS: Both subjects equally sharp in the same focal plane. Background @image2 remains soft throughout. Shallow DOF.\n\nLAST FRAME: Staggered two-shot. @image1 stone-still on left, arms at sides, eyes forward. @image3 on right, 10 degrees deflected, gaze in middle distance. The room behind them — @image2 soft and warm — fills the frame between and behind them. The shot ends here.\n\nAUDIO: No dialogue. Near-silence — very low room tone. A single house creak somewhere in the structure. Very faint ambient breath from both men. Distant street sound. No music. Diegetic only.\n\nCOLOR: Teal-amber grade. Warm practical room light. Analog film grain. The silence should feel visible.',
+        zh: '镜头D — 尾声按钮 — 7秒 — 9:16 — 24帧/秒 — 180度快门 — Seedance M1。\n\n场景：整个场景中相同的室内客厅。背景板 @image2 在两位角色身后，随着摄影机在镜头中轻微向后拉，背景略微更多地展现出来。温暖的青绿-琥珀色调。模拟胶片颗粒感。平坦画面，无暗角。\n\n构图：全程7秒使用错位双人镜头。@image1（Mike）占据画面左三分之一，水平位置x=28%，从胸部以上开始，随着摄影机后拉至镜头结束时变为腰部以上。@image3（Wyatt，戴眼镜）占据右三分之一x=74%，相同取景。两人均不越过中心轴。两人之间的空旷空间是本镜头的视觉和戏剧主题。\n\n角色锁定 — @image1 Mike：与所有前序镜头相同的深色休闲服。双臂垂落两侧。面部回归石头面具——中性、克制、最终的。@image3 Wyatt：相同服装，眼镜戴在脸上，在转身时接收到暖光反射。镜头拍摄期间躯干向远离 @image1 方向旋转10度。\n\n走位与动作：场景时间33-37秒（镜头内部0-4秒）——两人在充满张力的沉默中保持位置。然后 @image3 缓慢将躯干向远离 @image1 方向旋转10度——这是偏转，不是逃跑；双脚不移动；这是尽可能微小的转动，几乎难以察觉但无误——及物动词：偏转。@image1 一块肌肉都不动。眼睛一眨不眨地追踪着 @image3。场景时间37-40秒（镜头内部4-7秒）——@image3 将目光落到地板上停顿一拍；眼镜接受暖光环境光。然后他的目光升至中间距离——不是看向 @image1，不是任何具体的点。他在虚无之处。@image1 用一个已经说完一切、无话可说的人的静止注视着他。摄影机执行几乎无法察觉的、近乎静止的后拉——与其说是移动，不如说是呼吸——略微打开画面，揭示两人之间更多的空间。\n\n焦点：两位角色在同一焦平面上同等清晰。背景 @image2 全程保持柔和。浅景深。\n\n末帧：错位双人镜头。@image1 在左如石静立，双臂垂侧，目视前方。@image3 在右，偏转10度，目光在中间距离。两人背后的房间——@image2 柔和温暖——在他们之间和身后填满画面。镜头在此结束。\n\n音频：无对白。近乎寂静——极低的室内音。房屋结构某处传来一声咯吱声。两人极其微弱的环境呼吸声。远处街道声音。无音乐。仅叙事性音频。\n\n色调：青绿-琥珀调。温暖的实际室内光源。模拟胶片颗粒感。寂静应该是可见的。',
+      },
+      render: {
+        mode: 'M1',
+        engine: 'Seedance',
+      },
+      notes: {
+        todos: [
+          'Confirm pull-back is imperceptible — if visible as a deliberate move, adjust to near-static',
+          'Verify @image3 10-degree deflection reads as involuntary, not theatrical',
+        ],
+        warnings: [
+          'Do NOT let @image3 fully turn away — 10 degrees maximum; feet must not move',
+          '@image1 must remain completely still — any fidget breaks the button',
+          'The space between the two men is the hero of this shot — do not crop it out',
+        ],
+        approved: false,
+      },
+    },
+  ],
+};

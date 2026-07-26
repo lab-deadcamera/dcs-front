@@ -61,6 +61,7 @@ interface SceneAssignmentItem {
   name?: string;
   label?: string;
   group_slug?: string;
+  slot?: string;
 }
 
 @Component({
@@ -303,6 +304,16 @@ export class SceneAssignmentComponent implements OnInit {
       });
   }
 
+  private nextSlot(): string {
+    const assigned = this.assignedCharacters();
+    const usedSlots = new Set(assigned.map((a: any) => a.slot).filter(Boolean));
+    let n = 1;
+    while (usedSlots.has(`@image${n}`)) {
+      n++;
+    }
+    return `@image${n}`;
+  }
+
   assignCharacter(characterId: string): void {
     const pid = this.projectId();
     const sid = this.sceneId();
@@ -310,6 +321,7 @@ export class SceneAssignmentComponent implements OnInit {
     this.http
       .post(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/characters`, {
         character_id: characterId,
+        slot: this.nextSlot(),
       })
       .subscribe({
         next: () => {

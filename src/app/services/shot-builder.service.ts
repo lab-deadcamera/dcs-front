@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { catchError, finalize, map, of, throwError } from 'rxjs';
 import { parseArtifactData, computeCharacterCount } from './shot-builder-artifact';
-import { Sequence } from '@app/core/interfaces';
+import { Sequence, Reference } from '@app/core/interfaces';
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
   number: number;
   name: string;
   description: string;
+  /** Character/asset references from the Sequence format, if available. */
+  references?: Reference[];
 }
 
 /** Parsed response from the Claude shot builder. */
@@ -23,7 +25,7 @@ export interface ShotBuilderResult {
 /** Scene context sent to Claude for both shot builder and proncer. */
 export interface SceneContext {
   description?: string;
-  characters?: Array<{ name: string; description?: string }>;
+  characters?: Array<{ id?: string; name: string; description?: string; slot?: string }>;
   presets?: Array<{ code: string; label: string; prompt?: string }>;
   assets?: Array<{ id?: string; filename: string; mimeType: string }>;
 }
@@ -306,6 +308,28 @@ export class ShotBuilderService {
       );
   }
 
+  /**
+   * Assign a character to a shot with an optional slot (@imageN).
+   */
+  assignCharacterToShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+    characterId: string,
+    slot?: string,
+  ) {
+    return this.http.post<{ success: boolean; data?: { id: string }; message?: string }>(
+      `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources/characters`,
+      { character_id: characterId, ...(slot ? { slot } : {}) },
+    ).pipe(
+      catchError((err) => {
+        console.error('Failed to assign character to shot:', err);
+        return of({ success: false, data: undefined, message: err?.error?.message || err?.message || 'Unknown error' });
+      }),
+    );
+  }
+
   // ── Private helpers ───────────────────────────────────────────────
 
   private parseShotsResponse(data: {
@@ -332,13 +356,15 @@ export class ShotBuilderService {
 
     // Try the new rich Sequence format
     try {
-      const parsed = JSON.parse(raw);
+      const sanitized = this.sanitizeForJson(raw);
+      const parsed = JSON.parse(sanitized);
       if (parsed.shots && Array.isArray(parsed.shots) && parsed.description) {
         const seq = computeCharacterCount(parsed as Sequence);
         const shots: ShotBuilderShot[] = parsed.shots.map((s: any, i: number) => ({
           number: i + 1,
           name: s.title || '',
           description: s.prompt?.en || s.prompt?.zh || '',
+          references: s.references as Reference[] | undefined,
         }));
         return { shots, rawText: raw, sequence: seq };
       }
@@ -348,6 +374,66 @@ export class ShotBuilderService {
 
     // Fallback: return raw decoded text
     return { shots: [], rawText: raw };
+  }
+
+  /**
+   * Repair JSON text so it always parses correctly, handling:
+   *   - Smart/curly quotes (“ ” → ' ')
+   *   - Unescaped ASCII " inside string values (e.g. Chinese dialogue
+   *     like 他说"你好" → 他说'你好')
+   *
+   * Uses a character-by-character state machine so structural quotes
+   * (the JSON delimiters) are preserved while content quotes are
+   * replaced with single quotes.
+   */
+  private sanitizeForJson(text: string): string {
+    // Phase 1: replace smart/curly double quotes (NOT standard ASCII ")
+    let s = text.replace(/[“”]/g, "'");
+
+    // Phase 2: walk character by character to catch unescaped ASCII "
+    // that appears inside string values (a common Claude output error)
+    const chars = [...s];
+    const out: string[] = [];
+    let inString = false;
+
+    for (let i = 0; i < chars.length; i++) {
+      const ch = chars[i];
+
+      if (ch === '\\' && inString) {
+        // Escape sequence — pass through as-is
+        out.push(ch);
+        if (i + 1 < chars.length) {
+          out.push(chars[++i]);
+        }
+        continue;
+      }
+
+      if (ch === '"') {
+        if (!inString) {
+          // Opening delimiter
+          inString = true;
+          out.push(ch);
+        } else {
+          // We're inside a string — look ahead to decide if this
+          // is the closing delimiter or content that should be replaced
+          const rest = chars.slice(i + 1).join('').trimStart();
+          const nextStructural = rest.match(/^[,:\]}]/);
+          const atEnd = rest.length === 0 || rest.trim().length === 0;
+          if (nextStructural || atEnd) {
+            // Structural close
+            inString = false;
+            out.push(ch);
+          } else {
+            // Content quote — swap for single quote
+            out.push("'");
+          }
+        }
+      } else {
+        out.push(ch);
+      }
+    }
+
+    return out.join('');
   }
 
   private decodeText(text: string): string {
@@ -378,7 +464,7 @@ export class ShotBuilderService {
 
     const tryParse = (raw: string): ShotBuilderShot[] | null => {
       try {
-        const parsed = JSON.parse(raw);
+        const parsed = JSON.parse(this.sanitizeForJson(raw));
         if (parsed.shots && Array.isArray(parsed.shots)) {
           return parsed.shots.map((s: any) => ({
             number: s.id ? s.id.charCodeAt(0) - 64 : 0,

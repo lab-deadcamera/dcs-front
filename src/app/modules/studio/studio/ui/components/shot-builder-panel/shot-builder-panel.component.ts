@@ -492,7 +492,9 @@ export class ShotBuilderPanelComponent {
     const sceneContext: SceneContext = {
       description: this.studio.rawDescription() || undefined,
       characters: this.studio.sceneCharacterData().map((c) => ({
+        ...(c.fileId ? { id: c.fileId } : {}),
         name: c.name,
+        ...(c.slot ? { slot: c.slot } : {}),
       })),
       assets: this.studio.freeAssets().map((a) => ({
         id: a.id,
@@ -674,7 +676,29 @@ export class ShotBuilderPanelComponent {
         .createShot(projectId, chapterId, sceneId, { number, name, description })
         .subscribe((res) => {
           if (res?.data?.id) {
-            createdIds.push(res.data.id);
+            const newShotId = res.data.id;
+            createdIds.push(newShotId);
+            // Save character references (slots) — match by fileId first
+            // (Claude receives the file UUID as assetId now), then id, then name.
+            const refs = shotRef?.references || [];
+            const charRefs = refs.filter((r: any) => r.type === 'character');
+            if (charRefs.length > 0) {
+              const charData = this.studio.sceneCharacterData();
+              for (const ref of charRefs) {
+                const assetId = (ref.assetId || '').toLowerCase();
+                const match = charData.find(
+                  (c) =>
+                    c.fileId.toLowerCase() === assetId ||
+                    c.id.toLowerCase() === assetId ||
+                    c.name.toLowerCase() === assetId,
+                );
+                if (match) {
+                  this.shotBuilderService
+                    .assignCharacterToShot(projectId, chapterId, sceneId, newShotId, match.id, ref.slot)
+                    .subscribe();
+                }
+              }
+            }
           }
           createNext();
         });
@@ -788,6 +812,7 @@ export class ShotBuilderPanelComponent {
       }
 
       const shot = currentShots[index];
+      const charData = this.studio.sceneCharacterData();
       index++;
 
       this.shotBuilderService
@@ -798,7 +823,29 @@ export class ShotBuilderPanelComponent {
         })
         .subscribe((res) => {
           if (res?.data?.id) {
-            createdIds.push(res.data.id);
+            const newShotId = res.data.id;
+            createdIds.push(newShotId);
+            // Save character references (slots) — match by fileId first
+            // (Claude receives the file UUID as assetId now), then fall back
+            // to character id, then name.
+            const refs = shot.references || [];
+            const charRefs = refs.filter((r: any) => r.type === 'character');
+            if (charRefs.length > 0) {
+              for (const ref of charRefs) {
+                const assetId = (ref.assetId || '').toLowerCase();
+                const match = charData.find(
+                  (c) =>
+                    c.fileId.toLowerCase() === assetId ||
+                    c.id.toLowerCase() === assetId ||
+                    c.name.toLowerCase() === assetId,
+                );
+                if (match) {
+                  this.shotBuilderService
+                    .assignCharacterToShot(projectId, chapterId, sceneId, newShotId, match.id, ref.slot)
+                    .subscribe();
+                }
+              }
+            }
           }
           createNext();
         });

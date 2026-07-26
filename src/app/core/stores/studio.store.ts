@@ -77,7 +77,9 @@ export class StudioStore {
   private readonly _scenePresetIds = signal<Set<string>>(new Set());
   private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
   private readonly _sceneAssetIds = signal<Set<string>>(new Set());
-  private readonly _sceneCharacterData = signal<Array<{ id: string; name: string }>>([]);
+  private readonly _sceneCharacterData = signal<
+    Array<{ id: string; name: string; slot: string; fileId: string }>
+  >([]);
 
   readonly scenePresetIds = this._scenePresetIds.asReadonly();
   readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
@@ -92,7 +94,7 @@ export class StudioStore {
 
   // ── Shot Resources (loaded when a shot is selected) ────────────────
   private readonly _shotCharacters = signal<
-    Array<{ id: string; characterId: string; name: string }>
+    Array<{ id: string; characterId: string; name: string; slot: string; fileId: string }>
   >([]);
   private readonly _shotAssets = signal<
     Array<{ id: string; fileId: string; filename: string; mimeType: string; slot: string }>
@@ -109,7 +111,7 @@ export class StudioStore {
 
   /** Load shot resources (characters, assets, presets) from the backend. */
   loadShotResources(data: {
-    characters: Array<{ id: string; character_id: string; name: string }>;
+    characters: Array<{ id: string; character_id: string; name: string; slot?: string; file_id?: string }>;
     assets: Array<{
       id: string;
       file_id: string;
@@ -120,8 +122,13 @@ export class StudioStore {
     presets: Array<{ id: string; preset_id: string; code: string; label: string; prompt: string }>;
   }): void {
     this._shotCharacters.set(
-      data.characters?.map((c: any) => ({ id: c.id, characterId: c.character_id, name: c.name })) ??
-        [],
+      data.characters?.map((c: any) => ({
+        id: c.id,
+        characterId: c.character_id,
+        name: c.name,
+        slot: c.slot ?? '',
+        fileId: c.file_id ?? '',
+      })) ?? [],
     );
     this._shotAssets.set(
       data.assets?.map((a: any) => ({
@@ -148,7 +155,7 @@ export class StudioStore {
     this._usedAssets.set([]);
     for (const c of this._shotCharacters()) {
       this.useAsset({
-        fileId: c.characterId,
+        fileId: c.fileId || c.characterId,
         characterId: c.characterId,
         name: c.name,
         filename: c.name,
@@ -582,7 +589,7 @@ export class StudioStore {
       });
       this._sceneCharacterData.update((list) => {
         if (list.some((c) => c.id === asset.characterId)) return list;
-        return [...list, { id: asset.characterId, name: asset.name }];
+        return [...list, { id: asset.characterId, name: asset.name, slot: '', fileId: '' }];
       });
       this._assignmentsLoaded.set(true);
     }
@@ -651,7 +658,12 @@ export class StudioStore {
     this._sceneCharacterData.set(
       chars
         .filter((a: any) => a.character_id && a.name)
-        .map((a: any) => ({ id: a.character_id, name: a.name })),
+        .map((a: any) => ({
+          id: a.character_id,
+          name: a.name,
+          slot: a.slot ?? '',
+          fileId: a.file_id ?? '',
+        })),
     );
     this._sceneAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
