@@ -109,10 +109,16 @@ export class StudioStore {
   readonly shotPresets = this._shotPresets.asReadonly();
   readonly shotResourcesLoaded = this._shotResourcesLoaded.asReadonly();
 
-  /** Load shot resources (characters, assets, presets) from the backend. */
+  /** Load shot resources (presets) from the backend.
+   *
+   * Character and asset registration is now handled by
+   * `registerUsedAssetsFromDescription` which matches @image/video/audio
+   * tokens in the pre-prompt against scene-level assignments — this is
+   * more reliable because scene assignments already carry the correct
+   * slot mappings and fileId values. */
   loadShotResources(data: {
-    characters: Array<{ id: string; character_id: string; name: string; slot?: string; file_id?: string }>;
-    assets: Array<{
+    characters?: Array<{ id: string; character_id: string; name: string; slot?: string; file_id?: string }>;
+    assets?: Array<{
       id: string;
       file_id: string;
       filename: string;
@@ -149,33 +155,12 @@ export class StudioStore {
       })) ?? [],
     );
     this._shotResourcesLoaded.set(true);
-
-    // Auto-load shot characters and assets as used assets so they appear
-    // as chips in the PromptBuilder without manual selection.
-    this._usedAssets.set([]);
-    for (const c of this._shotCharacters()) {
-      this.useAsset({
-        fileId: c.fileId || c.characterId,
-        characterId: c.characterId,
-        name: c.name,
-        filename: c.name,
-        kind: 'image',
-      });
-    }
-    for (const a of this._shotAssets()) {
-      const kind: UsedAssetKind = a.mimeType.startsWith('video')
-        ? 'video'
-        : a.mimeType.startsWith('audio')
-          ? 'audio'
-          : 'image';
-      this.useAsset({
-        fileId: a.fileId,
-        characterId: '',
-        name: a.filename,
-        filename: a.filename,
-        kind,
-      });
-    }
+    // Note: characters/assets are NOT auto-registered as usedAssets here.
+    // That is handled by registerUsedAssetsFromDescription which is called
+    // from index-studio after both the shot description and scene
+    // assignments are available — it matches @image/video/audio tokens in
+    // the pre-prompt against scene-level slot values, which is far more
+    // reliable than relying on the shot-resources endpoint.
   }
 
   clearShotResources(): void {
@@ -183,6 +168,45 @@ export class StudioStore {
     this._shotAssets.set([]);
     this._shotPresets.set([]);
     this._shotResourcesLoaded.set(false);
+  }
+
+  /**
+   * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
+   * tokens and auto-register matching scene characters as used assets.
+   *
+   * This replaces the unreliable shot-resources endpoint for character
+   * resolution — scene assignments already carry the correct slot + fileId.
+   */
+  registerUsedAssetsFromDescription(description: string): void {
+    if (!description) return;
+
+    const slotPattern = /@(image|video|audio)(\d+)/g;
+    const matches = [...description.matchAll(slotPattern)];
+    if (matches.length === 0) return;
+
+    // Build a lookup from slot → character
+    const slotToChar = new Map<string, (typeof this._sceneCharacterData())[0]>();
+    for (const c of this._sceneCharacterData()) {
+      if (c.slot) slotToChar.set(c.slot, c);
+    }
+
+    for (const [, , numStr] of matches) {
+      // Try image, video, audio prefixes for the given number
+      for (const prefix of ['image', 'video', 'audio'] as const) {
+        const slot = `@${prefix}${numStr}`;
+        const char = slotToChar.get(slot);
+        if (char && char.fileId) {
+          this.useAsset({
+            fileId: char.fileId,
+            characterId: char.id,
+            name: char.name,
+            filename: char.name,
+            kind: prefix === 'video' ? 'video' : prefix === 'audio' ? 'audio' : 'image',
+          });
+          break; // once matched, don't try other prefixes for this number
+        }
+      }
+    }
   }
 
   private readonly _takes = signal<Take[]>([]);

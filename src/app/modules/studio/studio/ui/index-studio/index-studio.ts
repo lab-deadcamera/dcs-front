@@ -625,7 +625,10 @@ export class IndexStudio implements OnInit {
         handle,
       });
 
-      // Load the shot's description (pre-prompt) and restore it
+      // Load the shot's description (pre-prompt) and restore it.
+      // Whichever async call finishes last triggers the slot-based
+      // asset registration so both the description and scene assignments
+      // are guaranteed to be available.
       this.projectsApi.getShot(projectId, chapterId, sceneId, shot.id).subscribe({
         next: (res) => {
           if (!res.error && res.data?.shot.description) {
@@ -646,20 +649,31 @@ export class IndexStudio implements OnInit {
               this.studio.patchOutput(patch as any);
             }
           }
+
+          // If assignments arrived first, register now
+          if (this.studio.assignmentsLoaded()) {
+            this.studio.registerUsedAssetsFromDescription(this.studio.rawDescription() || '');
+          }
         },
       });
 
       this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
         next: (res) => {
-          if (res.data) this.studio.setSceneAssignments(res.data);
+          if (res.data) {
+            this.studio.setSceneAssignments(res.data);
+            // If description arrived first, register now
+            const desc = this.studio.rawDescription();
+            if (desc) {
+              this.studio.registerUsedAssetsFromDescription(desc);
+            }
+          }
         },
         error: () => {
           /* assignments not critical */
         },
       });
 
-      // Load shot resources (characters, assets, presets) for the selected shot.
-      // loadShotResources() also auto-registers them as usedAssets in the store.
+      // Shot-level presets are still loaded from the resources endpoint.
       this.studioApi.getShotResources(projectId, chapterId, sceneId, shot.id).subscribe({
         next: (res) => {
           if (res.success && res.data) {
