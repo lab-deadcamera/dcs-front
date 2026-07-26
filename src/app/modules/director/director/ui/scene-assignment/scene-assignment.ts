@@ -304,24 +304,31 @@ export class SceneAssignmentComponent implements OnInit {
       });
   }
 
-  private nextSlot(): string {
+  private prefixForKind(kind: string): string {
+    if (kind === 'video') return 'video';
+    if (kind === 'audio') return 'audio';
+    return 'image';
+  }
+
+  private nextSlot(kind: string): string {
+    const prefix = this.prefixForKind(kind);
     const assigned = this.assignedCharacters();
     const usedSlots = new Set(assigned.map((a: any) => a.slot).filter(Boolean));
     let n = 1;
-    while (usedSlots.has(`@image${n}`)) {
+    while (usedSlots.has(`@${prefix}${n}`)) {
       n++;
     }
-    return `@image${n}`;
+    return `@${prefix}${n}`;
   }
 
-  assignCharacter(characterId: string): void {
+  assignCharacter(characterId: string, kind?: string): void {
     const pid = this.projectId();
     const sid = this.sceneId();
     if (!pid || !sid) return;
     this.http
       .post(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/characters`, {
         character_id: characterId,
-        slot: this.nextSlot(),
+        slot: this.nextSlot(kind || 'image'),
       })
       .subscribe({
         next: () => {
