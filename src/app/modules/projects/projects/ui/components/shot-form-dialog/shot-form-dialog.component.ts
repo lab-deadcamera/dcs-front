@@ -87,7 +87,7 @@ import { Shot } from '../../../interfaces';
           />
           <p-button
             [label]="'COMMON.SAVE' | translate"
-            [disabled]="form.invalid || submitting()"
+            [disabled]="!formReady() || form.invalid || submitting()"
             [loading]="submitting()"
             (onClick)="onSubmit()"
           />
@@ -107,20 +107,22 @@ export class ShotFormDialogComponent {
   readonly update = output<{ id: string; number: number; name: string; description?: string }>();
 
   protected readonly isEdit = computed(() => this.shot() !== null);
+  /** Prevent save button from being disabled while form initial state (invalid) persists */
+  protected readonly formReady = computed(() => this.shot() !== null);
 
   protected readonly form: FormGroup = this.fb.group({
     number: [1, [Validators.required, Validators.min(1)]],
-    name: ['', [Validators.required, Validators.maxLength(120)]],
+    name: ['placeholder', [Validators.required, Validators.maxLength(120)]],
     description: ['', Validators.maxLength(2000)],
   });
 
   private readonly syncForm = effect(() => {
-    if (!this.visible()) return;
-    const s = this.shot();
-    this.form.reset({
-      number: s?.number ?? 1,
-      name: s?.name ?? '',
-      description: s?.description ?? '',
+    if (!this.visible() || !this.shot()) return;
+    const s = this.shot()!;
+    this.form.patchValue({
+      number: s.number,
+      name: s.name,
+      description: s.description ?? '',
     });
   });
 
