@@ -106,7 +106,6 @@ import { FileEntity } from '../../../interfaces';
 })
 export class FileLinkDialogComponent {
   private readonly api = inject(CharactersApiService);
-  private readonly characters = inject(CharactersService);
   private readonly toast = inject(MessageService);
 
   readonly visible = input(false);
@@ -120,10 +119,8 @@ export class FileLinkDialogComponent {
   });
 
   protected readonly characterOptions = signal<{ label: string; value: string }[]>([]);
-  /** All characters loaded from backend (non-paginated) for the dropdown. */
-  private readonly allCharacters = signal<CharacterWithFiles[]>([]);
 
-  /** Lazy-load ALL characters (non-paginated) whenever this dialog opens. */
+  /** Load all characters into the dropdown whenever the dialog opens. */
   private readonly ensureCharacters = effect(() => {
     if (!this.visible()) return;
     this.refreshOptions();
@@ -145,7 +142,7 @@ export class FileLinkDialogComponent {
     if (!f || !cid) return;
     const role = (this.roleCtrl.value.trim() || 'reference') as CharacterFileRole;
     this.submitting.set(true);
-    this.characters.assignFile(cid, f.id, role).subscribe((res) => {
+    this.api.assignFile(cid, f.id, role).subscribe((res: { error: boolean; msg: string }) => {
       this.submitting.set(false);
       if (res.error) {
         this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
@@ -163,9 +160,8 @@ export class FileLinkDialogComponent {
   private refreshOptions(): void {
     // Always load ALL characters fresh — don't rely on the paginated
     // CharactersService cache which may have stale or partial data.
-    this.api.list().subscribe((res) => {
+    this.api.list().subscribe((res: { error: boolean; msg: string; data?: CharacterWithFiles[] }) => {
       const items = (!res.error && res.data) ? res.data : [];
-      this.allCharacters.set(items);
       this.characterOptions.set(
         items.map((c) => ({
           label: c.character.name,
