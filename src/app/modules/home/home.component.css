@@ -1,0 +1,158 @@
+/* ─── Dashboard layout ──────────────────────────────────── */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ─── Project selector row ───────────────────────────────── */
+
+.selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.selector-bar label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted-color, #999);
+}
+
+/* ─── Stat cards row ─────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  background: var(--surface-card, #1e1e1e);
+  border: 1px solid var(--surface-border, #333);
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.stat-icon {
+  font-size: 1.25rem;
+  opacity: 0.7;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+/* ─── Charts row ─────────────────────────────────────────── */
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.chart-card {
+  border-radius: 10px;
+  padding: 1.25rem;
+  background: var(--surface-card, #1e1e1e);
+  border: 1px solid var(--surface-border, #333);
+}
+
+.chart-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+.chart-canvas-wrapper :deep(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ─── Breakdown table ────────────────────────────────────── */
+
+.breakdown-section {
+  border-radius: 10px;
+  padding: 1.25rem;
+  background: var(--surface-card, #1e1e1e);
+  border: 1px solid var(--surface-border, #333);
+}
+
+.breakdown-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.breakdown-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  font-weight: 600;
+  border-bottom: 1px solid var(--surface-border, #333);
+}
+
+.breakdown-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--surface-border, #333);
+}
+
+.breakdown-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── Helpers ─────────────────────────────────────────────── */
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.op-50 { opacity: 0.5; }
+.font-mono { font-family: var(--font-family-mono, monospace); }

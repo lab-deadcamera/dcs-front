@@ -6,12 +6,14 @@ import { httpErrorHandler } from '@shared/utils';
 import { ResponseBase } from '@app/core/interfaces';
 import {
   Chapter,
+  ChapterWithScenes,
   CreateChapterRequest,
   CreateProjectRequest,
   CreateSceneRequest,
   CreateShotRequest,
   CreateTakeRequest,
   Project,
+  ProjectWithChapters,
   Scene,
   Shot,
   Take,
@@ -64,6 +66,16 @@ export class ProjectsApiService {
     return this.http.patch<ResponseBase<Project>>(`${this.apiUrl}/projects/${id}`, payload).pipe(
       map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
       catchError(httpErrorHandler<Project>),
+    );
+  }
+
+  /** Get a single project with its full chapter/scene/shot hierarchy. */
+  getProjectHierarchy(
+    id: string,
+  ): Observable<{ error: boolean; msg: string; data?: ProjectWithChapters }> {
+    return this.http.get<ResponseBase<ProjectWithChapters>>(`${this.apiUrl}/projects/${id}`).pipe(
+      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+      catchError(httpErrorHandler<ProjectWithChapters>),
     );
   }
 
