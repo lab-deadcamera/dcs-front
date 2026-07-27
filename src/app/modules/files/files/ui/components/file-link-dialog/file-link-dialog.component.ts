@@ -14,12 +14,8 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
-import { CharactersService } from '@modules/characters/characters/services';
-import {
-  CharacterFileRole,
-  Character,
-  CharacterWithFiles,
-} from '@modules/characters/characters/interfaces';
+import { CharactersApiService } from '@modules/characters/characters/services/characters-api.service';
+import { CharacterFileRole, CharacterWithFiles } from '@modules/characters/characters/interfaces';
 import { FileEntity } from '../../../interfaces';
 
 /**
@@ -109,6 +105,7 @@ import { FileEntity } from '../../../interfaces';
   `,
 })
 export class FileLinkDialogComponent {
+  private readonly api = inject(CharactersApiService);
   private readonly characters = inject(CharactersService);
   private readonly toast = inject(MessageService);
 
@@ -123,15 +120,13 @@ export class FileLinkDialogComponent {
   });
 
   protected readonly characterOptions = signal<{ label: string; value: string }[]>([]);
+  /** All characters loaded from backend (non-paginated) for the dropdown. */
+  private readonly allCharacters = signal<CharacterWithFiles[]>([]);
 
-  /** Lazy-load the characters list whenever this dialog opens. */
+  /** Lazy-load ALL characters (non-paginated) whenever this dialog opens. */
   private readonly ensureCharacters = effect(() => {
     if (!this.visible()) return;
-    if (this.characters.items().length === 0) {
-      this.characters.load().subscribe(() => this.refreshOptions());
-    } else {
-      this.refreshOptions();
-    }
+    this.refreshOptions();
     this.characterCtrl.setValue(null);
     this.roleCtrl.setValue('reference');
   });
@@ -166,11 +161,17 @@ export class FileLinkDialogComponent {
   }
 
   private refreshOptions(): void {
-    this.characterOptions.set(
-      this.characters.items().map((c: CharacterWithFiles) => ({
-        label: c.character.name,
-        value: c.character.id,
-      })),
-    );
+    // Always load ALL characters fresh — don't rely on the paginated
+    // CharactersService cache which may have stale or partial data.
+    this.api.list().subscribe((res) => {
+      const items = (!res.error && res.data) ? res.data : [];
+      this.allCharacters.set(items);
+      this.characterOptions.set(
+        items.map((c) => ({
+          label: c.character.name,
+          value: c.character.id,
+        })),
+      );
+    });
   }
 }
