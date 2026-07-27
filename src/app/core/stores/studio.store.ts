@@ -103,20 +103,30 @@ export class StudioStore {
   registerUsedAssetsFromDescription(description: string): void {
     if (!description) return;
 
+    // Collect all unique slot references and their highest number
     const slotPattern = /@(image|video|audio)(\d+)/g;
-    const matches = [...description.matchAll(slotPattern)];
-    if (matches.length === 0) return;
+    const seenSlots = new Set<string>();
+    let maxN = 0;
+    let m: RegExpExecArray | null;
+    while ((m = slotPattern.exec(description)) !== null) {
+      seenSlots.add(m[0].toLowerCase());
+      maxN = Math.max(maxN, parseInt(m[2], 10));
+    }
+    if (seenSlots.size === 0) return;
 
     // Build a lookup from slot → character
-    const slotToChar = new Map<string, (typeof this._sceneCharacterData())[0]>();
+    const slotToChar = new Map<string, { id: string; name: string; slot: string; fileId: string }>();
     for (const c of this._sceneCharacterData()) {
-      if (c.slot) slotToChar.set(c.slot, c);
+      if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
     }
 
-    for (const [, , numStr] of matches) {
-      // Try image, video, audio prefixes for the given number
+    // Iterate by ascending slot number so @image1 < @image2 < @image3
+    // Always. The video generator depends on this order to assign
+    // dialogues and actions to the correct character.
+    for (let n = 1; n <= maxN; n++) {
       for (const prefix of ['image', 'video', 'audio'] as const) {
-        const slot = `@${prefix}${numStr}`;
+        const slot = `@${prefix}${n}`;
+        if (!seenSlots.has(slot)) continue;
         const char = slotToChar.get(slot);
         if (char && char.fileId) {
           this.useAsset({
