@@ -73,6 +73,7 @@ import { Shot } from '../../../interfaces';
             pInputTextarea
             formControlName="description"
             rows="3"
+            [maxLength]="3500"
           ></textarea>
         </div>
       </form>
@@ -112,8 +113,8 @@ export class ShotFormDialogComponent {
 
   protected readonly form: FormGroup = this.fb.group({
     number: [1, [Validators.required, Validators.min(1)]],
-    name: ['placeholder', [Validators.required, Validators.maxLength(120)]],
-    description: ['', Validators.maxLength(2000)],
+    name: ['', [Validators.required, Validators.maxLength(120)]],
+    description: ['', Validators.maxLength(3500)],
   });
 
   private readonly syncForm = effect(() => {
@@ -135,8 +136,13 @@ export class ShotFormDialogComponent {
   }
 
   protected onSubmit(): void {
+    this.form.markAllAsTouched();
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
+      const labels = Object.keys(this.form.controls);
+      labels.forEach((label) => {
+        const err = this.form.get(label)?.errors;
+        console.log(`${label}: ${JSON.stringify(err)}`);
+      });
       return;
     }
 
@@ -146,7 +152,7 @@ export class ShotFormDialogComponent {
       id: this.shot()!.id,
       number,
       name,
-      description: description || undefined,
+      description: description || '',
     });
   }
 }
