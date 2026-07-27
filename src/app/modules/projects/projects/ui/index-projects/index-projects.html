@@ -186,6 +186,14 @@
                           <!-- Scene header row -->
                           <div class="flex items-center justify-between gap-4 px-4 py-2.5 pl-16">
                             <div class="flex items-center gap-3 min-w-0">
+                              <button
+                                type="button"
+                                class="flex h-5 w-5 items-center justify-center rounded text-[10px] transition-colors hover:bg-ink-800"
+                                (click)="toggleSceneExpand(item.project.id, cwt.chapter.id, swt.scene.id)"
+                                [attr.aria-expanded]="expandedScenes()[swt.scene.id]"
+                              >
+                                {{ expandedScenes()[swt.scene.id] ? '▾' : '▸' }}
+                              </button>
                               <span class="font-mono text-[12px] font-semibold text-primary-400">
                                 SC{{ swt.scene.number | number: '2.0' }}
                               </span>

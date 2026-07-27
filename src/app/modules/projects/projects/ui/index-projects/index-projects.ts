@@ -28,7 +28,7 @@ import { LEVEL_ROL } from '@app/core/constants';
     ToastModule,
     ProjectFormDialogComponent,
     ChapterFormDialogComponent,
-SceneFormDialogComponent,
+    SceneFormDialogComponent,
     ShotFormDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,7 +48,7 @@ export class IndexProjects implements OnInit {
   protected readonly expandedProjects = signal<Record<string, boolean>>({});
   /** Track which episode rows are expanded to show scenes. */
   protected readonly expandedChapters = signal<Record<string, boolean>>({});
-n  /** Track which scene rows are expanded to show shots. */
+  /** Track which scene rows are expanded to show shots. */
   protected readonly expandedScenes = signal<Record<string, boolean>>({});
 
   // Project dialog
@@ -65,7 +65,7 @@ n  /** Track which scene rows are expanded to show shots. */
   protected readonly sceneDialogTarget = signal<Scene | null>(null);
   protected readonly scenePreSelectedChapterId = signal<string | null>(null);
   protected readonly scenePreSelectedProjectId = signal<string | null>(null);
-n  // Shot dialog
+  // Shot dialog
   protected readonly shotDialogVisible = signal(false);
   protected readonly shotDialogTarget = signal<Shot | null>(null);
   protected readonly shotPreSelectedProjectId = signal<string | null>(null);
@@ -93,127 +93,18 @@ n  // Shot dialog
   }
 
   protected toggleChapterExpand(projectId: string, chapterId: string): void {
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
     const wasExpanded = this.expandedChapters()[chapterId];
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
     this.expandedChapters.update((map) => ({
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
       ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
-      ...map,
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
       [chapterId]: !map[chapterId],
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
     }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
-    }));
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
     // lazy-load scenes on first expand
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
     if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
-    if (!wasExpanded) {
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
       this.service.loadChapterScenes(projectId, chapterId);
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
     }
   }
-    }
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
-    const wasExpanded = this.expandedScenes()[sceneId];
-    this.expandedScenes.update((map) => ({
-      ...map,
-      [sceneId]: !map[sceneId],
-    }));
-    // lazy-load shots on first expand
-    if (!wasExpanded) {
-      this.service.loadSceneShots(projectId, chapterId, sceneId);
-    }
-  }
-  }
-n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+
+  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
     const wasExpanded = this.expandedScenes()[sceneId];
     this.expandedScenes.update((map) => ({
       ...map,
@@ -550,7 +441,7 @@ n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: st
     return null;
   }
 
-private getParentIdsForScene(sceneId: string): { projectId: string; chapterId: string } | null {
+  private getParentIdsForScene(sceneId: string): { projectId: string; chapterId: string } | null {
     for (const p of this.projects()) {
       for (const c of p.chapters) {
         if (c.scenes.some((s) => s.scene.id === sceneId)) {
