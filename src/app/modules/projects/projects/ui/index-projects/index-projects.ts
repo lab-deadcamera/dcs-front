@@ -6,11 +6,12 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { Chapter, Project, Scene } from '../../interfaces';
+import { Chapter, Project, Scene, Shot } from '../../interfaces';
 import { ProjectsService } from '../../services';
 import { ProjectFormDialogComponent } from '../components/project-form-dialog/project-form-dialog.component';
 import { ChapterFormDialogComponent } from '../components/chapter-form-dialog/chapter-form-dialog.component';
 import { SceneFormDialogComponent } from '../components/scene-form-dialog/scene-form-dialog.component';
+import { ShotFormDialogComponent } from '../components/shot-form-dialog/shot-form-dialog.component';
 import { ButtonModule } from 'primeng/button';
 import { SessionStore } from '@app/core/stores/session.store';
 import { LEVEL_ROL } from '@app/core/constants';
@@ -27,7 +28,8 @@ import { LEVEL_ROL } from '@app/core/constants';
     ToastModule,
     ProjectFormDialogComponent,
     ChapterFormDialogComponent,
-    SceneFormDialogComponent,
+SceneFormDialogComponent,
+    ShotFormDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -46,6 +48,8 @@ export class IndexProjects implements OnInit {
   protected readonly expandedProjects = signal<Record<string, boolean>>({});
   /** Track which episode rows are expanded to show scenes. */
   protected readonly expandedChapters = signal<Record<string, boolean>>({});
+n  /** Track which scene rows are expanded to show shots. */
+  protected readonly expandedScenes = signal<Record<string, boolean>>({});
 
   // Project dialog
   protected readonly projectDialogVisible = signal(false);
@@ -61,6 +65,12 @@ export class IndexProjects implements OnInit {
   protected readonly sceneDialogTarget = signal<Scene | null>(null);
   protected readonly scenePreSelectedChapterId = signal<string | null>(null);
   protected readonly scenePreSelectedProjectId = signal<string | null>(null);
+n  // Shot dialog
+  protected readonly shotDialogVisible = signal(false);
+  protected readonly shotDialogTarget = signal<Shot | null>(null);
+  protected readonly shotPreSelectedProjectId = signal<string | null>(null);
+  protected readonly shotPreSelectedChapterId = signal<string | null>(null);
+  protected readonly shotPreSelectedSceneId = signal<string | null>(null);
 
   protected readonly submitting = signal(false);
   isDirectorOrAdmin = signal(false);
@@ -83,14 +93,135 @@ export class IndexProjects implements OnInit {
   }
 
   protected toggleChapterExpand(projectId: string, chapterId: string): void {
-    const wasExpanded = this.expandedChapters()[chapterId];
-    this.expandedChapters.update((map) => ({
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
       ...map,
-      [chapterId]: !map[chapterId],
+      [sceneId]: !map[sceneId],
     }));
-    // lazy-load scenes on first expand
+    // lazy-load shots on first expand
     if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    const wasExpanded = this.expandedChapters()[chapterId];
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    this.expandedChapters.update((map) => ({
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+      ...map,
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+      [chapterId]: !map[chapterId],
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    }));
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    // lazy-load scenes on first expand
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    if (!wasExpanded) {
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
       this.service.loadChapterScenes(projectId, chapterId);
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+    }
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
+    }
+  }
+  }
+n  protected toggleSceneExpand(projectId: string, chapterId: string, sceneId: string): void {
+    const wasExpanded = this.expandedScenes()[sceneId];
+    this.expandedScenes.update((map) => ({
+      ...map,
+      [sceneId]: !map[sceneId],
+    }));
+    // lazy-load shots on first expand
+    if (!wasExpanded) {
+      this.service.loadSceneShots(projectId, chapterId, sceneId);
     }
   }
 
@@ -369,7 +500,57 @@ export class IndexProjects implements OnInit {
     return null;
   }
 
-  private getParentIdsForScene(sceneId: string): { projectId: string; chapterId: string } | null {
+  
+  // ---------------------------------------------------------------------------
+  // Shot CRUD
+  // ---------------------------------------------------------------------------
+
+  protected openEditShot(s: Shot): void {
+    const ids = this.getParentIdsForShot(s.id);
+    if (!ids) return;
+    this.shotDialogTarget.set(s);
+    this.shotPreSelectedProjectId.set(ids.projectId);
+    this.shotPreSelectedChapterId.set(ids.chapterId);
+    this.shotPreSelectedSceneId.set(ids.sceneId);
+    this.shotDialogVisible.set(true);
+  }
+
+  protected onUpdateShot(evt: {
+    id: string;
+    number: number;
+    name: string;
+    description?: string;
+  }): void {
+    const ids = this.getParentIdsForShot(evt.id);
+    if (!ids) return;
+    const { projectId, chapterId, sceneId } = ids;
+
+    this.submitting.set(true);
+    this.service.updateShot(projectId, chapterId, sceneId, evt.id, evt).subscribe((res) => {
+      this.submitting.set(false);
+      if (res.error) {
+        this.toast.add({ severity: "error", summary: "Error", detail: res.msg });
+        return;
+      }
+      this.toast.add({ severity: "success", summary: "OK", detail: "Shot updated" });
+      this.shotDialogVisible.set(false);
+    });
+  }
+
+  private getParentIdsForShot(shotId: string): { projectId: string; chapterId: string; sceneId: string } | null {
+    for (const p of this.projects()) {
+      for (const c of p.chapters) {
+        for (const s of c.scenes) {
+          if (s.shots.some((sh) => sh.shot.id === shotId)) {
+            return { projectId: p.project.id, chapterId: c.chapter.id, sceneId: s.scene.id };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+private getParentIdsForScene(sceneId: string): { projectId: string; chapterId: string } | null {
     for (const p of this.projects()) {
       for (const c of p.chapters) {
         if (c.scenes.some((s) => s.scene.id === sceneId)) {

@@ -1,13 +1,15 @@
 <header class="flex items-center justify-between gap-6 border-b border-ink-600 px-6 py-4">
   <div class="flex items-center gap-3">
-    <img
-      ngSrc="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg"
-      width="36"
-      height="36"
-      alt="Dead Camera Studios"
-      class="rounded-sm object-cover"
-      priority
-    />
+    <a [routerLink]="'/'" routerLinkActive="border-primary-500">
+      <img
+        ngSrc="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg"
+        width="36"
+        height="36"
+        alt="Dead Camera Studios"
+        class="rounded-sm object-cover cursor-pointer"
+        priority
+      />
+    </a>
 
     <div class="leading-tight">
       <p class="text-[13px] font-bold uppercase tracking-[0.08em] text-fg-strong">

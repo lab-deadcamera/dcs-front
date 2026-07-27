@@ -38,15 +38,12 @@ import { Shot } from '../../../interfaces';
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '28rem' }"
-      [header]="
-        (isEdit() ? 'PROJECTS.SHOT_DIALOG.EDIT_TITLE' : 'PROJECTS.SHOT_DIALOG.CREATE_TITLE')
-          | translate
-      "
+      header="Edit Shot"
     >
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label for="shot-number" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            {{ 'PROJECTS.FIELDS.SHOT_NUMBER' | translate }}
+            Number
           </label>
           <p-inputNumber
             inputId="shot-number"
@@ -55,41 +52,27 @@ import { Shot } from '../../../interfaces';
             [max]="9999"
             [showButtons]="true"
             [mode]="'decimal'"
-            data-testid="shot-number-input"
           />
-          <validator-errors
-            [control]="form.get('number')"
-            [label]="'PROJECTS.FIELDS.SHOT_NUMBER' | translate"
-          />
+          <validator-errors [control]="form.get('number')" [label]="'Number'" />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            {{ 'PROJECTS.FIELDS.NAME' | translate }}
+            Name
           </label>
-          <input
-            id="shot-name"
-            type="text"
-            pInputText
-            formControlName="name"
-            data-testid="shot-name-input"
-          />
-          <validator-errors
-            [control]="form.get('name')"
-            [label]="'PROJECTS.FIELDS.NAME' | translate"
-          />
+          <input id="shot-name" type="text" pInputText formControlName="name" />
+          <validator-errors [control]="form.get('name')" [label]="'Name'" />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="shot-description" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            {{ 'PROJECTS.FIELDS.DESCRIPTION' | translate }}
+            Description
           </label>
           <textarea
             id="shot-description"
             pInputTextarea
             formControlName="description"
             rows="3"
-            data-testid="shot-description-input"
           ></textarea>
         </div>
       </form>
@@ -103,10 +86,9 @@ import { Shot } from '../../../interfaces';
             (onClick)="close()"
           />
           <p-button
-            [label]="(isEdit() ? 'COMMON.SAVE' : 'COMMON.CREATE') | translate"
+            [label]="'COMMON.SAVE' | translate"
             [disabled]="form.invalid || submitting()"
             [loading]="submitting()"
-            data-testid="shot-form-submit"
             (onClick)="onSubmit()"
           />
         </div>
@@ -122,7 +104,6 @@ export class ShotFormDialogComponent {
   readonly submitting = input(false);
 
   readonly visibleChange = output<boolean>();
-  readonly create = output<{ number: number; name: string; description?: string }>();
   readonly update = output<{ id: string; number: number; name: string; description?: string }>();
 
   protected readonly isEdit = computed(() => this.shot() !== null);
@@ -130,16 +111,16 @@ export class ShotFormDialogComponent {
   protected readonly form: FormGroup = this.fb.group({
     number: [1, [Validators.required, Validators.min(1)]],
     name: ['', [Validators.required, Validators.maxLength(120)]],
-    description: ['', Validators.maxLength(500)],
+    description: ['', Validators.maxLength(2000)],
   });
 
   private readonly syncForm = effect(() => {
     if (!this.visible()) return;
-    const sh = this.shot();
+    const s = this.shot();
     this.form.reset({
-      number: sh?.number ?? 1,
-      name: sh?.name ?? '',
-      description: sh?.description ?? '',
+      number: s?.number ?? 1,
+      name: s?.name ?? '',
+      description: s?.description ?? '',
     });
   });
 
@@ -159,15 +140,11 @@ export class ShotFormDialogComponent {
 
     const { number, name, description } = this.form.value;
 
-    if (this.isEdit()) {
-      this.update.emit({
-        id: this.shot()!.id,
-        number,
-        name,
-        description: description || undefined,
-      });
-    } else {
-      this.create.emit({ number, name, description: description || undefined });
-    }
+    this.update.emit({
+      id: this.shot()!.id,
+      number,
+      name,
+      description: description || undefined,
+    });
   }
 }
