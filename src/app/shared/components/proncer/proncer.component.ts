@@ -16,12 +16,7 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    SectionHeaderComponent,
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="border-t border-ink-600 px-6 py-6">
@@ -41,7 +36,7 @@ type ChatMessage = {
             Current Prompt
           </label>
           <textarea
-            rows="3"
+            rows="7"
             class="w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg"
             [ngModel]="currentPrompt()"
             (ngModelChange)="onPromptChange($event)"
