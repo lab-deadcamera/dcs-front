@@ -10,13 +10,17 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Editor, EditorModule } from 'primeng/editor';
+import { Popover } from 'primeng/popover';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { SessionStore } from '@app/core/stores/session.store';
+import { TranslatorApiService } from '@app/services/translator-api.service';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { Tooltip } from 'primeng/tooltip';
 
@@ -37,8 +41,10 @@ import { Tooltip } from 'primeng/tooltip';
     SectionHeaderComponent,
     SourceAssetPipe,
     TranslatePipe,
+    UpperCasePipe,
     EditorModule,
     FormsModule,
+    Popover,
     Tooltip,
   ],
   styles: [
@@ -60,7 +66,11 @@ import { Tooltip } from 'primeng/tooltip';
 export class PromptBuilderComponent implements OnInit {
   @ViewChild('editor') private editorRef!: Editor;
   protected readonly studio = inject(StudioStore);
+  protected readonly session = inject(SessionStore);
+  private readonly translator = inject(TranslatorApiService);
   private readonly i18n = inject(TranslateService);
+  protected readonly translating = signal(false);
+  protected readonly translatedText = signal<string | null>(null);
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
@@ -89,6 +99,11 @@ export class PromptBuilderComponent implements OnInit {
   protected readonly placeholder = computed(() => {
     this.lang();
     return this.i18n.instant('STUDIO.PROMPT.PLACEHOLDER');
+  });
+
+  protected readonly charCount = computed(() => {
+    this.lang();
+    return this.i18n.instant('STUDIO.PROMPT.CHARS', { n: this.studio.rawLength() });
   });
 
   // ── Reference assets grouped by kind ──────────────────────────────
@@ -185,6 +200,85 @@ export class PromptBuilderComponent implements OnInit {
   protected onPreview(): void {
     if (!this.studio.canGenerate()) return;
     this.preview.emit();
+  }
+
+  /**
+   * Translate the current prompt text and show the result in a popover.
+   * The text is split into blocks (by newlines and sentence boundaries)
+   * and translated in a single batch request for efficiency.
+   * The target language is taken from the active session language
+   * (app-language-picker selection).
+   */
+  protected onTranslate(event: Event, popover: Popover): void {
+    const text = this.studio.rawDescription();
+    if (!text) return;
+
+    const targetLang = this.session.language();
+    const blocks = this.splitIntoBlocks(text);
+    if (blocks.length === 0) return;
+
+    this.translating.set(true);
+    this.translatedText.set(null);
+    popover.show(event);
+
+    this.translator.translateBlocks(blocks, targetLang).subscribe({
+      next: (res) => {
+        this.translatedText.set(res.translations.join('\n'));
+        this.translating.set(false);
+      },
+      error: () => {
+        this.translatedText.set('Translation failed');
+        this.translating.set(false);
+      },
+    });
+  }
+
+  /**
+   * Split text into blocks for batch translation. Breaks on newlines first
+   * (preserving paragraph structure), then sub-divides any block longer
+   * than 500 characters by sentence boundaries (`. `).
+   */
+  private splitIntoBlocks(text: string): string[] {
+    const MAX_LEN = 500;
+    const blocks: string[] = [];
+    const paragraphs = text.split('\n');
+
+    for (const para of paragraphs) {
+      if (!para) {
+        blocks.push('');
+        continue;
+      }
+      if (para.length <= MAX_LEN) {
+        blocks.push(para);
+      } else {
+        const sentences = para.split(/(?<=[.!?])\s+/);
+        let chunk = '';
+        for (const sentence of sentences) {
+          const candidate = chunk ? chunk + ' ' + sentence : sentence;
+          if (candidate.length > MAX_LEN && chunk) {
+            blocks.push(chunk);
+            chunk = sentence;
+          } else {
+            chunk = candidate;
+          }
+        }
+        if (chunk) blocks.push(chunk);
+      }
+    }
+
+    return blocks;
+  }
+
+  /** Apply the translated text: replace editor content with the translation. */
+  protected applyTranslation(popover: Popover): void {
+    const text = this.translatedText();
+    if (!text) return;
+
+    this.skipStoreSync = true;
+    this.studio.setRawDescription(text);
+    this.editorContent.set(text);
+    this.translatedText.set(null);
+    popover.hide();
   }
 
   /** PrimeIcons class for the chip representing each asset kind. */

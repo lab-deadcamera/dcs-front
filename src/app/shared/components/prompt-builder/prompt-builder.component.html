@@ -170,6 +170,60 @@
   }
 
   <div class="mt-4">
+    <div class="mb-2 flex items-center justify-end">
+      <button
+        #translateBtn
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded border border-ink-500 bg-transparent px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!studio.rawDescription() || translating()"
+        (click)="onTranslate($event, translatePop)"
+        [title]="'Translate to ' + session.language()"
+      >
+        <i class="pi pi-language" aria-hidden="true"></i>
+        {{ 'Translate' }} {{ session.language() | uppercase }}
+      </button>
+
+      <p-popover #translatePop [dismissable]="true" styleClass="w-popover">
+        <ng-template #content>
+          <div class="flex flex-col gap-3" style="min-width: 580px; max-width: 740px">
+            <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+              {{ 'Translate to' }} {{ session.language() | uppercase }}
+            </span>
+
+            @if (translating()) {
+              <div class="flex items-center justify-center gap-2 py-4">
+                <i class="pi pi-spinner pi-spin text-primary-500" aria-hidden="true"></i>
+                <span class="font-mono text-xs text-fg-muted">Translating…</span>
+              </div>
+            } @else if (translatedText()) {
+              <div class="max-h-60 overflow-y-auto rounded border border-ink-600 bg-ink-900 p-3">
+                <p
+                  class="m-0 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-fg-default"
+                >
+                  {{ translatedText() }}
+                </p>
+              </div>
+              <div class="mt-1 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  class="rounded border border-ink-500 bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500"
+                  (click)="translatePop.hide()"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  class="rounded bg-primary-500 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-strong transition-opacity hover:opacity-90"
+                  (click)="applyTranslation(translatePop)"
+                >
+                  Replace
+                </button>
+              </div>
+            }
+          </div>
+        </ng-template>
+      </p-popover>
+    </div>
     <p-editor
       #editor
       [(ngModel)]="editorContent"
