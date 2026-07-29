@@ -176,17 +176,24 @@
         optionLabel="label"
         optionValue="value"
         [(ngModel)]="translateLang"
+        (onChange)="onLanguageSelected()"
         styleClass="text-[10px]"
       />
       <button
         #translateBtn
         type="button"
+        [disabled]="!studio.rawDescription()"
+        (click)="
+          hasCachedTranslation()
+            ? showTranslatePopover($event)
+            : onLanguageSelected()
+        "
         class="inline-flex items-center gap-1.5 rounded border border-ink-500 bg-transparent px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
-        [disabled]="!studio.rawDescription() || translating()"
-        (click)="onTranslate($event, translatePop)"
       >
         <i class="pi pi-language" aria-hidden="true"></i>
-        Translate
+        @if (translating()) {
+          <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+        }
       </button>
 
       <p-popover #translatePop [dismissable]="true" styleClass="w-popover">

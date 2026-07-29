@@ -826,6 +826,7 @@ export class IndexStudio implements OnInit {
         durationSeconds: 5,
         resolution: '480p',
         takeIndex,
+        rating: take.rating,
       });
     }
   }

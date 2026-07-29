@@ -67,6 +67,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 })
 export class PromptBuilderComponent implements OnInit {
   @ViewChild('editor') private editorRef!: Editor;
+  @ViewChild('translatePop') private translatePopRef!: Popover;
+  @ViewChild('translateBtn') private translateBtn!: { nativeElement: HTMLElement };
   protected readonly studio = inject(StudioStore);
   protected readonly session = inject(SessionStore);
   private readonly translator = inject(TranslatorApiService);
@@ -81,6 +83,14 @@ export class PromptBuilderComponent implements OnInit {
     { label: 'ES', value: 'es' as const },
     { label: '中文', value: 'zh' as const },
   ];
+
+  /** Cache of translated text per language — avoids re-translating. */
+  private readonly translationCache = new Map<string, string>();
+
+  /** True when the current translateLang has a cached translation. */
+  protected readonly hasCachedTranslation = computed(
+    () => this.translationCache.has(this.translateLang()),
+  );
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
@@ -213,27 +223,40 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * Translate the current prompt text and show the result in a popover.
-   * The text is split into blocks (by newlines and sentence boundaries)
-   * and translated in a single batch request for efficiency.
-   * The target language is taken from the active session language
-   * (app-language-picker selection).
+   * Called when the user selects a language from p-selectButton.
+   * If we already have a cached translation for this language, show the
+   * popover immediately. Otherwise, translate and show the loading state.
    */
-  protected onTranslate(event: Event, popover: Popover): void {
+  protected onLanguageSelected(): void {
+    const targetLang = this.translateLang();
     const text = this.studio.rawDescription();
     if (!text) return;
 
-    const targetLang = this.translateLang();
-    const blocks = this.splitIntoBlocks(text);
-    if (blocks.length === 0) return;
+    // If already cached, just show the popover
+    const cached = this.translationCache.get(targetLang);
+    if (cached) {
+      this.translatedText.set(cached);
+      this.translating.set(false);
+      this.openPopoverFromLang();
+      return;
+    }
 
+    // Start translation
     this.translating.set(true);
     this.translatedText.set(null);
-    popover.show(event);
+    this.openPopoverFromLang();
+
+    const blocks = this.splitIntoBlocks(text);
+    if (blocks.length === 0) {
+      this.translating.set(false);
+      return;
+    }
 
     this.translator.translateBlocks(blocks, targetLang).subscribe({
       next: (res) => {
-        this.translatedText.set(res.translations.join('\n'));
+        const result = res.translations.join('\n');
+        this.translatedText.set(result);
+        this.translationCache.set(targetLang, result);
         this.translating.set(false);
       },
       error: () => {
@@ -241,6 +264,20 @@ export class PromptBuilderComponent implements OnInit {
         this.translating.set(false);
       },
     });
+  }
+
+  /** Show the translate popover anchored to the translate button. */
+  protected showTranslatePopover(event: Event): void {
+    this.translatePopRef.show(event);
+  }
+
+  /** Auto-show popover when cached translation is ready. */
+  private openPopoverFromLang(): void {
+    const btn = this.translateBtn?.nativeElement;
+    if (btn) {
+      const ev = new MouseEvent('click', { bubbles: true });
+      this.translatePopRef.show(ev, btn);
+    }
   }
 
   /**

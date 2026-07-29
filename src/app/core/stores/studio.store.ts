@@ -309,6 +309,7 @@ export class StudioStore {
       active: boolean;
       task_id?: string;
       request_payload?: string;
+      rating?: number;
     }>;
   }): void {
     this._isReady.set(true);
@@ -337,6 +338,7 @@ export class StudioStore {
           active: backend?.active ?? true,
           number: backend?.number ?? 0,
           request_payload: backend?.request_payload,
+          rating: backend?.rating,
         };
       });
       this._takes.set(merged);
