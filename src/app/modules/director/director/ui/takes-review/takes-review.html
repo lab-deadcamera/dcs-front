@@ -94,7 +94,7 @@
         </thead>
         <tbody>
           @for (t of takes(); track t.id) {
-            <tr class="border-t border-ink-700" [class.bg-green-900/10]="t.final">
+            <tr class="border-t border-ink-700" [class.bg-green-900]="t.final">
               <td class="px-3 py-2 font-mono font-bold">Take {{ t.number }}</td>
               <td class="px-3 py-2">
                 @if (t.video_local_url || t.video_url) {
@@ -139,8 +139,8 @@
               <td class="px-3 py-2">
                 @if (t.rating && t.rating > 0) {
                   <span class="text-accent-500">
-                    @for (s of [1,2,3,4,5]; track s) {
-                      {{ s <= (t.rating ?? 0) ? '★' : '☆' }}
+                    @for (s of [1, 2, 3, 4, 5]; track s) {
+                      {{ s <= t.rating ? '★' : '☆' }}
                     }
                   </span>
                 } @else {
