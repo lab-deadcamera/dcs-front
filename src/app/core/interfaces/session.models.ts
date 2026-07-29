@@ -42,6 +42,8 @@ export interface Take {
   request_payload?: string;
 
   number: number;
+  /** User rating 1-5 (0 or undefined = unrated). */
+  rating?: number;
 }
 
 /**

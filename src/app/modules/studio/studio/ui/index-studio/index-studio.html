@@ -110,6 +110,7 @@
               [takes]="studio.activeTakes()"
               [discardedTakes]="studio.discardedTakes()"
               [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+              [ratings]="studio.takeRatings()"
               (selectTake)="onSelectTake($event)"
               (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
             />
@@ -147,6 +148,7 @@
             [takes]="studio.activeTakes()"
             [discardedTakes]="studio.discardedTakes()"
             [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+            [ratings]="studio.takeRatings()"
             (selectTake)="onSelectTake($event)"
             (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
           />

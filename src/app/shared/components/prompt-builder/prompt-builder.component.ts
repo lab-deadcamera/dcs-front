@@ -23,6 +23,7 @@ import { SessionStore } from '@app/core/stores/session.store';
 import { TranslatorApiService } from '@app/services/translator-api.service';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { Tooltip } from 'primeng/tooltip';
+import { SelectButtonModule } from 'primeng/selectbutton';
 
 /**
  * Section 06 — PROMPT BUILDER.
@@ -46,6 +47,7 @@ import { Tooltip } from 'primeng/tooltip';
     FormsModule,
     Popover,
     Tooltip,
+    SelectButtonModule,
   ],
   styles: [
     `
@@ -71,6 +73,14 @@ export class PromptBuilderComponent implements OnInit {
   private readonly i18n = inject(TranslateService);
   protected readonly translating = signal(false);
   protected readonly translatedText = signal<string | null>(null);
+
+  /** Selected target language for the translate button. */
+  protected readonly translateLang = signal<'en' | 'es' | 'zh'>('en');
+  protected readonly translationLangOptions = [
+    { label: 'EN', value: 'en' as const },
+    { label: 'ES', value: 'es' as const },
+    { label: '中文', value: 'zh' as const },
+  ];
 
   /** Wire this in the parent shell to actually fire the generation call. */
   readonly generate = output<void>();
@@ -213,7 +223,7 @@ export class PromptBuilderComponent implements OnInit {
     const text = this.studio.rawDescription();
     if (!text) return;
 
-    const targetLang = this.session.language();
+    const targetLang = this.translateLang();
     const blocks = this.splitIntoBlocks(text);
     if (blocks.length === 0) return;
 

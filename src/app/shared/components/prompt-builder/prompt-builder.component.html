@@ -170,24 +170,30 @@
   }
 
   <div class="mt-4">
-    <div class="mb-2 flex items-center justify-end">
+    <div class="mb-2 flex items-center justify-end gap-2">
+      <p-selectbutton
+        [options]="translationLangOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="translateLang"
+        styleClass="text-[10px]"
+      />
       <button
         #translateBtn
         type="button"
         class="inline-flex items-center gap-1.5 rounded border border-ink-500 bg-transparent px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
         [disabled]="!studio.rawDescription() || translating()"
         (click)="onTranslate($event, translatePop)"
-        [title]="'Translate to ' + session.language()"
       >
         <i class="pi pi-language" aria-hidden="true"></i>
-        {{ 'Translate' }} {{ session.language() | uppercase }}
+        Translate
       </button>
 
       <p-popover #translatePop [dismissable]="true" styleClass="w-popover">
         <ng-template #content>
           <div class="flex flex-col gap-3" style="min-width: 580px; max-width: 740px">
             <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
-              {{ 'Translate to' }} {{ session.language() | uppercase }}
+              {{ 'Translate to' }} {{ translateLang() | uppercase }}
             </span>
 
             @if (translating()) {

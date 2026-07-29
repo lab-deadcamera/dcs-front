@@ -60,6 +60,7 @@ export interface Take {
   finalized_at: string | null;
   task_id?: string;
   request_payload?: string;
+  rating?: number;
   created_at: string;
   updated_at: string;
 }
@@ -156,4 +157,5 @@ export interface UpdateTakeRequest {
   active?: boolean;
   final?: boolean;
   task_id?: string;
+  rating?: number;
 }

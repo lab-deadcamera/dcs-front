@@ -1,7 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { catchError, of } from 'rxjs';
 import { SkillBrief } from '@app/core/interfaces/studio.models';
 import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
+import { ProjectsApiService } from '@modules/projects/projects/services';
 import {
   CinematographyConfig,
   GeneratedClip,
@@ -46,6 +48,7 @@ const MAX_TAKES = 99;
 @Injectable({ providedIn: 'root' })
 export class StudioStore {
   private readonly presets = inject(PresetsService);
+  private readonly projectsApi = inject(ProjectsApiService);
 
   // ── Core session/project state ───────────────────────────────────
   private readonly _projectId = signal<string | null>(null);
@@ -519,10 +522,44 @@ export class StudioStore {
 
   setClipRating(id: string, rating: number) {
     const clamped = Math.max(0, Math.min(5, Math.round(rating)));
+
+    // 1) Update clip in-memory
     this._sessionClips.update((list) =>
       list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
     );
+
+    // 2) Find the clip's takeIndex and update the matching session Take
+    const clip = this._sessionClips().find((c) => c.id === id);
+    if (!clip?.takeIndex) return;
+
+    this._takes.update((list) =>
+      list.map((t) => (t.index === clip.takeIndex ? { ...t, rating: clamped } : t)),
+    );
+
+    // 3) Persist to backend if we have the take's DB id
+    const take = this._takes().find((t) => t.index === clip.takeIndex);
+    const pid = this._projectId();
+    const cid = this._chapterId();
+    const sid = this._sceneId();
+    const shid = this._shotId();
+    if (take?.id && pid && cid && sid && shid) {
+      this.projectsApi
+        .updateTake(pid, cid, sid, shid, take.id, { rating: clamped })
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+    }
   }
+
+  /** Ratings map: takeIndex → rating, for the takes-reel component. */
+  readonly takeRatings = computed<Record<number, number>>(() => {
+    const ratings: Record<number, number> = {};
+    for (const take of this._takes()) {
+      if (take.rating && take.rating > 0) {
+        ratings[take.index] = take.rating;
+      }
+    }
+    return ratings;
+  });
 
   // ── Used assets (character library) ──────────────────────────────
 

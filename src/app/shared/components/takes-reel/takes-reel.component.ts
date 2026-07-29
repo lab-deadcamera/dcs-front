@@ -46,6 +46,9 @@ export class TakesReelComponent {
   /** Emitted when the user clicks "reactivate" on a discarded take. */
   readonly toggleActive = output<{ takeId: string; takeIndex: number }>();
 
+  /** Ratings map: takeIndex → 1-5. */
+  readonly ratings = input<Record<number, number>>({});
+
   /** Accordion open state for discarded section. */
   protected readonly discardOpen = signal(false);
   private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');

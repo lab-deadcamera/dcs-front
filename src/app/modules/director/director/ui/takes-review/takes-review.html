@@ -87,6 +87,7 @@
             <th class="px-3 py-2 font-medium">Status</th>
             <th class="px-3 py-2 font-medium">Active</th>
             <th class="px-3 py-2 font-medium">Final</th>
+            <th class="px-3 py-2 font-medium">Rating</th>
             <th class="px-3 py-2 font-medium">Date</th>
             <th class="w-40 px-3 py-2 font-medium">Actions</th>
           </tr>
@@ -133,6 +134,17 @@
                     class="inline-flex items-center rounded-full bg-yellow-900/40 px-2 py-0.5 text-[10px] font-bold uppercase text-yellow-400"
                     >★ Final</span
                   >
+                }
+              </td>
+              <td class="px-3 py-2">
+                @if (t.rating && t.rating > 0) {
+                  <span class="text-accent-500">
+                    @for (s of [1,2,3,4,5]; track s) {
+                      {{ s <= (t.rating ?? 0) ? '★' : '☆' }}
+                    }
+                  </span>
+                } @else {
+                  <span class="text-fg-muted">—</span>
                 }
               </td>
               <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
