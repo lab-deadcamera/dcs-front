@@ -3,9 +3,11 @@ import {
   Component,
   DestroyRef,
   OnInit,
-  effect,
+  computed,
   inject,
   signal,
+  input,
+  output,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -96,12 +98,28 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly charSvc = inject(CharactersService);
   private readonly apiUrl = environment.API_URL;
 
-  protected readonly projectId = toSignal(this.route.params.pipe(map((p) => p['projectId'])), {
-    initialValue: '',
-  });
-  protected readonly sceneId = toSignal(this.route.params.pipe(map((p) => p['sceneId'])), {
-    initialValue: '',
-  });
+  /** Optional inputs when used inside a dialog (no route params). */
+  readonly projectIdInput = input<string>('');
+  readonly sceneIdInput = input<string>('');
+  /** Pre-resolved names so no extra API calls are needed in dialog mode. */
+  readonly projectNameInput = input<string>('');
+  readonly sceneNumberInput = input<number>(0);
+  readonly sceneNameInput = input<string>('');
+
+  /** Emitted after any assignment change. */
+  readonly assignmentsChanged = output<void>();
+
+  /** Resolved project/scene IDs: prefer inputs, fall back to route params. */
+  private readonly routeProjectId = toSignal(
+    this.route.params.pipe(map((p) => p['projectId'])),
+    { initialValue: '' },
+  );
+  private readonly routeSceneId = toSignal(
+    this.route.params.pipe(map((p) => p['sceneId'])),
+    { initialValue: '' },
+  );
+  protected readonly projectId = computed(() => this.projectIdInput() || this.routeProjectId());
+  protected readonly sceneId = computed(() => this.sceneIdInput() || this.routeSceneId());
 
   protected readonly tabs = [
     { key: 'characters', label: 'Resources' },
@@ -129,19 +147,52 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly availableCharacters = signal<any[]>([]);
   protected readonly availableAssets = signal<any[]>([]);
 
+  protected readonly searchQuery = signal('');
   protected readonly characterDialogVisible = signal(false);
   protected readonly previewFile = signal<FileLike | null>(null);
   protected readonly previewVisible = signal(false);
 
+  /** Available characters grouped by kind, filtered by searchQuery. */
+  protected readonly groupedCharacters = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const chars = query
+      ? this.availableCharacters().filter((c) => c.name.toLowerCase().includes(query))
+      : this.availableCharacters();
+
+    const groups: Record<string, typeof chars> = {};
+    for (const c of chars) {
+      const key = c.kind || 'other';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(c);
+    }
+    return groups;
+  });
+
+  /** Kind tabs. */
+  protected readonly kindTabs = ['image', 'video', 'audio', 'mixed'] as const;
+  protected readonly activeKindTab = signal<string>('image');
+
+  /** Human label for each character kind. */
+  protected readonly kindLabel: Record<string, string> = {
+    image: 'Image',
+    video: 'Video',
+    audio: 'Audio',
+    mixed: 'Mixed',
+    other: 'Other',
+  };
+
+  /** Characters for the currently active kind tab, filtered by search. */
+  protected readonly tabCharacters = computed(() => {
+    const active = this.activeKindTab();
+    return this.groupedCharacters()[active] || [];
+  });
+
   constructor() {
-    effect(() => {
-      if (this.characterDialogVisible() != undefined) {
-        this.onCharactersChanged();
-      }
-    });
+    // No side-effects in constructor — all loading happens in ngOnInit.
   }
 
   ngOnInit(): void {
+    // Route-based loading
     this.route.params
       .pipe(
         map((p) => ({ projectId: p['projectId'], sceneId: p['sceneId'] })),
@@ -149,13 +200,38 @@ export class SceneAssignmentComponent implements OnInit {
       )
       .subscribe((params) => {
         if (params.sceneId) {
-          this.loadSceneInfo(params.projectId, params.sceneId);
-          this.loadAll(params.projectId, params.sceneId);
+          this.startLoad(params.projectId, params.sceneId);
         }
       });
+
+    // Input-based loading (dialog mode) — load immediately with inputs.
+    const pid = this.projectId();
+    const sid = this.sceneId();
+    if (sid && !this.routeSceneId()) {
+      this.startLoad(pid, sid);
+    }
+  }
+
+  private startLoad(pid: string, sid: string): void {
+    this.loadSceneInfo(pid, sid);
+    this.loadAll(pid, sid);
   }
 
   private loadSceneInfo(projectId: string, sceneId: string): void {
+    // If pre-resolved names are provided, use them immediately
+    if (this.projectNameInput() && this.sceneNameInput()) {
+      this.projectInfo.set({
+        name: this.projectNameInput(),
+        description: '',
+      });
+      this.sceneInfo.set({
+        number: this.sceneNumberInput(),
+        name: this.sceneNameInput(),
+        description: '',
+      });
+      return;
+    }
+
     // Load project name
     if (projectId) {
       this.http
@@ -219,15 +295,18 @@ export class SceneAssignmentComponent implements OnInit {
         `${this.apiUrl}/projects/${projectId}/scenes/${sceneId}/assignments`,
       )
       .pipe(catchError(() => of({ data: { presets: [], characters: [], assets: [] } })))
-      .subscribe((res) => {
-        const d = res.data;
-        this.assignedPresets.set(d.presets || []);
-        this.assignedCharacters.set(d.characters || []);
-        this.assignedAssets.set(d.assets || []);
-        this.computeAvailablePresets();
-        this.computeAvailableCharacters();
-        this.computeAvailableAssets();
-        this.loading.set(false);
+      .subscribe({
+        next: (res) => {
+          const d = res?.data;
+          this.assignedPresets.set(d?.presets || []);
+          this.assignedCharacters.set(d?.characters || []);
+          this.assignedAssets.set(d?.assets || []);
+          this.computeAvailablePresets();
+          this.computeAvailableCharacters();
+          this.computeAvailableAssets();
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
       });
   }
 
@@ -454,7 +533,10 @@ export class SceneAssignmentComponent implements OnInit {
   private reload(): void {
     const pid = this.projectId();
     const sid = this.sceneId();
-    if (pid && sid) this.loadAssignments(pid, sid);
+    if (pid && sid) {
+      this.loadAssignments(pid, sid);
+      this.assignmentsChanged.emit();
+    }
   }
 
   onCharactersChanged(): void {

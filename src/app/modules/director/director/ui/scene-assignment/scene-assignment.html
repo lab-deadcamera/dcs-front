@@ -150,12 +150,48 @@
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
           Available Resources
         </h2>
+
+        <!-- Search -->
+        <input
+          #searchInput
+          type="text"
+          placeholder="Search by name…"
+          class="mb-3 w-full rounded border border-ink-700 bg-ink-800 px-3 py-2 text-[12px]
+                 text-fg-strong placeholder:text-fg-muted focus:border-primary-500
+                 focus:outline-none"
+          [value]="searchQuery()"
+          (input)="searchQuery.set(searchInput.value)"
+        />
+
+        <!-- Kind tabs -->
+        <div class="mb-3 flex gap-1 border-b border-ink-600">
+          @for (kind of kindTabs; track kind) {
+            <button
+              type="button"
+              class="border-b-2 px-3 py-1.5 text-[10px] font-bold uppercase
+                     tracking-[0.12em] transition-colors"
+              [class]="
+                activeKindTab() === kind
+                  ? 'border-primary-500 !text-fg-strong'
+                  : 'border-transparent text-fg-muted hover:text-fg-strong'
+              "
+              (click)="activeKindTab.set(kind)"
+            >
+              {{ kindLabel[kind] }}
+              @if (groupedCharacters()[kind]?.length; as count) {
+                <span class="ml-1 rounded bg-ink-700 px-1 py-0.5 text-[9px]">{{ count }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Characters for active tab -->
         <div class="flex flex-col gap-1">
-          @for (c of availableCharacters(); track c.id) {
+          @for (c of tabCharacters(); track c.id) {
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="flex min-w-0 items-center gap-2" [attr.data-kind]="c.kind">
+              <div class="flex min-w-0 items-center gap-2">
                 @switch (c.kind) {
                   @case ('audio') {
                     <audio
@@ -203,8 +239,10 @@
               </div>
             </div>
           }
-          @if (availableCharacters().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All characters assigned.</p>
+          @if (tabCharacters().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">
+              {{ searchQuery() ? 'No characters match your search.' : 'All characters assigned.' }}
+            </p>
           }
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -6,12 +6,16 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
+import { TooltipModule } from 'primeng/tooltip';
+import { SceneAssignmentComponent } from '@modules/director/director/ui/scene-assignment/scene-assignment';
 
 export interface BreadcrumbOption {
   id: string;
   number: number;
   name: string;
   label: string;
+  /** Whether the scene has any resources assigned. */
+  hasAssignments?: boolean;
 }
 
 @Component({
@@ -24,6 +28,8 @@ export interface BreadcrumbOption {
     SelectModule,
     InputTextModule,
     FloatLabelModule,
+    SceneAssignmentComponent,
+    TooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './studio-breadcrumb.html',
@@ -36,6 +42,8 @@ export class StudioBreadcrumbComponent {
   readonly chapters = input<BreadcrumbOption[]>([]);
   readonly scenes = input<BreadcrumbOption[]>([]);
   readonly shots = input<BreadcrumbOption[]>([]);
+  /** Show the "Assign Resources" button next to the scene select. */
+  readonly showAssignmentButton = input(false);
 
   // ── Inputs: loading states ──────────────────────────────────────────
 
@@ -62,6 +70,24 @@ export class StudioBreadcrumbComponent {
   readonly sceneChange = output<string | null>();
   readonly shotChange = output<string | null>();
   readonly createShot = output<string>();
+  /** Emitted after resources are assigned/changed in the dialog. */
+  readonly assignmentsChanged = output<void>();
+
+  // ── Scene Assignment dialog state ───────────────────────────────────
+
+  protected readonly sceneAssignmentDialogVisible = signal(false);
+
+  /** Resolved names for the assignment dialog inputs. */
+  protected readonly selectedProjectName = computed(
+    () => this.projects().find((p) => p.id === this.selectedProjectId())?.name ?? '',
+  );
+  protected readonly selectedSceneNumber = computed(() => {
+    const s = this.scenes().find((s) => s.id === this.selectedSceneId());
+    return s?.number ?? 0;
+  });
+  protected readonly selectedSceneName = computed(
+    () => this.scenes().find((s) => s.id === this.selectedSceneId())?.name ?? '',
+  );
 
   // ── New Shot dialog state ───────────────────────────────────────────
 
@@ -90,6 +116,16 @@ export class StudioBreadcrumbComponent {
     this.selectedSceneId.set(id);
     this.selectedShotId.set(null);
     this.sceneChange.emit(id);
+  }
+
+  /** Click on the cog icon inside a scene dropdown option. */
+  protected onSceneCogClick(scene: BreadcrumbOption): void {
+    // Select that scene first so the dialog has the right IDs
+    this.selectedSceneId.set(scene.id);
+    this.selectedShotId.set(null);
+    this.sceneChange.emit(scene.id);
+    // Open the assignment dialog
+    this.sceneAssignmentDialogVisible.set(true);
   }
 
   protected onShotChange(id: string | null): void {

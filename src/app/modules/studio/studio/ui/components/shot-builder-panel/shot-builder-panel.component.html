@@ -76,7 +76,13 @@
                       <span
                         class="inline-flex items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500"
                       >
-                        <i class="pi pi-user text-[10px]" aria-hidden="true"></i>
+                        <i
+                          class="pi text-[10px]"
+                          [class.pi-user]="c.kind === 'image'"
+                          [class.pi-video]="c.kind === 'video'"
+                          [class.pi-volume-up]="c.kind === 'audio'"
+                          aria-hidden="true"
+                        ></i>
                         {{ c.name }}
                       </span>
                     }

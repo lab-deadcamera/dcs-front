@@ -78,7 +78,7 @@ export class StudioStore {
   private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
   private readonly _sceneAssetIds = signal<Set<string>>(new Set());
   private readonly _sceneCharacterData = signal<
-    Array<{ id: string; name: string; slot: string; fileId: string }>
+    Array<{ id: string; name: string; slot: string; fileId: string; kind: string }>
   >([]);
 
   readonly scenePresetIds = this._scenePresetIds.asReadonly();
@@ -91,7 +91,6 @@ export class StudioStore {
    *  to distinguish "no assignments loaded yet" from "loaded but empty". */
   private readonly _assignmentsLoaded = signal(false);
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
-
 
   /**
    * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
@@ -115,7 +114,10 @@ export class StudioStore {
     if (seenSlots.size === 0) return;
 
     // Build a lookup from slot → character
-    const slotToChar = new Map<string, { id: string; name: string; slot: string; fileId: string }>();
+    const slotToChar = new Map<
+      string,
+      { id: string; name: string; slot: string; fileId: string }
+    >();
     for (const c of this._sceneCharacterData()) {
       if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
     }
@@ -425,7 +427,7 @@ export class StudioStore {
     this._sceneCharacterData.set([]);
     this._sceneAssetIds.set(new Set());
     this._assignmentsLoaded.set(false);
-		// shot resources removed — using scene assignments only
+    // shot resources removed — using scene assignments only
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
@@ -546,7 +548,10 @@ export class StudioStore {
       });
       this._sceneCharacterData.update((list) => {
         if (list.some((c) => c.id === asset.characterId)) return list;
-        return [...list, { id: asset.characterId, name: asset.name, slot: '', fileId: '' }];
+        return [
+          ...list,
+          { id: asset.characterId, name: asset.name, slot: '', fileId: '', kind: 'character' },
+        ];
       });
       this._assignmentsLoaded.set(true);
     }
@@ -615,12 +620,21 @@ export class StudioStore {
     this._sceneCharacterData.set(
       chars
         .filter((a: any) => a.character_id && a.name)
-        .map((a: any) => ({
-          id: a.character_id,
-          name: a.name,
-          slot: a.slot ?? '',
-          fileId: a.file_id ?? '',
-        })),
+        .map((a: any) => {
+          const slot = a.slot ?? '';
+          const kind = slot.startsWith('@video')
+            ? 'video'
+            : slot.startsWith('@audio')
+              ? 'audio'
+              : 'image';
+          return {
+            id: a.character_id,
+            name: a.name,
+            slot,
+            fileId: a.file_id ?? '',
+            kind,
+          };
+        }),
     );
     this._sceneAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),

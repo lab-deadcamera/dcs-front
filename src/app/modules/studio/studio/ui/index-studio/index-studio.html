@@ -11,6 +11,7 @@
     [loadingScenes]="navLoadingScenes()"
     [loadingShots]="navLoadingShots()"
     [selectedSceneObj]="navSelectedScene()"
+    [showAssignmentButton]="isDirectorOrAdmin()"
     [(selectedProjectId)]="navSelectedProjectId"
     [(selectedChapterId)]="navSelectedChapterId"
     [(selectedSceneId)]="navSelectedSceneId"
@@ -20,6 +21,7 @@
     (sceneChange)="onNavSceneChange($event)"
     (shotChange)="onNavShotChange($event)"
     (createShot)="onBreadcrumbCreateShot($event)"
+    (assignmentsChanged)="onSceneAssignmentsChanged()"
   />
 
   @if (studio.isReady()) {

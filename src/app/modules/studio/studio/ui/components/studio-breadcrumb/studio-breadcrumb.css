@@ -98,6 +98,30 @@
   color: var(--text-color-secondary);
 }
 
+/* Assign resources button */
+.studio-bcrumb-assign-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+  color: var(--text-color-secondary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+.studio-bcrumb-assign-btn:hover {
+  background: color-mix(in srgb, var(--primary-400) 10%, transparent);
+  color: var(--primary-400);
+  border-color: var(--primary-400);
+}
+
 :host ::ng-deep .p-select {
   border: none;
 }

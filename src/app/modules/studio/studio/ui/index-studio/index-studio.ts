@@ -47,6 +47,7 @@ import {
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { Splitter } from 'primeng/splitter';
+import { LEVEL_ROL } from '@app/core/constants';
 import { ShotBuilderPanelComponent } from '../components/shot-builder-panel/shot-builder-panel.component';
 
 /** localStorage key for breadcrumb selection persistence. */
@@ -235,6 +236,11 @@ export class IndexStudio implements OnInit {
 
   /** Solo SUPER_ADMIN (level 0) ve el botón de Vista previa del payload. */
   protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
+
+  /** True when user is director or admin (level ≤ 2). */
+  protected readonly isDirectorOrAdmin = computed(
+    () => this.sessionStore.roleLevel() <= LEVEL_ROL.DIRECTOR,
+  );
 
   // ── Breadcrumb state (data managed here, displayed by breadcrumb component) ──
 
@@ -727,6 +733,23 @@ export class IndexStudio implements OnInit {
             name: newShot.name,
           });
         });
+    });
+  }
+
+  /** Reload scene assignments after the assignment dialog changes them. */
+  protected onSceneAssignmentsChanged(): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+
+    this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+      next: (res) => {
+        if (res.data) this.studio.setSceneAssignments(res.data);
+      },
+      error: () => {
+        /* not critical */
+      },
     });
   }
 

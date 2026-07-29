@@ -4,7 +4,7 @@
     @if (loadingProjects()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-floatlabel class="w-full md:w-56" variant="on">
+      <p-floatlabel class="w-full" variant="on">
         <p-select
           [options]="projects()"
           optionLabel="name"
@@ -31,7 +31,7 @@
     } @else if (loadingChapters()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-floatlabel class="w-full md:w-56" variant="on">
+      <p-floatlabel class="w-full" variant="on">
         <p-select
           [options]="chapters()"
           optionLabel="label"
@@ -59,21 +59,36 @@
     } @else if (loadingScenes()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <p-floatlabel class="w-full md:w-56" variant="on">
-        <p-select
-          [options]="scenes()"
-          optionLabel="label"
-          optionValue="id"
-          [filter]="scenes().length > 2"
-          filterBy="name"
-          class="min-w-24"
-          [(ngModel)]="selectedSceneId"
-          [showClear]="false"
-          styleClass="studio-bcrumb-select"
-          (onChange)="onSceneChange($event.value)"
-        />
-        <label for="on_label">Scene</label>
-      </p-floatlabel>
+      <div class="flex items-center gap-1">
+        <p-floatlabel class="w-full" variant="on">
+          <p-select
+            [options]="scenes()"
+            optionLabel="label"
+            optionValue="id"
+            [filter]="scenes().length > 2"
+            filterBy="label,name"
+            class="min-w-24"
+            [(ngModel)]="selectedSceneId"
+            [showClear]="false"
+            styleClass="studio-bcrumb-select"
+            (onChange)="onSceneChange($event.value)"
+          >
+            <ng-template pTemplate="item" let-item>
+              <span class="pr-3">{{ item.label }}</span>
+              <span class="flex items-center gap-2 ml-auto">
+                <i
+                  class="pi pi-cog cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
+                  aria-hidden="true"
+                  (click)="onSceneCogClick(item); $event.stopPropagation()"
+                  pTooltip="Assign resources to this scene"
+                  tooltipPosition="right"
+                ></i>
+              </span>
+            </ng-template>
+          </p-select>
+          <label for="on_label">Scene</label>
+        </p-floatlabel>
+      </div>
     }
   </div>
 
@@ -163,4 +178,25 @@
       />
     </div>
   </ng-template>
+</p-dialog>
+
+<!-- Scene Assignment dialog -->
+<p-dialog
+  [(visible)]="sceneAssignmentDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  header="Scene Resources"
+>
+  @if (sceneAssignmentDialogVisible()) {
+    <app-scene-assignment
+      [projectIdInput]="selectedProjectId() ?? ''"
+      [sceneIdInput]="selectedSceneId() ?? ''"
+      [projectNameInput]="selectedProjectName()"
+      [sceneNumberInput]="selectedSceneNumber()"
+      [sceneNameInput]="selectedSceneName()"
+      (assignmentsChanged)="assignmentsChanged.emit()"
+    />
+  }
 </p-dialog>
