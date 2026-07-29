@@ -229,21 +229,14 @@
                                 (onClick)="openEditScene(swt.scene)"
                               />
                               @if (isDirectorOrAdmin()) {
-                                <a
-                                  [routerLink]="
-                                    '/director/projects/' +
-                                    item.project.id +
-                                    '/chapters/' +
-                                    cwt.chapter.id +
-                                    '/scenes/' +
-                                    swt.scene.id +
-                                    '/assign'
-                                  "
-                                  class="inline-flex items-center rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary-400 transition-colors hover:bg-ink-800"
+                                <p-button
+                                  label="RESOURCES"
+                                  severity="secondary"
+                                  [text]="true"
+                                  size="small"
                                   pTooltip="Assign resources to this scene"
-                                >
-                                  RESOURCES
-                                </a>
+                                  (onClick)="openAssignResources(swt.scene, item.project.name)"
+                                />
                               }
                               <p-button
                                 icon="pi pi-power-off"
@@ -356,4 +349,24 @@
     (visibleChange)="shotDialogVisible.set($event)"
     (update)="onUpdateShot($event)"
   />
+
+  <!-- Scene Assignment dialog -->
+  <p-dialog
+    [(visible)]="assignResourcesDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    header="Scene Resources"
+  >
+    @if (assignResourcesDialogVisible()) {
+      <app-scene-assignment
+        [projectIdInput]="assignResourcesProjectId()"
+        [sceneIdInput]="assignResourcesSceneId()"
+        [projectNameInput]="assignResourcesProjectName()"
+        [sceneNumberInput]="assignResourcesSceneNumber()"
+        [sceneNameInput]="assignResourcesSceneName()"
+      />
+    }
+  </p-dialog>
 </section>

@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
 import { Chapter, Project, Scene, Shot } from '../../interfaces';
 import { ProjectsService } from '../../services';
 import { ProjectFormDialogComponent } from '../components/project-form-dialog/project-form-dialog.component';
@@ -15,6 +15,7 @@ import { ShotFormDialogComponent } from '../components/shot-form-dialog/shot-for
 import { ButtonModule } from 'primeng/button';
 import { SessionStore } from '@app/core/stores/session.store';
 import { LEVEL_ROL } from '@app/core/constants';
+import { SceneAssignmentComponent } from '@modules/director/director/ui/scene-assignment/scene-assignment';
 
 @Component({
   selector: 'app-index-projects',
@@ -23,13 +24,14 @@ import { LEVEL_ROL } from '@app/core/constants';
     ButtonModule,
     DecimalPipe,
     TooltipModule,
-    RouterLink,
     ConfirmDialogModule,
     ToastModule,
+    DialogModule,
     ProjectFormDialogComponent,
     ChapterFormDialogComponent,
     SceneFormDialogComponent,
     ShotFormDialogComponent,
+    SceneAssignmentComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -71,6 +73,14 @@ export class IndexProjects implements OnInit {
   protected readonly shotPreSelectedProjectId = signal<string | null>(null);
   protected readonly shotPreSelectedChapterId = signal<string | null>(null);
   protected readonly shotPreSelectedSceneId = signal<string | null>(null);
+
+  // Scene Assignment dialog
+  protected readonly assignResourcesDialogVisible = signal(false);
+  protected readonly assignResourcesProjectId = signal('');
+  protected readonly assignResourcesProjectName = signal('');
+  protected readonly assignResourcesSceneId = signal('');
+  protected readonly assignResourcesSceneNumber = signal(0);
+  protected readonly assignResourcesSceneName = signal('');
 
   protected readonly submitting = signal(false);
   isDirectorOrAdmin = signal(false);
@@ -354,6 +364,15 @@ export class IndexProjects implements OnInit {
         detail: `${s.name} ${s.active ? 'deactivated' : 'activated'}`,
       });
     });
+  }
+
+  protected openAssignResources(scene: Scene, projectName: string): void {
+    this.assignResourcesProjectId.set(scene.project_id);
+    this.assignResourcesProjectName.set(projectName);
+    this.assignResourcesSceneId.set(scene.id);
+    this.assignResourcesSceneNumber.set(scene.number);
+    this.assignResourcesSceneName.set(scene.name);
+    this.assignResourcesDialogVisible.set(true);
   }
 
   protected confirmDeleteScene(s: Scene): void {
