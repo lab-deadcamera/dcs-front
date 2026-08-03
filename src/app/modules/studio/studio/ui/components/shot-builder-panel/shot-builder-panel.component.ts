@@ -95,6 +95,33 @@ type UploadedFile = {
   sent: boolean;
 };
 
+/**
+ * Payload carried from "Crear listado de pre-prompts" to the parent once the
+ * user confirms the creation summary modal — the parent selects the first
+ * scene + first shot and starts the studio session.
+ */
+interface PendingShotsSaved {
+  projectId: string;
+  chapterId: string;
+  sceneId: string;
+  firstSceneNumber: number;
+  firstSceneName: string;
+  firstShotId: string;
+  firstShotNumber: number;
+  firstShotName: string;
+  firstShotDescription: string;
+}
+
+/** One scene of the creation-summary modal (scenes + shots created). */
+interface CreationSceneSummary {
+  scriptNumber: number;
+  scriptLocation: string;
+  /** Whether the scene had to be created (false = already existed). */
+  created: boolean;
+  /** Numbers of the shots created under this scene. */
+  shotNumbers: number[];
+}
+
 @Component({
   selector: 'app-shot-builder-panel',
   standalone: true,
@@ -379,6 +406,18 @@ export class ShotBuilderPanelComponent {
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
 
+  /** Summary of the last batch created by "Crear listado de pre-prompts". */
+  protected readonly creationSummary = signal<{
+    scenes: CreationSceneSummary[];
+    shotsCreated: number;
+    errors: string[];
+  } | null>(null);
+  /** Dialog visibility for the creation-summary modal. */
+  protected readonly creationSummaryVisible = signal(false);
+
+  /** Pending navigation payload — emitted when the summary modal is confirmed. */
+  private pendingShotsSaved: PendingShotsSaved | null = null;
+
   /** Confirmation dialog before saving multi-scene. */
   readonly confirmDialogVisible = signal(false);
   /** Summary data for the confirmation dialog. */
@@ -396,16 +435,11 @@ export class ShotBuilderPanelComponent {
   });
 
   /**
-   * Emitted after all generated shots are saved to the backend.
-   * The parent (IndexStudio) navigates to the first shot and loads its pre-prompt.
+   * Emitted after all generated shots are saved to the backend and the user
+   * confirms the creation-summary modal. The parent (IndexStudio) selects the
+   * first scene + first shot and starts the studio session with its pre-prompt.
    */
-  readonly shotsSaved = output<{
-    projectId: string;
-    chapterId: string;
-    sceneId: string;
-    firstShotId: string;
-    firstShotDescription: string;
-  }>();
+  readonly shotsSaved = output<PendingShotsSaved>();
 
   /** Structured artifact HTML generated from Claude's JSON response. */
   readonly artifactHtml = computed<string | null>(() => {
@@ -801,6 +835,15 @@ export class ShotBuilderPanelComponent {
     const errors: string[] = [];
     let firstDescription = list[0]?.prompt || '';
     let firstSceneId = '';
+    /** Summary of the scenes resolved/created (for the confirmation modal). */
+    const createdScenes: CreationSceneSummary[] = [];
+    /** First shot's own number/name — used for the parent's navigation. */
+    let firstShotNumber = 1;
+    let firstShotName = 'Shot 1';
+    /** Scene that actually owns the first created shot (a scene whose shots all
+     *  failed should not be the navigation target). */
+    let firstShotSceneId = '';
+    let firstShotSceneRecord: CreationSceneSummary | null = null;
 
     // Group list items by scene number (0 = legacy mock without scene grouping).
     const byScene = new Map<number, typeof list>();
@@ -863,16 +906,31 @@ export class ShotBuilderPanelComponent {
         },
       ]);
 
-      if (createdIds.length > 0 && firstSceneId) {
-        this.shotsSaved.emit({
-          projectId,
-          chapterId,
-          sceneId: firstSceneId,
-          firstShotId: createdIds[0],
-          firstShotDescription: firstDescription,
-        });
-      }
+      // Persist the output format immediately (independent of the navigation);
+      // the redirect to the first scene/shot waits for the summary modal.
       applyShotFormat();
+
+      // Store the navigation payload + show the creation summary modal.
+      this.pendingShotsSaved =
+        createdIds.length > 0 && firstShotSceneId
+          ? {
+              projectId,
+              chapterId,
+              sceneId: firstShotSceneId,
+              firstSceneNumber: firstShotSceneRecord?.scriptNumber ?? 1,
+              firstSceneName: firstShotSceneRecord?.scriptLocation || 'Scene',
+              firstShotId: createdIds[0],
+              firstShotNumber,
+              firstShotName,
+              firstShotDescription: firstDescription,
+            }
+          : null;
+      this.creationSummary.set({
+        scenes: createdScenes,
+        shotsCreated: totalCreated,
+        errors,
+      });
+      this.creationSummaryVisible.set(true);
     };
 
     let groupIdx = 0;
@@ -885,6 +943,9 @@ export class ShotBuilderPanelComponent {
 
       const [sceneNumber, items] = groups[groupIdx];
       const sceneData = sceneByNumber.get(sceneNumber);
+      // Whether the scene had to be created (vs already existing) — set by
+      // resolveScene, read by the sceneRecord built once the scene resolves.
+      let sceneWasCreated = false;
 
       const resolveScene = (cb: (sceneId: string) => void): void => {
         if (sceneNumber === 0) {
@@ -908,6 +969,7 @@ export class ShotBuilderPanelComponent {
               .subscribe({
                 next: (createRes) => {
                   if (createRes?.data?.id) {
+                    sceneWasCreated = true;
                     cb(createRes.data.id);
                   } else {
                     errors.push(
@@ -945,6 +1007,17 @@ export class ShotBuilderPanelComponent {
         }
         if (!firstSceneId) firstSceneId = sceneId;
 
+        const sceneRecord: CreationSceneSummary = {
+          scriptNumber: sceneNumber,
+          scriptLocation:
+            sceneNumber === 0
+              ? this.sceneName() || 'Current scene'
+              : sceneData?.scriptLocation || `Scene ${sceneNumber}`,
+          created: sceneWasCreated,
+          shotNumbers: [],
+        };
+        createdScenes.push(sceneRecord);
+
         let itemIdx = 0;
         const createShotNext = (): void => {
           if (itemIdx >= items.length) {
@@ -971,6 +1044,13 @@ export class ShotBuilderPanelComponent {
               if (res?.data?.id) {
                 createdIds.push(res.data.id);
                 createdShotMeta.push({ id: res.data.id, durationSeconds: shotRef?.duration });
+                sceneRecord.shotNumbers.push(number);
+                if (createdIds.length === 1) {
+                  firstShotNumber = number;
+                  firstShotName = name;
+                  firstShotSceneId = sceneId;
+                  firstShotSceneRecord = sceneRecord;
+                }
                 // Save character references (slots) — match by fileId first
                 // (Claude receives the file UUID as assetId now), then id, then name.
                 const refs = shotRef?.references || [];
@@ -1009,6 +1089,16 @@ export class ShotBuilderPanelComponent {
     };
 
     processGroup();
+  }
+
+  /** Confirm the creation-summary modal → navigate to the first scene + shot. */
+  protected onCreationSummaryConfirm(): void {
+    this.creationSummaryVisible.set(false);
+    const pending = this.pendingShotsSaved;
+    this.pendingShotsSaved = null;
+    if (pending?.firstShotId) {
+      this.shotsSaved.emit(pending);
+    }
   }
 
   /** Load the real generate-shots response (response-ok.json) through the same
@@ -1216,11 +1306,21 @@ export class ShotBuilderPanelComponent {
           ]);
 
           if (createdShotIds.length > 0) {
+            const firstResolved = resolvedScenes[0];
+            const firstShotData = firstResolved.shots[0];
+            const firstSceneData = scenes.find(
+              (s) => s.scriptNumber === firstResolved.scriptNumber,
+            );
             this.shotsSaved.emit({
               projectId,
               chapterId,
-              sceneId: resolvedScenes[0].sceneId,
+              sceneId: firstResolved.sceneId,
+              firstSceneNumber: firstResolved.scriptNumber,
+              firstSceneName:
+                firstSceneData?.scriptLocation || `Scene ${firstResolved.scriptNumber}`,
               firstShotId: createdShotIds[0],
+              firstShotNumber: firstShotData?.number ?? 1,
+              firstShotName: firstShotData?.name || 'Shot 1',
               firstShotDescription,
             });
           }

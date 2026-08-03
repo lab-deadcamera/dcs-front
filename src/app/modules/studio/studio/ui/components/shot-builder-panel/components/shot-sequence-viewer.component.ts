@@ -195,9 +195,21 @@ import { StudioStore } from '@app/core/stores/studio.store';
           }
         </div>
         <div class="flex w-full justify-end">
-          <button type="button" class="create-btn" (click)="createPrePrompts()">
-            <i class="pi pi-file-export" aria-hidden="true"></i>
-            Crear listado de pre-prompts
+          <button
+            type="button"
+            class="create-btn"
+            (click)="createPrePrompts()"
+            [disabled]="creating()"
+            [attr.aria-busy]="creating()"
+          >
+            <i
+              class="pi"
+              [class.pi-file-export]="!creating()"
+              [class.pi-spinner]="creating()"
+              [class.pi-spin]="creating()"
+              aria-hidden="true"
+            ></i>
+            {{ creating() ? 'Creando escenas y shots…' : 'Crear listado de pre-prompts' }}
           </button>
         </div>
       </div>
@@ -625,6 +637,10 @@ import { StudioStore } from '@app/core/stores/studio.store';
       .create-btn:hover {
         background: var(--teal, #4fb0b5);
       }
+      .create-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
     `,
   ],
 })
@@ -635,6 +651,10 @@ export class ShotSequenceViewerComponent {
   readonly sceneName = input<string>('');
   /** Whether to show the Chinese language toggle on shot cards. */
   readonly showChinese = input(true);
+
+  /** True while the parent is creating scenes/shots from this list — disables
+   *  the create button and shows a spinner. */
+  readonly creating = input(false);
 
   /** Mutable map of shot ID → approval status. */
   protected readonly approvedMap: Record<string, boolean> = {};

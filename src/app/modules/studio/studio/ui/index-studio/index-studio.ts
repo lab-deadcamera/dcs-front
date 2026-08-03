@@ -426,7 +426,9 @@ export class IndexStudio implements OnInit {
         return;
       }
     }
-    if (!this.restoring() && items.length === 1) {
+    // Never clobber a scene the user (or the shots-saved flow) just selected —
+    // e.g. when scenes reload after the shot builder created new ones.
+    if (!this.restoring() && items.length === 1 && !this.navSelectedSceneId()) {
       this.navSelectedSceneId.set(items[0].id);
       this.handleSceneSelected(items[0].id);
     }
@@ -499,7 +501,9 @@ export class IndexStudio implements OnInit {
         return;
       }
     }
-    if (!this.restoring() && items.length === 1) {
+    // Never clobber a shot the shots-saved flow already selected (the shots
+    // list reloading after creation would otherwise re-select a single shot).
+    if (!this.restoring() && items.length === 1 && !this.navSelectedShotId()) {
       this.navSelectedShotId.set(items[0].id);
       this.onNavShotChange(items[0].id);
     }
@@ -785,31 +789,47 @@ export class IndexStudio implements OnInit {
     this.reloadChapterAssignments();
   }
 
-  /** Handle the shots saved event from the shot builder panel. */
+  /** Handle the shots saved event from the shot builder panel: select the
+   *  first scene + first shot and start the studio session with its pre-prompt.
+   *  Works from the episode level (no scene selected), so the scene is set
+   *  explicitly here rather than looked up in the breadcrumb list (the newly
+   *  created scene may not be in it yet). */
   protected onShotsSaved(event: {
     projectId: string;
     chapterId: string;
     sceneId: string;
+    firstSceneNumber: number;
+    firstSceneName: string;
     firstShotId: string;
+    firstShotNumber: number;
+    firstShotName: string;
     firstShotDescription: string;
   }): void {
-    // Reload shots so the breadcrumb shows the new list
+    // Select the first scene + first shot in the breadcrumb model.
+    this.navSelectedSceneId.set(event.sceneId);
+    this.navSelectedScene.set({
+      id: event.sceneId,
+      number: event.firstSceneNumber,
+      name: event.firstSceneName,
+    });
+    this.navSelectedShotId.set(event.firstShotId);
+    this.persistNav();
+
+    // Reload the scene + shot lists so the breadcrumb shows the new resources.
+    // autoSelectScene/autoSelectShot won't clobber the selection just set.
+    this.loadScenes(event.projectId, event.chapterId);
     this.reloadShots();
 
-    // Set the shot in the breadcrumb model so it gets selected
-    this.navSelectedShotId.set(event.firstShotId);
-
-    // Start session with the newly created first shot
-    this.startSessionWithShot({
-      id: event.firstShotId,
-      number: 1,
-      name: event.firstShotDescription.slice(0, 40) || 'Shot 1',
-    });
-
-    // Restore the first shot's description as the pre-prompt
-    if (event.firstShotDescription) {
-      this.studio.setRawDescription(event.firstShotDescription);
-    }
+    // Start the studio session with the newly created first shot — this also
+    // restores its pre-prompt as the studio's raw description.
+    this.startSessionWithShot(
+      {
+        id: event.firstShotId,
+        number: event.firstShotNumber,
+        name: event.firstShotName,
+      },
+      event.firstShotDescription,
+    );
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────

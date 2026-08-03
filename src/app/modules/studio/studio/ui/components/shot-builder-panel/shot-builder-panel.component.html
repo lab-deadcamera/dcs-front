@@ -367,6 +367,7 @@
                   [chapterName]="chapterName()"
                   [sceneName]="sceneName()"
                   [showChinese]="generateChinese()"
+                  [creating]="savingShots()"
                   (createPrePromptsClicked)="onCreatePrePrompts($event)"
                 />
               </div>
@@ -755,6 +756,83 @@
           (onClick)="confirmDialogVisible.set(false)"
         />
         <p-button severity="primary" label="Confirmar" (onClick)="onConfirmSave()" />
+      </div>
+    </ng-template>
+  </p-dialog>
+}
+
+<!-- Creation summary modal after "Crear listado de pre-prompts" -->
+@if (creationSummary(); as summary) {
+  <p-dialog
+    [visible]="creationSummaryVisible()"
+    (visibleChange)="creationSummaryVisible.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '38rem', maxWidth: '95vw' }"
+    header="Pre-prompts creados"
+  >
+    <div class="flex flex-col gap-3 py-2">
+      <p class="text-[13px] font-semibold text-fg">
+        Se crearon {{ summary.scenes.length }} escena{{
+          summary.scenes.length !== 1 ? 's' : ''
+        }}
+        y {{ summary.shotsCreated }} shot{{ summary.shotsCreated !== 1 ? 's' : '' }}.
+      </p>
+      <ul class="flex flex-col gap-1.5">
+        @for (scene of summary.scenes; track scene.scriptNumber) {
+          <li class="rounded-lg border border-ink-700 bg-ink-900 px-3 py-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="min-w-0 text-[12px] font-medium text-fg">
+                #{{ scene.scriptNumber }} — {{ scene.scriptLocation }}
+              </span>
+              <span class="flex shrink-0 items-center gap-1.5 text-[11px] text-fg-muted">
+                <span>{{ scene.shotNumbers.length }} shot{{ scene.shotNumbers.length !== 1 ? 's' : '' }}</span>
+                @if (scene.created) {
+                  <span
+                    class="rounded bg-green-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-green-400"
+                    >nueva</span
+                  >
+                } @else {
+                  <span
+                    class="rounded bg-ink-700 px-1.5 py-0.5 text-[10px] font-semibold text-fg-muted"
+                    >existente</span
+                  >
+                }
+              </span>
+            </div>
+            @if (scene.shotNumbers.length > 0) {
+              <div class="mt-1 font-mono text-[10px] text-fg-muted">
+                Shots: {{ scene.shotNumbers.join(', ') }}
+              </div>
+            }
+          </li>
+        }
+      </ul>
+      @if (summary.errors.length > 0) {
+        <div class="rounded-lg bg-red-900/30 px-3 py-2 text-[12px] text-red-400">
+          {{ summary.errors.length }} warning{{ summary.errors.length !== 1 ? 's' : '' }}:
+          <ul class="mt-1 list-disc pl-4">
+            @for (e of summary.errors; track e) {
+              <li>{{ e }}</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (summary.shotsCreated > 0) {
+        <p class="text-[12px] leading-relaxed text-fg-muted">
+          Te redirigiremos a la primera escena y al primer shot para continuar.
+        </p>
+      }
+    </div>
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          severity="primary"
+          label="Abrir primera escena y shot"
+          [disabled]="summary.shotsCreated === 0"
+          (onClick)="onCreationSummaryConfirm()"
+        />
       </div>
     </ng-template>
   </p-dialog>
