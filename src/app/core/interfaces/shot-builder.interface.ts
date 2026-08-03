@@ -98,7 +98,25 @@ export interface Sequence {
   sequenceFlow: SequenceFlow;
   directorNotes?: DirectorNotes;
   continuity?: Continuity;
+  /** Optional per-scene grouping (Episode → Scenes → Shots) so the viewer can
+   *  render the shot cards inside a per-scene accordion. Populated by
+   *  shotBuilderResultToSequence when the backend returns scenes. */
+  scenes?: SequenceScene[];
   shots: Shot[];
+}
+
+/** Metadata for one scene within a Sequence. `shotIds` reference the ids of
+ *  the Sequence's flattened `shots` that belong to this scene. */
+export interface SequenceScene {
+  scriptNumber: number;
+  scriptLocation: string;
+  title?: string;
+  description?: string;
+  duration: number;
+  sceneType?: string;
+  mode?: string;
+  references?: Reference[];
+  shotIds?: string[];
 }
 
 export interface SequenceFlow {
@@ -136,7 +154,14 @@ export interface Reference {
   type: ReferenceType;
 }
 
-export type ReferenceType = 'character' | 'plate' | 'prop' | 'environment' | 'other';
+export type ReferenceType =
+  | 'character'
+  | 'location'
+  | 'prop'
+  | 'audio'
+  | 'plate'
+  | 'environment'
+  | 'other';
 
 export interface DirectorNotes {
   goal?: string;

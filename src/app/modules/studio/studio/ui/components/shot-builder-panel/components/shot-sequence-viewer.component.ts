@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Sequence, Shot, ReferenceType } from '@app/core/interfaces';
+import { Sequence, SequenceScene, Shot, ReferenceType } from '@app/core/interfaces';
 import { ShotCardPreviewComponent, beatInfoFromSegments } from './shot-card-preview.component';
 import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
 
@@ -26,7 +26,11 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
           }
         </div>
         <h1>
-          {{ sceneName() }}<span class="scene">{{ seq.description }}</span>
+          @if (sceneName()) {
+            {{ sceneName() }}<span class="scene">{{ seq.description }}</span>
+          } @else {
+            {{ seq.description }}
+          }
         </h1>
         <p class="subline">
           {{ seq.shots.length }} planos · {{ seq.shots.length }} cortes · duración total
@@ -110,19 +114,58 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
       <!-- Section tag -->
       <div class="section-tag">Planos · ingredientes listados por tarjeta</div>
 
-      <!-- Shot cards -->
-      <div class="shots-list">
-        @for (shot of seq.shots; track shot.id) {
-          <app-shot-card-preview
-            [shot]="shot"
-            [beat]="beatFor(shot.id, seq)"
-            [(approved)]="approvedMap[shot.id]"
-            [showChinese]="showChinese()"
-            (promptChange)="onPromptChange(shot.id, $event)"
-            (langChange)="onLangChange(shot.id, $event)"
-          />
-        }
-      </div>
+      @if (seq.scenes && seq.scenes.length > 0) {
+        <!-- Per-scene accordion -->
+        <div class="scenes-accordion">
+          @for (scene of seq.scenes; track scene.scriptNumber; let si = $index) {
+            @let sceneShots = shotsForScene(scene);
+            <details class="scene-block" [open]="si === 0">
+              <summary class="scene-summary">
+                <div class="scene-title">
+                  <span class="scene-n">#{{ scene.scriptNumber }}</span>
+                  <span class="scene-loc">{{ scene.scriptLocation }}</span>
+                  @if (scene.sceneType && scene.sceneType !== 'present') {
+                    <span class="scene-type">{{ scene.sceneType }}</span>
+                  }
+                </div>
+                <div class="scene-meta">
+                  <span class="scene-dur">{{ scene.duration }}s</span>
+                  <span class="scene-count"
+                    >{{ sceneShots.length }} shot{{ sceneShots.length !== 1 ? 's' : '' }}</span
+                  >
+                  <span class="scene-chevron" aria-hidden="true">▾</span>
+                </div>
+              </summary>
+              <div class="shots-list">
+                @for (shot of sceneShots; track shot.id) {
+                  <app-shot-card-preview
+                    [shot]="shot"
+                    [beat]="beatFor(shot.id, seq)"
+                    [(approved)]="approvedMap[shot.id]"
+                    [showChinese]="showChinese()"
+                    (promptChange)="onPromptChange(shot.id, $event)"
+                    (langChange)="onLangChange(shot.id, $event)"
+                  />
+                }
+              </div>
+            </details>
+          }
+        </div>
+      } @else {
+        <!-- Flat list fallback (mock / legacy) -->
+        <div class="shots-list">
+          @for (shot of seq.shots; track shot.id) {
+            <app-shot-card-preview
+              [shot]="shot"
+              [beat]="beatFor(shot.id, seq)"
+              [(approved)]="approvedMap[shot.id]"
+              [showChinese]="showChinese()"
+              (promptChange)="onPromptChange(shot.id, $event)"
+              (langChange)="onLangChange(shot.id, $event)"
+            />
+          }
+        </div>
+      }
 
       <!-- Summary: selected prompt per shot + create button -->
       <div class="summary">
@@ -130,7 +173,13 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
         <div class="summary-grid">
           @for (shot of seq.shots; track shot.id) {
             <div class="summary-row" [class.summary-approved]="approvedMap[shot.id]">
-              <span class="summary-id">{{ shot.id }}</span>
+              <span class="summary-id">
+                @if (sceneNumberFor(shot.id); as sceneNum) {
+                  <span class="summary-scene">#{{ sceneNum }}</span>
+                  <span class="summary-sep">·</span>
+                }
+                {{ shot.id }}
+              </span>
               <span class="summary-title">{{ shot.title }}</span>
               <span class="summary-lang">[{{ langMap[shot.id] || 'en' }}]</span>
               <span class="summary-text">{{ promptPreview(shot) }}</span>
@@ -334,6 +383,106 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
         flex-direction: column;
       }
 
+      /* ── Per-scene accordion ─────────────────────────────── */
+      .scenes-accordion {
+        display: flex;
+        flex-direction: column;
+      }
+      .scene-block {
+        background: linear-gradient(180deg, var(--panel, #121f21), var(--bg2, #0f1a1c));
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        margin-bottom: 18px;
+        overflow: hidden;
+        scroll-margin-top: 18px;
+      }
+      .scene-block[open] .scene-summary {
+        border-bottom: 1px solid var(--line, #1e3133);
+      }
+      .scene-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+      }
+      .scene-summary::-webkit-details-marker {
+        display: none;
+      }
+      .scene-summary:hover {
+        background: rgba(79, 176, 181, 0.05);
+      }
+      .scene-summary:focus-visible {
+        outline: 2px solid var(--teal, #4fb0b5);
+        outline-offset: -2px;
+      }
+      .scene-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+      .scene-n {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 1;
+        color: var(--ink, #ece6d8);
+      }
+      .scene-loc {
+        font-size: 13px;
+        color: var(--ink-dim, #9aa6a3);
+      }
+      .scene-type {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 100px;
+        color: #0c1315;
+        background: var(--amber, #e0a95c);
+        white-space: nowrap;
+      }
+      .scene-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .scene-dur {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--amber, #e0a95c);
+      }
+      .scene-count {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint, #6a7977);
+      }
+      .scene-chevron {
+        color: var(--ink-faint, #6a7977);
+        font-size: 12px;
+        transition: transform 0.15s ease;
+      }
+      .scene-block[open] .scene-chevron {
+        transform: rotate(180deg);
+      }
+      .scene-block .shots-list {
+        padding: 16px 18px 0;
+      }
+      .scene-block .shots-list app-shot-card-preview:last-child {
+        margin-bottom: 16px;
+      }
+
       .note {
         margin-top: 36px;
         background: var(--panel2, #16282a);
@@ -416,7 +565,15 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
       .summary-id {
         font-weight: 700;
         color: var(--ink, #ece6d8);
-        min-width: 30px;
+        min-width: 76px;
+      }
+      .summary-scene {
+        font-weight: 500;
+        color: var(--ink-faint, #6a7977);
+      }
+      .summary-sep {
+        color: var(--ink-faint, #6a7977);
+        margin: 0 5px;
       }
       .summary-title {
         color: var(--ink-dim, #9aa6a3);
@@ -501,7 +658,39 @@ export class ShotSequenceViewerComponent {
   });
 
   protected refTypeLabel(type: ReferenceType): string {
-    return type === 'character' ? 'personaje' : 'plate';
+    switch (type) {
+      case 'character':
+        return 'personaje';
+      case 'location':
+        return 'locación';
+      case 'prop':
+        return 'objeto';
+      case 'audio':
+        return 'audio';
+      case 'plate':
+        return 'plate';
+      default:
+        return type;
+    }
+  }
+
+  /** Shots of a scene (in order) resolved from the flattened Sequence shots. */
+  protected shotsForScene(scene: SequenceScene): Shot[] {
+    const all = this.sequence()?.shots ?? [];
+    const byId = new Map<string, Shot>(all.map((s) => [s.id, s] as [string, Shot]));
+    return (scene.shotIds ?? [])
+      .map((id) => byId.get(id))
+      .filter((s): s is Shot => Boolean(s));
+  }
+
+  /** Scene number (scriptNumber) that owns the given shot id, or '' when the
+   *  sequence has no per-scene grouping (flat mock / legacy). */
+  protected sceneNumberFor(shotId: string): string {
+    const scenes = this.sequence()?.scenes ?? [];
+    for (const scene of scenes) {
+      if (scene.shotIds?.includes(shotId)) return String(scene.scriptNumber);
+    }
+    return '';
   }
 
   protected beatFor(shotId: string, seq: Sequence) {
@@ -543,6 +732,9 @@ export class ShotSequenceViewerComponent {
   protected onShotHighlight(shotId: string): void {
     const el = document.getElementById('shot-' + shotId);
     if (el) {
+      // Open the containing scene accordion so the shot card is visible.
+      const details = el.closest('details') as HTMLDetailsElement | null;
+      if (details && !details.open) details.open = true;
       el.scrollIntoView({ block: 'center' });
       el.classList.add('lit');
       setTimeout(() => el.classList.remove('lit'), 1100);

@@ -3,7 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { catchError, finalize, map, of, throwError } from 'rxjs';
 import { parseArtifactData, computeCharacterCount } from './shot-builder-artifact';
-import { Sequence, Reference } from '@app/core/interfaces';
+import {
+  AspectRatio,
+  DirectorNotes,
+  FlowSegment,
+  Reference,
+  RenderMode,
+  Sequence,
+  SequenceScene,
+  Shot,
+  ShotNotes,
+} from '@app/core/interfaces';
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -12,14 +22,79 @@ export interface ShotBuilderShot {
   description: string;
   /** Character/asset references from the Sequence format, if available. */
   references?: Reference[];
+  /** The full prompt in 11-block DCS-DIRECTION format. */
+  prompt_en?: string;
+  /** Chinese prompt translation, when generate_zh was enabled. */
+  prompt_zh?: string;
+  /** Shot id (e.g. "A", "B") assigned by Claude within its scene. */
+  id?: string;
+  /** Cumulative start/end within the episode, in seconds. */
+  start?: number;
+  end?: number;
+  /** Duration in seconds. */
+  duration?: number;
+  /** Per-shot notes (ingredients/warnings) from the SLIM response. */
+  notes?: ShotNotes;
+}
+
+/** Episode-level asset assignment. */
+export interface EpisodeAsset {
+  slot: string;
+  assetId: string;
+  type: string;
+}
+
+/** Episode metadata. */
+export interface EpisodeData {
+  title?: string;
+  totalDuration?: number;
+  totalShots?: number;
+  assetAssignments?: EpisodeAsset[];
+}
+
+/** Continuity tracking between scenes. */
+export interface SceneContinuity {
+  location: string;
+  locationChange: boolean;
+  timeContinuity: string;
+  charactersPresent: string[];
+  emotionalCarryover?: string;
+  physicalCarryover?: string;
+  wardrobeCarryover?: string;
+  notes?: string[];
+}
+
+/** A scene parsed from the script (e.g., "56. INT. WYATT'S KITCHEN — DAY"). */
+export interface SceneData {
+  scriptNumber: number;
+  scriptLocation: string;
+  title: string;
+  description: string;
+  duration: number;
+  start: number;
+  end: number;
+  sceneType: string;         // "present" | "flashback" | "fantasy" | ...
+  mode: string;
+  continuity: SceneContinuity;
+  references: Reference[];
+  shots: ShotBuilderShot[];
 }
 
 /** Parsed response from the Claude shot builder. */
 export interface ShotBuilderResult {
-  shots: ShotBuilderShot[];
+  episode?: EpisodeData;
+  scenes: SceneData[];
   rawText: string;
-  /** Parsed rich Sequence data, if the response was in the new rich format. */
-  sequence?: Sequence;
+  /** One-line logline of the episode's core dramatic conflict. */
+  description?: string;
+  /** Total estimated duration in seconds. */
+  duration?: number;
+  /** Render mode, e.g. "M1". */
+  mode?: string;
+  /** Aspect ratio, e.g. "9:16". */
+  aspectRatio?: string;
+  /** Episode-wide director notes returned by Claude. */
+  directorNotes?: DirectorNotes;
 }
 
 /** Scene context sent to Claude for both shot builder and proncer. */
@@ -61,15 +136,15 @@ export class ShotBuilderService {
     sceneContext?: SceneContext;
     generateZh?: boolean;
   }) {
-    if (!request.sceneId || !request.projectId) {
-      return of({ shots: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
-        this.error.set('Select a scene before generating shots');
+    if (!request.projectId) {
+      return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
+        this.error.set('Select a project before generating shots');
         return source$;
       });
     }
 
     if (!request.prompt.trim()) {
-      return of({ shots: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
+      return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
         this.error.set('Write a prompt before generating shots');
         return source$;
       });
@@ -338,42 +413,115 @@ export class ShotBuilderService {
     status: string;
     text?: string;
   }): ShotBuilderResult {
-    const raw = this.decodeText(data.text || '');
-    if (!raw) {
-      return { shots: [], rawText: '' };
+    const decoded = this.decodeText(data.text || '');
+    if (!decoded) {
+      return { scenes: [], rawText: '' };
     }
 
-    // Try the old ArtifactData format first
-    const artifactData = parseArtifactData(raw);
-    if (artifactData) {
-      const shots: ShotBuilderShot[] = artifactData.shots.map((s, i) => ({
-        number: i + 1,
-        name: s.title || '',
-        description: s.prompt || s.promptZh || '',
-      }));
-      return { shots, rawText: JSON.stringify(artifactData) };
+    // Defensive: extract only the outermost JSON object in case Claude
+    // included text before or after the JSON.
+    const raw = this.forceExtractJSON(decoded);
+
+    // Try the new Episode → Scenes → Shots format (DCS-DIRECTION v2)
+    try {
+      const sanitized = this.sanitizeForJson(raw);
+      const parsed = JSON.parse(sanitized);
+
+      if (parsed.episode && parsed.scenes && Array.isArray(parsed.scenes)) {
+        const scenes: SceneData[] = parsed.scenes.map((s: any) => ({
+          scriptNumber: s.scriptNumber,
+          scriptLocation: s.scriptLocation || '',
+          title: s.title || '',
+          description: s.description || '',
+          duration: s.duration || 0,
+          start: s.start || 0,
+          end: s.end || 0,
+          sceneType: s.sceneType || 'present',
+          mode: s.mode || 'M1',
+          continuity: {
+            location: s.continuity?.location || s.scriptLocation || '',
+            locationChange: s.continuity?.locationChange || false,
+            timeContinuity: s.continuity?.timeContinuity || '',
+            charactersPresent: s.continuity?.charactersPresent || [],
+            emotionalCarryover: s.continuity?.emotionalCarryover,
+            physicalCarryover: s.continuity?.physicalCarryover,
+            wardrobeCarryover: s.continuity?.wardrobeCarryover,
+            notes: s.continuity?.notes,
+          },
+          references: s.references || [],
+          shots: (s.shots || []).map((shot: any, i: number) => ({
+            // Shot number = its order within the scene (1, 2, 3…). The scene
+            // number itself comes from the script (scriptNumber above).
+            number: i + 1,
+            id: shot.id,
+            name: shot.title || '',
+            description: shot.description || shot.prompt?.en || '',
+            references: shot.references as Reference[] | undefined,
+            prompt_en: shot.prompt?.en ? normalizeSeedanceSlots(shot.prompt.en) : undefined,
+            prompt_zh: shot.prompt?.zh ? normalizeSeedanceSlots(shot.prompt.zh) : undefined,
+            duration: shot.duration,
+            start: shot.start,
+            end: shot.end,
+            notes: shot.notes as ShotNotes | undefined,
+          }) as ShotBuilderShot),
+        }));
+
+        return {
+          episode: parsed.episode,
+          scenes,
+          rawText: raw,
+          description: parsed.description,
+          duration: parsed.duration,
+          mode: parsed.mode,
+          aspectRatio: parsed.aspectRatio,
+          directorNotes: parsed.directorNotes as DirectorNotes | undefined,
+        };
+      }
+    } catch {
+      // Not the new format — fall through to legacy parsing
     }
 
-    // Try the new rich Sequence format
+    // Try the legacy Sequence format (flat shots array)
     try {
       const sanitized = this.sanitizeForJson(raw);
       const parsed = JSON.parse(sanitized);
       if (parsed.shots && Array.isArray(parsed.shots) && parsed.description) {
-        const seq = computeCharacterCount(parsed as Sequence);
-        const shots: ShotBuilderShot[] = parsed.shots.map((s: any, i: number) => ({
+        const legacyShots: ShotBuilderShot[] = parsed.shots.map((s: any, i: number) => ({
           number: i + 1,
           name: s.title || '',
-          description: s.prompt?.en || s.prompt?.zh || '',
+          description: normalizeSeedanceSlots(s.prompt?.en) || s.prompt?.zh || '',
           references: s.references as Reference[] | undefined,
+          prompt_en: s.prompt?.en ? normalizeSeedanceSlots(s.prompt.en) : undefined,
+          duration: s.duration,
         }));
-        return { shots, rawText: raw, sequence: seq };
+        // Wrap legacy shots in a single scene
+        const scene: SceneData = {
+          scriptNumber: 0,
+          scriptLocation: parsed.description || '',
+          title: parsed.description || '',
+          description: parsed.description || '',
+          duration: parsed.duration || 0,
+          start: 0,
+          end: parsed.duration || 0,
+          sceneType: 'present',
+          mode: parsed.mode || 'M1',
+          continuity: {
+            location: parsed.description || '',
+            locationChange: false,
+            timeContinuity: '',
+            charactersPresent: [],
+          },
+          references: parsed.references || [],
+          shots: legacyShots,
+        };
+        return { episode: parsed.episode, scenes: [scene], rawText: raw };
       }
     } catch {
       // Not parseable as rich format either
     }
 
     // Fallback: return raw decoded text
-    return { shots: [], rawText: raw };
+    return { scenes: [], rawText: raw };
   }
 
   /**
@@ -459,6 +607,32 @@ export class ShotBuilderService {
     return decoded;
   }
 
+  /**
+   * Extract the outermost balanced JSON object from text by walking braces.
+   * This is a defensive fallback: if Claude includes text before or after
+   * the JSON, we still extract just the JSON portion.
+   */
+  private forceExtractJSON(text: string): string {
+    if (!text) return '';
+
+    const start = text.indexOf('{');
+    if (start < 0) return text;
+
+    let depth = 0;
+    for (let i = start; i < text.length; i++) {
+      if (text[i] === '{') {
+        depth++;
+      } else if (text[i] === '}') {
+        depth--;
+        if (depth === 0) {
+          return text.slice(start, i + 1);
+        }
+      }
+    }
+
+    return text;
+  }
+
   private extractShots(text: string): ShotBuilderShot[] {
     if (!text) return [];
 
@@ -501,4 +675,159 @@ export class ShotBuilderService {
 
     return [];
   }
+}
+
+/**
+ * Normalize Seedance reference slots in a prompt from the bracketed
+ * "[ImageN]" header the backend used to produce, to the "@imageN" slot format
+ * the rest of the system uses (references, saved pre-prompts, the generator).
+ * Idempotent — safe to apply to already-normalized text.
+ */
+export function normalizeSeedanceSlots(text: string | undefined | null): string {
+  if (!text) return text ?? '';
+  return text.replace(/\[image(\d+)\]/gi, '@image$1');
+}
+
+/**
+ * Map a parsed ShotBuilderResult (Episode → Scenes → Shots) into the native
+ * Sequence shape used by the shot-sequence-viewer (the SEEDANCE-style design).
+ *
+ * Returns null when there is nothing to render (no scenes or no shots), so the
+ * caller falls back to the artifact / raw-text render paths.
+ *
+ * The backend SLIM response does not carry dramatic beats
+ * (HOOK/FRICTION/SPIKE/BUTTON), so the time-budget strip is colored by scene
+ * type instead — reusing the same palette as the panel's timeBudgetBar:
+ * present → teal, flashback → amber, fantasy/dream → violet.
+ */
+export function shotBuilderResultToSequence(
+  result: ShotBuilderResult,
+  fallbackAspectRatio: AspectRatio = '9:16',
+): Sequence | null {
+  const scenes = result.scenes ?? [];
+  const flat: Array<{ shot: ShotBuilderShot; sceneType: string }> = [];
+  for (const scene of scenes) {
+    for (const shot of scene.shots ?? []) {
+      flat.push({ shot, sceneType: scene.sceneType || 'present' });
+    }
+  }
+  if (flat.length === 0) return null;
+
+  const sceneColor = (type: string): string =>
+    type === 'flashback'
+      ? '#f59e0b'
+      : type === 'fantasy' || type === 'dream'
+        ? '#8b5cf6'
+        : '#14b8a6';
+
+  const totalDuration =
+    result.duration ||
+    result.episode?.totalDuration ||
+    scenes.reduce((sum, s) => sum + (s.duration || 0), 0) ||
+    flat.reduce((sum, f) => sum + (f.shot.duration || 0), 0);
+
+  // Unique references aggregated by slot across scenes and shots.
+  const refMap = new Map<string, Reference>();
+  for (const scene of scenes) {
+    for (const ref of scene.references ?? []) refMap.set(ref.slot, ref);
+    for (const shot of scene.shots ?? []) {
+      for (const ref of shot.references ?? []) refMap.set(ref.slot, ref);
+    }
+  }
+
+  const mode = (result.mode as RenderMode) || 'M1';
+  const aspectRatio = (result.aspectRatio as AspectRatio) || fallbackAspectRatio;
+
+  // Unique shot ids across the whole sequence. Real responses don't carry ids,
+  // so fall back to a global S1, S2, … counter — scene numbers alone are not
+  // unique (every scene restarts its shots at number 1).
+  const idFor = new Map<ShotBuilderShot, string>();
+  let shotIndex = 0;
+  for (const { shot } of flat) {
+    shotIndex++;
+    idFor.set(shot, shot.id || `S${shotIndex}`);
+  }
+
+  // Build the strip segments; fall back to a running cursor when the backend
+  // did not include cumulative start/end timestamps.
+  let cursor = 0;
+  const segments: FlowSegment[] = flat.map(({ shot, sceneType }) => {
+    const id = idFor.get(shot) as string;
+    const start = shot.start ?? cursor;
+    const end = shot.end ?? start + Math.max(1, shot.duration || 0);
+    cursor = end;
+    return {
+      id,
+      shotId: id,
+      label: id,
+      start,
+      end,
+      intensity: 0.5,
+      color: sceneColor(sceneType),
+    };
+  });
+
+  const shots: Shot[] = flat.map(({ shot }) => {
+    const id = idFor.get(shot) as string;
+    const start = shot.start ?? 0;
+    const end = shot.end ?? start + Math.max(1, shot.duration || 0);
+    return {
+      id,
+      title: shot.name || `Shot ${shot.number}`,
+      description: shot.description,
+      duration: shot.duration || 0,
+      start,
+      end,
+      camera: { lens: '', framing: '', movement: '', fps: 24, shutter: '180°', aspectRatio },
+      composition: {},
+      blocking: {},
+      acting: {},
+      timeline: { duration: shot.duration || 0, segments: [], beats: [] },
+      audio: {},
+      references: shot.references ?? [],
+      prompt: { en: shot.prompt_en || shot.description || '', zh: shot.prompt_zh },
+      render: { mode, engine: 'Seedance' },
+      notes: shot.notes ?? {},
+    };
+  });
+
+  // Per-scene grouping so the viewer can render the shot cards inside a
+  // per-scene accordion. shotIds reference the ids assigned above.
+  const sequenceScenes: SequenceScene[] = scenes.map((scene) => ({
+    scriptNumber: scene.scriptNumber,
+    scriptLocation: scene.scriptLocation || '',
+    title: scene.title,
+    description: scene.description,
+    duration: scene.duration || 0,
+    sceneType: scene.sceneType || 'present',
+    mode: scene.mode || mode,
+    references: scene.references ?? [],
+    shotIds: (scene.shots ?? []).map((shot) => idFor.get(shot) as string),
+  }));
+
+  const description =
+    result.description ||
+    result.episode?.title ||
+    scenes[0]?.scriptLocation ||
+    scenes[0]?.title ||
+    'Shot list';
+
+  return {
+    description,
+    duration: totalDuration,
+    mode,
+    aspectRatio,
+    references: [...refMap.values()],
+    sequenceFlow: {
+      title: 'Presupuesto de tiempo',
+      subtitle: 'La temperatura sube con el conflicto',
+      duration: totalDuration,
+      metric: 'dramaticIntensity',
+      scale: { start: 'Frío', middle: 'Caliente', end: 'Vacío' },
+      segments,
+    },
+    directorNotes: result.directorNotes,
+    scenes: sequenceScenes,
+    shots,
+  };
 }

@@ -403,4 +403,56 @@ export class ProjectsApiService {
         catchError(httpErrorHandler<SaveGenerationResponse>),
       );
   }
+
+  // ---------------------------------------------------------------------------
+  // Chapter Assignments
+  // ---------------------------------------------------------------------------
+
+  getChapterAssignments(
+    projectId: string,
+    chapterId: string,
+  ): Observable<{ error: boolean; msg: string; data?: any }> {
+    return this.http
+      .get<ResponseBase<any>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<any>),
+      );
+  }
+
+  assignCharacterToChapter(
+    projectId: string,
+    chapterId: string,
+    characterId: string,
+    slot?: string,
+  ): Observable<{ error: boolean; msg: string; data?: { id: string } }> {
+    return this.http
+      .post<ResponseBase<{ id: string }>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/characters`,
+        { character_id: characterId, ...(slot ? { slot } : {}) },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ id: string }>),
+      );
+  }
+
+  assignAssetToChapter(
+    projectId: string,
+    chapterId: string,
+    fileId: string,
+    slot?: string,
+  ): Observable<{ error: boolean; msg: string; data?: { id: string } }> {
+    return this.http
+      .post<ResponseBase<{ id: string }>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/assets`,
+        { file_id: fileId, ...(slot ? { slot } : {}) },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ id: string }>),
+      );
+  }
 }

@@ -101,10 +101,15 @@ export class SceneAssignmentComponent implements OnInit {
   /** Optional inputs when used inside a dialog (no route params). */
   readonly projectIdInput = input<string>('');
   readonly sceneIdInput = input<string>('');
+  /** Chapter mode (episode-level assignments). When provided, resources are
+   *  assigned to the chapter instead of a scene. */
+  readonly chapterIdInput = input<string>('');
   /** Pre-resolved names so no extra API calls are needed in dialog mode. */
   readonly projectNameInput = input<string>('');
   readonly sceneNumberInput = input<number>(0);
   readonly sceneNameInput = input<string>('');
+  readonly chapterNumberInput = input<number>(0);
+  readonly chapterNameInput = input<string>('');
 
   /** Emitted after any assignment change. */
   readonly assignmentsChanged = output<void>();
@@ -120,6 +125,22 @@ export class SceneAssignmentComponent implements OnInit {
   );
   protected readonly projectId = computed(() => this.projectIdInput() || this.routeProjectId());
   protected readonly sceneId = computed(() => this.sceneIdInput() || this.routeSceneId());
+  protected readonly chapterId = computed(() => this.chapterIdInput());
+
+  /** True when the component is assigning resources at chapter level. */
+  protected readonly isChapterMode = computed(() => Boolean(this.chapterId()));
+
+  /** Assignment API base path — chapter endpoints when in chapter mode,
+   *  scene endpoints otherwise (director route / projects dialog). */
+  private assignmentBase(): string {
+    const pid = this.projectId();
+    if (!pid) return '';
+    const cid = this.chapterId();
+    if (cid) return `${this.apiUrl}/projects/${pid}/chapters/${cid}/assignments`;
+    const sid = this.sceneId();
+    if (sid) return `${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments`;
+    return '';
+  }
 
   protected readonly tabs = [
     { key: 'characters', label: 'Resources' },
@@ -207,17 +228,34 @@ export class SceneAssignmentComponent implements OnInit {
     // Input-based loading (dialog mode) — load immediately with inputs.
     const pid = this.projectId();
     const sid = this.sceneId();
-    if (sid && !this.routeSceneId()) {
+    const cid = this.chapterId();
+    if (cid && !this.routeSceneId()) {
+      this.startLoad(pid, '');
+    } else if (sid && !this.routeSceneId()) {
       this.startLoad(pid, sid);
     }
   }
 
   private startLoad(pid: string, sid: string): void {
-    this.loadSceneInfo(pid, sid);
-    this.loadAll(pid, sid);
+    this.loadInfo(pid, sid);
+    this.loadAll(pid);
   }
 
-  private loadSceneInfo(projectId: string, sceneId: string): void {
+  private loadInfo(projectId: string, sceneId: string): void {
+    // Chapter mode — show the episode info (names passed by the dialog).
+    if (this.isChapterMode()) {
+      this.projectInfo.set({
+        name: this.projectNameInput(),
+        description: '',
+      });
+      this.sceneInfo.set({
+        number: this.chapterNumberInput(),
+        name: this.chapterNameInput(),
+        description: '',
+      });
+      return;
+    }
+
     // If pre-resolved names are provided, use them immediately
     if (this.projectNameInput() && this.sceneNameInput()) {
       this.projectInfo.set({
@@ -264,7 +302,7 @@ export class SceneAssignmentComponent implements OnInit {
     }
   }
 
-  private loadAll(projectId: string, sceneId: string): void {
+  private loadAll(projectId: string): void {
     this.loading.set(true);
 
     // Load files
@@ -285,15 +323,18 @@ export class SceneAssignmentComponent implements OnInit {
         this.computeAvailableCharacters();
       });
 
-    // Load assignments for this scene
-    this.loadAssignments(projectId, sceneId);
+    // Load assignments for this chapter/scene
+    this.loadAssignments(projectId);
   }
 
-  private loadAssignments(projectId: string, sceneId: string): void {
+  private loadAssignments(projectId: string): void {
+    const base = this.assignmentBase();
+    if (!base) {
+      this.loading.set(false);
+      return;
+    }
     this.http
-      .get<{ data: SceneAssignments }>(
-        `${this.apiUrl}/projects/${projectId}/scenes/${sceneId}/assignments`,
-      )
+      .get<{ data: SceneAssignments }>(base)
       .pipe(catchError(() => of({ data: { presets: [], characters: [], assets: [] } })))
       .subscribe({
         next: (res) => {
@@ -350,11 +391,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   assignPreset(presetId: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .post(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/presets`, {
+      .post(`${base}/presets`, {
         preset_id: presetId,
       })
       .subscribe({
@@ -368,11 +408,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   removePreset(assignmentId: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .delete(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/presets/${assignmentId}`)
+      .delete(`${base}/presets/${assignmentId}`)
       .subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Preset removed', life: 2000 });
@@ -401,11 +440,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   assignCharacter(characterId: string, kind?: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .post(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/characters`, {
+      .post(`${base}/characters`, {
         character_id: characterId,
         slot: this.nextSlot(kind || 'image'),
       })
@@ -419,11 +457,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   removeCharacter(assignmentId: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .delete(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/characters/${assignmentId}`)
+      .delete(`${base}/characters/${assignmentId}`)
       .subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Character removed', life: 2000 });
@@ -434,11 +471,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   assignAsset(fileId: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .post(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/assets`, { file_id: fileId })
+      .post(`${base}/assets`, { file_id: fileId })
       .subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Asset assigned', life: 2000 });
@@ -449,11 +485,10 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   removeAsset(assignmentId: string): void {
-    const pid = this.projectId();
-    const sid = this.sceneId();
-    if (!pid || !sid) return;
+    const base = this.assignmentBase();
+    if (!base) return;
     this.http
-      .delete(`${this.apiUrl}/projects/${pid}/scenes/${sid}/assignments/assets/${assignmentId}`)
+      .delete(`${base}/assets/${assignmentId}`)
       .subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Asset removed', life: 2000 });
@@ -498,7 +533,7 @@ export class SceneAssignmentComponent implements OnInit {
       }
       this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
       this.reload();
-      this.loadAll(this.projectId(), this.sceneId());
+      this.loadAll(this.projectId());
     });
   }
 
@@ -509,7 +544,7 @@ export class SceneAssignmentComponent implements OnInit {
         this.previewFile.set(null);
         this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
         this.reload();
-        this.loadAll(this.projectId(), this.sceneId());
+        this.loadAll(this.projectId());
       },
       error: () =>
         this.toast.add({ severity: 'error', summary: 'Failed to delete character', life: 3000 }),
@@ -523,7 +558,7 @@ export class SceneAssignmentComponent implements OnInit {
         this.previewFile.set(null);
         this.toast.add({ severity: 'success', summary: res.msg, life: 2000 });
         this.reload();
-        this.loadAll(this.projectId(), this.sceneId());
+        this.loadAll(this.projectId());
       },
       error: () =>
         this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
@@ -532,17 +567,15 @@ export class SceneAssignmentComponent implements OnInit {
 
   private reload(): void {
     const pid = this.projectId();
-    const sid = this.sceneId();
-    if (pid && sid) {
-      this.loadAssignments(pid, sid);
+    if (pid && this.assignmentBase()) {
+      this.loadAssignments(pid);
       this.assignmentsChanged.emit();
     }
   }
 
   onCharactersChanged(): void {
     const pid = this.projectId();
-    const sid = this.sceneId();
-    if (pid && sid) this.loadAll(pid, sid);
+    if (pid) this.loadAll(pid);
   }
 
   uploadFile(ev: FileUploadHandlerEvent) {
@@ -568,7 +601,7 @@ export class SceneAssignmentComponent implements OnInit {
       next: (res) => {
         this.toast.add({ severity: 'success', summary: 'Files uploaded', life: 2000 });
         this.reload();
-        this.loadAll(this.projectId(), this.sceneId());
+        this.loadAll(this.projectId());
       },
       error: () => this.toast.add({ severity: 'error', summary: 'Failed to upload', life: 3000 }),
     });

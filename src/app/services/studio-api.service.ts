@@ -9,15 +9,6 @@ export class StudioApiService {
   private readonly apiUrl = environment.API_URL;
 
   /**
-   * Load scene-level assignments (presets, characters, assets).
-   */
-  getSceneAssignments(projectId: string, chapterId: string, sceneId: string) {
-    return this.http.get<{ data: any }>(
-      `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
-    );
-  }
-
-  /**
    * Persist output format (aspect ratio, duration) to a shot so it survives
    * page reloads and is restored when the shot is loaded again.
    */

@@ -60,7 +60,9 @@ export function beatInfoFromSegments(
         <div class="shot-n">{{ shot().id }}</div>
         <div class="shot-head">
           <div class="shot-title">{{ shot().title }}</div>
-          <div class="shot-meta">{{ shot().camera.framing }} · {{ shot().camera.lens }}</div>
+          @if (shot().camera) {
+            <div class="shot-meta">{{ shot().camera.framing }} · {{ shot().camera.lens }}</div>
+          }
         </div>
         <div class="shot-side">
           <span class="beat-tag" [style]="{ background: beat().color }">
@@ -88,31 +90,33 @@ export function beatInfoFromSegments(
           >
         </div>
 
-        <div class="grow">
-          <span class="k">Tipo</span>
-          <span class="v">{{ shot().camera.framing }}</span>
-        </div>
-
-        @if (shot().camera.movement) {
+        @if (shot().camera) {
           <div class="grow">
-            <span class="k">Cámara</span>
-            <span class="v">{{ shot().camera.movement }} · {{ shot().camera.lens }}</span>
+            <span class="k">Tipo</span>
+            <span class="v">{{ shot().camera.framing }}</span>
+          </div>
+
+          @if (shot().camera.movement) {
+            <div class="grow">
+              <span class="k">Cámara</span>
+              <span class="v">{{ shot().camera.movement }} · {{ shot().camera.lens }}</span>
+            </div>
+          }
+
+          <div class="grow">
+            <span class="k">Lente</span>
+            <span class="v">{{ shot().camera.lens }}</span>
           </div>
         }
 
-        <div class="grow">
-          <span class="k">Lente</span>
-          <span class="v">{{ shot().camera.lens }}</span>
-        </div>
-
-        @if (shot().composition.frameMap) {
+        @if (shot().composition?.frameMap) {
           <div class="grow">
             <span class="k">Frame Map</span>
             <span class="v">{{ shot().composition.frameMap }}</span>
           </div>
         }
 
-        @if (shot().notes.warnings && shot().notes!.warnings!.length > 0) {
+        @if (shot().notes?.warnings && shot().notes!.warnings!.length > 0) {
           <div class="grow">
             <span class="k">Advertencias</span>
             <span class="v">
@@ -125,7 +129,7 @@ export function beatInfoFromSegments(
           </div>
         }
 
-        @if (shot().notes.todos && shot().notes!.todos!.length > 0) {
+        @if (shot().notes?.todos && shot().notes!.todos!.length > 0) {
           <div class="grow">
             <span class="k">Ingredientes</span>
             <span class="v">
@@ -155,7 +159,7 @@ export function beatInfoFromSegments(
           </div>
         }
 
-        @if (shot().acting.dialogue) {
+        @if (shot().acting && shot().acting.dialogue) {
           <div class="grow">
             <span class="k">Diálogo</span>
             <span class="v b"

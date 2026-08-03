@@ -118,15 +118,15 @@ export class CharacterAssetsComponent {
     { id: 'audio', labelKey: 'FILES.TABS.AUDIO', icon: 'pi-volume-up' },
   ];
 
-  /** True when scene assignments have been loaded and the set is empty. */
+  /** True when chapter assignments have been loaded and the set is empty. */
   protected readonly libraryEmpty = computed(
-    () => this.studio.assignmentsLoaded() && this.studio.sceneCharacterIds().size === 0,
+    () => this.studio.assignmentsLoaded() && this.studio.chapterCharacterIds().size === 0,
   );
 
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
-    const assignedIds = this.studio.sceneCharacterIds();
+    const assignedIds = this.studio.chapterCharacterIds();
 
-    // If assignments have been loaded and the set is empty, the scene has
+    // If assignments have been loaded and the set is empty, the chapter has
     // no related characters — show nothing rather than dumping the whole
     // library.
     if (this.libraryEmpty()) {

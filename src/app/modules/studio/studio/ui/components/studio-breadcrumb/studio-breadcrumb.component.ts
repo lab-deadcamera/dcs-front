@@ -73,13 +73,20 @@ export class StudioBreadcrumbComponent {
   /** Emitted after resources are assigned/changed in the dialog. */
   readonly assignmentsChanged = output<void>();
 
-  // ── Scene Assignment dialog state ───────────────────────────────────
+  // ── Episode Assignment dialog state ────────────────────────────────
 
-  protected readonly sceneAssignmentDialogVisible = signal(false);
+  protected readonly episodeAssignmentDialogVisible = signal(false);
 
   /** Resolved names for the assignment dialog inputs. */
   protected readonly selectedProjectName = computed(
     () => this.projects().find((p) => p.id === this.selectedProjectId())?.name ?? '',
+  );
+  protected readonly selectedChapterNumber = computed(() => {
+    const c = this.chapters().find((c) => c.id === this.selectedChapterId());
+    return c?.number ?? 0;
+  });
+  protected readonly selectedChapterName = computed(
+    () => this.chapters().find((c) => c.id === this.selectedChapterId())?.name ?? '',
   );
   protected readonly selectedSceneNumber = computed(() => {
     const s = this.scenes().find((s) => s.id === this.selectedSceneId());
@@ -118,14 +125,15 @@ export class StudioBreadcrumbComponent {
     this.sceneChange.emit(id);
   }
 
-  /** Click on the cog icon inside a scene dropdown option. */
-  protected onSceneCogClick(scene: BreadcrumbOption): void {
-    // Select that scene first so the dialog has the right IDs
-    this.selectedSceneId.set(scene.id);
+  /** Click on the cog icon inside an episode dropdown option. */
+  protected onEpisodeCogClick(chapter: BreadcrumbOption): void {
+    // Select that chapter first so the dialog has the right IDs
+    this.selectedChapterId.set(chapter.id);
+    this.selectedSceneId.set(null);
     this.selectedShotId.set(null);
-    this.sceneChange.emit(scene.id);
+    this.chapterChange.emit(chapter.id);
     // Open the assignment dialog
-    this.sceneAssignmentDialogVisible.set(true);
+    this.episodeAssignmentDialogVisible.set(true);
   }
 
   protected onShotChange(id: string | null): void {

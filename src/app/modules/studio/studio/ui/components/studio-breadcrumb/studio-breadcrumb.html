@@ -44,7 +44,20 @@
           [showClear]="false"
           styleClass="studio-bcrumb-select"
           (onChange)="onChapterChange($event.value)"
-        />
+        >
+          <ng-template pTemplate="item" let-item>
+            <span class="pr-3">{{ item.label }}</span>
+            <span class="flex items-center gap-2 ml-auto">
+              <i
+                class="pi pi-cog cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
+                aria-hidden="true"
+                (click)="onEpisodeCogClick(item); $event.stopPropagation()"
+                pTooltip="Assign resources to this episode"
+                tooltipPosition="right"
+              ></i>
+            </span>
+          </ng-template>
+        </p-select>
         <label for="on_label">Episode</label>
       </p-floatlabel>
     }
@@ -69,22 +82,10 @@
             filterBy="label,name"
             class="min-w-24"
             [(ngModel)]="selectedSceneId"
-            [showClear]="false"
+            [showClear]="true"
             styleClass="studio-bcrumb-select"
             (onChange)="onSceneChange($event.value)"
           >
-            <ng-template pTemplate="item" let-item>
-              <span class="pr-3">{{ item.label }}</span>
-              <span class="flex items-center gap-2 ml-auto">
-                <i
-                  class="pi pi-cog cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
-                  aria-hidden="true"
-                  (click)="onSceneCogClick(item); $event.stopPropagation()"
-                  pTooltip="Assign resources to this scene"
-                  tooltipPosition="right"
-                ></i>
-              </span>
-            </ng-template>
           </p-select>
           <label for="on_label">Scene</label>
         </p-floatlabel>
@@ -180,22 +181,22 @@
   </ng-template>
 </p-dialog>
 
-<!-- Scene Assignment dialog -->
+<!-- Episode Assignment dialog -->
 <p-dialog
-  [(visible)]="sceneAssignmentDialogVisible"
+  [(visible)]="episodeAssignmentDialogVisible"
   [modal]="true"
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Scene Resources"
+  header="Episode Resources"
 >
-  @if (sceneAssignmentDialogVisible()) {
+  @if (episodeAssignmentDialogVisible()) {
     <app-scene-assignment
       [projectIdInput]="selectedProjectId() ?? ''"
-      [sceneIdInput]="selectedSceneId() ?? ''"
+      [chapterIdInput]="selectedChapterId() ?? ''"
       [projectNameInput]="selectedProjectName()"
-      [sceneNumberInput]="selectedSceneNumber()"
-      [sceneNameInput]="selectedSceneName()"
+      [chapterNumberInput]="selectedChapterNumber()"
+      [chapterNameInput]="selectedChapterName()"
       (assignmentsChanged)="assignmentsChanged.emit()"
     />
   }

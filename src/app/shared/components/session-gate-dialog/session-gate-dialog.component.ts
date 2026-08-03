@@ -1,6 +1,4 @@
 import { DecimalPipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@environment/environment';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -206,8 +204,6 @@ export class SessionGateDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly sessionStore = inject(SessionStore);
   private readonly studio = inject(StudioStore);
-  private readonly http = inject(HttpClient);
-  private readonly environment = environment;
   private readonly projectsApi = inject(ProjectsApiService);
 
   readonly visible = input(false);
@@ -421,19 +417,15 @@ export class SessionGateDialogComponent {
           handle,
         });
 
-        // 4. Load scene assignments
-        this.http
-          .get<{ data: any }>(
-            `${this.environment.API_URL}/projects/${raw.projectId}/chapters/${raw.chapterId}/scenes/${raw.sceneId}/assignments`,
-          )
-          .subscribe({
-            next: (res) => {
-              if (res.data) this.studio.setSceneAssignments(res.data);
-            },
-            error: () => {
-              /* assignments not critical */
-            },
-          });
+        // 4. Load chapter assignments
+        this.projectsApi.getChapterAssignments(raw.projectId, raw.chapterId).subscribe({
+          next: (res) => {
+            if (res.data) this.studio.setChapterAssignments(res.data);
+          },
+          error: () => {
+            /* assignments not critical */
+          },
+        });
 
         this.submitting.set(false);
         this.visibleChange.emit(false);

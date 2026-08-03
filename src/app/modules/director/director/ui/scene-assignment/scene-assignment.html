@@ -1,7 +1,13 @@
 <section class="p-6">
   <div class="mb-6">
     <div class="flex w-full items-center justify-between">
-      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Scene Resources</h1>
+      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
+        @if (isChapterMode()) {
+          Episode Resources
+        } @else {
+          Scene Resources
+        }
+      </h1>
 
       @switch (activeTab()) {
         @case ('characters') {
@@ -35,15 +41,25 @@
         }
       }
     </div>
-    <p class="mt-1 text-[12px] text-fg-muted">Assign and remove resources for this scene</p>
+    <p class="mt-1 text-[12px] text-fg-muted">
+      @if (isChapterMode()) {
+        Assign and remove resources for this episode
+      } @else {
+        Assign and remove resources for this scene
+      }
+    </p>
   </div>
 
   <!-- Scene & Project info -->
   <div class="mb-6 rounded border border-ink-700 bg-ink-800 p-4">
     <div class="mb-3 flex items-center gap-4">
-      <span class="font-mono text-[11px] text-primary-400"
-        >SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}</span
-      >
+      <span class="font-mono text-[11px] text-primary-400">
+        @if (isChapterMode()) {
+          EP{{ sceneInfo()?.number ?? 0 | number: '2.0' }}
+        } @else {
+          SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}
+        }
+      </span>
       <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || 'Loading...' }}</span>
       @if (sceneInfo()?.description) {
         <span class="text-[12px] text-fg-muted">— {{ sceneInfo()?.description }}</span>
@@ -53,10 +69,22 @@
       <span
         ><span class="font-bold uppercase">Project:</span> {{ projectInfo()?.name || '...' }}</span
       >
-      <span
-        ><span class="font-bold uppercase">Scene ID:</span>
-        <span class="font-mono">{{ sceneId() }}</span></span
-      >
+      <span>
+        <span class="font-bold uppercase">
+          @if (isChapterMode()) {
+            Episode ID:
+          } @else {
+            Scene ID:
+          }
+        </span>
+        <span class="font-mono">
+          @if (isChapterMode()) {
+            {{ chapterId() }}
+          } @else {
+            {{ sceneId() }}
+          }
+        </span>
+      </span>
     </div>
   </div>
 

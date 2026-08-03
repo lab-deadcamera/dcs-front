@@ -23,6 +23,10 @@ import {
   ShotBuilderService,
   ShotBuilderShot,
   ShotBuilderResult,
+  SceneData,
+  EpisodeData,
+  normalizeSeedanceSlots,
+  shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
 import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-settings-dialog.component';
 
@@ -30,6 +34,13 @@ import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-se
 import * as mammoth from 'mammoth';
 /** Parse .xlsx files into structured data for preview. */
 import * as XLSX from 'xlsx';
+/** Parse .pdf files into readable text for sending to Claude. */
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+// The worker is copied to assets in angular.json; referenced by an absolute
+// URL (root-relative) so it resolves from any router path. Angular's esbuild
+// bundler does not support Vite-style `?url` imports, so we copy the file and
+// point at it explicitly.
+GlobalWorkerOptions.workerSrc = '/assets/pdfjs/pdf.worker.min.mjs';
 /** Render structured shot data as artifact HTML. */
 import {
   generateArtifactHtml,
@@ -37,7 +48,9 @@ import {
   computeCharacterCount,
   ArtifactData,
 } from '@app/services/shot-builder-artifact';
-import { SHOT_BUILDER_RESPONSE, SHOT_SEQUENCE } from '@app/core/mocks/shots-builder.mock';
+import { SHOT_BUILDER_RESPONSE } from '@app/core/mocks/shots-builder.mock';
+/** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
+import responseOkMock from '@app/core/mocks/response-ok.json';
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
@@ -46,6 +59,7 @@ import { ModelService } from '@app/services/model.service';
 import { AspectRatio } from '@app/core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { StudioApiService } from '@app/services/studio-api.service';
+import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -66,6 +80,9 @@ type UploadedFile = {
   name: string;
   content: string;
   mimeType: string;
+  /** Text to send to Claude. Set for PDFs (content keeps the data URI for
+   *  preview); defaults to content for every other file type. */
+  sendContent?: string;
   /** Whether this file has been sent with the last message. */
   sent: boolean;
 };
@@ -128,6 +145,7 @@ export class ShotBuilderPanelComponent {
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
   private readonly studioApiService = inject(StudioApiService);
+  private readonly projectsApi = inject(ProjectsApiService);
   private readonly modelService = inject(ModelService);
   private readonly toast = inject(MessageService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -137,8 +155,16 @@ export class ShotBuilderPanelComponent {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  /** The parsed shot list from Claude. */
+  /** Episode-level data (title, totalDuration, assetAssignments). */
+  readonly episodeData = signal<EpisodeData | null>(null);
+  /** Parsed scenes with their shots from Claude. */
+  readonly scenes = signal<SceneData[]>([]);
+  /** Flattened shot list from all scenes (legacy compat). */
   readonly shots = signal<ShotBuilderShot[]>([]);
+  /** Total shot count across all scenes. */
+  readonly totalShots = computed(() =>
+    this.scenes().reduce((sum, s) => sum + s.shots.length, 0),
+  );
   /** The raw text response for display. */
   readonly rawResponse = signal<string>('');
 
@@ -244,11 +270,34 @@ export class ShotBuilderPanelComponent {
     () => !this.loading() && Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
   );
 
+  /** Segments for the time budget bar: each scene as a colored segment. */
+  readonly timeBudgetBar = computed(() => {
+    const sc = this.scenes();
+    const total = sc.reduce((sum, s) => sum + s.duration, 0) || 1;  // avoid div by 0
+    return sc.map((s) => {
+      const pct = (s.duration / total) * 100;
+      // Color by scene type
+      const color = s.sceneType === 'flashback'
+        ? '#f59e0b'  // amber
+        : s.sceneType === 'fantasy' || s.sceneType === 'dream'
+          ? '#8b5cf6'  // violet
+          : '#14b8a6'; // teal (present)
+      return {
+        scriptNumber: s.scriptNumber,
+        scriptLocation: s.scriptLocation,
+        duration: s.duration,
+        pct,
+        color,
+        shotCount: s.shots.length,
+      };
+    });
+  });
+
   /** True when the "Preview" tab (artifact / shot list) is selected. */
   readonly isPreviewTab = computed(() => this.activeFileId() === null);
 
-  /** True when there are parsed shots to show. */
-  readonly hasShots = computed(() => this.shots().length > 0);
+  /** True when there are parsed scenes/shots to show. */
+  readonly hasShots = computed(() => this.scenes().length > 0);
 
   /** Super Admin check (roleLevel === 0). */
   protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
@@ -256,13 +305,13 @@ export class ShotBuilderPanelComponent {
   /** Dialog visibility for the preview modal (JSON dump of current data). */
   protected readonly previewDialogVisible = signal(false);
 
-  /** Pretty-printed JSON of the current shots + sequence data for the preview modal. */
+  /** Pretty-printed JSON of the current episode + scenes data for the preview modal. */
   protected readonly previewDataPretty = computed(() => {
     const snapshot: Record<string, unknown> = {};
-    const shots = this.shots();
-    if (shots.length > 0) snapshot['shots'] = shots;
-    const seq = this.sequenceData();
-    if (seq) snapshot['sequence'] = seq;
+    const ep = this.episodeData();
+    if (ep) snapshot['episode'] = ep;
+    const sc = this.scenes();
+    if (sc.length > 0) snapshot['scenes'] = sc;
     const raw = this.rawResponse();
     if (raw) snapshot['rawLength'] = raw.length;
 
@@ -271,10 +320,10 @@ export class ShotBuilderPanelComponent {
     return JSON.stringify(snapshot, null, 2);
   });
 
-  // ── Scene Assets preview ───────────────────────────────────────────
+  // ── Episode Assets preview ─────────────────────────────────────────
 
-  /** Collapsed/expanded state for the scene assets section. */
-  protected readonly sceneAssetsExpanded = signal(true);
+  /** Collapsed/expanded state for the episode assets section. */
+  protected readonly episodeAssetsExpanded = signal(true);
 
   /** Navigate to the Providers section so the user can create the missing model. */
   protected onGoToProviders(): void {
@@ -302,6 +351,20 @@ export class ShotBuilderPanelComponent {
 
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
+
+  /** Confirmation dialog before saving multi-scene. */
+  readonly confirmDialogVisible = signal(false);
+  /** Summary data for the confirmation dialog. */
+  readonly confirmData = computed(() => {
+    const sc = this.scenes();
+    let totalShots = 0;
+    const sceneLines: string[] = [];
+    for (const s of sc) {
+      totalShots += s.shots.length;
+      sceneLines.push(`    - Scene ${s.scriptNumber}: ${s.scriptLocation} (${s.shots.length} shot${s.shots.length !== 1 ? 's' : ''})`);
+    }
+    return { sceneCount: sc.length, totalShots, sceneLines };
+  });
 
   /**
    * Emitted after all generated shots are saved to the backend.
@@ -377,6 +440,7 @@ export class ShotBuilderPanelComponent {
 
     files.forEach((file) => {
       const mimeType = file.type || 'application/octet-stream';
+      const isPdf = mimeType === 'application/pdf';
       const isOfficeDoc =
         mimeType.includes('openxmlformats-officedocument.wordprocessingml') ||
         mimeType.includes('openxmlformats-officedocument.spreadsheetml') ||
@@ -386,6 +450,20 @@ export class ShotBuilderPanelComponent {
 
       reader.onload = async () => {
         let content = typeof reader.result === 'string' ? reader.result : '';
+        let sendContent: string | undefined;
+
+        // Parse PDFs into readable text — Claude can't read a raw base64
+        // blob, so the extracted script text is what gets sent. `content`
+        // always keeps the data URI so the preview iframe keeps working.
+        if (isPdf && reader.result instanceof ArrayBuffer) {
+          content = this.bufferToDataUrl(reader.result, mimeType);
+          try {
+            sendContent = await this.extractPdfText(reader.result);
+          } catch (err) {
+            console.error('[pdf] failed to extract text from', file.name, err);
+            sendContent = `[Unable to parse ${file.name}. The PDF could not be read as text.]`;
+          }
+        }
 
         // Parse Office documents into readable text
         if (isOfficeDoc && reader.result instanceof ArrayBuffer) {
@@ -411,7 +489,7 @@ export class ShotBuilderPanelComponent {
 
         this.uploadedFiles.update((items) => [
           ...items,
-          { name: file.name, content, mimeType, sent: false },
+          { name: file.name, content, sendContent, mimeType, sent: false },
         ]);
 
         processed += 1;
@@ -430,7 +508,11 @@ export class ShotBuilderPanelComponent {
         this.error.set('Failed to read file');
       };
 
-      if (mimeType.startsWith('image/') || mimeType === 'application/pdf') {
+      if (isPdf) {
+        // Read as ArrayBuffer so the text can be extracted (data URI is
+        // rebuilt from the buffer for the preview).
+        reader.readAsArrayBuffer(file);
+      } else if (mimeType.startsWith('image/')) {
         reader.readAsDataURL(file);
       } else if (isOfficeDoc) {
         // Read as ArrayBuffer so mammoth/xlsx can parse
@@ -439,6 +521,41 @@ export class ShotBuilderPanelComponent {
         reader.readAsText(file);
       }
     });
+  }
+
+  /** Extract plain text from a PDF using pdfjs-dist. */
+  private async extractPdfText(arrayBuffer: ArrayBuffer): Promise<string> {
+    const task = getDocument({ data: new Uint8Array(arrayBuffer) });
+    const pdf = await task.promise;
+    try {
+      const parts: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item) => ('str' in item ? item.str : ''))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        parts.push(`[Page ${i}]\n${pageText}`);
+        page.cleanup();
+      }
+      return parts.join('\n\n');
+    } finally {
+      await task.destroy();
+    }
+  }
+
+  /** Convert an ArrayBuffer into a data URL (used to rebuild the PDF preview
+   *  after reading the file as an ArrayBuffer). */
+  private bufferToDataUrl(arrayBuffer: ArrayBuffer, mimeType: string): string {
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return `data:${mimeType};base64,${btoa(binary)}`;
   }
 
   onRemoveFile(index: number): void {
@@ -482,16 +599,17 @@ export class ShotBuilderPanelComponent {
     this.error.set(null);
     this.shots.set([]);
     this.rawResponse.set('');
+    this.sequenceData.set(null);
 
     const userName = this.sessionStore.user()?.handle || '';
     const selectedSkill = this.studio.selectedSkill();
 
     // Build scene context from the store for richer generation:
-    // characters + free assets loaded via setSceneAssignments()
-    // when the scene was selected (handleSceneSelected).
+    // characters + free assets loaded via setChapterAssignments()
+    // when the chapter was selected.
     const sceneContext: SceneContext = {
       description: this.studio.rawDescription() || undefined,
-      characters: this.studio.sceneCharacterData().map((c) => ({
+      characters: this.studio.chapterCharacterData().map((c) => ({
         ...(c.fileId ? { id: c.fileId } : {}),
         name: c.name,
         ...(c.slot ? { slot: c.slot } : {}),
@@ -507,7 +625,15 @@ export class ShotBuilderPanelComponent {
     this.shotBuilderService
       .generate({
         projectId: this.projectId() || this.studio.projectId() || '',
-        sceneId: this.sceneId() || this.studio.sceneId() || '',
+        // The shot builder generates at episode level — no scene is required.
+        // The backend still validates scene_id (binding:required) but never
+        // uses it, so fall back to the chapter id when no scene is selected.
+        sceneId:
+          this.sceneId() ||
+          this.studio.sceneId() ||
+          this.chapterId() ||
+          this.studio.chapterId() ||
+          '',
         prompt: content,
         systemPrompt: SHOT_BUILDER_SYSTEM_PROMPT,
         model: this.claudeModelName(),
@@ -518,20 +644,33 @@ export class ShotBuilderPanelComponent {
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
-          this.shots.set(result.shots);
+          this.episodeData.set(result.episode || null);
+          this.scenes.set(result.scenes);
           this.rawResponse.set(result.rawText);
 
-          // If the result includes rich Sequence data, show the native viewer
-          if (result.sequence) {
-            this.sequenceData.set(result.sequence);
+          // Render the SEEDANCE-style native viewer from the real response.
+          // Falls back to null (artifact / raw text path) when there are no shots.
+          const seq = shotBuilderResultToSequence(result, this.studio.output().aspectRatio);
+          this.sequenceData.set(seq ? computeCharacterCount(seq) : null);
+
+          // Flatten all shots from all scenes for legacy compat
+          const allShots: ShotBuilderShot[] = [];
+          for (const scene of result.scenes) {
+            for (const shot of scene.shots) {
+              allShots.push(shot);
+            }
           }
+          this.shots.set(allShots);
 
           // Add assistant message to chat
-          const shotCount = result.shots.length;
+          const sceneCount = result.scenes.length;
+          const totalShots = allShots.length;
+          const epTitle = result.episode?.title || '';
+          const epPrefix = epTitle ? ` ${epTitle} —` : '';
           const hasRaw = result.rawText.length > 0;
           const summary =
-            shotCount > 0
-              ? `Generated ${shotCount} shot${shotCount > 1 ? 's' : ''}. See the preview tab for details.`
+            totalShots > 0
+              ? `Generated${epPrefix} ${sceneCount} scene${sceneCount > 1 ? 's' : ''} with ${totalShots} shot${totalShots > 1 ? 's' : ''}. See the preview tab for details.`
               : hasRaw
                 ? 'Response received. Check the preview tab for the shot list.'
                 : 'Response received but no content could be parsed.';
@@ -564,6 +703,8 @@ export class ShotBuilderPanelComponent {
 
   clearChat(): void {
     this.chatMessages.set([]);
+    this.episodeData.set(null);
+    this.scenes.set([]);
     this.shots.set([]);
     this.rawResponse.set('');
     this.error.set(null);
@@ -583,7 +724,14 @@ export class ShotBuilderPanelComponent {
 
   /** Set a shot's description as the studio's pre-prompt. */
   useShotAsPrePrompt(shot: ShotBuilderShot): void {
-    this.studio.setRawDescription(shot.description);
+    this.studio.setRawDescription(shot.prompt_en || shot.description);
+  }
+
+  /** Check if a continuity carryover string is meaningful (not N/A, not empty). */
+  isSignificant(value: string | undefined | null): boolean {
+    if (!value) return false;
+    const lower = value.toLowerCase();
+    return !lower.startsWith('n/a') && lower !== 'none' && lower !== '' && lower !== 'no change';
   }
 
   /** Handle the "Crear listado de pre-prompts" button from the sequence viewer.
@@ -691,7 +839,7 @@ export class ShotBuilderPanelComponent {
             const refs = shotRef?.references || [];
             const charRefs = refs.filter((r: any) => r.type === 'character');
             if (charRefs.length > 0) {
-              const charData = this.studio.sceneCharacterData();
+              const charData = this.studio.chapterCharacterData();
               for (const ref of charRefs) {
                 const assetId = (ref.assetId || '').toLowerCase();
                 const match = charData.find(
@@ -719,6 +867,8 @@ export class ShotBuilderPanelComponent {
   loadMockResponse(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.episodeData.set(null);
+    this.scenes.set([]);
     this.shots.set([]);
     this.rawResponse.set('');
 
@@ -739,20 +889,57 @@ export class ShotBuilderPanelComponent {
     }, 800);
   }
 
-  /** Load mock Sequence data for testing the native Angular viewer. */
+  /** Load the real generate-shots response (response-ok.json) through the same
+   *  pipeline as a live response — parse → mapper → native SEEDANCE viewer —
+   *  so the mock behaves exactly like a real generation. */
   loadSequenceMock(): void {
     this.error.set(null);
+    this.episodeData.set(null);
+    this.scenes.set([]);
     this.rawResponse.set('');
     this.shots.set([]);
+    this.sequenceData.set(null);
 
     setTimeout(() => {
-      this.sequenceData.set(computeCharacterCount(SHOT_SEQUENCE));
+      // Normalize the seedance slots in the mock's prompts ([Image1] → @image1)
+      // the same way parseShotsResponse does for live responses, so the mock
+      // behaves exactly like a real generation. Non-mutating.
+      const raw = responseOkMock as unknown as ShotBuilderResult;
+      const result: ShotBuilderResult = {
+        ...raw,
+        scenes: raw.scenes.map((scene) => ({
+          ...scene,
+          shots: scene.shots.map((shot) => ({
+            ...shot,
+            prompt_en: shot.prompt_en ? normalizeSeedanceSlots(shot.prompt_en) : shot.prompt_en,
+            prompt_zh: shot.prompt_zh ? normalizeSeedanceSlots(shot.prompt_zh) : shot.prompt_zh,
+          })),
+        })),
+      };
+
+      this.episodeData.set(result.episode || null);
+      this.scenes.set(result.scenes);
+      this.rawResponse.set(JSON.stringify(responseOkMock, null, 2));
+
+      // Flatten all shots from all scenes for legacy compat.
+      const allShots: ShotBuilderShot[] = [];
+      for (const scene of result.scenes) {
+        for (const shot of scene.shots) {
+          allShots.push(shot);
+        }
+      }
+      this.shots.set(allShots);
+
+      // Render the SEEDANCE-style native viewer from the real response.
+      const seq = shotBuilderResultToSequence(result, this.studio.output().aspectRatio);
+      this.sequenceData.set(seq ? computeCharacterCount(seq) : null);
+
       this.chatMessages.update((items) => [
         ...items,
         {
           id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           role: 'assistant',
-          content: `Loaded mock sequence shots.`,
+          content: `Loaded mock response: ${allShots.length} shots across ${result.scenes.length} scenes.`,
           timestamp: Date.now(),
         },
       ]);
@@ -760,106 +947,277 @@ export class ShotBuilderPanelComponent {
     }, 400);
   }
 
-  /** Save generated shots to the backend as real shot records. */
+  /** Show confirmation dialog before saving multi-scene/shots. */
   saveShotsToBackend(): void {
+    if (this.scenes().length === 0) return;
+    this.confirmDialogVisible.set(true);
+  }
+
+  /** Execute the multi-scene save after user confirmation. */
+  onConfirmSave(): void {
     const projectId = this.projectId() || this.studio.projectId();
     const chapterId = this.chapterId() || this.studio.chapterId();
-    const sceneId = this.sceneId() || this.studio.sceneId();
-    const currentShots = this.shots();
-    if (!projectId || !chapterId || !sceneId || currentShots.length === 0) return;
+    const scenes = this.scenes();
+    if (!projectId || !chapterId || scenes.length === 0) return;
 
+    this.confirmDialogVisible.set(false);
     this.savingShots.set(true);
     this.error.set(null);
 
-    // Create each shot sequentially
-    let index = 0;
-    const total = currentShots.length;
-    const createdIds: string[] = [];
+    // Step 1: resolve scene IDs (find existing or create new)
+    // Step 2: create shots under each scene
+    // Step 3: assign character references
 
-    const createNext = (): void => {
-      if (index >= total) {
-        this.savingShots.set(false);
-        this.chatMessages.update((items) => [
-          ...items,
-          {
-            id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            role: 'assistant',
-            content: `All ${total} shots saved to the scene successfully.`,
-            timestamp: Date.now(),
-          },
-        ]);
+    interface SceneResolved {
+      scriptNumber: number;
+      sceneId: string;    // resolved from backend
+      shots: ShotBuilderShot[];
+    }
 
-        // Emit the first shot ID so the parent can navigate to it
-        if (createdIds.length > 0) {
-          this.shotsSaved.emit({
-            projectId,
-            chapterId,
-            sceneId,
-            firstShotId: createdIds[0],
-            firstShotDescription: currentShots[0].description,
-          });
+    const resolvedScenes: SceneResolved[] = [];
+    const errors: string[] = [];
 
-          // Persist output format to each created shot
-          const seq = this.sequenceData();
-          if (seq) {
-            const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
-            if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
-            if (seq.duration && seq.duration > 0) {
-              formatPayload['duration_seconds'] = Math.min(Math.round(seq.duration), 15);
-            }
-            if (Object.keys(formatPayload).length > 0) {
-              for (const shotId of createdIds) {
-                this.studioApiService
-                  .updateShotFormat(projectId, chapterId, sceneId, shotId, formatPayload)
-                  .subscribe();
-              }
-            }
-          }
-        }
+    // Resolve scenes sequentially: for each scene, list existing scenes
+    // to find if one with this scriptNumber exists, or create a new one.
+    const resolveScene = (index: number): void => {
+      if (index >= scenes.length) {
+        // All scenes resolved — now create shots
+        createAllShots();
         return;
       }
 
-      const shot = currentShots[index];
-      const charData = this.studio.sceneCharacterData();
-      index++;
+      const scene = scenes[index];
 
-      this.shotBuilderService
-        .createShot(projectId, chapterId, sceneId, {
-          number: shot.number,
-          name: shot.name,
-          description: shot.description,
-        })
-        .subscribe((res) => {
-          if (res?.data?.id) {
-            const newShotId = res.data.id;
-            createdIds.push(newShotId);
-            // Save character references (slots) — match by fileId first
-            // (Claude receives the file UUID as assetId now), then fall back
-            // to character id, then name.
-            const refs = shot.references || [];
-            const charRefs = refs.filter((r: any) => r.type === 'character');
-            if (charRefs.length > 0) {
-              for (const ref of charRefs) {
-                const assetId = (ref.assetId || '').toLowerCase();
-                const match = charData.find(
-                  (c) =>
-                    c.fileId.toLowerCase() === assetId ||
-                    c.id.toLowerCase() === assetId ||
-                    c.name.toLowerCase() === assetId,
-                );
-                if (match) {
-                  this.shotBuilderService
-                    .assignCharacterToShot(projectId, chapterId, sceneId, newShotId, match.id, ref.slot)
+      // List existing scenes for this chapter
+      this.projectsApi.listScenes(projectId, chapterId).subscribe({
+        next: (listRes) => {
+          const existing = listRes.data?.find(
+            (s: any) => s.number === scene.scriptNumber,
+          );
+
+          if (existing?.id) {
+            // Scene already exists — use its ID
+            resolvedScenes.push({
+              scriptNumber: scene.scriptNumber,
+              sceneId: existing.id,
+              shots: scene.shots,
+            });
+            resolveScene(index + 1);
+          } else {
+            // Create new scene
+            this.projectsApi
+              .createScene(projectId, chapterId, {
+                number: scene.scriptNumber,
+                name: scene.scriptLocation,
+                description: scene.description,
+              })
+              .subscribe({
+                next: (createRes) => {
+                  if (createRes?.data?.id) {
+                    resolvedScenes.push({
+                      scriptNumber: scene.scriptNumber,
+                      sceneId: createRes.data.id,
+                      shots: scene.shots,
+                    });
+                  } else {
+                    errors.push(
+                      `Failed to create Scene ${scene.scriptNumber}: ${createRes?.msg || 'unknown error'}`,
+                    );
+                  }
+                  resolveScene(index + 1);
+                },
+                error: (err: unknown) => {
+                  errors.push(
+                    `Failed to create Scene ${scene.scriptNumber}: ${err instanceof Error ? err.message : 'unknown error'}`,
+                  );
+                  resolveScene(index + 1);
+                },
+              });
+          }
+        },
+        error: (err: unknown) => {
+          errors.push(
+            `Failed to list scenes for Scene ${scene.scriptNumber}: ${err instanceof Error ? err.message : 'unknown error'}`,
+          );
+          resolveScene(index + 1);
+        },
+      });
+    };
+
+    let createdShotIds: string[] = [];
+    let firstShotDescription = '';
+
+    const createAllShots = (): void => {
+      if (errors.length > 0 && resolvedScenes.length === 0) {
+        this.savingShots.set(false);
+        const errMsg = errors.join('; ');
+        this.error.set(errMsg);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Save failed',
+          detail: errMsg,
+          life: 8000,
+        });
+        return;
+      }
+
+      // Flatten: for each resolved scene, create all its shots
+      let sceneIdx = 0;
+      let shotIdx = 0;
+
+      const createNextShot = (): void => {
+        // Find next scene with shots remaining
+        while (sceneIdx < resolvedScenes.length && shotIdx >= resolvedScenes[sceneIdx].shots.length) {
+          sceneIdx++;
+          shotIdx = 0;
+        }
+
+        if (sceneIdx >= resolvedScenes.length) {
+          // All shots created — persist chapter-level resources
+          // (characters + episode.assetAssignments from Claude)
+          this.persistChapterAssignments(projectId, chapterId);
+
+          this.savingShots.set(false);
+          const totalCreated = createdShotIds.length;
+          this.chatMessages.update((items) => [
+            ...items,
+            {
+              id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              role: 'assistant',
+              content: errors.length > 0
+                ? `Saved ${totalCreated} shots across ${resolvedScenes.length} scenes with ${errors.length} warning(s).`
+                : `All ${totalCreated} shots saved across ${resolvedScenes.length} scenes successfully.`,
+              timestamp: Date.now(),
+            },
+          ]);
+
+          if (createdShotIds.length > 0) {
+            this.shotsSaved.emit({
+              projectId,
+              chapterId,
+              sceneId: resolvedScenes[0].sceneId,
+              firstShotId: createdShotIds[0],
+              firstShotDescription,
+            });
+          }
+          return;
+        }
+
+        const s = resolvedScenes[sceneIdx];
+        const shot = s.shots[shotIdx];
+        const currentShotIdx = shotIdx;
+        shotIdx++;
+
+        const charData = this.studio.chapterCharacterData();
+        const shotNumber = shot.number;
+
+        // The pre-prompt (prompt.en) is the shot's most important content —
+        // save it as the shot description so the PromptBuilder loads it.
+        const shotDescription = shot.prompt_en || shot.description;
+        this.shotBuilderService
+          .createShot(projectId, chapterId, s.sceneId, {
+            number: shotNumber,
+            name: shot.name,
+            description: shotDescription,
+          })
+          .subscribe((res) => {
+            if (res?.data?.id) {
+              const newShotId = res.data.id;
+              createdShotIds.push(newShotId);
+              if (createdShotIds.length === 1) {
+                firstShotDescription = shotDescription;
+              }
+
+              // Save character references
+              const refs = shot.references || [];
+              const charRefs = refs.filter((r: any) => r.type === 'character');
+              if (charRefs.length > 0) {
+                for (const ref of charRefs) {
+                  const assetId = (ref.assetId || '').toLowerCase();
+                  const match = charData.find(
+                    (c) =>
+                      c.fileId.toLowerCase() === assetId ||
+                      c.id.toLowerCase() === assetId ||
+                      c.name.toLowerCase() === assetId,
+                  );
+                  if (match) {
+                    this.shotBuilderService
+                      .assignCharacterToShot(
+                        projectId, chapterId, s.sceneId,
+                        newShotId, match.id, ref.slot,
+                      )
+                      .subscribe();
+                  }
+                }
+              }
+
+              // Persist format from episode data
+              const ep = this.episodeData();
+              if (ep) {
+                const fmt: { aspect_ratio?: string; duration_seconds?: number } = {};
+                if (this.studio.output().aspectRatio) {
+                  fmt['aspect_ratio'] = this.studio.output().aspectRatio;
+                }
+                if (shot.duration && shot.duration > 0) {
+                  fmt['duration_seconds'] = Math.min(shot.duration, 15);
+                }
+                if (Object.keys(fmt).length > 0) {
+                  this.studioApiService
+                    .updateShotFormat(projectId, chapterId, s.sceneId, newShotId, fmt)
                     .subscribe();
                 }
               }
             }
-          }
-          createNext();
-        });
+            createNextShot();
+          });
+      };
+
+      createNextShot();
     };
 
-    createNext();
+    resolveScene(0);
+  }
+
+  /**
+   * Persist chapter-level resources after shots are saved:
+   * 1. Assign all chapter characters (from the store / "My Library").
+   * 2. Assign episode.assetAssignments returned by Claude — characters are
+   *    resolved and deduped against step 1; non-character assets go through
+   *    the chapter assets endpoint.
+   */
+  private persistChapterAssignments(projectId: string, chapterId: string): void {
+    const charData = this.studio.chapterCharacterData();
+    const assigned = new Set<string>();
+    for (const char of charData) {
+      if (char.id) {
+        assigned.add(char.id);
+        this.projectsApi
+          .assignCharacterToChapter(projectId, chapterId, char.id, char.slot)
+          .subscribe();
+      }
+    }
+
+    const ep = this.episodeData();
+    for (const a of ep?.assetAssignments ?? []) {
+      if (a.type === 'character') {
+        const assetId = (a.assetId || '').toLowerCase();
+        const match = charData.find(
+          (c) =>
+            c.fileId.toLowerCase() === assetId ||
+            c.id.toLowerCase() === assetId ||
+            c.name.toLowerCase() === assetId,
+        );
+        if (match?.id && !assigned.has(match.id)) {
+          this.projectsApi
+            .assignCharacterToChapter(projectId, chapterId, match.id, a.slot || match.slot)
+            .subscribe();
+        }
+      } else if (a.assetId) {
+        this.projectsApi
+          .assignAssetToChapter(projectId, chapterId, a.assetId, a.slot)
+          .subscribe();
+      }
+    }
   }
 
   /** Switch to the Preview tab (shot list / artifact). */
@@ -882,7 +1240,7 @@ export class ShotBuilderPanelComponent {
       const names = files.map((f) => f.name).join(', ');
       parts.push(`[Reference files: ${names}]`);
       files.forEach((f) => {
-        parts.push(`--- ${f.name} ---\n${f.content}`);
+        parts.push(`--- ${f.name} ---\n${f.sendContent ?? f.content}`);
       });
     }
 

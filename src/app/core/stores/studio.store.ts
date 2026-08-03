@@ -76,20 +76,20 @@ export class StudioStore {
 
   // ── Takes ────────────────────────────────────────────────────────
 
-  // Scene assignment filters
-  private readonly _scenePresetIds = signal<Set<string>>(new Set());
-  private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
-  private readonly _sceneAssetIds = signal<Set<string>>(new Set());
-  private readonly _sceneCharacterData = signal<
+  // Chapter (episode) assignment filters
+  private readonly _chapterPresetIds = signal<Set<string>>(new Set());
+  private readonly _chapterCharacterIds = signal<Set<string>>(new Set());
+  private readonly _chapterAssetIds = signal<Set<string>>(new Set());
+  private readonly _chapterCharacterData = signal<
     Array<{ id: string; name: string; slot: string; fileId: string; kind: string }>
   >([]);
 
-  readonly scenePresetIds = this._scenePresetIds.asReadonly();
-  readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
-  readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
-  readonly sceneCharacterData = this._sceneCharacterData.asReadonly();
+  readonly chapterPresetIds = this._chapterPresetIds.asReadonly();
+  readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
+  readonly chapterAssetIds = this._chapterAssetIds.asReadonly();
+  readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
 
-  /** True after setSceneAssignments has been called at least once (even if
+  /** True after setChapterAssignments has been called at least once (even if
    *  the response contained null/empty arrays). Used by child components
    *  to distinguish "no assignments loaded yet" from "loaded but empty". */
   private readonly _assignmentsLoaded = signal(false);
@@ -97,10 +97,10 @@ export class StudioStore {
 
   /**
    * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
-   * tokens and auto-register matching scene characters as used assets.
+   * tokens and auto-register matching chapter characters as used assets.
    *
    * This replaces the unreliable shot-resources endpoint for character
-   * resolution — scene assignments already carry the correct slot + fileId.
+   * resolution — chapter assignments already carry the correct slot + fileId.
    */
   registerUsedAssetsFromDescription(description: string): void {
     if (!description) return;
@@ -121,7 +121,7 @@ export class StudioStore {
       string,
       { id: string; name: string; slot: string; fileId: string }
     >();
-    for (const c of this._sceneCharacterData()) {
+    for (const c of this._chapterCharacterData()) {
       if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
     }
 
@@ -427,12 +427,12 @@ export class StudioStore {
     // Intentionally NOT clearing the selected model: it's a user-level
     // preference (defaults to Dreamina-Seedance-2-0-Gallery) that should
     // persist across scene/shot navigation until the user changes it.
-    this._scenePresetIds.set(new Set());
-    this._sceneCharacterIds.set(new Set());
-    this._sceneCharacterData.set([]);
-    this._sceneAssetIds.set(new Set());
+    this._chapterPresetIds.set(new Set());
+    this._chapterCharacterIds.set(new Set());
+    this._chapterCharacterData.set([]);
+    this._chapterAssetIds.set(new Set());
     this._assignmentsLoaded.set(false);
-    // shot resources removed — using scene assignments only
+    // shot resources removed — using chapter assignments only
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
@@ -577,15 +577,15 @@ export class StudioStore {
 
     // Also register the character as assigned so it appears in "My Library".
     // This lets the "Use" button in IndexCharacters populate the library
-    // panel without requiring a backend scene-assignment call.
+    // panel without requiring a backend chapter-assignment call.
     if (asset.characterId) {
-      this._sceneCharacterIds.update((set) => {
+      this._chapterCharacterIds.update((set) => {
         if (set.has(asset.characterId)) return set;
         const next = new Set(set);
         next.add(asset.characterId);
         return next;
       });
-      this._sceneCharacterData.update((list) => {
+      this._chapterCharacterData.update((list) => {
         if (list.some((c) => c.id === asset.characterId)) return list;
         return [
           ...list,
@@ -650,13 +650,13 @@ export class StudioStore {
     }
   }
 
-  setSceneAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
-    this._scenePresetIds.set(
+  setChapterAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
+    this._chapterPresetIds.set(
       new Set([...(assignments.presets ?? [])].map((a: any) => a.preset_id).filter(Boolean)),
     );
     const chars = assignments.characters ?? [];
-    this._sceneCharacterIds.set(new Set(chars.map((a: any) => a.character_id).filter(Boolean)));
-    this._sceneCharacterData.set(
+    this._chapterCharacterIds.set(new Set(chars.map((a: any) => a.character_id).filter(Boolean)));
+    this._chapterCharacterData.set(
       chars
         .filter((a: any) => a.character_id && a.name)
         .map((a: any) => {
@@ -675,7 +675,7 @@ export class StudioStore {
           };
         }),
     );
-    this._sceneAssetIds.set(
+    this._chapterAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
     );
 

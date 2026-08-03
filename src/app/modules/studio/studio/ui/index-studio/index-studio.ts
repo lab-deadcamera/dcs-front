@@ -10,7 +10,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { StudioApiService } from '@app/services/studio-api.service';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
@@ -115,7 +114,6 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
-  private readonly studioApi = inject(StudioApiService);
 
   // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
 
@@ -426,11 +424,11 @@ export class IndexStudio implements OnInit {
     if (projectId && chapterId) {
       this.loadShots(projectId, chapterId, sceneId);
 
-      // Load scene assignments so the shot builder has access to characters,
-      // presets and free assets before generating
-      this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+      // Load chapter assignments so the shot builder has access to the
+      // episode's characters, presets and free assets before generating
+      this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
         next: (res) => {
-          if (res.data) this.studio.setSceneAssignments(res.data);
+          if (res.data) this.studio.setChapterAssignments(res.data);
         },
         error: () => {
           /* assignments not critical */
@@ -663,10 +661,10 @@ export class IndexStudio implements OnInit {
         },
       });
 
-      this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+      this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
         next: (res) => {
           if (res.data) {
-            this.studio.setSceneAssignments(res.data);
+            this.studio.setChapterAssignments(res.data);
             // If description arrived first, register now
             const desc = this.studio.rawDescription();
             if (desc) {
@@ -736,16 +734,15 @@ export class IndexStudio implements OnInit {
     });
   }
 
-  /** Reload scene assignments after the assignment dialog changes them. */
-  protected onSceneAssignmentsChanged(): void {
+  /** Reload chapter assignments after the assignment dialog changes them. */
+  protected onChapterAssignmentsChanged(): void {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
-    const sceneId = this.navSelectedSceneId();
-    if (!projectId || !chapterId || !sceneId) return;
+    if (!projectId || !chapterId) return;
 
-    this.studioApi.getSceneAssignments(projectId, chapterId, sceneId).subscribe({
+    this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
       next: (res) => {
-        if (res.data) this.studio.setSceneAssignments(res.data);
+        if (res.data) this.studio.setChapterAssignments(res.data);
       },
       error: () => {
         /* not critical */
