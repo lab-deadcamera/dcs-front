@@ -68,6 +68,15 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
  *   - ClaudeOptimizePrompt → proncer system prompt (refine prompts only)
  */
 const SHOT_BUILDER_SYSTEM_PROMPT = '';
+
+/** Aspect ratios the video backend accepts (mirrors backend ValidRatios). */
+const SUPPORTED_ASPECT_RATIOS = new Set([
+  '16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '9:21', '2.35:1',
+]);
+
+/** Safety cap for a single generated shot's duration, in seconds. */
+const MAX_SHOT_DURATION_SECONDS = 15;
+
 type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
@@ -754,6 +763,16 @@ export class ShotBuilderPanelComponent {
     return !lower.startsWith('n/a') && lower !== 'none' && lower !== '' && lower !== 'no change';
   }
 
+  /**
+   * The sequence's aspect ratio when it is a value the video backend supports,
+   * otherwise null — callers fall back to the studio's user-selected ratio.
+   * Prevents an unsupported ratio from the response from breaking generation.
+   */
+  private validSequenceRatio(): string | null {
+    const ratio = this.sequenceData()?.aspectRatio;
+    return ratio && SUPPORTED_ASPECT_RATIOS.has(ratio) ? ratio : null;
+  }
+
   /** Handle the "Crear listado de pre-prompts" button from the sequence viewer.
    *  Saves each shot with the prompt in the selected language as its description,
    *  then navigates to the first shot so the pre-prompt loads in the PromptBuilder. */
@@ -776,6 +795,9 @@ export class ShotBuilderPanelComponent {
     this.error.set(null);
 
     const createdIds: string[] = [];
+    /** Per-shot format metadata (id + duration from the response), so the
+     *  format persisted for each shot reflects ITS OWN values, not the episode's. */
+    const createdShotMeta: { id: string; durationSeconds?: number }[] = [];
     const errors: string[] = [];
     let firstDescription = list[0]?.prompt || '';
     let firstSceneId = '';
@@ -794,24 +816,32 @@ export class ShotBuilderPanelComponent {
     for (const s of this.scenes()) sceneByNumber.set(s.scriptNumber, s);
 
     const applyShotFormat = (): void => {
-      const seq = this.sequenceData();
-      if (!seq) return;
+      // Only apply the response's ratio when the backend supports it.
+      const ratio = this.validSequenceRatio();
+
+      // The output format follows the first shot (the one the flow navigates to),
+      // NOT the episode total — the total is irrelevant to a single generation.
+      const first = createdShotMeta[0];
       const patch: Record<string, unknown> = {};
-      if (seq.aspectRatio) patch['aspectRatio'] = seq.aspectRatio as AspectRatio;
-      if (seq.duration && seq.duration > 0) {
-        patch['durationSeconds'] = Math.min(Math.round(seq.duration), 15);
+      if (ratio) patch['aspectRatio'] = ratio as AspectRatio;
+      if (first?.durationSeconds && first.durationSeconds > 0) {
+        patch['durationSeconds'] = Math.min(first.durationSeconds, MAX_SHOT_DURATION_SECONDS);
       }
-      this.studio.patchOutput(patch as any);
+      if (Object.keys(patch).length > 0) this.studio.patchOutput(patch as any);
 
-      const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
-      if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
-      if (patch['durationSeconds'])
-        formatPayload['duration_seconds'] = patch['durationSeconds'] as number;
-
-      if (Object.keys(formatPayload).length > 0) {
-        for (const shotId of createdIds) {
+      // Persist each shot's own duration (capped at the safety limit) + ratio.
+      for (const meta of createdShotMeta) {
+        const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
+        if (ratio) formatPayload['aspect_ratio'] = ratio;
+        if (meta.durationSeconds && meta.durationSeconds > 0) {
+          formatPayload['duration_seconds'] = Math.min(
+            meta.durationSeconds,
+            MAX_SHOT_DURATION_SECONDS,
+          );
+        }
+        if (Object.keys(formatPayload).length > 0) {
           this.studioApiService
-            .updateShotFormat(projectId, chapterId, firstSceneId || '', shotId, formatPayload)
+            .updateShotFormat(projectId, chapterId, firstSceneId || '', meta.id, formatPayload)
             .subscribe();
         }
       }
@@ -940,6 +970,7 @@ export class ShotBuilderPanelComponent {
             .subscribe((res) => {
               if (res?.data?.id) {
                 createdIds.push(res.data.id);
+                createdShotMeta.push({ id: res.data.id, durationSeconds: shotRef?.duration });
                 // Save character references (slots) — match by fileId first
                 // (Claude receives the file UUID as assetId now), then id, then name.
                 const refs = shotRef?.references || [];
@@ -1248,15 +1279,16 @@ export class ShotBuilderPanelComponent {
                 }
               }
 
-              // Persist format from episode data
+              // Persist format from the response (validated ratio + per-shot
+              // duration). Falls back to the studio's ratio when the response
+              // ratio is missing or unsupported by the video backend.
               const ep = this.episodeData();
               if (ep) {
                 const fmt: { aspect_ratio?: string; duration_seconds?: number } = {};
-                if (this.studio.output().aspectRatio) {
-                  fmt['aspect_ratio'] = this.studio.output().aspectRatio;
-                }
+                const ratio = this.validSequenceRatio() ?? this.studio.output().aspectRatio;
+                if (ratio) fmt['aspect_ratio'] = ratio;
                 if (shot.duration && shot.duration > 0) {
-                  fmt['duration_seconds'] = Math.min(shot.duration, 15);
+                  fmt['duration_seconds'] = Math.min(shot.duration, MAX_SHOT_DURATION_SECONDS);
                 }
                 if (Object.keys(fmt).length > 0) {
                   this.studioApiService
