@@ -49,7 +49,7 @@ import {
   computeCharacterCount,
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
-import responseOkMock from '@app/core/mocks/response-ok.json';
+import responseOkMock from '@app/core/mocks/new-response-2.json';
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
@@ -333,8 +333,7 @@ export class ShotBuilderPanelComponent {
 
   /** Episode assets sorted by their @imageN slot number (slot-less last). */
   protected readonly sortedFreeAssets = computed(() => {
-    const slotOf = (id: string) =>
-      slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
+    const slotOf = (id: string) => slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
     return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
   });
 

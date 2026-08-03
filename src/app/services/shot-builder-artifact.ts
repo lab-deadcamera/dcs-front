@@ -235,7 +235,7 @@ function renderShot(shot: ArtifactShot): string {
 </div>
 </div>
 <div class="guide">
-<div class="gl">Guía de dirección</div>
+<div class="gl">Guía de dirección xxx</div>
 <div class="grow"><span class="k">Escena</span><span class="v">${esc(shot.guide.scene)}</span></div>
 <div class="grow"><span class="k">Duración</span><span class="v"><b>${shot.duration}s</b> · ${shot.cuts} corte${shot.cuts > 1 ? 's' : ''}</span></div>
 <div class="grow"><span class="k">Tipo</span><span class="v">${esc(shot.guide.type)}</span></div>

@@ -91,10 +91,12 @@ export function beatInfoFromSegments(
         </div>
 
         @if (shot().camera) {
-          <div class="grow">
-            <span class="k">Tipo</span>
-            <span class="v">{{ shot().camera.framing }}</span>
-          </div>
+          @if (shot().camera.framing) {
+            <div class="grow">
+              <span class="k">Tipo</span>
+              <span class="v">{{ shot().camera.framing }}</span>
+            </div>
+          }
 
           @if (shot().camera.movement) {
             <div class="grow">
@@ -103,10 +105,12 @@ export function beatInfoFromSegments(
             </div>
           }
 
-          <div class="grow">
-            <span class="k">Lente</span>
-            <span class="v">{{ shot().camera.lens }}</span>
-          </div>
+          @if (shot().camera.lens) {
+            <div class="grow">
+              <span class="k">Lente</span>
+              <span class="v">{{ shot().camera.lens }}</span>
+            </div>
+          }
         }
 
         @if (shot().composition?.frameMap) {
@@ -188,26 +192,30 @@ export function beatInfoFromSegments(
       <div class="prompt">
         <div class="prompt-bar">
           <span class="pl">Pre Prompt</span>
-          <div class="toggle" role="group" [attr.aria-label]="'Idioma del prompt'">
-            <button
-              class="toggle-btn"
-              [class.on]="lang() === 'en'"
-              [attr.aria-pressed]="lang() === 'en'"
-              (click)="onToggleLang('en')"
-            >
-              EN
-            </button>
-            @if (showChinese()) {
+
+          @if (shot().prompt.zh) {
+            <div class="toggle" role="group" [attr.aria-label]="'Idioma del prompt'">
               <button
                 class="toggle-btn"
-                [class.on]="lang() === 'zh'"
-                [attr.aria-pressed]="lang() === 'zh'"
-                (click)="onToggleLang('zh')"
+                [class.on]="lang() === 'en'"
+                [attr.aria-pressed]="lang() === 'en'"
+                (click)="onToggleLang('en')"
               >
-                中文
+                EN
               </button>
-            }
-          </div>
+              @if (showChinese()) {
+                <button
+                  class="toggle-btn"
+                  [class.on]="lang() === 'zh'"
+                  [attr.aria-pressed]="lang() === 'zh'"
+                  (click)="onToggleLang('zh')"
+                >
+                  中文
+                </button>
+              }
+            </div>
+          }
+
           <span
             class="counter"
             [class.warn]="charCount() > LIMIT * 0.92"
