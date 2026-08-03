@@ -74,13 +74,14 @@ export class IndexProjects implements OnInit {
   protected readonly shotPreSelectedChapterId = signal<string | null>(null);
   protected readonly shotPreSelectedSceneId = signal<string | null>(null);
 
-  // Scene Assignment dialog
+  // Episode Resource assignment dialog — resources are assigned to the
+  // chapter (episode), not to individual scenes.
   protected readonly assignResourcesDialogVisible = signal(false);
   protected readonly assignResourcesProjectId = signal('');
   protected readonly assignResourcesProjectName = signal('');
-  protected readonly assignResourcesSceneId = signal('');
-  protected readonly assignResourcesSceneNumber = signal(0);
-  protected readonly assignResourcesSceneName = signal('');
+  protected readonly assignResourcesChapterId = signal('');
+  protected readonly assignResourcesChapterNumber = signal(0);
+  protected readonly assignResourcesChapterName = signal('');
 
   protected readonly submitting = signal(false);
   isDirectorOrAdmin = signal(false);
@@ -366,12 +367,12 @@ export class IndexProjects implements OnInit {
     });
   }
 
-  protected openAssignResources(scene: Scene, projectName: string): void {
-    this.assignResourcesProjectId.set(scene.project_id);
+  protected openAssignResources(chapter: Chapter, projectName: string): void {
+    this.assignResourcesProjectId.set(chapter.project_id);
     this.assignResourcesProjectName.set(projectName);
-    this.assignResourcesSceneId.set(scene.id);
-    this.assignResourcesSceneNumber.set(scene.number);
-    this.assignResourcesSceneName.set(scene.name);
+    this.assignResourcesChapterId.set(chapter.id);
+    this.assignResourcesChapterNumber.set(chapter.number);
+    this.assignResourcesChapterName.set(chapter.name);
     this.assignResourcesDialogVisible.set(true);
   }
 

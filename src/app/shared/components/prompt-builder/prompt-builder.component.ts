@@ -138,6 +138,42 @@ export class PromptBuilderComponent implements OnInit {
     this.studio.usedAssets().filter((a) => a.kind === 'audio'),
   );
 
+  /**
+   * Deterministic display number per used asset fileId, per kind:
+   * assets that carry an inherited @imageN slot keep that number; assets
+   * without a slot receive the next free number (never colliding with the
+   * assigned slots). This is the single source of truth for the chip label,
+   * the inserted token and the stale-token prune.
+   */
+  protected readonly assetNumbers = computed(() => {
+    const map = new Map<string, number>();
+    const kinds: UsedAssetKind[] = ['image', 'video', 'audio'];
+    for (const kind of kinds) {
+      const assets = this.studio
+        .usedAssets()
+        .filter((a) => a.kind === kind || (kind === 'image' && a.kind === 'mixed'));
+      const occupied = new Set<number>();
+      for (const a of assets) {
+        if (a.slot) {
+          const n = this.slotNum(a.slot);
+          if (Number.isFinite(n)) occupied.add(n);
+        }
+      }
+      let next = 1;
+      for (const a of assets) {
+        if (a.slot) {
+          const n = this.slotNum(a.slot);
+          map.set(a.fileId, Number.isFinite(n) ? n : this.nextFreeFrom(occupied));
+        } else {
+          const n = this.nextFreeFrom(occupied);
+          occupied.add(n);
+          map.set(a.fileId, n);
+        }
+      }
+    }
+    return map;
+  });
+
   protected readonly sectionLabels: {
     image: string;
     video: string;
@@ -157,9 +193,9 @@ export class PromptBuilderComponent implements OnInit {
   private skipStoreSync = false;
 
   /**
-   * Last observed count per token-prefix. Tokens are pruned only when a
-   * count *decreases*, so legitimate text written manually (or hydrated
-   * from storage on first paint) is never wiped out by the initial run.
+   * Last observed number of chips per kind. Tokens are pruned only when the
+   * count *decreases*, so legitimate text written manually (or hydrated from
+   * storage on first paint) is never wiped out by the initial run.
    */
   private prevCounts = { image: 0, video: 0, audio: 0 };
 
@@ -177,24 +213,38 @@ export class PromptBuilderComponent implements OnInit {
       this.skipStoreSync = false;
     });
 
-    // When the user removes a chip, drop the highest-numbered matching
-    // tokens from the editor so the prompt text mirrors the chip strip.
-    // Chips always renumber to 1..N per kind in display order, so pruning
-    // anything with N > current-count is correct regardless of which
-    // asset was removed. Deferred via microtask so Quill is settled
-    // before we mutate it from inside a reactive effect.
+    // When the user removes a chip, drop the matching tokens from the editor
+    // so the prompt text mirrors the chip strip. A token is stale when its
+    // number is not one of the numbers currently assigned to chips of that
+    // kind (assetNumbers honors inherited slots and next-free fill). Deferred
+    // via microtask so Quill is settled before we mutate it.
     effect(() => {
+      const nums = this.assetNumbers();
+      const used = this.studio.usedAssets();
+      const allowed = (kind: UsedAssetKind): Set<number> => {
+        const s = new Set<number>();
+        for (const a of used) {
+          if (a.kind !== kind && !(kind === 'image' && a.kind === 'mixed')) continue;
+          const n = nums.get(a.fileId);
+          if (n !== undefined) s.add(n);
+        }
+        return s;
+      };
       const next = {
-        image: this.imageAssets().length,
-        video: this.videoAssets().length,
-        audio: this.audioAssets().length,
+        image: allowed('image'),
+        video: allowed('video'),
+        audio: allowed('audio'),
       };
       const shrunk = {
-        image: next.image < this.prevCounts.image,
-        video: next.video < this.prevCounts.video,
-        audio: next.audio < this.prevCounts.audio,
+        image: next.image.size < this.prevCounts.image,
+        video: next.video.size < this.prevCounts.video,
+        audio: next.audio.size < this.prevCounts.audio,
       };
-      this.prevCounts = next;
+      this.prevCounts = {
+        image: next.image.size,
+        video: next.video.size,
+        audio: next.audio.size,
+      };
       if (!shrunk.image && !shrunk.video && !shrunk.audio) return;
       queueMicrotask(() => {
         if (shrunk.image) this.pruneStaleTokens('image', next.image);
@@ -448,28 +498,56 @@ export class PromptBuilderComponent implements OnInit {
 
   /**
    * Inserts a reference label whose number matches the chip the user just
-   * picked from the library (e.g. picking a third image emits `@image3`).
-   * Reads the count from the same filtered signals that render the chip
-   * strip so labels stay in sync with what the user sees.
+   * picked from the library. The number comes from the shared assetNumbers
+   * assignment (inherited slot if present, else the next free number).
    */
   addReferenceForKind(kind: UsedAssetKind): void {
     const label = this.labelFor(kind);
-    const count =
+    const list =
       kind === 'video'
-        ? this.videoAssets().length
+        ? this.videoAssets()
         : kind === 'audio'
-          ? this.audioAssets().length
-          : this.imageAssets().length;
-    this.addReference(`${label}${count}`);
+          ? this.audioAssets()
+          : this.imageAssets();
+    const last = list[list.length - 1];
+    const number = last ? (this.assetNumbers().get(last.fileId) ?? this.nextFreeSlot(kind)) : this.nextFreeSlot(kind);
+    this.addReference(`${label}${number}`);
+  }
+
+  /** Smallest positive number not present in the given occupied set. */
+  private nextFreeFrom(occupied: Set<number>): number {
+    let n = 1;
+    while (occupied.has(n)) n++;
+    return n;
+  }
+
+  /** Smallest positive number not occupied by slot-bearing assets of a kind. */
+  private nextFreeSlot(kind: UsedAssetKind): number {
+    const occ = new Set<number>();
+    for (const a of this.studio.usedAssets()) {
+      if (a.kind !== kind && !(kind === 'image' && a.kind === 'mixed')) continue;
+      if (a.slot) {
+        const n = this.slotNum(a.slot);
+        if (Number.isFinite(n)) occ.add(n);
+      }
+    }
+    return this.nextFreeFrom(occ);
+  }
+
+  /** Extract the numeric part of an @imageN/@videoN/@audioN slot. */
+  private slotNum(slot: string): number {
+    const m = slot.match(/(\d+)$/);
+    return m ? parseInt(m[1], 10) : NaN;
   }
 
   /**
-   * Remove every `@<label>N` token whose N exceeds `maxAllowed`. Iterates
-   * in reverse so deletions don't shift the indices of earlier matches.
-   * Absorbs a single leading space so we don't leave double spaces behind
-   * the way `addReference` inserts them.
+   * Remove every `@<label>N` token whose N is not one of the currently
+   * assigned numbers (inherited slots + next-free fill). Iterates in reverse
+   * so deletions don't shift the indices of earlier matches. Absorbs a single
+   * leading space so we don't leave double spaces behind the way
+   * `addReference` inserts them.
    */
-  private pruneStaleTokens(label: 'image' | 'video' | 'audio', maxAllowed: number): void {
+  private pruneStaleTokens(label: 'image' | 'video' | 'audio', allowed: Set<number>): void {
     if (!this.editorRef) return;
     const quill = this.editorRef.getQuill();
     if (!quill) return;
@@ -478,7 +556,7 @@ export class PromptBuilderComponent implements OnInit {
     const stale: Array<{ index: number; length: number }> = [];
     let m: RegExpExecArray | null;
     while ((m = pattern.exec(text)) !== null) {
-      if (parseInt(m[1], 10) > maxAllowed) {
+      if (!allowed.has(parseInt(m[1], 10))) {
         stale.push({ index: m.index, length: m[0].length });
       }
     }

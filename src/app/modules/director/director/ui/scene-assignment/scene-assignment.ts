@@ -33,7 +33,11 @@ import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
 import { INFER_CATEGORY } from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
-import { Character } from '@app/modules/characters/characters/interfaces';
+import {
+  AssetType,
+  Character,
+  CharacterMetadata,
+} from '@app/modules/characters/characters/interfaces';
 import { CharactersService } from '@app/modules/characters/characters/services';
 
 interface ProjectInfo {
@@ -173,7 +177,7 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly previewFile = signal<FileLike | null>(null);
   protected readonly previewVisible = signal(false);
 
-  /** Available characters grouped by kind, filtered by searchQuery. */
+  /** Available characters grouped by asset type, filtered by searchQuery. */
   protected readonly groupedCharacters = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const chars = query
@@ -182,27 +186,28 @@ export class SceneAssignmentComponent implements OnInit {
 
     const groups: Record<string, typeof chars> = {};
     for (const c of chars) {
-      const key = c.kind || 'other';
+      const key = c.assetType || 'other';
       if (!groups[key]) groups[key] = [];
       groups[key].push(c);
     }
     return groups;
   });
 
-  /** Kind tabs. */
-  protected readonly kindTabs = ['image', 'video', 'audio', 'mixed'] as const;
-  protected readonly activeKindTab = signal<string>('image');
+  /** Asset-type tabs — resources are segmented by their semantic type
+   *  (character / location / prop / audio), not by the file kind. */
+  protected readonly kindTabs: AssetType[] = ['character', 'location', 'prop', 'audio'];
+  protected readonly activeKindTab = signal<AssetType>('character');
 
-  /** Human label for each character kind. */
+  /** Human label for each asset type. */
   protected readonly kindLabel: Record<string, string> = {
-    image: 'Image',
-    video: 'Video',
+    character: 'Characters',
+    location: 'Locations',
+    prop: 'Props',
     audio: 'Audio',
-    mixed: 'Mixed',
     other: 'Other',
   };
 
-  /** Characters for the currently active kind tab, filtered by search. */
+  /** Characters for the currently active asset-type tab, filtered by search. */
   protected readonly tabCharacters = computed(() => {
     const active = this.activeKindTab();
     return this.groupedCharacters()[active] || [];
@@ -369,10 +374,18 @@ export class SceneAssignmentComponent implements OnInit {
       this.allCharacters()
         .filter((c: any) => !assignedIds.has(c.character?.id || c.id))
         .map((c: any) => {
-          const kind = JSON.parse(c.character?.metadata || '{"fileKind": "unknown"}').fileKind;
+          let metadata: CharacterMetadata = {};
+          try {
+            metadata = c.character?.metadata ? JSON.parse(c.character.metadata) : {};
+          } catch {
+            metadata = {};
+          }
+          const assetType: AssetType = metadata.assetType ?? 'character';
+          const kind = metadata.fileKind ?? 'image';
           return {
             id: c.character?.id || c.id,
             name: c.character?.name || c.name,
+            assetType,
             kind,
             thumbnailUrl:
               kind === 'audio'

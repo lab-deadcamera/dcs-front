@@ -2,7 +2,6 @@ import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
 import { catchError, finalize, map, of, throwError } from 'rxjs';
-import { parseArtifactData, computeCharacterCount } from './shot-builder-artifact';
 import {
   AspectRatio,
   DirectorNotes,

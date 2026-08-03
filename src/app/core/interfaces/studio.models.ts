@@ -124,6 +124,9 @@ export interface UsedAsset {
   filename: string;
   /** Aggregated file type — drives the chip icon and content[].type. */
   kind: UsedAssetKind;
+  /** Slot @imageN/@videoN/@audioN inherited from the chapter assignment, or
+   *  undefined for brand-new assets (they get the next free number). */
+  slot?: string;
 }
 
 /** A single in-flight backend generation request. */

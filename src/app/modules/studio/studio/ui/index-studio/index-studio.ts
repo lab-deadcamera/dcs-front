@@ -363,6 +363,12 @@ export class IndexStudio implements OnInit {
     const projectId = this.navSelectedProjectId();
     if (projectId) {
       this.loadScenes(projectId, chapterId);
+
+      // Load the chapter's resources (characters, presets, assets) immediately
+      // so the shot builder has the episode's assignments available even when
+      // no scene is selected (multi-scene chapters never call handleSceneSelected,
+      // which is where these used to be loaded).
+      this.reloadChapterAssignments();
     }
   }
 
@@ -370,6 +376,23 @@ export class IndexStudio implements OnInit {
     if (chapterId) {
       this.handleChapterSelected(chapterId);
     }
+  }
+
+  /** Reload the current chapter's resource assignments into the studio store
+   *  (used after resetStudio() clears them, e.g. when the selected scene is
+   *  removed but the shot builder still shows at chapter level). */
+  private reloadChapterAssignments(): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
+      next: (res) => {
+        if (res.data) this.studio.setChapterAssignments(res.data);
+      },
+      error: () => {
+        /* assignments not critical */
+      },
+    });
   }
 
   /** Load scenes for a chapter and auto-select if appropriate. */
@@ -426,14 +449,7 @@ export class IndexStudio implements OnInit {
 
       // Load chapter assignments so the shot builder has access to the
       // episode's characters, presets and free assets before generating
-      this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
-        next: (res) => {
-          if (res.data) this.studio.setChapterAssignments(res.data);
-        },
-        error: () => {
-          /* assignments not critical */
-        },
-      });
+      this.reloadChapterAssignments();
     }
   }
 
@@ -446,6 +462,10 @@ export class IndexStudio implements OnInit {
       this.navSelectedShotId.set(null);
       this.navSelectedScene.set(null);
       this.persistNav();
+      // resetStudio() cleared the episode assignments — reload them so the
+      // shot builder (shown at chapter level, no scene) still has the
+      // episode's characters and assets without needing a page reload.
+      this.reloadChapterAssignments();
     }
   }
 
@@ -460,6 +480,7 @@ export class IndexStudio implements OnInit {
           number: sh.number,
           name: sh.name,
           label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+          description: sh.description,
         }));
         this.navShots.set(items);
         this.autoSelectShot(items);
@@ -514,6 +535,7 @@ export class IndexStudio implements OnInit {
             number: sh.number,
             name: sh.name,
             label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+            description: sh.description,
           })),
         );
         // Auto-select if the previously selected shot is now in the list
@@ -584,8 +606,12 @@ export class IndexStudio implements OnInit {
     this.loadChapters(saved.projectId);
   }
 
-  /** Initialize session for a given shot. */
-  private startSessionWithShot(shot: { id: string; number: number; name: string }): void {
+  /** Initialize session for a given shot. When `description` is provided (e.g.
+   *  a cloned shot), it is loaded as the pre-prompt in the PromptBuilder. */
+  private startSessionWithShot(
+    shot: { id: string; number: number; name: string },
+    description?: string,
+  ): void {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     const sceneId = this.navSelectedSceneId();
@@ -598,6 +624,11 @@ export class IndexStudio implements OnInit {
     const project = this.navProjects().find((p) => p.id === projectId);
     const chapter = this.navChapters().find((c) => c.id === chapterId);
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
+
+    // Load the pre-prompt for cloned shots (normal navigation does not pass it).
+    if (description) {
+      this.studio.setRawDescription(description);
+    }
 
     // Clear previous used assets before loading a new shot
     this.studio.clearUsedAssets();
@@ -684,24 +715,22 @@ export class IndexStudio implements OnInit {
 
   private readonly breadcrumbComponent = viewChild(StudioBreadcrumbComponent);
 
-  protected onBreadcrumbCreateShot(shotName: string): void {
+  protected onBreadcrumbCreateShot(payload: {
+    name: string;
+    sourceShot: BreadcrumbOption | null;
+  }): void {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     const sceneId = this.navSelectedSceneId();
     const scene = this.navSelectedScene();
     if (!projectId || !chapterId || !sceneId || !scene) return;
 
-    // Load existing shots to determine the next shot number
-    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((shotsRes) => {
-      const existingShots = shotsRes.error || !shotsRes.data ? [] : shotsRes.data;
-      const nextShotNumber =
-        existingShots.length > 0 ? Math.max(...existingShots.map((s) => s.number)) + 1 : 1;
-
-      // Create the new shot
+    const create = (number: number, description?: string): void => {
       this.projectsApi
         .createShot(projectId, chapterId, sceneId, {
-          number: nextShotNumber,
-          name: shotName,
+          number,
+          name: payload.name,
+          ...(description ? { description } : {}),
         })
         .subscribe((shotRes) => {
           if (shotRes.error || !shotRes.data) {
@@ -724,30 +753,36 @@ export class IndexStudio implements OnInit {
           // Reset the breadcrumb dialog
           this.breadcrumbComponent()?.resetNewShotDialog();
 
-          // Start session with the newly created shot
-          this.startSessionWithShot({
-            id: newShot.id,
-            number: newShot.number,
-            name: newShot.name,
-          });
+          // Start session with the newly created shot — pass the inherited
+          // pre-prompt when cloning so the PromptBuilder shows it.
+          this.startSessionWithShot(
+            {
+              id: newShot.id,
+              number: newShot.number,
+              name: newShot.name,
+            },
+            description,
+          );
         });
-    });
+    };
+
+    if (payload.sourceShot) {
+      // Clone an existing shot: keep its number and pre-prompt (description).
+      create(payload.sourceShot.number, payload.sourceShot.description);
+    } else {
+      // Brand new shot: next available number, no pre-prompt.
+      this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((shotsRes) => {
+        const existingShots = shotsRes.error || !shotsRes.data ? [] : shotsRes.data;
+        const nextShotNumber =
+          existingShots.length > 0 ? Math.max(...existingShots.map((s) => s.number)) + 1 : 1;
+        create(nextShotNumber);
+      });
+    }
   }
 
   /** Reload chapter assignments after the assignment dialog changes them. */
   protected onChapterAssignmentsChanged(): void {
-    const projectId = this.navSelectedProjectId();
-    const chapterId = this.navSelectedChapterId();
-    if (!projectId || !chapterId) return;
-
-    this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
-      next: (res) => {
-        if (res.data) this.studio.setChapterAssignments(res.data);
-      },
-      error: () => {
-        /* not critical */
-      },
-    });
+    this.reloadChapterAssignments();
   }
 
   /** Handle the shots saved event from the shot builder panel. */
@@ -1227,7 +1262,9 @@ export class IndexStudio implements OnInit {
     if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
     for (const used of this.studio.usedAssets()) {
       const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
-      push(used.fileId, used.filename, type, used.name);
+      // Prefer the inherited @imageN slot as the tag so the backend receives
+      // a number consistent with the prompt chips.
+      push(used.fileId, used.filename, type, used.slot || used.name);
     }
     return out;
   }

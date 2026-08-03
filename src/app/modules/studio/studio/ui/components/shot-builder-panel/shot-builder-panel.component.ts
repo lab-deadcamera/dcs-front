@@ -25,6 +25,7 @@ import {
   ShotBuilderResult,
   SceneData,
   EpisodeData,
+  SceneContext,
   normalizeSeedanceSlots,
   shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
@@ -46,20 +47,18 @@ import {
   generateArtifactHtml,
   parseArtifactData,
   computeCharacterCount,
-  ArtifactData,
 } from '@app/services/shot-builder-artifact';
-import { SHOT_BUILDER_RESPONSE } from '@app/core/mocks/shots-builder.mock';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
 import responseOkMock from '@app/core/mocks/response-ok.json';
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
-import { SceneContext } from '@app/services/shot-builder.service';
 import { ModelService } from '@app/services/model.service';
 import { AspectRatio } from '@app/core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -101,6 +100,7 @@ type UploadedFile = {
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
     DialogModule,
+    SourceThumbnailAssetPipe,
     SourceAssetPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -162,9 +162,7 @@ export class ShotBuilderPanelComponent {
   /** Flattened shot list from all scenes (legacy compat). */
   readonly shots = signal<ShotBuilderShot[]>([]);
   /** Total shot count across all scenes. */
-  readonly totalShots = computed(() =>
-    this.scenes().reduce((sum, s) => sum + s.shots.length, 0),
-  );
+  readonly totalShots = computed(() => this.scenes().reduce((sum, s) => sum + s.shots.length, 0));
   /** The raw text response for display. */
   readonly rawResponse = signal<string>('');
 
@@ -273,15 +271,16 @@ export class ShotBuilderPanelComponent {
   /** Segments for the time budget bar: each scene as a colored segment. */
   readonly timeBudgetBar = computed(() => {
     const sc = this.scenes();
-    const total = sc.reduce((sum, s) => sum + s.duration, 0) || 1;  // avoid div by 0
+    const total = sc.reduce((sum, s) => sum + s.duration, 0) || 1; // avoid div by 0
     return sc.map((s) => {
       const pct = (s.duration / total) * 100;
       // Color by scene type
-      const color = s.sceneType === 'flashback'
-        ? '#f59e0b'  // amber
-        : s.sceneType === 'fantasy' || s.sceneType === 'dream'
-          ? '#8b5cf6'  // violet
-          : '#14b8a6'; // teal (present)
+      const color =
+        s.sceneType === 'flashback'
+          ? '#f59e0b' // amber
+          : s.sceneType === 'fantasy' || s.sceneType === 'dream'
+            ? '#8b5cf6' // violet
+            : '#14b8a6'; // teal (present)
       return {
         scriptNumber: s.scriptNumber,
         scriptLocation: s.scriptLocation,
@@ -325,6 +324,20 @@ export class ShotBuilderPanelComponent {
   /** Collapsed/expanded state for the episode assets section. */
   protected readonly episodeAssetsExpanded = signal(true);
 
+  /** Chapter characters sorted by their @imageN slot number (slot-less last). */
+  protected readonly sortedChapterCharacters = computed(() => {
+    return [...this.studio.chapterCharacterData()].sort(
+      (a, b) => slotNum(a.slot) - slotNum(b.slot),
+    );
+  });
+
+  /** Episode assets sorted by their @imageN slot number (slot-less last). */
+  protected readonly sortedFreeAssets = computed(() => {
+    const slotOf = (id: string) =>
+      slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
+    return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
+  });
+
   /** Navigate to the Providers section so the user can create the missing model. */
   protected onGoToProviders(): void {
     this.modelWarningVisible.set(false);
@@ -349,6 +362,12 @@ export class ShotBuilderPanelComponent {
     });
   }
 
+  /** Tooltip label for an episode asset: its @imageN slot when assigned, else
+   *  the filename. */
+  protected chapterAssetSlotLabel(id: string, filename: string): string {
+    return this.studio.chapterAssetSlots().get(id) || filename;
+  }
+
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
 
@@ -361,7 +380,9 @@ export class ShotBuilderPanelComponent {
     const sceneLines: string[] = [];
     for (const s of sc) {
       totalShots += s.shots.length;
-      sceneLines.push(`    - Scene ${s.scriptNumber}: ${s.scriptLocation} (${s.shots.length} shot${s.shots.length !== 1 ? 's' : ''})`);
+      sceneLines.push(
+        `    - Scene ${s.scriptNumber}: ${s.scriptLocation} (${s.shots.length} shot${s.shots.length !== 1 ? 's' : ''})`,
+      );
     }
     return { sceneCount: sc.length, totalShots, sceneLines };
   });
@@ -737,156 +758,227 @@ export class ShotBuilderPanelComponent {
   /** Handle the "Crear listado de pre-prompts" button from the sequence viewer.
    *  Saves each shot with the prompt in the selected language as its description,
    *  then navigates to the first shot so the pre-prompt loads in the PromptBuilder. */
-  onCreatePrePrompts(list: { shotId: string; lang: 'en' | 'zh'; prompt: string }[]): void {
+  /**
+   * Handle the "Crear listado de pre-prompts" button from the sequence viewer.
+   *
+   * Groups the emitted shots by scene, resolving each scene (creating it when
+   * it doesn't exist yet via its script number), then creates every shot under
+   * its owning scene with its ORIGINAL number. Duplicate shot numbers are
+   * allowed (the UNIQUE(scene_id, number) constraint was dropped).
+   */
+  onCreatePrePrompts(
+    list: { sceneNumber: number; shotId: string; lang: 'en' | 'zh'; prompt: string }[],
+  ): void {
     const projectId = this.projectId() || this.studio.projectId();
     const chapterId = this.chapterId() || this.studio.chapterId();
-    const sceneId = this.sceneId() || this.studio.sceneId();
-    const currentShots = this.shots();
-    if (!projectId || !chapterId || !sceneId || list.length === 0) return;
+    if (!projectId || !chapterId || list.length === 0) return;
 
     this.savingShots.set(true);
     this.error.set(null);
 
-    let index = 0;
-    const total = list.length;
     const createdIds: string[] = [];
-    const firstDescription = list[0]?.prompt || '';
+    const errors: string[] = [];
+    let firstDescription = list[0]?.prompt || '';
+    let firstSceneId = '';
 
-    // Calculate the starting shot number: offset past any existing shots
-    // so we never collide with the unique (scene_id, number) constraint.
-    const maxExistingNumber = currentShots.reduce(
-      (max, s) => Math.max(max, s.number ?? 0),
-      0,
-    );
-    const shotOffset = maxExistingNumber;
+    // Group list items by scene number (0 = legacy mock without scene grouping).
+    const byScene = new Map<number, typeof list>();
+    for (const item of list) {
+      const key = item.sceneNumber || 0;
+      if (!byScene.has(key)) byScene.set(key, []);
+      byScene.get(key)!.push(item);
+    }
+    const groups = [...byScene.entries()];
 
-    const createNext = (): void => {
-      if (index >= total) {
-        this.savingShots.set(false);
-        this.chatMessages.update((items) => [
-          ...items,
-          {
-            id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            role: 'assistant',
-            content: `All ${total} shots saved to the scene successfully.`,
-            timestamp: Date.now(),
-          },
-        ]);
+    // Source-of-truth per-scene shot data (for names + character refs).
+    const sceneByNumber = new Map<number, SceneData>();
+    for (const s of this.scenes()) sceneByNumber.set(s.scriptNumber, s);
 
-        // Emit the first shot ID so IndexStudio navigates to it
-        if (createdIds.length > 0) {
-          this.shotsSaved.emit({
-            projectId,
-            chapterId,
-            sceneId,
-            firstShotId: createdIds[0],
-            firstShotDescription: firstDescription,
-          });
-        }
-
-        // Apply output format from the Sequence data (shot builder has priority
-        // over the default config). Only override fields the Sequence actually
-        // carries — resolution stays at whatever the user configured.
-        const seq = this.sequenceData();
-        if (seq) {
-          const patch: Record<string, unknown> = {};
-          if (seq.aspectRatio) {
-            patch['aspectRatio'] = seq.aspectRatio as AspectRatio;
-          }
-          if (seq.duration && seq.duration > 0) {
-            // Cap at the slider max (15s) — the Sequence total duration is a
-            // scene-level budget, not a per-generation duration.
-            patch['durationSeconds'] = Math.min(Math.round(seq.duration), 15);
-          }
-          this.studio.patchOutput(patch as any);
-
-          // Persist aspect_ratio and duration_seconds to every created shot
-          // so the format survives page reloads.
-          const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
-          if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
-          if (patch['durationSeconds'])
-            formatPayload['duration_seconds'] = patch['durationSeconds'] as number;
-
-          if (Object.keys(formatPayload).length > 0) {
-            for (const shotId of createdIds) {
-              this.studioApiService
-                .updateShotFormat(projectId, chapterId, sceneId, shotId, formatPayload)
-                .subscribe();
-            }
-          }
-        }
-        return;
+    const applyShotFormat = (): void => {
+      const seq = this.sequenceData();
+      if (!seq) return;
+      const patch: Record<string, unknown> = {};
+      if (seq.aspectRatio) patch['aspectRatio'] = seq.aspectRatio as AspectRatio;
+      if (seq.duration && seq.duration > 0) {
+        patch['durationSeconds'] = Math.min(Math.round(seq.duration), 15);
       }
+      this.studio.patchOutput(patch as any);
 
-      const item = list[index];
-      const shotRef = currentShots[index];
-      const number = index + 1 + shotOffset;
-      // Use the Sequence shot title (generated by the AI) as the shot name,
-      // falling back to shotRef.name or a default.
-      const seqShot = this.sequenceData()?.shots[index];
-      const name = seqShot?.title || shotRef?.name || `Shot ${number}`;
-      const description = item.prompt;
-      index++;
+      const formatPayload: { aspect_ratio?: string; duration_seconds?: number } = {};
+      if (seq.aspectRatio) formatPayload['aspect_ratio'] = seq.aspectRatio;
+      if (patch['durationSeconds'])
+        formatPayload['duration_seconds'] = patch['durationSeconds'] as number;
 
-      this.shotBuilderService
-        .createShot(projectId, chapterId, sceneId, { number, name, description })
-        .subscribe((res) => {
-          if (res?.data?.id) {
-            const newShotId = res.data.id;
-            createdIds.push(newShotId);
-            // Save character references (slots) — match by fileId first
-            // (Claude receives the file UUID as assetId now), then id, then name.
-            const refs = shotRef?.references || [];
-            const charRefs = refs.filter((r: any) => r.type === 'character');
-            if (charRefs.length > 0) {
-              const charData = this.studio.chapterCharacterData();
-              for (const ref of charRefs) {
-                const assetId = (ref.assetId || '').toLowerCase();
-                const match = charData.find(
-                  (c) =>
-                    c.fileId.toLowerCase() === assetId ||
-                    c.id.toLowerCase() === assetId ||
-                    c.name.toLowerCase() === assetId,
-                );
-                if (match) {
-                  this.shotBuilderService
-                    .assignCharacterToShot(projectId, chapterId, sceneId, newShotId, match.id, ref.slot)
-                    .subscribe();
-                }
-              }
-            }
-          }
-          createNext();
-        });
+      if (Object.keys(formatPayload).length > 0) {
+        for (const shotId of createdIds) {
+          this.studioApiService
+            .updateShotFormat(projectId, chapterId, firstSceneId || '', shotId, formatPayload)
+            .subscribe();
+        }
+      }
     };
 
-    createNext();
-  }
-
-  /** Load mock data from SHOT_BUILDER_RESPONSE for testing artifact rendering. */
-  loadMockResponse(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.episodeData.set(null);
-    this.scenes.set([]);
-    this.shots.set([]);
-    this.rawResponse.set('');
-
-    setTimeout(() => {
-      // Set the raw text from the mock directly — artifactHtml will parse it
-      this.rawResponse.set(SHOT_BUILDER_RESPONSE.text);
+    const finish = (): void => {
+      this.savingShots.set(false);
+      const totalCreated = createdIds.length;
       this.chatMessages.update((items) => [
         ...items,
         {
           id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           role: 'assistant',
-          content: 'Loading mock response... check the preview tab.',
+          content:
+            errors.length > 0
+              ? `Created ${totalCreated} shot${totalCreated !== 1 ? 's' : ''} across ${groups.length} scene${groups.length !== 1 ? 's' : ''} with ${errors.length} warning(s).`
+              : `Created ${totalCreated} shot${totalCreated !== 1 ? 's' : ''} across ${groups.length} scene${groups.length !== 1 ? 's' : ''}.`,
           timestamp: Date.now(),
         },
       ]);
-      this.activeFileId.set(null);
-      this.loading.set(false);
-    }, 800);
+
+      if (createdIds.length > 0 && firstSceneId) {
+        this.shotsSaved.emit({
+          projectId,
+          chapterId,
+          sceneId: firstSceneId,
+          firstShotId: createdIds[0],
+          firstShotDescription: firstDescription,
+        });
+      }
+      applyShotFormat();
+    };
+
+    let groupIdx = 0;
+
+    const processGroup = (): void => {
+      if (groupIdx >= groups.length) {
+        finish();
+        return;
+      }
+
+      const [sceneNumber, items] = groups[groupIdx];
+      const sceneData = sceneByNumber.get(sceneNumber);
+
+      const resolveScene = (cb: (sceneId: string) => void): void => {
+        if (sceneNumber === 0) {
+          // Legacy: fall back to the currently selected scene.
+          cb(this.sceneId() || this.studio.sceneId() || '');
+          return;
+        }
+        this.projectsApi.listScenes(projectId, chapterId).subscribe({
+          next: (listRes) => {
+            const existing = listRes.data?.find((s: any) => s.number === sceneNumber);
+            if (existing?.id) {
+              cb(existing.id);
+              return;
+            }
+            this.projectsApi
+              .createScene(projectId, chapterId, {
+                number: sceneNumber,
+                name: sceneData?.scriptLocation || `Scene ${sceneNumber}`,
+                description: sceneData?.description || '',
+              })
+              .subscribe({
+                next: (createRes) => {
+                  if (createRes?.data?.id) {
+                    cb(createRes.data.id);
+                  } else {
+                    errors.push(
+                      `Failed to create Scene ${sceneNumber}: ${createRes?.msg || 'unknown error'}`,
+                    );
+                    groupIdx++;
+                    processGroup();
+                  }
+                },
+                error: (err: unknown) => {
+                  errors.push(
+                    `Failed to create Scene ${sceneNumber}: ${err instanceof Error ? err.message : 'unknown error'}`,
+                  );
+                  groupIdx++;
+                  processGroup();
+                },
+              });
+          },
+          error: (err: unknown) => {
+            errors.push(
+              `Failed to list scenes for Scene ${sceneNumber}: ${err instanceof Error ? err.message : 'unknown error'}`,
+            );
+            groupIdx++;
+            processGroup();
+          },
+        });
+      };
+
+      resolveScene((sceneId) => {
+        if (!sceneId) {
+          errors.push(`No scene available for shots #${sceneNumber}.`);
+          groupIdx++;
+          processGroup();
+          return;
+        }
+        if (!firstSceneId) firstSceneId = sceneId;
+
+        let itemIdx = 0;
+        const createShotNext = (): void => {
+          if (itemIdx >= items.length) {
+            groupIdx++;
+            processGroup();
+            return;
+          }
+
+          const item = items[itemIdx];
+          // The shot's name/refs come from its position within the scene's
+          // generated data (list preserves the flatten order).
+          const shotRef = sceneData?.shots?.[itemIdx];
+          const number = shotRef?.number ?? itemIdx + 1;
+          const name = shotRef?.name || `Shot ${number}`;
+          itemIdx++;
+
+          this.shotBuilderService
+            .createShot(projectId, chapterId, sceneId, {
+              number,
+              name,
+              description: item.prompt,
+            })
+            .subscribe((res) => {
+              if (res?.data?.id) {
+                createdIds.push(res.data.id);
+                // Save character references (slots) — match by fileId first
+                // (Claude receives the file UUID as assetId now), then id, then name.
+                const refs = shotRef?.references || [];
+                const charRefs = refs.filter((r: any) => r.type === 'character');
+                if (charRefs.length > 0) {
+                  const charData = this.studio.chapterCharacterData();
+                  for (const ref of charRefs) {
+                    const assetId = (ref.assetId || '').toLowerCase();
+                    const match = charData.find(
+                      (c) =>
+                        c.fileId.toLowerCase() === assetId ||
+                        c.id.toLowerCase() === assetId ||
+                        c.name.toLowerCase() === assetId,
+                    );
+                    if (match) {
+                      this.shotBuilderService
+                        .assignCharacterToShot(
+                          projectId,
+                          chapterId,
+                          sceneId,
+                          res.data.id,
+                          match.id,
+                          ref.slot,
+                        )
+                        .subscribe();
+                    }
+                  }
+                }
+              }
+              createShotNext();
+            });
+        };
+
+        createShotNext();
+      });
+    };
+
+    processGroup();
   }
 
   /** Load the real generate-shots response (response-ok.json) through the same
@@ -970,7 +1062,7 @@ export class ShotBuilderPanelComponent {
 
     interface SceneResolved {
       scriptNumber: number;
-      sceneId: string;    // resolved from backend
+      sceneId: string; // resolved from backend
       shots: ShotBuilderShot[];
     }
 
@@ -991,9 +1083,7 @@ export class ShotBuilderPanelComponent {
       // List existing scenes for this chapter
       this.projectsApi.listScenes(projectId, chapterId).subscribe({
         next: (listRes) => {
-          const existing = listRes.data?.find(
-            (s: any) => s.number === scene.scriptNumber,
-          );
+          const existing = listRes.data?.find((s: any) => s.number === scene.scriptNumber);
 
           if (existing?.id) {
             // Scene already exists — use its ID
@@ -1067,7 +1157,10 @@ export class ShotBuilderPanelComponent {
 
       const createNextShot = (): void => {
         // Find next scene with shots remaining
-        while (sceneIdx < resolvedScenes.length && shotIdx >= resolvedScenes[sceneIdx].shots.length) {
+        while (
+          sceneIdx < resolvedScenes.length &&
+          shotIdx >= resolvedScenes[sceneIdx].shots.length
+        ) {
           sceneIdx++;
           shotIdx = 0;
         }
@@ -1084,9 +1177,10 @@ export class ShotBuilderPanelComponent {
             {
               id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
               role: 'assistant',
-              content: errors.length > 0
-                ? `Saved ${totalCreated} shots across ${resolvedScenes.length} scenes with ${errors.length} warning(s).`
-                : `All ${totalCreated} shots saved across ${resolvedScenes.length} scenes successfully.`,
+              content:
+                errors.length > 0
+                  ? `Saved ${totalCreated} shots across ${resolvedScenes.length} scenes with ${errors.length} warning(s).`
+                  : `All ${totalCreated} shots saved across ${resolvedScenes.length} scenes successfully.`,
               timestamp: Date.now(),
             },
           ]);
@@ -1143,8 +1237,12 @@ export class ShotBuilderPanelComponent {
                   if (match) {
                     this.shotBuilderService
                       .assignCharacterToShot(
-                        projectId, chapterId, s.sceneId,
-                        newShotId, match.id, ref.slot,
+                        projectId,
+                        chapterId,
+                        s.sceneId,
+                        newShotId,
+                        match.id,
+                        ref.slot,
                       )
                       .subscribe();
                   }
@@ -1213,9 +1311,7 @@ export class ShotBuilderPanelComponent {
             .subscribe();
         }
       } else if (a.assetId) {
-        this.projectsApi
-          .assignAssetToChapter(projectId, chapterId, a.assetId, a.slot)
-          .subscribe();
+        this.projectsApi.assignAssetToChapter(projectId, chapterId, a.assetId, a.slot).subscribe();
       }
     }
   }
@@ -1246,4 +1342,11 @@ export class ShotBuilderPanelComponent {
 
     return parts.join('\n\n');
   }
+}
+
+/** Extract the numeric part of an @imageN/@videoN/@audioN slot; 0 when absent. */
+function slotNum(slot: string | undefined): number {
+  if (!slot) return 0;
+  const m = slot.match(/(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
 }

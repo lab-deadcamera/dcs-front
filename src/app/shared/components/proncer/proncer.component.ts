@@ -19,7 +19,7 @@ type ChatMessage = {
   imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="border-t border-ink-600 px-6 py-6">
+    <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
       <ui-section-header
         number="02"
         labelKey="STUDIO.PRONCER.TITLE"

@@ -323,12 +323,19 @@ export class CharacterAssetsComponent {
     }
     for (const f of a.files) {
       const before = this.studio.usedAssets().length;
+      // Respect the @imageN slot inherited from the chapter assignment:
+      // characters keep it in chapterCharacterData, assets in chapterAssetSlots.
+      const charSlot = this.studio
+        .chapterCharacterData()
+        .find((c) => c.id === a.id)?.slot;
+      const assetSlot = this.studio.chapterAssetSlots().get(f.fileId);
       this.studio.useAsset({
         fileId: f.fileId,
         characterId: a.id,
         name: a.name,
         filename: f.filename,
         kind: a.fileKind,
+        slot: charSlot || assetSlot || undefined,
       });
       // useAsset dedupes by fileId — only emit when an entry actually
       // appeared, so the prompt-builder doesn't insert a stale token.
@@ -446,6 +453,7 @@ export class CharacterAssetsComponent {
       name: a.filename,
       filename: a.filename,
       kind: a.kind,
+      slot: this.studio.chapterAssetSlots().get(a.id) || undefined,
     });
     this.assetPicked.emit(a.kind);
   }

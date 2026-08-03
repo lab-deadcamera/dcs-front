@@ -1,8 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Sequence, SequenceScene, Shot, ReferenceType } from '@app/core/interfaces';
 import { ShotCardPreviewComponent, beatInfoFromSegments } from './shot-card-preview.component';
 import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-shot-sequence-viewer',
@@ -103,7 +111,7 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
         <div class="refs-summary">
           @for (ref of seq.references; track ref.slot) {
             <span class="cut"
-              ><em>{{ ref.slot }}</em> {{ refNames[ref.assetId] || ref.assetId }} ({{
+              ><em>{{ ref.slot }}</em> {{ refNames()[ref.assetId] || ref.assetId }} ({{
                 refTypeLabel(ref.type)
               }})</span
             >
@@ -634,23 +642,33 @@ export class ShotSequenceViewerComponent {
   /** Map of shot ID → selected language. */
   protected readonly langMap: Record<string, 'en' | 'zh'> = {};
 
-  /** Emitted when the user clicks "Crear listado de pre-prompts". */
+  /** One entry of the list emitted by "Crear listado de pre-prompts". */
   readonly createPrePromptsClicked =
-    output<{ shotId: string; lang: 'en' | 'zh'; prompt: string }[]>();
+    output<{ sceneNumber: number; shotId: string; lang: 'en' | 'zh'; prompt: string }[]>();
 
   protected readonly approvedCount = computed(() => {
     const ids = this.sequence()?.shots.map((s) => s.id) ?? [];
     return ids.filter((id) => this.approvedMap[id]).length;
   });
 
-  /** Human-readable names for reference assetIds */
-  protected readonly refNames: Record<string, string> = {
-    wyatt: 'Wyatt (gafas)',
-    mike: 'Mike',
-    'living-room': 'Plate sala',
-    'living-room-wallpaper': 'Plate sala c/ papel tapiz',
-    'living-room-door': 'Plate sala (puerta)',
-  };
+  private readonly studio = inject(StudioStore);
+
+  /**
+   * Human-readable names for reference assetIds — resolved from the episode's
+   * assigned characters (by character id or file id) and free assets (by file
+   * id). Keyed by assetId so the template can look up `refNames[ref.assetId]`.
+   */
+  protected readonly refNames = computed<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const c of this.studio.chapterCharacterData()) {
+      if (c.id) map[c.id] = c.name;
+      if (c.fileId) map[c.fileId] = c.name;
+    }
+    for (const a of this.studio.freeAssets()) {
+      if (a.id) map[a.id] = a.filename;
+    }
+    return map;
+  });
 
   protected readonly slack = computed(() => {
     const seq = this.sequence();
@@ -678,9 +696,7 @@ export class ShotSequenceViewerComponent {
   protected shotsForScene(scene: SequenceScene): Shot[] {
     const all = this.sequence()?.shots ?? [];
     const byId = new Map<string, Shot>(all.map((s) => [s.id, s] as [string, Shot]));
-    return (scene.shotIds ?? [])
-      .map((id) => byId.get(id))
-      .filter((s): s is Shot => Boolean(s));
+    return (scene.shotIds ?? []).map((id) => byId.get(id)).filter((s): s is Shot => Boolean(s));
   }
 
   /** Scene number (scriptNumber) that owns the given shot id, or '' when the
@@ -717,15 +733,20 @@ export class ShotSequenceViewerComponent {
     return text.length > 80 ? text.slice(0, 77) + '…' : text;
   }
 
-  /** Gather all selected prompts and emit them. */
+  /** Gather all selected prompts and emit them, with the scene each shot
+   *  belongs to (0 when the sequence has no per-scene grouping). */
   protected createPrePrompts(): void {
     const seq = this.sequence();
     if (!seq) return;
-    const list = seq.shots.map((shot) => ({
-      shotId: shot.id,
-      lang: this.langMap[shot.id] || 'en',
-      prompt: (this.langMap[shot.id] === 'zh' ? shot.prompt.zh : shot.prompt.en) || '',
-    }));
+    const list = seq.shots.map((shot) => {
+      const sceneNum = parseInt(this.sceneNumberFor(shot.id), 10);
+      return {
+        sceneNumber: Number.isFinite(sceneNum) ? sceneNum : 0,
+        shotId: shot.id,
+        lang: this.langMap[shot.id] || 'en',
+        prompt: (this.langMap[shot.id] === 'zh' ? shot.prompt.zh : shot.prompt.en) || '',
+      };
+    });
     this.createPrePromptsClicked.emit(list);
   }
 

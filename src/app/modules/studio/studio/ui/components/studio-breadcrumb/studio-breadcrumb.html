@@ -6,7 +6,7 @@
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
-          [options]="projects()"
+          [options]="sortedProjects()"
           optionLabel="name"
           optionValue="id"
           class="min-w-24 w-52"
@@ -33,7 +33,7 @@
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
-          [options]="chapters()"
+          [options]="sortedChapters()"
           optionLabel="label"
           optionValue="id"
           class="min-w-24"
@@ -75,7 +75,7 @@
       <div class="flex items-center gap-1">
         <p-floatlabel class="w-full" variant="on">
           <p-select
-            [options]="scenes()"
+            [options]="sortedScenes()"
             optionLabel="label"
             optionValue="id"
             [filter]="scenes().length > 2"
@@ -86,6 +86,16 @@
             styleClass="studio-bcrumb-select"
             (onChange)="onSceneChange($event.value)"
           >
+            <ng-template pTemplate="item" let-item>
+              <span [pTooltip]="item.label.length > 40 ? item.label : ''">
+                {{ item.label | truncateLen: 40 }}
+              </span>
+            </ng-template>
+            <ng-template pTemplate="selectedItem" let-item>
+              <span [pTooltip]="item.label.length > 40 ? item.label : ''">
+                {{ item.label | truncateLen: 40 }}
+              </span>
+            </ng-template>
           </p-select>
           <label for="on_label">Scene</label>
         </p-floatlabel>
@@ -104,7 +114,7 @@
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
-          [options]="shots()"
+          [options]="sortedShots()"
           optionLabel="label"
           optionValue="id"
           class="min-w-24"
@@ -131,7 +141,66 @@
       <i class="pi pi-plus"></i>
     </button>
   </div>
+
+  <!-- Sort order button -->
+  <div class="studio-bcrumb-segment ml-auto">
+    <button
+      type="button"
+      class="studio-bcrumb-assign-btn ml-2"
+      (click)="sortPopover.toggle($event)"
+      pTooltip="Sort order"
+      tooltipPosition="top"
+      [attr.aria-label]="'Sort order'"
+    >
+      <i class="pi pi-sort-amount-down"></i>
+    </button>
+  </div>
 </nav>
+
+<!-- Sort order popover -->
+<p-popover #sortPopover [dismissable]="true" appendTo="body">
+  <div class="w-72 p-4 flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <label for="sort-field" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+        >Field</label
+      >
+      <p-select
+        id="sort-field"
+        [options]="[
+          { label: 'Name', value: 'name' },
+          { label: 'Number', value: 'number' },
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="sortPref().field"
+        (onChange)="onSortFieldChange($event.value)"
+        class="w-full"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="sort-dir" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+        >Direction</label
+      >
+      <p-select
+        id="sort-dir"
+        [options]="[
+          { label: 'Ascending', value: 'asc' },
+          { label: 'Descending', value: 'desc' },
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        [ngModel]="sortPref().dir"
+        (onChange)="onSortDirChange($event.value)"
+        class="w-full"
+      />
+    </div>
+    <p class="text-[10px] italic text-fg-muted">
+      Current: {{ sortFieldLabel() }} · {{ sortDirLabel() }}. Applies to Project, Episode, Scene and
+      Shot.
+    </p>
+  </div>
+</p-popover>
 
 <!-- New Shot dialog -->
 <p-dialog
@@ -152,28 +221,68 @@
       SC{{ selectedSceneObj()!.number | number: '2.0' }} — {{ selectedSceneObj()!.name }}
     </div>
   }
-  <div class="flex flex-col gap-1">
-    <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-      >Shot name</label
-    >
-    <input
-      id="new-shot-name"
-      pInputText
-      [(ngModel)]="newShotName"
-      placeholder="e.g. Master wide, Close-up, …"
-      class="w-full"
-    />
-    <p class="text-[10px] italic text-fg-muted">
-      Give your shot a descriptive name. A new shot will be created for this scene.
-    </p>
-  </div>
+  <form [formGroup]="newShotForm">
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1">
+        <label for="new-shot-source" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >Create from shot (optional)</label
+        >
+        <p-select
+          id="new-shot-source"
+          [options]="sortedShots()"
+          optionLabel="label"
+          [showClear]="true"
+          [placeholder]="'Brand new shot'"
+          class="w-full"
+          formControlName="source"
+          (onChange)="onNewShotSourceChange($event.value ?? null)"
+          pTooltip="Choose an existing shot to clone — it inherits the number and pre-prompt"
+          tooltipPosition="top"
+        />
+        <p class="text-[10px] italic text-fg-muted">
+          Pick a shot to inherit its number and pre-prompt. Leave empty for a brand new shot.
+        </p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >Shot name</label
+        >
+        <input
+          id="new-shot-name"
+          pInputText
+          formControlName="name"
+          placeholder="e.g. Master wide, Close-up, …"
+          class="w-full p-component p-inputtext"
+        />
+        @if (newShotForm.controls.name.touched && newShotForm.controls.name.invalid) {
+          <p class="text-[10px] text-red-400">
+            @if (newShotForm.controls.name.hasError('suffixTooShort')) {
+              Cloning from "{{ newShotSource()?.name }}" — append a suffix of at least 3 letters.
+            } @else if (newShotForm.controls.name.hasError('suffixRequired')) {
+              Keep the source name "{{ newShotSource()?.name }}" and append your suffix.
+            } @else {
+              Enter a name for the new shot.
+            }
+          </p>
+        } @else {
+          <p class="text-[10px] italic text-fg-muted">
+            @if (newShotSource()) {
+              Cloning from "{{ newShotSource()!.name }}" — append a suffix of at least 3 letters.
+            } @else {
+              Give your shot a descriptive name. A new shot will be created for this scene.
+            }
+          </p>
+        }
+      </div>
+    </div>
+  </form>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
       <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelNewShot()" />
       <p-button
         icon="pi pi-play"
         label="Create &amp; Open"
-        [disabled]="!newShotName().trim() || newShotSubmitting()"
+        [disabled]="!newShotForm.valid || newShotSubmitting()"
         [loading]="newShotSubmitting()"
         (onClick)="onConfirmNewShot()"
       />

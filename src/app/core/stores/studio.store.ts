@@ -83,11 +83,15 @@ export class StudioStore {
   private readonly _chapterCharacterData = signal<
     Array<{ id: string; name: string; slot: string; fileId: string; kind: string }>
   >([]);
+  /** fileId → @imageN slot inherited from the chapter assignment for assets
+   *  (locations/props/audio). Characters keep their slot in chapterCharacterData. */
+  private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
 
   readonly chapterPresetIds = this._chapterPresetIds.asReadonly();
   readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
   readonly chapterAssetIds = this._chapterAssetIds.asReadonly();
   readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
+  readonly chapterAssetSlots = this._chapterAssetSlots.asReadonly();
 
   /** True after setChapterAssignments has been called at least once (even if
    *  the response contained null/empty arrays). Used by child components
@@ -140,6 +144,7 @@ export class StudioStore {
             name: char.name,
             filename: char.name,
             kind: prefix === 'video' ? 'video' : prefix === 'audio' ? 'audio' : 'image',
+            slot: char.slot || slot,
           });
           break; // once matched, don't try other prefixes for this number
         }
@@ -431,6 +436,7 @@ export class StudioStore {
     this._chapterCharacterIds.set(new Set());
     this._chapterCharacterData.set([]);
     this._chapterAssetIds.set(new Set());
+    this._chapterAssetSlots.set(new Map());
     this._assignmentsLoaded.set(false);
     // shot resources removed — using chapter assignments only
   }
@@ -678,6 +684,12 @@ export class StudioStore {
     this._chapterAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
     );
+    // Preserve each asset's @imageN slot so the Prompt Builder respects it.
+    const assetSlots = new Map<string, string>();
+    for (const a of assignments.assets ?? []) {
+      if (a.file_id && a.slot) assetSlots.set(a.file_id, a.slot);
+    }
+    this._chapterAssetSlots.set(assetSlots);
 
     const freeAssets: ReferenceAsset[] = (assignments.assets ?? [])
       .filter((a: any) => a.file_id)
