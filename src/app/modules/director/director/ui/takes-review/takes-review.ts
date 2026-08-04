@@ -10,7 +10,7 @@ import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
-import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
+import { DOWNLOAD_VIDEO, isChecksRating, RESOLVE_URL, ratingSymbols } from '@app/shared/utils';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { Take } from '@modules/projects/projects/interfaces';
 
@@ -84,6 +84,8 @@ export class TakesReviewComponent implements OnInit {
   protected readonly downloadingId = signal<string | null>(null);
   protected readonly payloadVisible = signal(false);
   protected readonly payloadTake = signal<Take | null>(null);
+  protected readonly isChecksRating = isChecksRating;
+  protected readonly ratingSymbols = ratingSymbols;
 
   ngOnInit(): void {
     this.projectsApi.listProjects().subscribe((res) => {

@@ -12,7 +12,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 import { environment } from '@environment/environment';
 import { StudioStore } from '@app/core/stores/studio.store';
-import { RESOLVE_URL } from '@app/shared/utils';
+import { isChecksRating, RESOLVE_URL, ratingSymbols } from '@app/shared/utils';
 import { UsedAsset, VideoGenerateRequest } from '@app/core/interfaces';
 
 /**
@@ -51,6 +51,8 @@ export class TakesReelComponent {
 
   /** Accordion open state for discarded section. */
   protected readonly discardOpen = signal(false);
+  protected readonly isChecksRating = isChecksRating;
+  protected readonly ratingSymbols = ratingSymbols;
   private readonly baseUrl = environment.API_URL.replace(/\/api\/v1\/?$/, '');
 
   readonly takeSeleted$ = effect(() => {

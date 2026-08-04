@@ -528,24 +528,34 @@ export class StudioStore {
     this._activeClipId.set(id);
   }
 
-  setClipRating(id: string, rating: number) {
+  setClipRating(id: string, rating: number): void {
+    const clip = this._sessionClips().find((c) => c.id === id);
+    if (!clip) return;
+    if (clip.takeIndex === undefined) {
+      // Clip not tied to a session take — just update the clip in-memory.
+      const clamped = Math.max(0, Math.min(5, Math.round(rating)));
+      this._sessionClips.update((list) =>
+        list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
+      );
+      return;
+    }
+    this.setTakeRating(clip.takeIndex, rating);
+  }
+
+  /** Sets a session take's rating (1-based index), keeping any matching clips
+   *  in sync and persisting to the backend when the take has a DB id. */
+  setTakeRating(index: number, rating: number): void {
     const clamped = Math.max(0, Math.min(5, Math.round(rating)));
 
-    // 1) Update clip in-memory
-    this._sessionClips.update((list) =>
-      list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
-    );
-
-    // 2) Find the clip's takeIndex and update the matching session Take
-    const clip = this._sessionClips().find((c) => c.id === id);
-    if (!clip?.takeIndex) return;
-
     this._takes.update((list) =>
-      list.map((t) => (t.index === clip.takeIndex ? { ...t, rating: clamped } : t)),
+      list.map((t) => (t.index === index ? { ...t, rating: clamped } : t)),
     );
 
-    // 3) Persist to backend if we have the take's DB id
-    const take = this._takes().find((t) => t.index === clip.takeIndex);
+    this._sessionClips.update((list) =>
+      list.map((c) => (c.takeIndex === index ? { ...c, rating: clamped } : c)),
+    );
+
+    const take = this._takes().find((t) => t.index === index);
     const pid = this._projectId();
     const cid = this._chapterId();
     const sid = this._sceneId();

@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
-import { RESOLVE_URL } from '@app/shared/utils';
+import {
+  isChecksRating,
+  RESOLVE_URL,
+  ratingSymbols,
+  ratingToChecks,
+} from '@app/shared/utils';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { Tooltip } from 'primeng/tooltip';
 
@@ -13,9 +18,11 @@ import { Tooltip } from 'primeng/tooltip';
  *   · current — empty box, accent border + glow (cursor sits here)
  *   · done    — filled box with a check
  *
- * Clicking toggles the take's status (see SessionStateService.toggleTake)
- * which also advances or rolls back the cursor. Keyboard activation is
- * handled by the native `<button>`; aria-checked communicates state to AT.
+ * Clicking previews the take's video. In 'checks' rating mode (see
+ * `RATING_MODE`), clicking also cycles the take's rating — one check →
+ * two checks → cleared — and the button shows ✓ / ✓✓ for the rating.
+ * Keyboard activation is handled by the native `<button>`;
+ * aria-checked communicates state to AT.
  */
 @Component({
   selector: 'app-take-checklist',
@@ -79,11 +86,18 @@ import { Tooltip } from 'primeng/tooltip';
             [class.border-green-500]="state === 'confirmed'"
             [class.bg-green-700]="state === 'confirmed'"
             [class.text-white]="state === 'confirmed'"
-            [attr.aria-checked]="take.status === 'done' || take.status === 'confirmed'"
+            [attr.aria-checked]="ariaChecked(take)"
             [attr.data-testid]="'take-' + take.index"
             (click)="onClick(take)"
           >
-            @if (state === 'done' || state === 'confirmed') {
+            @if (isChecksRating()) {
+              @let checks = ratingSymbols(take.rating ?? 0);
+              @if (checks) {
+                {{ checks }}
+              } @else {
+                {{ take.index }}
+              }
+            } @else if (state === 'done' || state === 'confirmed') {
               <svg
                 viewBox="0 0 16 16"
                 class="h-3.5 w-3.5"
@@ -129,6 +143,9 @@ export class TakeChecklistComponent {
     this.i18n.instant('STUDIO.TAKE_CHECKLIST.LOCKED_TOOLTIP'),
   );
 
+  protected readonly isChecksRating = isChecksRating;
+  protected readonly ratingSymbols = ratingSymbols;
+
   protected stateFor(take: Take): 'pending' | 'current' | 'done' | 'confirmed' {
     if (take.status === 'confirmed') return 'confirmed';
     if (take.status === 'done') return 'done';
@@ -138,7 +155,22 @@ export class TakeChecklistComponent {
     return 'pending';
   }
 
+  /** Number of check marks shown for a take's rating in checks mode. */
+  protected checksFor(take: Take): number {
+    return ratingToChecks(take.rating ?? 0);
+  }
+
+  protected ariaChecked(take: Take): boolean {
+    if (isChecksRating()) return this.checksFor(take) > 0;
+    return take.status === 'done' || take.status === 'confirmed';
+  }
+
   onClick(take: Take): void {
     this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? '');
+    if (!isChecksRating()) return;
+    // Cycle the rating in checks mode: 0 → 1 check (3★) → 2 checks (5★) → 0.
+    const checks = this.checksFor(take);
+    const next = checks === 0 ? 3 : checks === 1 ? 5 : 0;
+    this.studio.setTakeRating(take.index, next);
   }
 }
