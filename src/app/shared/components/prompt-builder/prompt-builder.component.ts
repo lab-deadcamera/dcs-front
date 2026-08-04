@@ -24,6 +24,7 @@ import { TranslatorApiService } from '@app/services/translator-api.service';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { Tooltip } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { SelectModule } from 'primeng/select';
 
 /**
  * Section 06 — PROMPT BUILDER.
@@ -47,6 +48,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     FormsModule,
     Popover,
     Tooltip,
+    SelectModule,
     SelectButtonModule,
   ],
   styles: [
@@ -76,8 +78,11 @@ export class PromptBuilderComponent implements OnInit {
   protected readonly translating = signal(false);
   protected readonly translatedText = signal<string | null>(null);
 
+  protected languageNotSupported = signal<boolean>(false);
+
   /** Selected target language for the translate button. */
   protected readonly translateLang = signal<'en' | 'es' | 'zh'>('en');
+  protected readonly sourceLang = signal<'en' | 'es' | 'zh' | ''>('');
   protected readonly translationLangOptions = [
     { label: 'EN', value: 'en' as const },
     { label: 'ES', value: 'es' as const },
@@ -88,8 +93,8 @@ export class PromptBuilderComponent implements OnInit {
   private readonly translationCache = new Map<string, string>();
 
   /** True when the current translateLang has a cached translation. */
-  protected readonly hasCachedTranslation = computed(
-    () => this.translationCache.has(this.translateLang()),
+  protected readonly hasCachedTranslation = computed(() =>
+    this.translationCache.has(this.translateLang()),
   );
 
   /** Wire this in the parent shell to actually fire the generation call. */
@@ -260,6 +265,7 @@ export class PromptBuilderComponent implements OnInit {
   protected onTextChange(event: { textValue: string }) {
     this.skipStoreSync = true;
     this.studio.setRawDescription(event.textValue || '');
+    this.translationCache.clear();
   }
 
   protected onGenerate(): void {
@@ -279,6 +285,7 @@ export class PromptBuilderComponent implements OnInit {
    */
   protected onLanguageSelected(): void {
     const targetLang = this.translateLang();
+    if (!targetLang) return;
     const text = this.studio.rawDescription();
     if (!text) return;
 
@@ -291,8 +298,9 @@ export class PromptBuilderComponent implements OnInit {
       return;
     }
 
-    // Start translation
     this.translating.set(true);
+    // Start translation
+    this.languageNotSupported.set(false);
     this.translatedText.set(null);
     this.openPopoverFromLang();
 
@@ -302,15 +310,20 @@ export class PromptBuilderComponent implements OnInit {
       return;
     }
 
-    this.translator.translateBlocks(blocks, targetLang).subscribe({
+    this.translator.translateBlocks(blocks, targetLang, this.sourceLang()).subscribe({
       next: (res) => {
+        this.languageNotSupported.set(false);
         const result = res.translations.join('\n');
         this.translatedText.set(result);
         this.translationCache.set(targetLang, result);
         this.translating.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.translatedText.set('Translation failed');
+        if (err.error && (err.error?.detail ?? '').includes('Idioma no soportado')) {
+          this.languageNotSupported.set(true);
+          this.translatedText.set('Please define the source language manually');
+        }
         this.translating.set(false);
       },
     });
@@ -510,7 +523,9 @@ export class PromptBuilderComponent implements OnInit {
           ? this.audioAssets()
           : this.imageAssets();
     const last = list[list.length - 1];
-    const number = last ? (this.assetNumbers().get(last.fileId) ?? this.nextFreeSlot(kind)) : this.nextFreeSlot(kind);
+    const number = last
+      ? (this.assetNumbers().get(last.fileId) ?? this.nextFreeSlot(kind))
+      : this.nextFreeSlot(kind);
     this.addReference(`${label}${number}`);
   }
 

@@ -35,8 +35,12 @@ export class TranslatorApiService {
     return this.http.post<TranslateResponse>(`${this.apiUrl}/translate`, body);
   }
 
-  translateBlocks(blocks: string[], target: string): Observable<TranslateBlocksResponse> {
-    const body: TranslateBlocksRequest = { blocks, source: 'auto', target };
+  translateBlocks(
+    blocks: string[],
+    target: string,
+    source: string = 'auto',
+  ): Observable<TranslateBlocksResponse> {
+    const body: TranslateBlocksRequest = { blocks, source, target };
     return this.http.post<TranslateBlocksResponse>(`${this.apiUrl}/translate-blocks`, body);
   }
 }

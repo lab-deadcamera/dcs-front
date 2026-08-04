@@ -183,11 +183,7 @@
         #translateBtn
         type="button"
         [disabled]="!studio.rawDescription()"
-        (click)="
-          hasCachedTranslation()
-            ? showTranslatePopover($event)
-            : onLanguageSelected()
-        "
+        (click)="hasCachedTranslation() ? showTranslatePopover($event) : onLanguageSelected()"
         class="inline-flex items-center gap-1.5 rounded border border-ink-500 bg-transparent px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <i class="pi pi-language" aria-hidden="true"></i>
@@ -213,7 +209,20 @@
                 <p
                   class="m-0 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-fg-default"
                 >
-                  {{ translatedText() }}
+                  @if (languageNotSupported()) {
+                    <p class="font-extrabold text-red-500">{{ translatedText() }}</p>
+                    <p-select
+                      [options]="translationLangOptions"
+                      [(ngModel)]="sourceLang"
+                      (onChange)="onLanguageSelected()"
+                      placeholder="Select language"
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body"
+                    />
+                  } @else {
+                    {{ translatedText() }}
+                  }
                 </p>
               </div>
               <div class="mt-1 flex items-center justify-end gap-2">
