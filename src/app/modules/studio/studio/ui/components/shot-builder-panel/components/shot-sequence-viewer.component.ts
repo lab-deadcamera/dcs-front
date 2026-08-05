@@ -120,7 +120,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
       <!-- References summary — detect + resolve missing references -->
       <app-shot-reference-resolver
         [references]="seq.references"
-        [unresolved]="allUnresolvedRefs()"
+        [unresolved]="unresolvedRefs()"
         [projectId]="projectId()"
         [chapterId]="chapterId()"
         (assignedSlotsChange)="onAssignedSlotsChange($event)"
@@ -245,17 +245,13 @@ import { StudioStore } from '@app/core/stores/studio.store';
     >
       <div class="flex flex-col gap-3 py-2">
         <p class="text-[13px] leading-relaxed">
-          No hay ningún shot marcado como aprobado. Marca al menos un shot como
-          aprobado para crear su pre-prompt.
+          No hay ningún shot marcado como aprobado. Marca al menos un shot como aprobado para crear
+          su pre-prompt.
         </p>
       </div>
       <ng-template pTemplate="footer">
         <div class="flex justify-end">
-          <p-button
-            severity="primary"
-            label="Entendido"
-            (onClick)="noApprovedVisible.set(false)"
-          />
+          <p-button severity="primary" label="Entendido" (onClick)="noApprovedVisible.set(false)" />
         </div>
       </ng-template>
     </p-dialog>
@@ -274,21 +270,24 @@ import { StudioStore } from '@app/core/stores/studio.store';
         <p class="text-[13px] leading-relaxed">
           Hay {{ unresolvedRefs().length }} referencia{{
             unresolvedRefs().length !== 1 ? 's' : ''
-          }} sin un asset o character relacionado en el episodio:
+          }}
+          sin un asset o character relacionado en el episodio:
         </p>
         <ul class="flex flex-col gap-1.5">
           @for (ref of unresolvedRefs(); track ref.slot) {
-            <li class="rounded-lg border border-red-900/40 bg-red-900/10 px-3 py-2 font-mono text-[12px]">
+            <li
+              class="rounded-lg border border-red-900/40 bg-red-900/10 px-3 py-2 font-mono text-[12px]"
+            >
               <span class="font-bold text-amber-400">{{ ref.slot }}</span>
               <span class="text-fg-muted"> · </span>
-              <span class="text-fg">{{ refNames()[ref.assetId] || ref.assetId }}</span>
+              <span class="text-fg">{{ refNameFor(ref) }}</span>
               <span class="text-fg-muted"> ({{ refTypeLabel(ref.type) }})</span>
             </li>
           }
         </ul>
         <p class="text-[12px] leading-relaxed text-fg-muted">
-          Puedes asignar un free asset a cada una en la sección "Referencias @image",
-          o continuar de todos modos.
+          Puedes asignar un free asset a cada una en la sección "Referencias @image", o continuar de
+          todos modos.
         </p>
       </div>
       <ng-template pTemplate="footer">
@@ -799,17 +798,26 @@ export class ShotSequenceViewerComponent {
 
   /**
    * Human-readable names for reference assetIds — resolved from the episode's
-   * assigned characters (by character id or file id) and free assets (by file
-   * id). Keyed by assetId so the template can look up `refNames[ref.assetId]`.
+   * assigned characters and free assets. The backend may emit a reference's
+   * assetId as the character/asset id OR its name/filename (the prompt example
+   * uses "name_of_asset" for locations), so every key is matched
+   * case-insensitively by id, file id, name and filename. Lookups in the
+   * template and in isRefResolved use ref.assetId.toLowerCase().
    */
   protected readonly refNames = computed<Record<string, string>>(() => {
     const map: Record<string, string> = {};
+    const add = (key: string | undefined, name: string): void => {
+      const k = key?.trim().toLowerCase();
+      if (k) map[k] = name;
+    };
     for (const c of this.studio.chapterCharacterData()) {
-      if (c.id) map[c.id] = c.name;
-      if (c.fileId) map[c.fileId] = c.name;
+      add(c.id, c.name);
+      add(c.fileId, c.name);
+      add(c.name, c.name);
     }
     for (const a of this.studio.freeAssets()) {
-      if (a.id) map[a.id] = a.filename;
+      add(a.id, a.filename);
+      add(a.filename, a.filename);
     }
     return map;
   });
@@ -823,36 +831,14 @@ export class ShotSequenceViewerComponent {
     this.assignedRefSlots.set(slots);
   }
 
-  /** References used by the approved shots (subset of seq.references by slot) —
-   *  only these matter for the create flow, since only approved shots are
-   *  created. */
-  protected readonly approvedRefs = computed<Reference[]>(() => {
-    this.approvedTick();
-    const seq = this.sequence();
-    if (!seq) return [];
-    const approvedSlots = new Set<string>();
-    for (const shot of seq.shots) {
-      if (!this.approvedMap[shot.id]) continue;
-      for (const ref of shot.references ?? []) approvedSlots.add(ref.slot);
-    }
-    return seq.references.filter((r) => approvedSlots.has(r.slot));
-  });
-
-  /** ALL references of the sequence with no related asset/character — this
-   *  drives the resolver's highlighting so the user can assign a free asset to
-   *  any reference, approved or not. */
-  protected readonly allUnresolvedRefs = computed<Reference[]>(() => {
+  /** UNIQUE source of truth for unresolved references: every reference of the
+   *  sequence with no related asset/character in the episode, excluding slots
+   *  the user has already assigned via the resolver. Drives BOTH the resolver's
+   *  highlighting and the create-pre-prompts validation, so they never diverge. */
+  protected readonly unresolvedRefs = computed<Reference[]>(() => {
     const seq = this.sequence();
     if (!seq) return [];
     return seq.references.filter(
-      (r) => !this.isRefResolved(r) && !this.assignedRefSlots().has(r.slot),
-    );
-  });
-
-  /** References of the APPROVED shots that have no related asset/character —
-   *  used to validate before creating the pre-prompts. */
-  protected readonly unresolvedRefs = computed<Reference[]>(() => {
-    return this.approvedRefs().filter(
       (r) => !this.isRefResolved(r) && !this.assignedRefSlots().has(r.slot),
     );
   });
@@ -861,8 +847,19 @@ export class ShotSequenceViewerComponent {
    *  or free asset in the episode. (Slot-occupancy alone does NOT resolve it —
    *  episode assets all carry auto-assigned @imageN slots, which would make
    *  every reference look resolved.) */
+  /** Normalized lookup key for an assetId (trimmed, lowercased). */
+  private refKey(assetId: string | undefined): string {
+    return assetId ? assetId.trim().toLowerCase() : '';
+  }
+
+  /** Display name for a reference, resolved case-insensitively by id, file id,
+   *  name or filename; falls back to the raw assetId. */
+  protected refNameFor(ref: Reference): string {
+    return this.refNames()[this.refKey(ref.assetId)] || ref.assetId;
+  }
+
   protected isRefResolved(ref: Reference): boolean {
-    return Boolean(this.refNames()[ref.assetId]);
+    return Boolean(this.refNames()[this.refKey(ref.assetId)]);
   }
 
   /** Visibility of the "continuar de todos modos" dialog when creating
@@ -959,7 +956,8 @@ export class ShotSequenceViewerComponent {
   }
 
   /** Create the pre-prompts for the APPROVED shots only. If none are approved,
-   *  show a message; if approved shots have unresolved references, ask first. */
+   *  show a message; if there are unresolved references (the single
+   *  unresolvedRefs source), ask first. */
   protected createPrePrompts(): void {
     if (this.approvedShots().length === 0) {
       this.noApprovedVisible.set(true);
@@ -983,7 +981,7 @@ export class ShotSequenceViewerComponent {
       const lang = this.langMap[shot.id] || 'en';
       const over = this.promptOverrides()[shot.id];
       const value =
-        (lang === 'zh' ? over?.zh ?? shot.prompt.zh : over?.en ?? shot.prompt.en) || '';
+        (lang === 'zh' ? (over?.zh ?? shot.prompt.zh) : (over?.en ?? shot.prompt.en)) || '';
       const sceneNum = parseInt(this.sceneNumberFor(shot.id), 10);
       return {
         sceneNumber: Number.isFinite(sceneNum) ? sceneNum : 0,

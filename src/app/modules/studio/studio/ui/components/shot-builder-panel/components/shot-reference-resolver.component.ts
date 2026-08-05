@@ -58,7 +58,7 @@ import { inferKind } from '@app/shared/utils';
             <!-- Unresolved → highlighted chip + assign button -->
             <span class="ref-chip ref-chip-unresolved">
               <em>{{ ref.slot }}</em>
-              <span class="ref-name">{{ refNames()[ref.assetId] || ref.assetId }}</span>
+              <span class="ref-name">{{ refNameFor(ref) }}</span>
               <span class="ref-type">{{ refTypeLabel(ref.type) }}</span>
               <button
                 type="button"
@@ -74,7 +74,7 @@ import { inferKind } from '@app/shared/utils';
             <!-- Resolved → normal chip -->
             <span class="ref-chip ref-chip-ok">
               <em>{{ ref.slot }}</em>
-              <span class="ref-name">{{ refNames()[ref.assetId] || ref.assetId }}</span>
+              <span class="ref-name">{{ refNameFor(ref) }}</span>
               <span class="ref-type">{{ refTypeLabel(ref.type) }}</span>
             </span>
           }
@@ -375,15 +375,23 @@ export class ShotReferenceResolverComponent {
   /** IDs of thumbnails that failed to load. */
   private readonly brokenThumbs = signal<Set<string>>(new Set());
 
-  /** Human-readable name per assetId (characters by id/fileId, assets by id). */
+  /** Human-readable name per assetId — matches by id, file id, name and
+   *  filename (case-insensitive), since the backend may reference free assets
+   *  by name ("name_of_asset") rather than by id. */
   protected readonly refNames = computed<Record<string, string>>(() => {
     const map: Record<string, string> = {};
+    const add = (key: string | undefined, name: string): void => {
+      const k = key?.trim().toLowerCase();
+      if (k) map[k] = name;
+    };
     for (const c of this.studio.chapterCharacterData()) {
-      if (c.id) map[c.id] = c.name;
-      if (c.fileId) map[c.fileId] = c.name;
+      add(c.id, c.name);
+      add(c.fileId, c.name);
+      add(c.name, c.name);
     }
     for (const a of this.studio.freeAssets()) {
-      if (a.id) map[a.id] = a.filename;
+      add(a.id, a.filename);
+      add(a.filename, a.filename);
     }
     return map;
   });
@@ -395,6 +403,17 @@ export class ShotReferenceResolverComponent {
   });
 
   protected readonly chapterAssetSlots = computed(() => this.studio.chapterAssetSlots());
+
+  /** Normalized lookup key for an assetId (trimmed, lowercased). */
+  private refKey(assetId: string | undefined): string {
+    return assetId ? assetId.trim().toLowerCase() : '';
+  }
+
+  /** Display name for a reference, resolved case-insensitively by id, file id,
+   *  name or filename; falls back to the raw assetId. */
+  protected refNameFor(ref: Reference): string {
+    return this.refNames()[this.refKey(ref.assetId)] || ref.assetId;
+  }
 
   /** A reference from the `unresolved` input is only still "unresolved" until
    *  the user assigns a free asset to its slot — assignedSlots then excludes it. */

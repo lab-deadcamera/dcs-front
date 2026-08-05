@@ -151,25 +151,38 @@ describe('ShotSequenceViewerComponent', () => {
     expect((component as any).approvedShots().map((s: Shot) => s.id)).toEqual(['S2']);
   });
 
-  it('solo valida referencias de los shots aprobados', () => {
+  it('unresolvedRefs es la ÚNICA fuente: todas las refs sin resolver, aprobadas o no', () => {
     setSequence([makeShot('S1', 'p1', ['@image1']), makeShot('S2', 'p2', ['@image2'])]);
     (component as any).approvedMap['S1'] = true;
     (component as any).approvedTick.update((n: number) => n + 1);
 
-    // @image1 (de S1 aprobado) está sin resolver; @image2 (S2 no aprobado) no cuenta
-    // en la validación de creación.
-    expect((component as any).unresolvedRefs().map((r: any) => r.slot)).toEqual(['@image1']);
-  });
-
-  it('el resolver resalta TODAS las refs faltantes (aprobadas o no)', () => {
-    setSequence([makeShot('S1', 'p1', ['@image1']), makeShot('S2', 'p2', ['@image2'])]);
-    // S2 NO está aprobado, pero su ref @image2 sigue contando para el resaltado.
-    (component as any).approvedMap['S1'] = true;
-    (component as any).approvedTick.update((n: number) => n + 1);
-
-    expect((component as any).allUnresolvedRefs().map((r: any) => r.slot).sort()).toEqual([
+    // No depende de la aprobación: @image1 y @image2 aparecen igual.
+    expect((component as any).unresolvedRefs().map((r: any) => r.slot).sort()).toEqual([
       '@image1',
       '@image2',
     ]);
+  });
+
+  it('excluye los slots ya asignados por el resolver', () => {
+    setSequence([makeShot('S1', 'p1', ['@image1'])]);
+    (component as any).onAssignedSlotsChange(new Set(['@image1']));
+
+    expect((component as any).unresolvedRefs()).toHaveLength(0);
+  });
+
+  it('resuelve una ref de free asset por filename (no solo por id)', () => {
+    const studioStub = TestBed.inject(StudioStore) as unknown as { freeAssets: ReturnType<typeof vi.fn> };
+    studioStub.freeAssets.mockReturnValue([
+      { id: 'file-a', filename: 'Kitchen Plate.jpg', kind: 'image', tag: '', slot: 'free' },
+    ]);
+    setSequence([makeShot('S1', 'p1', ['@image4'])]);
+
+    // La ref apunta al nombre del archivo (como genera el backend), no al id.
+    const seq = (component as any).sequence();
+    seq.references = [{ slot: '@image4', assetId: 'Kitchen Plate.jpg', type: 'location' }];
+    fixture.detectChanges();
+
+    expect((component as any).unresolvedRefs()).toHaveLength(0);
+    expect((component as any).refNameFor(seq.references[0])).toBe('Kitchen Plate.jpg');
   });
 });
