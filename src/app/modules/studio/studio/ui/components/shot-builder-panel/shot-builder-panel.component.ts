@@ -6,6 +6,7 @@ import {
   input,
   output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
+import { Popover } from 'primeng/popover';
 import { MessageService } from 'primeng/api';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
@@ -30,6 +32,7 @@ import {
   shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
 import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-settings-dialog.component';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 /** Parse .docx files into HTML for preview. */
 import * as mammoth from 'mammoth';
@@ -54,11 +57,19 @@ import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
 import { ModelService } from '@app/services/model.service';
-import { AspectRatio } from '@app/core/interfaces/studio.models';
+import { FileCategory } from '@app/core/interfaces';
+import { AspectRatio, ReferenceAsset } from '@app/core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
+import { FilesApiService } from '@app/services/files-api.service';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { inferKind } from '@app/shared/utils';
+import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
+import {
+  AssetType,
+  CharacterMetadata,
+} from '@app/modules/characters/characters/interfaces';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -122,6 +133,26 @@ interface CreationSceneSummary {
   shotNumbers: number[];
 }
 
+/** Minimal file shape the full-screen AssetViewerComponent accepts. */
+interface ViewerFile {
+  id: string;
+  filename?: string;
+  mimeType?: string;
+}
+
+/** Metadata shown in the episode-asset popover when a character or free asset
+ *  is clicked. The union discriminates character vs. free-asset rows. */
+type AssetInfo =
+  | {
+      kind: 'character';
+      name: string;
+      charId: string;
+      fileId: string;
+      slot: string;
+      fileKind: string;
+    }
+  | { kind: 'asset'; filename: string; fileId: string; slot: string; fileKind: string };
+
 @Component({
   selector: 'app-shot-builder-panel',
   standalone: true,
@@ -133,8 +164,10 @@ interface CreationSceneSummary {
     ButtonModule,
     ToastModule,
     TooltipModule,
+    Popover,
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
+    AssetViewerComponent,
     DialogModule,
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
@@ -182,6 +215,8 @@ export class ShotBuilderPanelComponent {
   private readonly shotBuilderService = inject(ShotBuilderService);
   private readonly studioApiService = inject(StudioApiService);
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly filesApi = inject(FilesApiService);
+  private readonly charsApi = inject(CharactersApiService);
   private readonly modelService = inject(ModelService);
   private readonly toast = inject(MessageService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -190,6 +225,21 @@ export class ShotBuilderPanelComponent {
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
+
+  /** True while free assets are being uploaded (persisted to the episode). */
+  readonly uploadingAssets = signal(false);
+
+  /** Episode asset whose metadata is shown in the click popover. */
+  protected readonly assetInfo = signal<AssetInfo | null>(null);
+  /** characterId → assetType, resolved lazily from the full character list so
+   *  the popover can show whether a character is character/location/prop/audio. */
+  private readonly characterTypes = signal<Map<string, AssetType>>(new Map());
+  private charactersLoaded = false;
+  @ViewChild('assetPopover') protected readonly assetPopover!: Popover;
+
+  /** Full-screen file viewer (same component as the Files module). */
+  protected readonly viewerFile = signal<ViewerFile | null>(null);
+  protected readonly viewerVisible = signal(false);
 
   /** Episode-level data (title, totalDuration, assetAssignments). */
   readonly episodeData = signal<EpisodeData | null>(null);
@@ -403,6 +453,130 @@ export class ShotBuilderPanelComponent {
     return this.studio.chapterAssetSlots().get(id) || filename;
   }
 
+  /** Open the metadata popover for a chapter character chip. */
+  protected onCharacterInfo(
+    event: Event,
+    c: { id: string; name: string; slot: string; fileId: string; kind: string },
+  ): void {
+    this.ensureCharacterTypes();
+    this.assetInfo.set({
+      kind: 'character',
+      name: c.name,
+      charId: c.id,
+      fileId: c.fileId,
+      slot: c.slot || this.studio.chapterAssetSlots().get(c.fileId) || '',
+      fileKind: c.kind,
+    });
+    this.assetPopover.toggle(event);
+  }
+
+  /** Load the character→assetType map once, lazily, from the full library. */
+  private ensureCharacterTypes(): void {
+    if (this.charactersLoaded) return;
+    this.charactersLoaded = true;
+    this.charsApi.list().subscribe((res) => {
+      if (res.error || !res.data) return;
+      const map = new Map<string, AssetType>();
+      for (const item of res.data) {
+        let metadata: CharacterMetadata = {};
+        try {
+          metadata = item.character.metadata ? JSON.parse(item.character.metadata) : {};
+        } catch {
+          metadata = {};
+        }
+        map.set(item.character.id, (metadata.assetType ?? 'character') as AssetType);
+      }
+      this.characterTypes.set(map);
+    });
+  }
+
+  /** The asset type (character/location/prop/audio) of the character shown in
+   *  the popover — derived from the library, falling back to 'character'. */
+  protected readonly assetInfoType = computed<AssetType>(() => {
+    const info = this.assetInfo();
+    if (!info || info.kind !== 'character') return 'character';
+    return this.characterTypes().get(info.charId) ?? 'character';
+  });
+
+  /** Open the metadata popover for a free asset thumbnail. */
+  protected onAssetInfo(event: Event, a: ReferenceAsset): void {
+    this.assetInfo.set({
+      kind: 'asset',
+      filename: a.filename,
+      fileId: a.id,
+      slot: this.studio.chapterAssetSlots().get(a.id) || '',
+      fileKind: a.kind,
+    });
+    this.assetPopover.toggle(event);
+  }
+
+  /** Unassign a free asset from the episode (backend + store), then close. */
+  protected onRemoveFreeAsset(): void {
+    const info = this.assetInfo();
+    if (!info || info.kind !== 'asset') return;
+
+    const projectId = this.projectId() || this.studio.projectId();
+    const chapterId = this.chapterId() || this.studio.chapterId();
+    const assignmentId = this.studio.chapterAssetAssignmentIds().get(info.fileId);
+
+    const close = (): void => {
+      this.assetPopover.hide();
+      this.assetInfo.set(null);
+    };
+
+    if (!projectId || !chapterId || !assignmentId) {
+      // Nothing persisted (or no assignment id yet) — just drop it locally.
+      this.studio.removeChapterAsset(info.fileId);
+      close();
+      return;
+    }
+
+    this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId).subscribe({
+      next: (res) => {
+        if (res.error) {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Remove failed',
+            detail: res.msg,
+          });
+          return;
+        }
+        this.studio.removeChapterAsset(info.fileId);
+        this.toast.add({
+          severity: 'success',
+          summary: 'Free asset removed',
+          detail: `${info.filename} removed from the episode`,
+        });
+      },
+      error: () => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Remove failed',
+          detail: 'Failed to remove the asset',
+        });
+      },
+      complete: close,
+    });
+  }
+
+  /** Open the full-screen viewer for the asset currently shown in the popover.
+   *  Uses the same AssetViewerComponent as the Files module. */
+  protected openAssetViewer(): void {
+    const info = this.assetInfo();
+    if (!info || !info.fileId) return;
+    this.viewerFile.set({
+      id: info.fileId,
+      filename: info.kind === 'character' ? info.name : info.filename,
+      mimeType:
+        info.fileKind === 'video'
+          ? 'video/mp4'
+          : info.fileKind === 'audio'
+            ? 'audio/mpeg'
+            : 'image/png',
+    });
+    this.viewerVisible.set(true);
+  }
+
   /** True while saving shots to the backend. */
   readonly savingShots = signal(false);
 
@@ -584,6 +758,116 @@ export class ShotBuilderPanelComponent {
         reader.readAsText(file);
       }
     });
+  }
+
+  /**
+   * Upload image/video/audio files as episode "free assets": each file is
+   * uploaded to the backend, added to the store's freeAssets (so it shows in
+   * the "Episode Assets" panel and is sent to Claude as a reference asset),
+   * and assigned to the chapter so it persists across reloads.
+   */
+  onFreeAssetsSelected(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const files = target?.files ? Array.from(target.files) : [];
+    if (files.length === 0) return;
+
+    const projectId = this.projectId() || this.studio.projectId();
+    const chapterId = this.chapterId() || this.studio.chapterId();
+
+    let pending = files.length;
+    let assignedAny = false;
+    this.uploadingAssets.set(true);
+
+    // Called once per file after its chapter assignment settles (or when it
+    // never had one). Once every file is done, reload the chapter assignments
+    // so the auto-assigned @imageN slots the backend just stored show up
+    // immediately — without the user having to reload the page.
+    const done = (): void => {
+      pending -= 1;
+      if (pending <= 0) {
+        this.uploadingAssets.set(false);
+        if (assignedAny && projectId && chapterId) {
+          this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe((res) => {
+            if (!res.error && res.data) this.studio.setChapterAssignments(res.data);
+          });
+        }
+      }
+    };
+
+    for (const f of files) {
+      let category: FileCategory;
+      if (f.type.startsWith('image/')) {
+        category = 'images';
+      } else if (f.type.startsWith('video/')) {
+        category = 'videos';
+      } else if (f.type.startsWith('audio/')) {
+        category = 'audio';
+      } else {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'Unsupported file type',
+          detail: 'Please upload an image, audio or video',
+        });
+        done();
+        continue;
+      }
+
+      this.filesApi
+        .upload({ file: f, category, storage: 'persistent' })
+        .subscribe({
+          next: (up) => {
+            if (up.error || !up.data) {
+              this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+              done();
+              return;
+            }
+            const fileId = up.data.id;
+            this.studio.addFreeAsset({
+              id: fileId,
+              kind: inferKind(f),
+              filename: up.data.filename,
+              thumbnailUrl: this.filesApi.serveUrl(fileId),
+              tag: '',
+              slot: 'free',
+            });
+            this.toast.add({
+              severity: 'success',
+              summary: 'Free asset added',
+              detail: `${f.name} added to the episode`,
+            });
+            // Persist as an episode asset so it survives chapter changes/reloads.
+            // The returned chapter_assets row id lets the user remove it right
+            // away without waiting for a reload.
+            if (projectId && chapterId) {
+              this.projectsApi
+                .assignAssetToChapter(projectId, chapterId, fileId)
+                .subscribe({
+                  next: (res) => {
+                    if (res?.data?.id) {
+                      this.studio.registerChapterAssetAssignment(fileId, res.data.id);
+                      assignedAny = true;
+                    }
+                  },
+                  error: () => done(),
+                  complete: () => done(),
+                });
+            } else {
+              done();
+            }
+          },
+          error: () => {
+            this.toast.add({
+              severity: 'error',
+              summary: 'Upload error',
+              detail: `Failed to upload ${f.name}`,
+            });
+            done();
+          },
+        });
+    }
+
+    // Allow selecting the same file again.
+    if (target) target.value = '';
   }
 
   /** Extract plain text from a PDF using pdfjs-dist. */

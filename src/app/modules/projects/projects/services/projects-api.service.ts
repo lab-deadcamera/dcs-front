@@ -455,4 +455,20 @@ export class ProjectsApiService {
         catchError(httpErrorHandler<{ id: string }>),
       );
   }
+
+  /** Unassign an asset from a chapter by its chapter_assets row id. */
+  removeAssetFromChapter(
+    projectId: string,
+    chapterId: string,
+    assignmentId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.http
+      .delete<ResponseBase<void>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/assets/${assignmentId}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError(httpErrorHandler<void>),
+      );
+  }
 }

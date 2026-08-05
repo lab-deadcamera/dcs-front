@@ -73,9 +73,11 @@
                   </span>
                   <div class="mt-1 flex flex-wrap gap-1">
                     @for (c of sortedChapterCharacters(); track c.id) {
-                      <span
-                        class="group relative inline-flex items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500"
+                      <button
+                        type="button"
+                        class="group relative inline-flex cursor-pointer items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500 transition-colors hover:bg-ink-700"
                         [title]="c.slot || c.name"
+                        (click)="onCharacterInfo($event, c)"
                       >
                         <i
                           class="pi text-[10px]"
@@ -100,7 +102,7 @@
                             />
                           </div>
                         }
-                      </span>
+                      </button>
                     }
                   </div>
                 </div>
@@ -114,15 +116,17 @@
                   </span>
                   <div class="mt-1 flex flex-wrap gap-1.5">
                     @for (a of sortedFreeAssets(); track a.id) {
-                      <div
-                        class="group relative h-12 w-12 overflow-hidden rounded border border-ink-600 bg-ink-800"
+                      <button
+                        type="button"
+                        class="group relative h-12 w-12 cursor-pointer overflow-hidden rounded border border-ink-600 bg-ink-800 transition-colors hover:border-ink-400"
                         [title]="chapterAssetSlotLabel(a.id, a.filename)"
+                        (click)="onAssetInfo($event, a)"
                       >
                         @if (a.kind === 'image' && !isThumbBroken(a.id)) {
                           <img
                             [src]="a.id | sourceAsset"
                             [alt]="a.filename"
-                            class="h-full w-full object-cover"
+                            class="h-full w-full object-contain"
                             loading="lazy"
                             (error)="onThumbError(a.id)"
                           />
@@ -144,7 +148,7 @@
                         >
                           {{ a.filename }}
                         </span>
-                      </div>
+                      </button>
                     }
                   </div>
                 </div>
@@ -194,12 +198,12 @@
           }
 
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
+            <!-- <div class="flex items-center gap-2">
               <input
                 #fileInput
                 type="file"
                 class="hidden"
-                accept=".md,.txt,.json,.html,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp"
+                accept=".md,.txt,.json,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp"
                 [multiple]="true"
                 (change)="onSelectedFiles($event)"
               />
@@ -211,6 +215,47 @@
                 (onClick)="fileInput.click()"
                 [disabled]="loading()"
                 pTooltip="Attach file"
+                tooltipPosition="top"
+              />
+            </div> -->
+            <div class="flex items-center gap-2">
+              <input
+                #fileInput
+                type="file"
+                class="hidden"
+                accept=".md,.txt,.json,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                [multiple]="true"
+                (change)="onSelectedFiles($event)"
+              />
+              <p-button
+                icon="pi pi-paperclip"
+                severity="secondary"
+                [outlined]="true"
+                [rounded]="true"
+                size="small"
+                (onClick)="fileInput.click()"
+                [disabled]="loading()"
+                pTooltip="Attach file"
+                tooltipPosition="top"
+              />
+              <input
+                #freeAssetsInput
+                type="file"
+                class="hidden"
+                accept="image/*,video/*,audio/*"
+                [multiple]="true"
+                (change)="onFreeAssetsSelected($event)"
+              />
+              <p-button
+                icon="pi pi-image"
+                severity="secondary"
+                [outlined]="true"
+                rounded]="true"
+                size="small"
+                (onClick)="freeAssetsInput.click()"
+                [disabled]="loading() || uploadingAssets()"
+                [loading]="uploadingAssets()"
+                pTooltip="Upload free assets (image/video/audio) to the episode"
                 tooltipPosition="top"
               />
             </div>
@@ -366,6 +411,8 @@
                   [projectName]="projectName()"
                   [chapterName]="chapterName()"
                   [sceneName]="sceneName()"
+                  [projectId]="projectId() ?? studio.projectId() ?? ''"
+                  [chapterId]="chapterId() ?? studio.chapterId() ?? ''"
                   [showChinese]="generateChinese()"
                   [creating]="savingShots()"
                   (createPrePromptsClicked)="onCreatePrePrompts($event)"
@@ -690,6 +737,136 @@
   </p-splitter>
 </div>
 
+<!-- Episode asset metadata popover (characters + free assets) -->
+<p-popover #assetPopover [dismissable]="true">
+  @if (assetInfo(); as info) {
+    <div class="w-80 p-2">
+      <p
+        class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted"
+      >
+        <i
+          class="pi text-[10px]"
+          [class.pi-user]="info.kind === 'character'"
+          [class.pi-image]="info.kind === 'asset'"
+          aria-hidden="true"
+        ></i>
+        {{ info.kind === 'character' ? 'Character' : 'Free Asset' }}
+      </p>
+
+      <!-- Image preview (thumbnail for characters, full file for assets).
+           Click opens the full-screen AssetViewer (same as the Files module). -->
+      @if (info.fileId && info.fileKind === 'image') {
+        <button
+          type="button"
+          class="group relative mb-2 block w-full cursor-zoom-in overflow-hidden rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
+          [class.hidden]="isThumbBroken(info.fileId)"
+          (click)="openAssetViewer()"
+          pTooltip="Open full image"
+          tooltipPosition="top"
+        >
+          <img
+            [src]="
+              info.kind === 'character'
+                ? (info.fileId | sourceThumbnailAsset)
+                : (info.fileId | sourceAsset)
+            "
+            [alt]="info.kind === 'character' ? info.name : info.filename"
+            class="h-24 w-full object-contain"
+            loading="lazy"
+            (error)="onThumbError(info.fileId)"
+          />
+          <span
+            class="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded bg-ink-950/70 text-fg-muted transition-colors group-hover:text-fg"
+            aria-hidden="true"
+          >
+            <i class="pi pi-expand text-[10px]"></i>
+          </span>
+        </button>
+      } @else if (info.fileId) {
+        <!-- Video/audio placeholder → opens the viewer (which plays them). -->
+        <button
+          type="button"
+          class="mb-2 flex h-20 w-full cursor-pointer items-center justify-center rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
+          (click)="openAssetViewer()"
+          [pTooltip]="info.fileKind === 'video' ? 'Open video' : 'Open audio'"
+          tooltipPosition="top"
+        >
+          <i
+            class="pi text-2xl text-fg-muted"
+            [class.pi-video]="info.fileKind === 'video'"
+            [class.pi-volume-up]="info.fileKind === 'audio'"
+            aria-hidden="true"
+          ></i>
+        </button>
+      }
+
+      @if (info.kind === 'character') {
+        <dl class="m-0 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Name</dt>
+            <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">{{ info.name }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Type</dt>
+            <dd class="m-0 text-[11px] capitalize text-fg">{{ assetInfoType() }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">File</dt>
+            <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Slot</dt>
+            <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Character ID</dt>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.charId }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.fileId || '—' }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <dl class="m-0 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Filename</dt>
+            <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">{{ info.filename }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Type</dt>
+            <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">Slot</dt>
+            <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.fileId }}</dd>
+          </div>
+        </dl>
+        <div class="mt-2 flex justify-end border-t border-ink-700 pt-2">
+          <p-button
+            label="Remove from episode"
+            severity="danger"
+            [text]="true"
+            size="small"
+            icon="pi pi-trash"
+            (onClick)="onRemoveFreeAsset()"
+          />
+        </div>
+      }
+    </div>
+  }
+</p-popover>
+
+<!-- Full-screen asset viewer (same component as the Files module) -->
+<app-asset-viewer
+  [(visible)]="viewerVisible"
+  [file]="viewerFile()"
+/>
+
 <!-- Preview payload dialog (super admin only) -->
 <p-dialog
   [visible]="previewDialogVisible()"
@@ -774,10 +951,8 @@
   >
     <div class="flex flex-col gap-3 py-2">
       <p class="text-[13px] font-semibold text-fg">
-        Se crearon {{ summary.scenes.length }} escena{{
-          summary.scenes.length !== 1 ? 's' : ''
-        }}
-        y {{ summary.shotsCreated }} shot{{ summary.shotsCreated !== 1 ? 's' : '' }}.
+        Se crearon {{ summary.scenes.length }} escena{{ summary.scenes.length !== 1 ? 's' : '' }} y
+        {{ summary.shotsCreated }} shot{{ summary.shotsCreated !== 1 ? 's' : '' }}.
       </p>
       <ul class="flex flex-col gap-1.5">
         @for (scene of summary.scenes; track scene.scriptNumber) {
@@ -787,7 +962,11 @@
                 #{{ scene.scriptNumber }} — {{ scene.scriptLocation }}
               </span>
               <span class="flex shrink-0 items-center gap-1.5 text-[11px] text-fg-muted">
-                <span>{{ scene.shotNumbers.length }} shot{{ scene.shotNumbers.length !== 1 ? 's' : '' }}</span>
+                <span
+                  >{{ scene.shotNumbers.length }} shot{{
+                    scene.shotNumbers.length !== 1 ? 's' : ''
+                  }}</span
+                >
                 @if (scene.created) {
                   <span
                     class="rounded bg-green-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-green-400"

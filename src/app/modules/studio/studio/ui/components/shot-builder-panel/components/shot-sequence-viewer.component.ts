@@ -2,20 +2,32 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Sequence, SequenceScene, Shot, ReferenceType } from '@app/core/interfaces';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { Sequence, SequenceScene, Shot, Reference, ReferenceType } from '@app/core/interfaces';
 import { ShotCardPreviewComponent, beatInfoFromSegments } from './shot-card-preview.component';
 import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
+import { ShotReferenceResolverComponent } from './shot-reference-resolver.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
   selector: 'app-shot-sequence-viewer',
   standalone: true,
-  imports: [CommonModule, ShotCardPreviewComponent, ShotTimelineStripComponent],
+  imports: [
+    CommonModule,
+    DialogModule,
+    ButtonModule,
+    ShotCardPreviewComponent,
+    ShotTimelineStripComponent,
+    ShotReferenceResolverComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="viewer h-full overflow-y-auto" *ngIf="sequence() as seq">
@@ -105,19 +117,14 @@ import { StudioStore } from '@app/core/stores/studio.store';
         </div>
       }
 
-      <!-- References summary -->
-      @if (seq.references.length > 0) {
-        <div class="section-tag">Referencias @image</div>
-        <div class="refs-summary">
-          @for (ref of seq.references; track ref.slot) {
-            <span class="cut"
-              ><em>{{ ref.slot }}</em> {{ refNames()[ref.assetId] || ref.assetId }} ({{
-                refTypeLabel(ref.type)
-              }})</span
-            >
-          }
-        </div>
-      }
+      <!-- References summary — detect + resolve missing references -->
+      <app-shot-reference-resolver
+        [references]="seq.references"
+        [unresolved]="allUnresolvedRefs()"
+        [projectId]="projectId()"
+        [chapterId]="chapterId()"
+        (assignedSlotsChange)="onAssignedSlotsChange($event)"
+      />
 
       <!-- Section tag -->
       <div class="section-tag">Planos · ingredientes listados por tarjeta</div>
@@ -147,9 +154,10 @@ import { StudioStore } from '@app/core/stores/studio.store';
               <div class="shots-list">
                 @for (shot of sceneShots; track shot.id) {
                   <app-shot-card-preview
-                    [shot]="shot"
+                    [shot]="shotFor(shot)"
                     [beat]="beatFor(shot.id, seq)"
-                    [(approved)]="approvedMap[shot.id]"
+                    [approved]="approvedMap[shot.id]"
+                    (approvedChange)="onApprovedChange(shot.id, $event)"
                     [showChinese]="showChinese()"
                     (promptChange)="onPromptChange(shot.id, $event)"
                     (langChange)="onLangChange(shot.id, $event)"
@@ -164,9 +172,10 @@ import { StudioStore } from '@app/core/stores/studio.store';
         <div class="shots-list">
           @for (shot of seq.shots; track shot.id) {
             <app-shot-card-preview
-              [shot]="shot"
+              [shot]="shotFor(shot)"
               [beat]="beatFor(shot.id, seq)"
-              [(approved)]="approvedMap[shot.id]"
+              [approved]="approvedMap[shot.id]"
+              (approvedChange)="onApprovedChange(shot.id, $event)"
               [showChinese]="showChinese()"
               (promptChange)="onPromptChange(shot.id, $event)"
               (langChange)="onLangChange(shot.id, $event)"
@@ -177,10 +186,19 @@ import { StudioStore } from '@app/core/stores/studio.store';
 
       <!-- Summary: selected prompt per shot + create button -->
       <div class="summary">
-        <div class="section-tag">Resumen de prompts</div>
+        <div class="section-tag">
+          Resumen de prompts
+          <span class="summary-approved-count"
+            >{{ approvedCount() }}/{{ seq.shots.length }} aprobados</span
+          >
+        </div>
         <div class="summary-grid">
           @for (shot of seq.shots; track shot.id) {
-            <div class="summary-row" [class.summary-approved]="approvedMap[shot.id]">
+            <div
+              class="summary-row"
+              [class.summary-approved]="approvedMap[shot.id]"
+              [class.summary-unapproved]="!approvedMap[shot.id]"
+            >
               <span class="summary-id">
                 @if (sceneNumberFor(shot.id); as sceneNum) {
                   <span class="summary-scene">#{{ sceneNum }}</span>
@@ -214,6 +232,77 @@ import { StudioStore } from '@app/core/stores/studio.store';
         </div>
       </div>
     </div>
+
+    <!-- No approved shots confirmation -->
+    <p-dialog
+      [visible]="noApprovedVisible()"
+      (visibleChange)="noApprovedVisible.set($event)"
+      [modal]="true"
+      [closable]="false"
+      [draggable]="false"
+      [style]="{ width: '30rem', maxWidth: '95vw' }"
+      header="Sin shots aprobados"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <p class="text-[13px] leading-relaxed">
+          No hay ningún shot marcado como aprobado. Marca al menos un shot como
+          aprobado para crear su pre-prompt.
+        </p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end">
+          <p-button
+            severity="primary"
+            label="Entendido"
+            (onClick)="noApprovedVisible.set(false)"
+          />
+        </div>
+      </ng-template>
+    </p-dialog>
+
+    <!-- Unresolved references confirmation -->
+    <p-dialog
+      [visible]="confirmRefsVisible()"
+      (visibleChange)="confirmRefsVisible.set($event)"
+      [modal]="true"
+      [closable]="false"
+      [draggable]="false"
+      [style]="{ width: '38rem', maxWidth: '95vw' }"
+      header="Referencias sin resolver"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <p class="text-[13px] leading-relaxed">
+          Hay {{ unresolvedRefs().length }} referencia{{
+            unresolvedRefs().length !== 1 ? 's' : ''
+          }} sin un asset o character relacionado en el episodio:
+        </p>
+        <ul class="flex flex-col gap-1.5">
+          @for (ref of unresolvedRefs(); track ref.slot) {
+            <li class="rounded-lg border border-red-900/40 bg-red-900/10 px-3 py-2 font-mono text-[12px]">
+              <span class="font-bold text-amber-400">{{ ref.slot }}</span>
+              <span class="text-fg-muted"> · </span>
+              <span class="text-fg">{{ refNames()[ref.assetId] || ref.assetId }}</span>
+              <span class="text-fg-muted"> ({{ refTypeLabel(ref.type) }})</span>
+            </li>
+          }
+        </ul>
+        <p class="text-[12px] leading-relaxed text-fg-muted">
+          Puedes asignar un free asset a cada una en la sección "Referencias @image",
+          o continuar de todos modos.
+        </p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+          <p-button
+            severity="secondary"
+            [text]="true"
+            label="Cancelar"
+            (onClick)="confirmRefsVisible.set(false)"
+          />
+          <p-button severity="primary" label="Continuar" (onClick)="emitCreatePrePrompts()" />
+        </div>
+      </ng-template>
+    </p-dialog>
   `,
   styles: [
     `
@@ -582,6 +671,19 @@ import { StudioStore } from '@app/core/stores/studio.store';
         background: rgba(95, 185, 143, 0.06);
         border-left: 2px solid #5fb98f;
       }
+      .summary-row.summary-unapproved {
+        opacity: 0.5;
+      }
+      .summary-approved-count {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.1em;
+        color: #5fb98f;
+        border: 1px solid rgba(95, 185, 143, 0.4);
+        border-radius: 100px;
+        padding: 2px 10px;
+        white-space: nowrap;
+      }
       .summary-id {
         font-weight: 700;
         color: var(--ink, #ece6d8);
@@ -651,6 +753,10 @@ export class ShotSequenceViewerComponent {
   readonly sceneName = input<string>('');
   /** Whether to show the Chinese language toggle on shot cards. */
   readonly showChinese = input(true);
+  /** Project/chapter ids — passed to the reference resolver so it can assign
+   *  free assets to the episode's chapter. Falls back to the studio store. */
+  readonly projectId = input<string>('');
+  readonly chapterId = input<string>('');
 
   /** True while the parent is creating scenes/shots from this list — disables
    *  the create button and shows a spinner. */
@@ -659,16 +765,34 @@ export class ShotSequenceViewerComponent {
   /** Mutable map of shot ID → approval status. */
   protected readonly approvedMap: Record<string, boolean> = {};
 
+  /** Bumped every time an approval changes, so computeds that depend on
+   *  approvedMap (a plain object) stay reactive. */
+  private readonly approvedTick = signal(0);
+
   /** Map of shot ID → selected language. */
   protected readonly langMap: Record<string, 'en' | 'zh'> = {};
+
+  /** Edits made by double-clicking a shot prompt, keyed by shot id and lang —
+   *  kept in the viewer so the change is reflected in the card, the summary
+   *  and the emitted pre-prompts (previously onPromptChange only logged). */
+  protected readonly promptOverrides = signal<Record<string, { en?: string; zh?: string }>>({});
 
   /** One entry of the list emitted by "Crear listado de pre-prompts". */
   readonly createPrePromptsClicked =
     output<{ sceneNumber: number; shotId: string; lang: 'en' | 'zh'; prompt: string }[]>();
 
   protected readonly approvedCount = computed(() => {
+    this.approvedTick();
     const ids = this.sequence()?.shots.map((s) => s.id) ?? [];
     return ids.filter((id) => this.approvedMap[id]).length;
+  });
+
+  /** Shots marked as approved — only these are created by "Crear listado". */
+  protected readonly approvedShots = computed<Shot[]>(() => {
+    this.approvedTick();
+    const seq = this.sequence();
+    if (!seq) return [];
+    return seq.shots.filter((s) => this.approvedMap[s.id]);
   });
 
   private readonly studio = inject(StudioStore);
@@ -689,6 +813,64 @@ export class ShotSequenceViewerComponent {
     }
     return map;
   });
+
+  /** Slots the reference resolver has assigned a free asset to — those
+   *  references stop counting as unresolved even when the assetId placeholder
+   *  from the backend still doesn't match. */
+  protected readonly assignedRefSlots = signal<Set<string>>(new Set());
+
+  protected onAssignedSlotsChange(slots: Set<string>): void {
+    this.assignedRefSlots.set(slots);
+  }
+
+  /** References used by the approved shots (subset of seq.references by slot) —
+   *  only these matter for the create flow, since only approved shots are
+   *  created. */
+  protected readonly approvedRefs = computed<Reference[]>(() => {
+    this.approvedTick();
+    const seq = this.sequence();
+    if (!seq) return [];
+    const approvedSlots = new Set<string>();
+    for (const shot of seq.shots) {
+      if (!this.approvedMap[shot.id]) continue;
+      for (const ref of shot.references ?? []) approvedSlots.add(ref.slot);
+    }
+    return seq.references.filter((r) => approvedSlots.has(r.slot));
+  });
+
+  /** ALL references of the sequence with no related asset/character — this
+   *  drives the resolver's highlighting so the user can assign a free asset to
+   *  any reference, approved or not. */
+  protected readonly allUnresolvedRefs = computed<Reference[]>(() => {
+    const seq = this.sequence();
+    if (!seq) return [];
+    return seq.references.filter(
+      (r) => !this.isRefResolved(r) && !this.assignedRefSlots().has(r.slot),
+    );
+  });
+
+  /** References of the APPROVED shots that have no related asset/character —
+   *  used to validate before creating the pre-prompts. */
+  protected readonly unresolvedRefs = computed<Reference[]>(() => {
+    return this.approvedRefs().filter(
+      (r) => !this.isRefResolved(r) && !this.assignedRefSlots().has(r.slot),
+    );
+  });
+
+  /** True when a reference is resolved: its assetId matches a known character
+   *  or free asset in the episode. (Slot-occupancy alone does NOT resolve it —
+   *  episode assets all carry auto-assigned @imageN slots, which would make
+   *  every reference look resolved.) */
+  protected isRefResolved(ref: Reference): boolean {
+    return Boolean(this.refNames()[ref.assetId]);
+  }
+
+  /** Visibility of the "continuar de todos modos" dialog when creating
+   *  pre-prompts with unresolved references. */
+  protected readonly confirmRefsVisible = signal(false);
+
+  /** Visibility of the "no shots approved" dialog. */
+  protected readonly noApprovedVisible = signal(false);
 
   protected readonly slack = computed(() => {
     const seq = this.sequence();
@@ -733,42 +915,91 @@ export class ShotSequenceViewerComponent {
     return beatInfoFromSegments(shotId, seq.sequenceFlow.segments);
   }
 
+  /** Persist a prompt edit (double-click) so it stays visible in the card and
+   *  is used when creating the pre-prompts. */
   protected onPromptChange(shotId: string, change: { lang: 'en' | 'zh'; value: string }): void {
-    // Log the change — backends can subscribe to this in the future
-    console.log(
-      `[shot-sequence-viewer] Shot ${shotId} ${change.lang} prompt updated`,
-      change.value,
-    );
+    this.promptOverrides.update((map) => {
+      const cur = map[shotId] || {};
+      return { ...map, [shotId]: { ...cur, [change.lang]: change.value } };
+    });
+  }
+
+  /** Record an approval toggle and bump the reactive tick. */
+  protected onApprovedChange(shotId: string, value: boolean): void {
+    this.approvedMap[shotId] = value;
+    this.approvedTick.update((n) => n + 1);
   }
 
   protected onLangChange(shotId: string, lang: 'en' | 'zh'): void {
     this.langMap[shotId] = lang;
   }
 
-  /** Short preview of the prompt text (first N chars). */
+  /** The shot as the card should render it — with any user prompt edits
+   *  applied on top of the original. Returns the same reference when there are
+   *  no overrides, so OnPush change detection isn't forced unnecessarily. */
+  protected shotFor(shot: Shot): Shot {
+    const over = this.promptOverrides()[shot.id];
+    if (!over) return shot;
+    return {
+      ...shot,
+      prompt: {
+        en: over.en ?? shot.prompt.en,
+        zh: over.zh ?? shot.prompt.zh,
+      },
+    };
+  }
+
+  /** Short preview of the prompt text (first N chars), honoring edits. */
   protected promptPreview(shot: Shot): string {
     const lang = this.langMap[shot.id] || 'en';
-    const text = lang === 'en' ? shot.prompt.en : shot.prompt.zh;
+    const over = this.promptOverrides()[shot.id];
+    const text = lang === 'zh' ? (over?.zh ?? shot.prompt.zh) : (over?.en ?? shot.prompt.en);
     if (!text) return '(empty)';
     return text.length > 80 ? text.slice(0, 77) + '…' : text;
   }
 
-  /** Gather all selected prompts and emit them, with the scene each shot
-   *  belongs to (0 when the sequence has no per-scene grouping). */
+  /** Create the pre-prompts for the APPROVED shots only. If none are approved,
+   *  show a message; if approved shots have unresolved references, ask first. */
   protected createPrePrompts(): void {
-    const seq = this.sequence();
-    if (!seq) return;
-    const list = seq.shots.map((shot) => {
+    if (this.approvedShots().length === 0) {
+      this.noApprovedVisible.set(true);
+      return;
+    }
+    if (this.unresolvedRefs().length > 0) {
+      this.confirmRefsVisible.set(true);
+      return;
+    }
+    this.emitCreatePrePrompts();
+  }
+
+  /** Emit the pre-prompt list (called directly, or after "Continuar" in the
+   *  unresolved-references confirmation dialog). Only approved shots are
+   *  included, with their edited prompts. */
+  protected emitCreatePrePrompts(): void {
+    this.confirmRefsVisible.set(false);
+    const shots = this.approvedShots();
+    if (shots.length === 0) return;
+    const list = shots.map((shot) => {
+      const lang = this.langMap[shot.id] || 'en';
+      const over = this.promptOverrides()[shot.id];
+      const value =
+        (lang === 'zh' ? over?.zh ?? shot.prompt.zh : over?.en ?? shot.prompt.en) || '';
       const sceneNum = parseInt(this.sceneNumberFor(shot.id), 10);
       return {
         sceneNumber: Number.isFinite(sceneNum) ? sceneNum : 0,
         shotId: shot.id,
-        lang: this.langMap[shot.id] || 'en',
-        prompt: (this.langMap[shot.id] === 'zh' ? shot.prompt.zh : shot.prompt.en) || '',
+        lang,
+        prompt: value,
       };
     });
     this.createPrePromptsClicked.emit(list);
   }
+
+  /** Discard prompt edits when a new sequence arrives (fresh generation). */
+  private readonly resetOverridesOnSequence = effect(() => {
+    this.sequence();
+    this.promptOverrides.set({});
+  });
 
   protected onShotHighlight(shotId: string): void {
     const el = document.getElementById('shot-' + shotId);

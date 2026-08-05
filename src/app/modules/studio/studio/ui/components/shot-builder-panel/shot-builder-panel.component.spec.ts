@@ -10,6 +10,8 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
+import { FilesApiService } from '@app/services/files-api.service';
+import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { ModelService } from '@app/services/model.service';
 import { MessageService } from 'primeng/api';
 import { Sequence } from '@app/core/interfaces';
@@ -21,7 +23,13 @@ import type { ShotBuilderPanelComponent } from './shot-builder-panel.component';
 @Injectable()
 class StudioStoreStub {
   readonly patchOutput = vi.fn();
+  readonly addFreeAsset = vi.fn();
+  readonly removeChapterAsset = vi.fn();
+  readonly registerChapterAssetAssignment = vi.fn();
+  readonly setChapterAssignments = vi.fn();
   readonly chapterCharacterData = vi.fn().mockReturnValue([]);
+  readonly chapterAssetSlots = vi.fn().mockReturnValue(new Map());
+  readonly chapterAssetAssignmentIds = vi.fn().mockReturnValue(new Map());
   readonly projectId = vi.fn().mockReturnValue('');
   readonly chapterId = vi.fn().mockReturnValue('');
   readonly sceneId = vi.fn().mockReturnValue('');
@@ -51,6 +59,20 @@ class StudioApiServiceStub {
 @Injectable()
 class ProjectsApiServiceStub {
   readonly listScenes = vi.fn().mockReturnValue(of({ data: [{ id: 'sc-56', number: 56 }] }));
+  readonly assignAssetToChapter = vi.fn().mockReturnValue(of({ success: true }));
+  readonly removeAssetFromChapter = vi.fn().mockReturnValue(of({ success: true }));
+  readonly getChapterAssignments = vi.fn().mockReturnValue(of({ success: true }));
+}
+
+@Injectable()
+class FilesApiServiceStub {
+  readonly upload = vi.fn();
+  readonly serveUrl = vi.fn((id: string) => `/api/v1/files/${id}/serve`);
+}
+
+@Injectable()
+class CharactersApiServiceStub {
+  readonly list = vi.fn().mockReturnValue(of({ error: true }));
 }
 
 const sanitizerStub = {
@@ -106,6 +128,9 @@ describe('ShotBuilderPanelComponent — duración', () => {
   let studio: StudioStoreStub;
   let shotsSvc: ShotBuilderServiceStub;
   let api: StudioApiServiceStub;
+  let files: FilesApiServiceStub;
+  let projects: ProjectsApiServiceStub;
+  let chars: CharactersApiServiceStub;
 
   beforeAll(async () => {
     // pdfjs-dist references browser DOM globals at module load (new DOMMatrix()).
@@ -161,6 +186,8 @@ describe('ShotBuilderPanelComponent — duración', () => {
         { provide: ShotBuilderService, useClass: ShotBuilderServiceStub },
         { provide: StudioApiService, useClass: StudioApiServiceStub },
         { provide: ProjectsApiService, useClass: ProjectsApiServiceStub },
+        { provide: FilesApiService, useClass: FilesApiServiceStub },
+        { provide: CharactersApiService, useClass: CharactersApiServiceStub },
         { provide: ModelService, useClass: ModelServiceStub },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: DomSanitizer, useValue: sanitizerStub },
@@ -179,12 +206,20 @@ describe('ShotBuilderPanelComponent — duración', () => {
     studio = TestBed.inject(StudioStore) as unknown as StudioStoreStub;
     shotsSvc = TestBed.inject(ShotBuilderService) as unknown as ShotBuilderServiceStub;
     api = TestBed.inject(StudioApiService) as unknown as StudioApiServiceStub;
+    files = TestBed.inject(FilesApiService) as unknown as FilesApiServiceStub;
+    projects = TestBed.inject(ProjectsApiService) as unknown as ProjectsApiServiceStub;
+    chars = TestBed.inject(CharactersApiService) as unknown as CharactersApiServiceStub;
 
     fixture = TestBed.createComponent(ComponentClass);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('projectId', 'proj-1');
     fixture.componentRef.setInput('chapterId', 'chap-1');
     fixture.detectChanges();
+    // The real template is overridden with a stub, so Angular's ViewChild query
+    // finds no popover and leaves assetPopover undefined. Provide a fake popover
+    // AFTER detectChanges (a query refresh would otherwise reset it to undefined)
+    // so the click handlers that call toggle()/hide() work.
+    (component as any).assetPopover = { toggle: vi.fn(), hide: vi.fn() };
   });
 
   /** Seed the parsed response state: scene durations + sequence aspect ratio. */
@@ -259,6 +294,195 @@ describe('ShotBuilderPanelComponent — duración', () => {
     expect(studio.patchOutput).not.toHaveBeenCalledWith(
       expect.objectContaining({ aspectRatio: expect.anything() }),
     );
+  });
+
+  it('sube un free asset: lo agrega al store y lo asigna al capítulo', () => {
+    files.upload.mockReturnValue(
+      of({ error: false, msg: 'ok', data: { id: 'file-1', filename: 'foto.png' } }),
+    );
+    const file = new File([new Uint8Array([1])], 'foto.png', { type: 'image/png' });
+    const event = { target: { files: [file] } } as unknown as Event;
+
+    component.onFreeAssetsSelected(event);
+
+    expect(files.upload).toHaveBeenCalledWith({ file, category: 'images', storage: 'persistent' });
+    expect(studio.addFreeAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'file-1', kind: 'image', filename: 'foto.png' }),
+    );
+    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-1');
+  });
+
+  it('recarga los assignments tras asignar un free asset (slot inmediato)', () => {
+    files.upload.mockReturnValue(
+      of({ error: false, msg: 'ok', data: { id: 'file-1', filename: 'foto.png' } }),
+    );
+    projects.assignAssetToChapter.mockReturnValue(
+      of({ success: true, data: { id: 'assign-1' } }),
+    );
+    const assignmentData = { presets: [], characters: [], assets: [] };
+    projects.getChapterAssignments.mockReturnValue(of({ success: true, data: assignmentData }));
+    const file = new File([new Uint8Array([1])], 'foto.png', { type: 'image/png' });
+    const event = { target: { files: [file] } } as unknown as Event;
+
+    component.onFreeAssetsSelected(event);
+
+    expect(projects.getChapterAssignments).toHaveBeenCalledWith('proj-1', 'chap-1');
+    expect(studio.setChapterAssignments).toHaveBeenCalledWith(assignmentData);
+  });
+
+  it('no asigna al capítulo cuando no hay capítulo seleccionado', () => {
+    files.upload.mockReturnValue(
+      of({ error: false, msg: 'ok', data: { id: 'file-2', filename: 'clip.mp4' } }),
+    );
+    fixture.componentRef.setInput('chapterId', null);
+    const file = new File([new Uint8Array([1])], 'clip.mp4', { type: 'video/mp4' });
+    const event = { target: { files: [file] } } as unknown as Event;
+
+    component.onFreeAssetsSelected(event);
+
+    expect(studio.addFreeAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'file-2', kind: 'video', filename: 'clip.mp4' }),
+    );
+    expect(projects.assignAssetToChapter).not.toHaveBeenCalled();
+  });
+
+  it('abre el popover de un character con sus metadatos', () => {
+    const character = { id: 'char-1', name: 'Wyatt', slot: '@image1', fileId: 'file-9', kind: 'image' };
+    (component as any).onCharacterInfo(new Event('click'), character);
+
+    expect((component as any).assetInfo()).toEqual({
+      kind: 'character',
+      name: 'Wyatt',
+      charId: 'char-1',
+      fileId: 'file-9',
+      slot: '@image1',
+      fileKind: 'image',
+    });
+    expect((component as any).assetPopover.toggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('deriva el assetType del character desde la librería', () => {
+    chars.list.mockReturnValue(
+      of({
+        error: false,
+        msg: 'ok',
+        data: [
+          {
+            character: {
+              id: 'char-1',
+              name: 'Wyatt',
+              description: '',
+              metadata: JSON.stringify({ assetType: 'location' }),
+              created_at: '',
+              updated_at: '',
+              deleted_at: null,
+            },
+            files: [],
+          },
+        ],
+      }),
+    );
+    const character = { id: 'char-1', name: 'Wyatt', slot: '@image1', fileId: 'file-9', kind: 'image' };
+    (component as any).onCharacterInfo(new Event('click'), character);
+
+    // of(...) emits synchronously, so the map is populated by the time we assert.
+    expect((component as any).assetInfoType()).toBe('location');
+  });
+
+  it('cae a "character" cuando el character no tiene metadata', () => {
+    (component as any).onCharacterInfo(
+      new Event('click'),
+      { id: 'char-2', name: 'Ghost', slot: '', fileId: '', kind: 'image' },
+    );
+
+    expect((component as any).assetInfoType()).toBe('character');
+  });
+
+  it('abre el popover de un free asset con sus metadatos', () => {
+    const asset = {
+      id: 'file-3',
+      kind: 'image' as const,
+      filename: 'set.jpg',
+      thumbnailUrl: '',
+      tag: '',
+      slot: 'free' as const,
+    };
+    (component as any).onAssetInfo(new Event('click'), asset);
+
+    expect((component as any).assetInfo()).toEqual({
+      kind: 'asset',
+      filename: 'set.jpg',
+      fileId: 'file-3',
+      slot: '',
+      fileKind: 'image',
+    });
+    expect((component as any).assetPopover.toggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('abre el viewer completo con los datos del popover actual', () => {
+    (component as any).assetInfo.set({
+      kind: 'character',
+      name: 'Wyatt',
+      charId: 'char-1',
+      fileId: 'file-9',
+      slot: '@image1',
+      fileKind: 'image',
+    });
+
+    (component as any).openAssetViewer();
+
+    expect((component as any).viewerFile()).toEqual({
+      id: 'file-9',
+      filename: 'Wyatt',
+      mimeType: 'image/png',
+    });
+    expect((component as any).viewerVisible()).toBe(true);
+  });
+
+  it('no abre el viewer sin fileId', () => {
+    (component as any).assetInfo.set({
+      kind: 'character',
+      name: 'Ghost',
+      charId: 'char-2',
+      fileId: '',
+      slot: '',
+      fileKind: 'image',
+    });
+
+    (component as any).openAssetViewer();
+
+    expect((component as any).viewerVisible()).toBe(false);
+  });
+
+  it('remueve un free asset del capítulo (backend + store)', () => {
+    studio.chapterAssetAssignmentIds.mockReturnValue(new Map([['file-3', 'assign-1']]));
+    (component as any).assetInfo.set({
+      kind: 'asset',
+      filename: 'set.jpg',
+      fileId: 'file-3',
+      slot: '',
+      fileKind: 'image',
+    });
+
+    (component as any).onRemoveFreeAsset();
+
+    expect(projects.removeAssetFromChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'assign-1');
+    expect(studio.removeChapterAsset).toHaveBeenCalledWith('file-3');
+  });
+
+  it('remueve un free asset localmente cuando no hay assignment id', () => {
+    (component as any).assetInfo.set({
+      kind: 'asset',
+      filename: 'set.jpg',
+      fileId: 'file-3',
+      slot: '',
+      fileKind: 'image',
+    });
+
+    (component as any).onRemoveFreeAsset();
+
+    expect(projects.removeAssetFromChapter).not.toHaveBeenCalled();
+    expect(studio.removeChapterAsset).toHaveBeenCalledWith('file-3');
   });
 });
 

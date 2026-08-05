@@ -86,12 +86,15 @@ export class StudioStore {
   /** fileId → @imageN slot inherited from the chapter assignment for assets
    *  (locations/props/audio). Characters keep their slot in chapterCharacterData. */
   private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
+  /** fileId → chapter_assets row id, required to unassign an episode asset. */
+  private readonly _chapterAssetAssignmentIds = signal<Map<string, string>>(new Map());
 
   readonly chapterPresetIds = this._chapterPresetIds.asReadonly();
   readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
   readonly chapterAssetIds = this._chapterAssetIds.asReadonly();
   readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
   readonly chapterAssetSlots = this._chapterAssetSlots.asReadonly();
+  readonly chapterAssetAssignmentIds = this._chapterAssetAssignmentIds.asReadonly();
 
   /** True after setChapterAssignments has been called at least once (even if
    *  the response contained null/empty arrays). Used by child components
@@ -437,6 +440,7 @@ export class StudioStore {
     this._chapterCharacterData.set([]);
     this._chapterAssetIds.set(new Set());
     this._chapterAssetSlots.set(new Map());
+    this._chapterAssetAssignmentIds.set(new Map());
     this._assignmentsLoaded.set(false);
     // shot resources removed — using chapter assignments only
   }
@@ -646,6 +650,37 @@ export class StudioStore {
     });
   }
 
+  /** Register the chapter_assets row id for a file after assigning it, so the
+   *  asset can be unassigned later without waiting for a reload. */
+  registerChapterAssetAssignment(fileId: string, assignmentId: string) {
+    this._chapterAssetAssignmentIds.update((m) => {
+      const next = new Map(m);
+      next.set(fileId, assignmentId);
+      return next;
+    });
+  }
+
+  /** Remove a file from the episode assets entirely (store side; the caller
+   *  performs the API call that unassigns it from the chapter). */
+  removeChapterAsset(fileId: string) {
+    this.removeFreeAsset(fileId);
+    this._chapterAssetSlots.update((m) => {
+      const next = new Map(m);
+      next.delete(fileId);
+      return next;
+    });
+    this._chapterAssetIds.update((s) => {
+      const next = new Set(s);
+      next.delete(fileId);
+      return next;
+    });
+    this._chapterAssetAssignmentIds.update((m) => {
+      const next = new Map(m);
+      next.delete(fileId);
+      return next;
+    });
+  }
+
   replaceFreeAssets(next: ReferenceAsset[]) {
     this._freeAssets().forEach((a) => this.revoke(a));
     this._freeAssets.set(next);
@@ -696,10 +731,14 @@ export class StudioStore {
     );
     // Preserve each asset's @imageN slot so the Prompt Builder respects it.
     const assetSlots = new Map<string, string>();
+    // fileId → chapter_assets row id (needed to unassign from the episode).
+    const assignmentIds = new Map<string, string>();
     for (const a of assignments.assets ?? []) {
       if (a.file_id && a.slot) assetSlots.set(a.file_id, a.slot);
+      if (a.file_id && a.id) assignmentIds.set(a.file_id, a.id);
     }
     this._chapterAssetSlots.set(assetSlots);
+    this._chapterAssetAssignmentIds.set(assignmentIds);
 
     const freeAssets: ReferenceAsset[] = (assignments.assets ?? [])
       .filter((a: any) => a.file_id)
