@@ -30,6 +30,7 @@ export interface Scene {
   description: string;
   active: boolean;
   shot_count: number;
+  take_count: number;
   created_at: string;
   updated_at: string;
 }

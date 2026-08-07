@@ -396,6 +396,21 @@ export class StudioStore {
     this._currentTakeIndex.set(0);
   }
 
+  /** Update the session's scene code (e.g. after renaming a scene). */
+  setSceneCode(code: string): void {
+    this._sceneCode.set(code);
+  }
+
+  /** Update the session's scene name (e.g. after renaming a scene). */
+  setSceneName(name: string): void {
+    this._sceneName.set(name);
+  }
+
+  /** Update the session's shot name (e.g. after renaming a shot). */
+  setShotName(name: string): void {
+    this._shotName.set(name);
+  }
+
   toggleTake(takeIndex: number): void {
     const list = this._takes();
     const target = list.find((t) => t.index === takeIndex);

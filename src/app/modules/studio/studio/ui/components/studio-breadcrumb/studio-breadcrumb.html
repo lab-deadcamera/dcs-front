@@ -72,34 +72,65 @@
     } @else if (loadingScenes()) {
       <span class="studio-bcrumb-loading">Loading…</span>
     } @else {
-      <div class="flex items-center gap-1">
-        <p-floatlabel class="w-full" variant="on">
-          <p-select
-            [options]="sortedScenes()"
-            optionLabel="label"
-            optionValue="id"
-            [filter]="scenes().length > 2"
-            filterBy="label,name"
-            class="min-w-24"
-            [(ngModel)]="selectedSceneId"
-            [showClear]="true"
-            styleClass="studio-bcrumb-select"
-            (onChange)="onSceneChange($event.value)"
-          >
-            <ng-template pTemplate="item" let-item>
-              <span [pTooltip]="item.label.length > 40 ? item.label : ''">
+      <p-floatlabel class="w-full" variant="on">
+        <p-select
+          [options]="sortedScenes()"
+          optionLabel="label"
+          optionValue="id"
+          [filter]="scenes().length > 2"
+          filterBy="label,name"
+          class="min-w-24"
+          [(ngModel)]="selectedSceneId"
+          [showClear]="true"
+          styleClass="studio-bcrumb-select"
+          (onChange)="onSceneChange($event.value)"
+        >
+          <ng-template pTemplate="item" let-item>
+            <div class="flex w-full items-center gap-2">
+              <span
+                [pTooltip]="item.label.length > 40 ? item.label : ''"
+                class="min-w-0 flex-1 truncate"
+              >
                 {{ item.label | truncateLen: 40 }}
               </span>
-            </ng-template>
-            <ng-template pTemplate="selectedItem" let-item>
-              <span [pTooltip]="item.label.length > 40 ? item.label : ''">
-                {{ item.label | truncateLen: 40 }}
-              </span>
-            </ng-template>
-          </p-select>
-          <label for="on_label">Scene</label>
-        </p-floatlabel>
-      </div>
+              @if (canManage()) {
+                <button
+                  type="button"
+                  class="studio-bcrumb-option-action"
+                  (click)="onEditOption('scene', item); $event.stopPropagation()"
+                  pTooltip="Edit scene"
+                  tooltipPosition="left"
+                  [attr.aria-label]="'Edit scene'"
+                >
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <span
+                  [pTooltip]="(item.takeCount ?? 0) > 0
+                    ? 'Cannot delete: scene has ' + item.takeCount + ' take(s)'
+                    : 'Delete scene'"
+                  tooltipPosition="left"
+                >
+                  <button
+                    type="button"
+                    class="studio-bcrumb-option-action studio-bcrumb-option-action--danger"
+                    (click)="onDeleteOption('scene', item); $event.stopPropagation()"
+                    [disabled]="(item.takeCount ?? 0) > 0"
+                    [attr.aria-label]="'Delete scene'"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </span>
+              }
+            </div>
+          </ng-template>
+          <ng-template pTemplate="selectedItem" let-item>
+            <span [pTooltip]="item.label.length > 40 ? item.label : ''">
+              {{ item.label | truncateLen: 40 }}
+            </span>
+          </ng-template>
+        </p-select>
+        <label for="on_label">Scene</label>
+      </p-floatlabel>
     }
   </div>
 
@@ -124,7 +155,41 @@
           [showClear]="true"
           styleClass="studio-bcrumb-select"
           (onChange)="onShotChange($event.value)"
-        />
+        >
+          <ng-template pTemplate="item" let-item>
+            <div class="flex w-full items-center gap-2">
+              <span class="min-w-0 flex-1 truncate">{{ item.label | truncateLen: 40 }}</span>
+              @if (canManage()) {
+                <button
+                  type="button"
+                  class="studio-bcrumb-option-action"
+                  (click)="onEditOption('shot', item); $event.stopPropagation()"
+                  pTooltip="Edit shot"
+                  tooltipPosition="left"
+                  [attr.aria-label]="'Edit shot'"
+                >
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <span
+                  [pTooltip]="(item.takeCount ?? 0) > 0
+                    ? 'Cannot delete: shot has ' + item.takeCount + ' take(s)'
+                    : 'Delete shot'"
+                  tooltipPosition="left"
+                >
+                  <button
+                    type="button"
+                    class="studio-bcrumb-option-action studio-bcrumb-option-action--danger"
+                    (click)="onDeleteOption('shot', item); $event.stopPropagation()"
+                    [disabled]="(item.takeCount ?? 0) > 0"
+                    [attr.aria-label]="'Delete shot'"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </span>
+              }
+            </div>
+          </ng-template>
+        </p-select>
         <label for="on_label">Shot</label>
       </p-floatlabel>
     }
@@ -309,4 +374,93 @@
       (assignmentsChanged)="assignmentsChanged.emit()"
     />
   }
+</p-dialog>
+
+<!-- Edit Scene / Shot dialog -->
+<p-dialog
+  [visible]="editDialogVisible()"
+  (visibleChange)="editDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '24rem' }"
+  [header]="editDialogTitle()"
+>
+  @if (editTarget()) {
+    <form [formGroup]="editForm">
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="edit-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+            >Number</label
+          >
+          <input
+            id="edit-number"
+            pInputText
+            type="number"
+            formControlName="number"
+            class="w-full p-component p-inputtext"
+          />
+          @if (editForm.controls.number.touched && editForm.controls.number.invalid) {
+            <p class="text-[10px] text-red-400">Enter a number of at least 1.</p>
+          }
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="edit-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+            >Name</label
+          >
+          <input
+            id="edit-name"
+            pInputText
+            formControlName="name"
+            class="w-full p-component p-inputtext"
+          />
+          @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
+            <p class="text-[10px] text-red-400">Enter a name.</p>
+          }
+        </div>
+      </div>
+    </form>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelEdit()" />
+      <p-button
+        icon="pi pi-check"
+        label="Save"
+        [disabled]="!editForm.valid || editSubmitting()"
+        [loading]="editSubmitting()"
+        (onClick)="onConfirmEdit()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Delete Scene / Shot confirmation -->
+<p-dialog
+  [visible]="deleteDialogVisible()"
+  (visibleChange)="deleteDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '26rem' }"
+  header="Confirm deletion"
+>
+  @if (deleteTarget()) {
+    <p class="text-[13px] leading-relaxed">
+      Delete <span class="font-semibold">{{ deleteTarget()!.option.label }}</span>? This cannot be
+      undone.
+    </p>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelDelete()" />
+      <p-button
+        severity="danger"
+        icon="pi pi-trash"
+        label="Delete"
+        [loading]="deleteSubmitting()"
+        (onClick)="onConfirmDelete()"
+      />
+    </div>
+  </ng-template>
 </p-dialog>

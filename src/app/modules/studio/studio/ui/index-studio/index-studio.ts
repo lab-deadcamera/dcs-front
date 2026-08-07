@@ -409,6 +409,7 @@ export class IndexStudio implements OnInit {
             number: s.number,
             name: s.name,
             label: `SC${String(s.number).padStart(2, '0')} \u2014 ${s.name}`,
+            takeCount: s.take_count,
           }));
         this.navScenes.set(items);
         this.autoSelectScene(items);
@@ -484,6 +485,7 @@ export class IndexStudio implements OnInit {
           name: sh.name,
           label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
           description: sh.description,
+          takeCount: sh.take_count,
         }));
         this.navShots.set(items);
         this.autoSelectShot(items);
@@ -541,6 +543,7 @@ export class IndexStudio implements OnInit {
             name: sh.name,
             label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
             description: sh.description,
+            takeCount: sh.take_count,
           })),
         );
         // Auto-select if the previously selected shot is now in the list
@@ -789,6 +792,134 @@ export class IndexStudio implements OnInit {
   /** Reload chapter assignments after the assignment dialog changes them. */
   protected onChapterAssignmentsChanged(): void {
     this.reloadChapterAssignments();
+  }
+
+  /** Edit the selected scene (number/name) and refresh the breadcrumb + session. */
+  protected onBreadcrumbEditScene(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi
+      .updateScene(projectId, chapterId, payload.id, {
+        number: payload.number,
+        name: payload.name,
+      })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.msg || 'Failed to update scene',
+          });
+          this.breadcrumbComponent()?.resetEditDialog();
+          return;
+        }
+        const updated = res.data;
+        const label = `SC${String(updated.number).padStart(2, '0')} — ${updated.name}`;
+        // Keep the edited scene selected with fresh data (the reload below refreshes
+        // the dropdown labels asynchronously).
+        this.navSelectedScene.set({ id: updated.id, number: updated.number, name: updated.name });
+        if (this.navSelectedSceneId() === updated.id) {
+          this.studio.setSceneCode(`SC${String(updated.number).padStart(2, '0')}`);
+          this.studio.setSceneName(updated.name);
+        }
+        this.loadScenes(projectId, chapterId);
+        this.breadcrumbComponent()?.resetEditDialog();
+        this.toast.add({ severity: 'success', summary: 'Scene updated', detail: label });
+      });
+  }
+
+  /** Edit the selected shot (number/name) and refresh the breadcrumb + session. */
+  protected onBreadcrumbEditShot(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+    this.projectsApi
+      .updateShot(projectId, chapterId, sceneId, payload.id, {
+        number: payload.number,
+        name: payload.name,
+      })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.msg || 'Failed to update shot',
+          });
+          this.breadcrumbComponent()?.resetEditDialog();
+          return;
+        }
+        const updated = res.data;
+        if (this.navSelectedShotId() === updated.id) {
+          this.studio.setShotName(updated.name);
+        }
+        this.reloadShots();
+        this.breadcrumbComponent()?.resetEditDialog();
+        this.toast.add({
+          severity: 'success',
+          summary: 'Shot updated',
+          detail: `SH${String(updated.number).padStart(2, '0')} — ${updated.name}`,
+        });
+      });
+  }
+
+  /** Delete the selected scene; falls back to chapter level if it was active. */
+  protected onBreadcrumbDeleteScene(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi.deleteScene(projectId, chapterId, payload.id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: res.msg || 'Failed to delete scene',
+        });
+        this.breadcrumbComponent()?.resetDeleteDialog();
+        return;
+      }
+      this.breadcrumbComponent()?.resetDeleteDialog();
+      if (this.navSelectedSceneId() === payload.id) {
+        // The active scene is gone — fall back to chapter level (shot builder).
+        this.studio.resetStudio();
+        this.navSelectedSceneId.set(null);
+        this.navSelectedScene.set(null);
+        this.navShots.set([]);
+        this.navSelectedShotId.set(null);
+        this.persistNav();
+        this.reloadChapterAssignments();
+      }
+      this.loadScenes(projectId, chapterId);
+      this.toast.add({ severity: 'success', summary: 'Scene deleted', detail: payload.label });
+    });
+  }
+
+  /** Delete the selected shot; clears the session if it was the active shot. */
+  protected onBreadcrumbDeleteShot(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+    this.projectsApi.deleteShot(projectId, chapterId, sceneId, payload.id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: res.msg || 'Failed to delete shot',
+        });
+        this.breadcrumbComponent()?.resetDeleteDialog();
+        return;
+      }
+      this.breadcrumbComponent()?.resetDeleteDialog();
+      if (this.navSelectedShotId() === payload.id) {
+        this.studio.resetStudio();
+        this.navSelectedShotId.set(null);
+        this.persistNav();
+      }
+      this.reloadShots();
+      this.toast.add({ severity: 'success', summary: 'Shot deleted', detail: payload.label });
+    });
   }
 
   /** Handle the shots saved event from the shot builder panel: select the

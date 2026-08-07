@@ -15,6 +15,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
+  Validators,
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -36,11 +37,16 @@ export interface BreadcrumbOption {
   hasAssignments?: boolean;
   /** The shot's pre-prompt (description) — used when cloning a shot. */
   description?: string;
+  /** Number of takes recorded against the item — used to block deletion. */
+  takeCount?: number;
 }
 
 /** Sortable field for the breadcrumb selects. */
 export type SortField = 'name' | 'number';
 export type SortDir = 'asc' | 'desc';
+
+/** Target of the shared edit / delete dialogs (scene or shot). */
+type ManageTarget = { kind: 'scene' | 'shot'; option: BreadcrumbOption };
 
 const SORT_KEY = 'studio-breadcrumb-sort';
 
@@ -101,6 +107,8 @@ export class StudioBreadcrumbComponent {
   readonly shots = input<BreadcrumbOption[]>([]);
   /** Show the "Assign Resources" button next to the scene select. */
   readonly showAssignmentButton = input(false);
+  /** Show the scene/shot edit & delete buttons (gated to directors/admins). */
+  readonly canManage = input(false);
 
   // ── Inputs: loading states ──────────────────────────────────────────
 
@@ -130,6 +138,14 @@ export class StudioBreadcrumbComponent {
   readonly createShot = output<{ name: string; sourceShot: BreadcrumbOption | null }>();
   /** Emitted after resources are assigned/changed in the dialog. */
   readonly assignmentsChanged = output<void>();
+  /** Emitted when the user confirms an edit of the selected scene. */
+  readonly editScene = output<BreadcrumbOption>();
+  /** Emitted when the user confirms an edit of the selected shot. */
+  readonly editShot = output<BreadcrumbOption>();
+  /** Emitted when the user confirms deletion of the selected scene. */
+  readonly deleteScene = output<BreadcrumbOption>();
+  /** Emitted when the user confirms deletion of the selected shot. */
+  readonly deleteShot = output<BreadcrumbOption>();
 
   // ── Sort preference ─────────────────────────────────────────────────
 
@@ -301,5 +317,94 @@ export class StudioBreadcrumbComponent {
     this.newShotSubmitting.set(false);
     this.newShotDialogVisible.set(false);
     this.newShotForm.reset({ source: null, name: '' });
+  }
+
+  // ── Edit / Delete dialogs (scene & shot) ─────────────────────────
+
+  /** Which item the shared edit dialog is currently editing. */
+  protected readonly editTarget = signal<ManageTarget | null>(null);
+  protected readonly editDialogVisible = signal(false);
+  protected readonly editSubmitting = signal(false);
+
+  /** Reactive form for the edit dialog (number + name). */
+  protected readonly editForm = new FormGroup({
+    number: new FormControl<number>(1, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(1)],
+    }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+  });
+
+  protected readonly editDialogTitle = computed(() =>
+    this.editTarget()?.kind === 'scene' ? 'Edit Scene' : 'Edit Shot',
+  );
+
+  /** Which item the shared delete-confirm dialog is about to delete. */
+  protected readonly deleteTarget = signal<ManageTarget | null>(null);
+  protected readonly deleteDialogVisible = signal(false);
+  protected readonly deleteSubmitting = signal(false);
+
+  /** Open the shared edit dialog for the given scene/shot option. */
+  protected onEditOption(kind: 'scene' | 'shot', option: BreadcrumbOption): void {
+    this.editTarget.set({ kind, option });
+    this.editForm.setValue({ number: option.number, name: option.name });
+    this.editDialogVisible.set(true);
+  }
+
+  protected onCancelEdit(): void {
+    this.editDialogVisible.set(false);
+  }
+
+  protected onConfirmEdit(): void {
+    const target = this.editTarget();
+    if (!target || this.editForm.invalid) return;
+    const payload: BreadcrumbOption = {
+      id: target.option.id,
+      number: Number(this.editForm.controls.number.value),
+      name: (this.editForm.controls.name.value ?? '').trim(),
+      label: target.option.label,
+      description: target.option.description,
+      takeCount: target.option.takeCount,
+    };
+    this.editSubmitting.set(true);
+    if (target.kind === 'scene') this.editScene.emit(payload);
+    else this.editShot.emit(payload);
+  }
+
+  /** Called from parent after the edit completes to close the dialog. */
+  resetEditDialog(): void {
+    this.editSubmitting.set(false);
+    this.editDialogVisible.set(false);
+    this.editTarget.set(null);
+  }
+
+  /** Open the delete confirmation for the given scene/shot option
+   *  (no-op if the item already has takes — the button is also disabled). */
+  protected onDeleteOption(kind: 'scene' | 'shot', option: BreadcrumbOption): void {
+    if ((option.takeCount ?? 0) > 0) return;
+    this.deleteTarget.set({ kind, option });
+    this.deleteDialogVisible.set(true);
+  }
+
+  protected onCancelDelete(): void {
+    this.deleteDialogVisible.set(false);
+  }
+
+  protected onConfirmDelete(): void {
+    const target = this.deleteTarget();
+    if (!target) return;
+    this.deleteSubmitting.set(true);
+    if (target.kind === 'scene') this.deleteScene.emit(target.option);
+    else this.deleteShot.emit(target.option);
+  }
+
+  /** Called from parent after deletion completes to close the dialog. */
+  resetDeleteDialog(): void {
+    this.deleteSubmitting.set(false);
+    this.deleteDialogVisible.set(false);
+    this.deleteTarget.set(null);
   }
 }

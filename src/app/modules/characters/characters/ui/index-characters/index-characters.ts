@@ -14,8 +14,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { from, map, mergeMap } from 'rxjs';
+import { catchError, forkJoin, from, map, mergeMap, Observable, of, switchMap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
 import { CharactersService } from '../../services';
@@ -33,6 +34,12 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
 import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
+import { FileEntity } from '@modules/files/files/interfaces';
+
+/** Items revealed initially per tab before progressive render kicks in. */
+const INITIAL_RENDER_COUNT = 200;
+/** Items revealed per "Load 50 more" click. */
+const RENDER_STEP = 50;
 
 /**
  * Characters library — typed asset board.
@@ -54,6 +61,7 @@ import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
     ButtonModule,
     ConfirmDialogModule,
     ToastModule,
+    TooltipModule,
     CharacterFormDialogComponent,
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
@@ -119,9 +127,46 @@ export class IndexCharacters implements OnInit {
     { id: 'audio', labelKey: 'CHARACTERS.TABS.AUDIO', icon: 'pi pi-volume-up' },
   ];
 
-  protected readonly visibleAssets = computed<Character[]>(
-    () => this.characters.itemsByType()[this.activeType()] ?? [],
-  );
+  /** Assets of the active type, revealed progressively (200 → +50 per click). */
+  protected readonly visibleAssets = computed<Character[]>(() => {
+    const all = this.characters.itemsByType()[this.activeType()] ?? [];
+    const limit = this.renderLimits()[this.activeType()] ?? INITIAL_RENDER_COUNT;
+    return all.slice(0, limit);
+  });
+
+  /** True when more items can be revealed in the active tab: either the tab
+   *  still has loaded-but-unrevealed items, or the server has more to fetch. */
+  protected readonly hasMoreVisibleAssets = computed(() => {
+    const all = this.characters.itemsByType()[this.activeType()] ?? [];
+    return this.visibleAssets().length < all.length || this.characters.hasMore();
+  });
+
+  /** Loading flag for the "Load 50 more" fetch (keeps the grid visible). */
+  protected readonly loadMoreLoading = signal(false);
+
+  /** Reveal limit per asset type, so each tab scrolls independently. */
+  protected readonly renderLimits = signal<Partial<Record<AssetType, number>>>({});
+
+  /** Reveal the next 50 items of the active tab. When the tab's loaded bucket
+   *  is exhausted and the server has more, fetch the next chunk and append. */
+  protected loadMoreAssets(): void {
+    if (this.loadMoreLoading()) return;
+    const type = this.activeType();
+    this.renderLimits.update((limits) => ({
+      ...limits,
+      [type]: (limits[type] ?? INITIAL_RENDER_COUNT) + RENDER_STEP,
+    }));
+
+    const all = this.characters.itemsByType()[type] ?? [];
+    const limit = this.renderLimits()[type] ?? INITIAL_RENDER_COUNT;
+    if (limit >= all.length && this.characters.hasMore()) {
+      this.loadMoreLoading.set(true);
+      this.characters.loadMore().subscribe({
+        next: () => this.loadMoreLoading.set(false),
+        error: () => this.loadMoreLoading.set(false),
+      });
+    }
+  }
 
   // ── Search ──────────────────────────────────────────────────────
   protected readonly searchValue = signal('');
@@ -129,31 +174,144 @@ export class IndexCharacters implements OnInit {
 
   protected onSearchInput(value: string): void {
     this.searchValue.set(value);
+    // Reset the reveal limits so the (re)loaded results render from 200.
+    this.renderLimits.set({});
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.searchTimer = setTimeout(() => {
       this.characters.setSearchQuery(value);
     }, 400);
   }
 
-  // ── Pagination ──────────────────────────────────────────────────
-  protected readonly pages = computed(() => {
-    const total = this.characters.totalPages();
-    return total <= 1 ? [] : Array.from({ length: total }, (_, i) => i + 1);
+  // ── Mass upload ──────────────────────────────────────────────────
+  /** True while the mass-upload pipeline is running (spinner on the button). */
+  protected readonly massUploading = signal(false);
+
+  /** Human label for the active asset type — the type mass upload applies. */
+  protected readonly activeTypeLabel = computed(() => {
+    switch (this.activeType()) {
+      case 'location':
+        return 'Locations';
+      case 'prop':
+        return 'Props';
+      case 'audio':
+        return 'Audio';
+      default:
+        return 'Characters';
+    }
   });
 
-  protected readonly prevDisabled = computed(() => this.characters.page() <= 1);
-  protected readonly nextDisabled = computed(() => this.characters.page() >= this.characters.totalPages());
+  /** Singular form of the active type, for the mass-upload tooltip. */
+  protected readonly activeTypeSingular = computed(() => {
+    switch (this.activeType()) {
+      case 'location':
+        return 'location';
+      case 'prop':
+        return 'prop';
+      case 'audio':
+        return 'audio';
+      default:
+        return 'character';
+    }
+  });
 
-  protected onPrevPage(): void {
-    this.characters.goToPage(this.characters.page() - 1);
+  /** File types the mass upload accepts — only audio when the Audio tab is active. */
+  protected readonly massAccept = computed(() =>
+    this.activeType() === 'audio' ? 'audio/*' : 'image/*',
+  );
+
+  /** Tooltip for the mass-upload button, matching the active type's file kind. */
+  protected readonly massUploadTooltip = computed(() =>
+    this.activeType() === 'audio'
+      ? 'Upload multiple audio files — creates one audio per file, named after each file'
+      : `Upload multiple images — creates one ${this.activeTypeSingular()} per image, named after each file`,
+  );
+
+  /** Mass-create one asset per selected image: the resource name comes from
+   *  the filename, and the asset type is the one filtered at that moment. */
+  protected onMassFilesSelected(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const files = target?.files ? Array.from(target.files) : [];
+    if (target) target.value = ''; // allow re-selecting the same files
+    if (files.length === 0 || this.massUploading()) return;
+
+    const type = this.activeType();
+    this.massUploading.set(true);
+
+    forkJoin(files.map((file) => this.createAssetFromFile(file, type))).subscribe({
+      next: (ids) => {
+        this.massUploading.set(false);
+        const created = ids.filter((id): id is string => Boolean(id));
+        const total = files.length;
+        this.toast.add({
+          severity: created.length === total ? 'success' : created.length > 0 ? 'warn' : 'error',
+          summary: 'Mass upload',
+          detail:
+            created.length === total
+              ? `${created.length} assets created`
+              : `${created.length}/${total} assets created`,
+        });
+        if (created.length > 0) {
+          // Refresh the list from the server and fetch thumbnails only for the
+          // newcomers (same pattern as onAssetCreated).
+          this.characters.load().subscribe();
+          for (const id of created) this.fetchPreviewFor(id);
+          this.charactersChanged.emit();
+        }
+      },
+      error: () => {
+        this.massUploading.set(false);
+        this.toast.add({ severity: 'error', summary: 'Mass upload', detail: 'Upload failed' });
+      },
+    });
   }
 
-  protected onNextPage(): void {
-    this.characters.goToPage(this.characters.page() + 1);
-  }
-
-  protected onGoToPage(page: number): void {
-    this.characters.goToPage(page);
+  /** Create one asset from a single file: POST /characters (name from the
+   *  filename, assetType from the active tab), upload the file, and link it.
+   *  The Audio tab accepts/uploads audio files; the rest accept images.
+   *  Resolves to the new asset id, or null on any failure. */
+  private createAssetFromFile(file: File, type: AssetType): Observable<string | null> {
+    const name = (file.name.replace(/\.[^.]+$/, '').trim() || 'Untitled').slice(0, 120);
+    const isAudio = type === 'audio';
+    return this.characters
+      .create({
+        name,
+        description: '',
+        metadata: { assetType: type, fileKind: isAudio ? 'audio' : 'image' },
+      })
+      .pipe(
+        switchMap((res) => {
+          if (res.error || !res.data) {
+            this.toast.add({
+              severity: 'warn',
+              summary: 'Create failed',
+              detail: `${name}: ${res.msg}`,
+            });
+            return of(null);
+          }
+          const newId = res.data.id;
+          return this.filesApi
+            .upload({ file, category: isAudio ? 'audio' : 'images', storage: 'persistent' })
+            .pipe(
+              switchMap((up) => {
+                if (up.error || !up.data) {
+                  this.toast.add({
+                    severity: 'warn',
+                    summary: 'Upload failed',
+                    detail: `${name}: ${up.msg}`,
+                  });
+                  return of(null);
+                }
+                const fileId = (up.data as FileEntity).id;
+                return this.characters.assignFile(newId, fileId, 'reference').pipe(
+                  map((link) => (link.error ? null : newId)),
+                  catchError(() => of(null)),
+                );
+              }),
+              catchError(() => of(null)),
+            );
+        }),
+        catchError(() => of(null)),
+      );
   }
 
   // ── Edit / File / Create ────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { CharactersApiService } from './characters-api.service';
 import {
   AssetType,
@@ -20,11 +20,11 @@ export class CharactersService {
   private readonly _loading = signal(false);
   private readonly _searchQuery = signal<string>('');
 
-  // Pagination state
+  // Pagination state (infinite-scroll chunks; pageSize matches the backend cap).
   private readonly _total = signal(0);
   private readonly _page = signal(1);
   private readonly _totalPages = signal(0);
-  private readonly _pageSize = signal(20);
+  private readonly _pageSize = signal(200);
 
   readonly items = this._items.asReadonly();
   readonly loading = this._loading.asReadonly();
@@ -34,6 +34,9 @@ export class CharactersService {
   readonly totalPages = this._totalPages.asReadonly();
   readonly pageSize = this._pageSize.asReadonly();
   readonly count = computed(() => this._items().length);
+
+  /** True when more items exist on the server than are currently loaded. */
+  readonly hasMore = computed(() => this._items().length < this._total());
 
   /** Items bucketed by asset type. Untyped rows fall into `character`. */
   readonly itemsByType = computed<Record<AssetType, Character[]>>(() => {
@@ -90,7 +93,7 @@ export class CharactersService {
     this.load().subscribe();
   }
 
-  /** Refresh the in-memory cache from the backend. */
+  /** Refresh the in-memory cache from the backend (page 1, full chunk). */
   load(): Observable<{ error: boolean; msg: string; data?: any }> {
     this._loading.set(true);
     return this.api.listPage({ page: this._page(), pageSize: this._pageSize(), q: this._searchQuery() || undefined }).pipe(
@@ -104,6 +107,38 @@ export class CharactersService {
         this._loading.set(false);
       }),
     );
+  }
+
+  /** Fetch the next chunk from the server and append it to the loaded items.
+   *  Keeps the current search query; no-op when the server has no more items. */
+  loadMore(): Observable<{ error: boolean; msg: string; data?: any }> {
+    if (!this.hasMore()) {
+      return of({ error: false, msg: '', data: undefined }); // nothing left to fetch
+    }
+    const nextPage = this._page() + 1;
+    this._loading.set(true);
+    return this.api
+      .listPage({
+        page: nextPage,
+        pageSize: this._pageSize(),
+        q: this._searchQuery() || undefined,
+      })
+      .pipe(
+        tap((res) => {
+          if (!res.error && res.data) {
+            const incoming: CharacterWithFiles[] = (res.data.items || []) as CharacterWithFiles[];
+            const known = new Set(this._items().map((i) => i.character.id));
+            this._items.update((list) => [
+              ...list,
+              ...incoming.filter((i) => !known.has(i.character.id)),
+            ]);
+            this._total.set(res.data.total);
+            this._page.set(res.data.page);
+            this._totalPages.set(res.data.totalPages);
+          }
+          this._loading.set(false);
+        }),
+      );
   }
 
   getById(id: string): Observable<{

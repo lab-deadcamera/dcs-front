@@ -125,3 +125,37 @@
 :host ::ng-deep .p-select {
   border: none;
 }
+
+/* Edit / delete action buttons inside scene & shot dropdown options */
+.studio-bcrumb-option-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+  color: var(--text-color-secondary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+.studio-bcrumb-option-action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-400) 10%, transparent);
+  color: var(--primary-400);
+  border-color: var(--primary-400);
+}
+.studio-bcrumb-option-action--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, #f87171 10%, transparent);
+  color: #f87171;
+  border-color: #f87171;
+}
+.studio-bcrumb-option-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

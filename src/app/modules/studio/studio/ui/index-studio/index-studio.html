@@ -12,6 +12,7 @@
     [loadingShots]="navLoadingShots()"
     [selectedSceneObj]="navSelectedScene()"
     [showAssignmentButton]="isDirectorOrAdmin()"
+    [canManage]="isDirectorOrAdmin()"
     [(selectedProjectId)]="navSelectedProjectId"
     [(selectedChapterId)]="navSelectedChapterId"
     [(selectedSceneId)]="navSelectedSceneId"
@@ -22,6 +23,10 @@
     (shotChange)="onNavShotChange($event)"
     (createShot)="onBreadcrumbCreateShot($event)"
     (assignmentsChanged)="onChapterAssignmentsChanged()"
+    (editScene)="onBreadcrumbEditScene($event)"
+    (editShot)="onBreadcrumbEditShot($event)"
+    (deleteScene)="onBreadcrumbDeleteScene($event)"
+    (deleteShot)="onBreadcrumbDeleteShot($event)"
   />
 
   @if (studio.isReady()) {
