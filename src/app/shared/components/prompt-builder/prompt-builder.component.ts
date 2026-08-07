@@ -22,6 +22,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { TranslatorApiService } from '@app/services/translator-api.service';
 import { UsedAssetKind } from '@core/interfaces/studio.models';
+import { buildSlotReferences } from '@core/utils/slot-reindex';
 import { Tooltip } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SelectModule } from 'primeng/select';
@@ -144,37 +145,28 @@ export class PromptBuilderComponent implements OnInit {
   );
 
   /**
-   * Deterministic display number per used asset fileId, per kind:
-   * assets that carry an inherited @imageN slot keep that number; assets
-   * without a slot receive the next free number (never colliding with the
-   * assigned slots). This is the single source of truth for the chip label,
-   * the inserted token and the stale-token prune.
+   * Positional display number per asset fileId, per kind (1..N), in the exact
+   * order the references are attached to the payload: first frame, last frame,
+   * then used assets. This is the single source of truth for the chip label,
+   * the inserted token and the stale-token prune. Because it follows the
+   * payload order, what the chips show always matches the @imageN/@videoN/@audioN
+   * tokens the model resolves against the reference items.
    */
   protected readonly assetNumbers = computed(() => {
+    const refs = buildSlotReferences(
+      this.studio.firstFrame(),
+      this.studio.lastFrame(),
+      this.studio.usedAssets(),
+    );
     const map = new Map<string, number>();
-    const kinds: UsedAssetKind[] = ['image', 'video', 'audio'];
-    for (const kind of kinds) {
-      const assets = this.studio
-        .usedAssets()
-        .filter((a) => a.kind === kind || (kind === 'image' && a.kind === 'mixed'));
-      const occupied = new Set<number>();
-      for (const a of assets) {
-        if (a.slot) {
-          const n = this.slotNum(a.slot);
-          if (Number.isFinite(n)) occupied.add(n);
-        }
-      }
-      let next = 1;
-      for (const a of assets) {
-        if (a.slot) {
-          const n = this.slotNum(a.slot);
-          map.set(a.fileId, Number.isFinite(n) ? n : this.nextFreeFrom(occupied));
-        } else {
-          const n = this.nextFreeFrom(occupied);
-          occupied.add(n);
-          map.set(a.fileId, n);
-        }
-      }
+    const counts: Record<'image' | 'video' | 'audio', number> = {
+      image: 0,
+      video: 0,
+      audio: 0,
+    };
+    for (const r of refs) {
+      counts[r.kind]++;
+      map.set(r.fileId, counts[r.kind]);
     }
     return map;
   });
@@ -512,7 +504,7 @@ export class PromptBuilderComponent implements OnInit {
   /**
    * Inserts a reference label whose number matches the chip the user just
    * picked from the library. The number comes from the shared assetNumbers
-   * assignment (inherited slot if present, else the next free number).
+   * assignment (positional, in payload attachment order).
    */
   addReferenceForKind(kind: UsedAssetKind): void {
     const label = this.labelFor(kind);
@@ -529,30 +521,15 @@ export class PromptBuilderComponent implements OnInit {
     this.addReference(`${label}${number}`);
   }
 
-  /** Smallest positive number not present in the given occupied set. */
-  private nextFreeFrom(occupied: Set<number>): number {
-    let n = 1;
-    while (occupied.has(n)) n++;
-    return n;
-  }
-
-  /** Smallest positive number not occupied by slot-bearing assets of a kind. */
+  /** Next positional number for a kind = count of attached references + 1. */
   private nextFreeSlot(kind: UsedAssetKind): number {
-    const occ = new Set<number>();
-    for (const a of this.studio.usedAssets()) {
-      if (a.kind !== kind && !(kind === 'image' && a.kind === 'mixed')) continue;
-      if (a.slot) {
-        const n = this.slotNum(a.slot);
-        if (Number.isFinite(n)) occ.add(n);
-      }
-    }
-    return this.nextFreeFrom(occ);
-  }
-
-  /** Extract the numeric part of an @imageN/@videoN/@audioN slot. */
-  private slotNum(slot: string): number {
-    const m = slot.match(/(\d+)$/);
-    return m ? parseInt(m[1], 10) : NaN;
+    const refs = buildSlotReferences(
+      this.studio.firstFrame(),
+      this.studio.lastFrame(),
+      this.studio.usedAssets(),
+    );
+    const k: 'image' | 'video' | 'audio' = kind === 'mixed' ? 'image' : kind;
+    return refs.filter((r) => r.kind === k).length + 1;
   }
 
   /**

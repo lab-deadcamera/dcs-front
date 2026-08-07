@@ -28,6 +28,7 @@ import {
 } from '../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
 import { ModelAssetSync } from '@core/interfaces/seedance.interface';
+import { buildSlotReferences, reindexSlotTokens } from '@core/utils/slot-reindex';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
@@ -629,13 +630,15 @@ export class IndexStudio implements OnInit {
     const chapter = this.navChapters().find((c) => c.id === chapterId);
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
 
-    // Load the pre-prompt for cloned shots (normal navigation does not pass it).
-    if (description) {
-      this.studio.setRawDescription(description);
-    }
-
-    // Clear previous used assets before loading a new shot
+    // Clear previous used assets + original before loading a new shot. Must run
+    // BEFORE setShotDescription below, otherwise it would wipe the new original.
     this.studio.clearUsedAssets();
+
+    // Load the pre-prompt for cloned shots (normal navigation does not pass it).
+    // Records it as the ORIGINAL so slot hydration/reindex sees the raw text.
+    if (description) {
+      this.studio.setShotDescription(description);
+    }
 
     this.projectsApi.listTakes(projectId, chapterId, sceneId, shot.id).subscribe((takesRes) => {
       const backendTakes = takesRes.error || !takesRes.data ? [] : takesRes.data;
@@ -671,7 +674,7 @@ export class IndexStudio implements OnInit {
       this.projectsApi.getShot(projectId, chapterId, sceneId, shot.id).subscribe({
         next: (res) => {
           if (!res.error && res.data?.shot.description) {
-            this.studio.setRawDescription(res.data.shot.description);
+            this.studio.setShotDescription(res.data.shot.description);
           }
 
           // Restore output format from the shot's persisted values
@@ -689,9 +692,11 @@ export class IndexStudio implements OnInit {
             }
           }
 
-          // If assignments arrived first, register now
+          // If assignments arrived first, hydrate now (getShot already set the
+          // original description). Whichever of getShot / getChapterAssignments
+          // resolves last triggers the hydration, which is idempotent.
           if (this.studio.assignmentsLoaded()) {
-            this.studio.registerUsedAssetsFromDescription(this.studio.rawDescription() || '');
+            this.hydrateShotPrompt();
           }
         },
       });
@@ -700,11 +705,8 @@ export class IndexStudio implements OnInit {
         next: (res) => {
           if (res.data) {
             this.studio.setChapterAssignments(res.data);
-            // If description arrived first, register now
-            const desc = this.studio.rawDescription();
-            if (desc) {
-              this.studio.registerUsedAssetsFromDescription(desc);
-            }
+            // If description arrived first, hydrate now
+            this.hydrateShotPrompt();
           }
         },
         error: () => {
@@ -1199,12 +1201,16 @@ export class IndexStudio implements OnInit {
     const output = this.studio.output();
     const refs = this.collectReferenceAssets();
     const hints = this.buildFrameHints();
-    const finalText = hints ? `${hints} ${text}` : text;
+    // Reindex @imageN/@videoN/@audioN tokens to positional numbers matching the
+    // order the reference items are attached below. Every occurrence in the text
+    // is rewritten, so the model resolves each token against the correct ref.
+    const reindexedText = reindexSlotTokens(text, refs);
+    const finalText = hints ? `${hints} ${reindexedText}` : reindexedText;
 
     const content: VideoGenerateContentItem[] = [{ type: 'text', text: finalText }];
     for (const ref of refs) {
       content.push({
-        type: ref.type,
+        type: ref.kind,
         id: ref.fileId,
         name: ref.filename,
         text: ref.tag,
@@ -1250,43 +1256,72 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Flatten every reference source into a single deduped list.
+   * Flatten every reference source into a single deduped list in the exact
+   * order the items are attached to the payload (first frame, last frame,
+   * then used assets). `kind`/`slot` are shared with the slot reindexing so
+   * the payload text and the reference items always agree on numbering.
    */
   private collectReferenceAssets(): Array<{
     fileId: string;
     filename: string;
-    type: 'image' | 'video' | 'audio';
+    kind: 'image' | 'video' | 'audio';
     tag: string;
+    slot?: string;
   }> {
-    const out: Array<{
-      fileId: string;
-      filename: string;
-      type: 'image' | 'video' | 'audio';
-      tag: string;
-    }> = [];
-    const seen = new Set<string>();
-    const push = (
-      fileId: string,
-      filename: string,
-      type: 'image' | 'video' | 'audio',
-      tag: string,
-    ): void => {
-      if (seen.has(fileId)) return;
-      seen.add(fileId);
-      out.push({ fileId, filename, type, tag });
-    };
-
+    const src = new Map<string, { filename: string; tag: string }>();
     const first = this.studio.firstFrame();
-    if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
+    if (first) src.set(first.id, { filename: first.filename, tag: first.tag || 'First Frame' });
     const last = this.studio.lastFrame();
-    if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
+    if (last) src.set(last.id, { filename: last.filename, tag: last.tag || 'Last Frame' });
     for (const used of this.studio.usedAssets()) {
-      const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
-      // Prefer the inherited @imageN slot as the tag so the backend receives
-      // a number consistent with the prompt chips.
-      push(used.fileId, used.filename, type, used.slot || used.name);
+      src.set(used.fileId, { filename: used.filename, tag: used.slot || used.name });
     }
-    return out;
+
+    const refs = buildSlotReferences(first, last, this.studio.usedAssets());
+    return refs.map((r) => ({
+      fileId: r.fileId,
+      kind: r.kind,
+      filename: src.get(r.fileId)?.filename ?? '',
+      tag: src.get(r.fileId)?.tag ?? r.kind,
+      slot: r.slot,
+    }));
+  }
+
+  /**
+   * Register the shot's referenced chapter resources as used assets and reindex
+   * the prompt's @imageN/@videoN/@audioN tokens to positional numbers. Runs once
+   * the raw description AND the chapter assignments are both available; order of
+   * arrival does not matter because registration always reads the ORIGINAL
+   * description (never an already-reindexed or user-edited text).
+   */
+  private hydrateShotPrompt(): void {
+    const original = this.studio.originalDescription();
+    if (!original) return; // no raw description yet (getShot hasn't resolved)
+    this.studio.registerUsedAssetsFromDescription(original);
+    this.reindexPromptFromDescription();
+  }
+
+  /**
+   * Rewrite the loaded shot pre-prompt so its @imageN/@videoN/@audioN tokens
+   * become positional (matching the order the references are attached), so the
+   * editor shows the same numbers the payload will send. Guarded so it only
+   * applies while the editor still holds the raw backend description — once
+   * reindexed or edited by the user it is a no-op (prevents double reindex and
+   * corrupting the slot→asset mapping).
+   */
+  private reindexPromptFromDescription(): void {
+    const desc = this.studio.rawDescription();
+    if (!desc) return;
+    if (desc !== this.studio.originalDescription()) return;
+    const refs = buildSlotReferences(
+      this.studio.firstFrame(),
+      this.studio.lastFrame(),
+      this.studio.usedAssets(),
+    );
+    const reindexed = reindexSlotTokens(desc, refs);
+    if (reindexed !== desc) {
+      this.studio.setRawDescription(reindexed);
+    }
   }
 
   /** Snapshot of the editor inputs at submit time. */

@@ -16,6 +16,7 @@ import {
   UsedAssetKind,
 } from '../interfaces/studio.models';
 import { ModelData } from '../interfaces';
+import { collectSlotTokensInOrder } from '../utils/slot-reindex';
 
 function clamp(n: number, min: number, max: number): number {
   if (Number.isNaN(n)) return min;
@@ -104,26 +105,26 @@ export class StudioStore {
 
   /**
    * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
-   * tokens and auto-register matching chapter characters as used assets.
+   * tokens and auto-register the matching chapter resources (characters first,
+   * then chapter assets) as used assets.
    *
-   * This replaces the unreliable shot-resources endpoint for character
-   * resolution — chapter assignments already carry the correct slot + fileId.
+   * Tokens are processed in ORDER OF FIRST APPEARANCE in the prompt — that
+   * order drives the positional slot reindex, so it must match the order in
+   * which the reference items get attached to the payload.
    */
   registerUsedAssetsFromDescription(description: string): void {
     if (!description) return;
 
-    // Collect all unique slot references and their highest number
-    const slotPattern = /@(image|video|audio)(\d+)/g;
-    const seenSlots = new Set<string>();
-    let maxN = 0;
-    let m: RegExpExecArray | null;
-    while ((m = slotPattern.exec(description)) !== null) {
-      seenSlots.add(m[0].toLowerCase());
-      maxN = Math.max(maxN, parseInt(m[2], 10));
-    }
-    if (seenSlots.size === 0) return;
+    const tokens = collectSlotTokensInOrder(description);
+    if (tokens.length === 0) return;
 
-    // Build a lookup from slot → character
+    // REPLACE, not accumulate: this is the authoritative registration of the
+    // assets referenced by THIS description. Even if called twice (both async
+    // load paths) or with a stale original, the last call wins and the final
+    // set is exactly the referenced assets.
+    this._usedAssets.set([]);
+
+    // Lookup slot → character (chapter assignments carry slot + fileId).
     const slotToChar = new Map<
       string,
       { id: string; name: string; slot: string; fileId: string }
@@ -132,25 +133,44 @@ export class StudioStore {
       if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
     }
 
-    // Iterate by ascending slot number so @image1 < @image2 < @image3
-    // Always. The video generator depends on this order to assign
-    // dialogues and actions to the correct character.
-    for (let n = 1; n <= maxN; n++) {
-      for (const prefix of ['image', 'video', 'audio'] as const) {
-        const slot = `@${prefix}${n}`;
-        if (!seenSlots.has(slot)) continue;
-        const char = slotToChar.get(slot);
-        if (char && char.fileId) {
-          this.useAsset({
-            fileId: char.fileId,
-            characterId: char.id,
-            name: char.name,
-            filename: char.name,
-            kind: prefix === 'video' ? 'video' : prefix === 'audio' ? 'audio' : 'image',
-            slot: char.slot || slot,
-          });
-          break; // once matched, don't try other prefixes for this number
-        }
+    // Lookup slot → chapter asset (free asset that inherited an @imageN slot).
+    const slotToAsset = new Map<
+      string,
+      { fileId: string; filename: string; kind: 'image' | 'video' | 'audio' }
+    >();
+    for (const a of this._freeAssets()) {
+      const slot = this._chapterAssetSlots().get(a.id);
+      if (slot) slotToAsset.set(slot.toLowerCase(), { fileId: a.id, filename: a.filename, kind: a.kind });
+    }
+
+    for (const token of tokens) {
+      const m = token.match(/^@(image|video|audio)(\d+)$/);
+      if (!m) continue;
+      const kind = m[1] === 'video' ? 'video' : m[1] === 'audio' ? 'audio' : 'image';
+
+      const char = slotToChar.get(token);
+      if (char && char.fileId) {
+        this.useAsset({
+          fileId: char.fileId,
+          characterId: char.id,
+          name: char.name,
+          filename: char.name,
+          kind,
+          slot: char.slot || token,
+        });
+        continue;
+      }
+
+      const asset = slotToAsset.get(token);
+      if (asset && asset.kind === kind) {
+        this.useAsset({
+          fileId: asset.fileId,
+          characterId: '',
+          name: asset.filename,
+          filename: asset.filename,
+          kind,
+          slot: token,
+        });
       }
     }
   }
@@ -202,6 +222,25 @@ export class StudioStore {
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly rawLength = computed(() => (this._rawDescription() ?? '').length);
   readonly canGenerate = computed(() => (this._rawDescription() ?? '').trim().length > 0);
+
+  /**
+   * The shot's pre-prompt exactly as it came from the backend. Set ONLY by
+   * `setShotDescription`, so it never changes due to slot reindexing or user
+   * edits. Used as the source of truth for registering used assets and for the
+   * idempotency guard of the slot reindex.
+   */
+  private readonly _originalDescription = signal<string>('');
+  readonly originalDescription = this._originalDescription.asReadonly();
+
+  /**
+   * Load a shot's pre-prompt from the backend: records the RAW text as the
+   * original description and makes it the editor content. The reindex later
+   * rewrites `rawDescription` only while it still equals the original.
+   */
+  setShotDescription(text: string): void {
+    this._originalDescription.set(text);
+    this._rawDescription.set(text);
+  }
 
   // ── Cinematography ───────────────────────────────────────────────
 
@@ -418,6 +457,7 @@ export class StudioStore {
     this._takes.set([]);
     this._currentTakeIndex.set(0);
     this._rawDescription.set(PROMPT_TEMPLATE);
+    this._originalDescription.set('');
     this._cinematography.set({
       lens: null,
       cameraBody: null,
@@ -587,6 +627,9 @@ export class StudioStore {
 
   clearUsedAssets() {
     this._usedAssets.set([]);
+    // Per-shot reset: the previous shot's raw description must not leak into
+    // the next shot's slot hydration (which would register the wrong assets).
+    this._originalDescription.set('');
   }
 
   useAsset(asset: UsedAsset) {
