@@ -11,3 +11,4 @@ export * from './video-generator.interface';
 export * from './audio-generator.interface';
 export * from './nano-banana.interface';
 export * from './shot-builder.interface';
+export * from './shot-builder-log.interface';

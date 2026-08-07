@@ -17,6 +17,13 @@ export const ADMIN_ROUTES: Routes = [
           import('./admin/ui/index-admin/index-admin').then((m) => m.IndexAdmin),
       },
       {
+        path: 'shot-builder-logs',
+        loadComponent: () =>
+          import('./admin/ui/shot-builder-logs/shot-builder-logs.component').then(
+            (m) => m.ShotBuilderLogsComponent,
+          ),
+      },
+      {
         path: 'users',
         loadComponent: () =>
           import('./admin/ui/user-management/user-management.component').then(
