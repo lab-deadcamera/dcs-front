@@ -184,9 +184,7 @@
           #searchInput
           type="text"
           placeholder="Search by name…"
-          class="mb-3 w-full rounded border border-ink-700 bg-ink-800 px-3 py-2 text-[12px]
-                 text-fg-strong placeholder:text-fg-muted focus:border-primary-500
-                 focus:outline-none"
+          class="mb-3 w-full rounded border border-ink-700 bg-ink-800 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
           [value]="searchQuery()"
           (input)="searchQuery.set(searchInput.value)"
         />
@@ -196,8 +194,7 @@
           @for (kind of kindTabs; track kind) {
             <button
               type="button"
-              class="border-b-2 px-3 py-1.5 text-[10px] font-bold uppercase
-                     tracking-[0.12em] transition-colors"
+              class="border-b-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors"
               [class]="
                 activeKindTab() === kind
                   ? 'border-primary-500 !text-fg-strong'
@@ -399,20 +396,22 @@
   }
 </section>
 
-<p-dialog
-  [(visible)]="characterDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Resources"
->
-  <app-index-characters
-    headerTitle="Resources"
-    headerHint="Scene resource library — name, description, metadata."
-    (charactersChanged)="onCharactersChanged()"
-  />
-</p-dialog>
+@if (characterDialogVisible()) {
+  <p-dialog
+    [(visible)]="characterDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    header="Resources"
+  >
+    <app-index-characters
+      headerTitle="Resources"
+      headerHint="Scene resource library — name, description, metadata."
+      (charactersChanged)="onCharactersChanged()"
+    />
+  </p-dialog>
+}
 
 <app-asset-viewer
   [(visible)]="previewVisible"

@@ -306,13 +306,16 @@
 />
 
 <p-toast position="bottom-right" />
-<p-dialog
-  [(visible)]="characterDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Characters"
->
-  <app-index-characters />
-</p-dialog>
+
+@if (characterDialogVisible()) {
+  <p-dialog
+    [(visible)]="characterDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    header="Characters"
+  >
+    <app-index-characters />
+  </p-dialog>
+}

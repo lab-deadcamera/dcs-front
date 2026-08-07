@@ -387,25 +387,27 @@
     dialog. Lives here (instead of as a /characters route) so the user
     can author trusted assets without leaving the studio.
   -->
-  <p-dialog
-    [visible]="charactersDialogVisible()"
-    (visibleChange)="onCharactersDialogVisibility($event)"
-    [modal]="true"
-    [closable]="true"
-    [draggable]="false"
-    [maximizable]="true"
-    [dismissableMask]="true"
-    [style]="{ width: '92vw', height: '88vh' }"
-    [header]="'STUDIO.ASSETS.CHARACTERS_DIALOG_TITLE' | translate"
-    styleClass="characters-library-dialog"
-  >
-    @if (charactersDialogVisible()) {
-      <app-index-characters
-        (assetUsed)="onCharactersDialogVisibility(false)"
-        [showUseButton]="true"
-      />
-    }
-  </p-dialog>
+  @if (charactersDialogVisible()) {
+    <p-dialog
+      [visible]="charactersDialogVisible()"
+      (visibleChange)="onCharactersDialogVisibility($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [maximizable]="true"
+      [dismissableMask]="true"
+      [style]="{ width: '92vw', height: '88vh' }"
+      [header]="'STUDIO.ASSETS.CHARACTERS_DIALOG_TITLE' | translate"
+      styleClass="characters-library-dialog"
+    >
+      @if (charactersDialogVisible()) {
+        <app-index-characters
+          (assetUsed)="onCharactersDialogVisibility(false)"
+          [showUseButton]="true"
+        />
+      }
+    </p-dialog>
+  }
 </section>
 
 <p-toast />

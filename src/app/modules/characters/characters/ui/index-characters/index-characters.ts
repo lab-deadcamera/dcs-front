@@ -328,6 +328,7 @@ export class IndexCharacters implements OnInit {
   protected readonly createDialogType = signal<AssetType>('character');
 
   ngOnInit(): void {
+    this.characters.setSearchQuery('');
     this.loadAssets();
   }
 
@@ -469,9 +470,7 @@ export class IndexCharacters implements OnInit {
     const kind = resolveKind(asset.metadata?.['fileKind']);
     // Respect the @imageN slot inherited from the chapter assignment when the
     // character is assigned to the current episode.
-    const assignedSlot = this.studio
-      .chapterCharacterData()
-      .find((c) => c.id === asset.id)?.slot;
+    const assignedSlot = this.studio.chapterCharacterData().find((c) => c.id === asset.id)?.slot;
     this.studio.useAsset({
       fileId,
       characterId: asset.id,

@@ -96,17 +96,23 @@ export class CharactersService {
   /** Refresh the in-memory cache from the backend (page 1, full chunk). */
   load(): Observable<{ error: boolean; msg: string; data?: any }> {
     this._loading.set(true);
-    return this.api.listPage({ page: this._page(), pageSize: this._pageSize(), q: this._searchQuery() || undefined }).pipe(
-      tap((res) => {
-        if (!res.error && res.data) {
-          this._items.set(res.data.items);
-          this._total.set(res.data.total);
-          this._page.set(res.data.page);
-          this._totalPages.set(res.data.totalPages);
-        }
-        this._loading.set(false);
-      }),
-    );
+    return this.api
+      .listPage({
+        page: this._page(),
+        pageSize: this._pageSize(),
+        q: this._searchQuery() || undefined,
+      })
+      .pipe(
+        tap((res) => {
+          if (!res.error && res.data) {
+            this._items.set(res.data.items);
+            this._total.set(res.data.total);
+            this._page.set(res.data.page);
+            this._totalPages.set(res.data.totalPages);
+          }
+          this._loading.set(false);
+        }),
+      );
   }
 
   /** Fetch the next chunk from the server and append it to the loaded items.
@@ -206,4 +212,3 @@ export class CharactersService {
     return this.api.unassignFile(characterId, fileId);
   }
 }
-
