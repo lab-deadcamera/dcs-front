@@ -503,3 +503,57 @@ describe('shotBuilderResultToSequence — la duración de la respuesta llega al 
     expect(seq!.aspectRatio).toBe('9:16');
   });
 });
+
+describe('shotBuilderResultToSequence — ids estándar "escena · shot"', () => {
+  it('prefija SIEMPRE el id con el número de escena y son únicos (sin duplicados)', () => {
+    const mkScene = (scriptNumber: number, ids: string[]): SceneData =>
+      ({
+        scriptNumber,
+        scriptLocation: `LOC ${scriptNumber}`,
+        title: `Scene ${scriptNumber}`,
+        description: '',
+        duration: 10,
+        start: 0,
+        end: 10,
+        sceneType: 'present',
+        mode: 'M1',
+        continuity: {
+          location: `LOC ${scriptNumber}`,
+          locationChange: false,
+          timeContinuity: '',
+          charactersPresent: [],
+        },
+        references: [],
+        shots: ids.map((id) => ({
+          id,
+          number: id.charCodeAt(0) - 64,
+          name: `Shot ${id}`,
+          description: `prompt ${id}`,
+          duration: 5,
+        })),
+      }) as SceneData;
+
+    const result: ShotBuilderResult = {
+      scenes: [mkScene(89, ['A', 'B']), mkScene(90, ['A', 'B']), mkScene(93, ['A', 'B', 'C', 'D'])],
+      rawText: '',
+    };
+
+    const seq = shotBuilderResultToSequence(result);
+    expect(seq).not.toBeNull();
+    expect(seq!.shots.map((s) => s.id)).toEqual([
+      '89-A',
+      '89-B',
+      '90-A',
+      '90-B',
+      '93-A',
+      '93-B',
+      '93-C',
+      '93-D',
+    ]);
+    // Uniqueness is the whole point — NG0955 disappears.
+    const set = new Set(seq!.shots.map((s) => s.id));
+    expect(set.size).toBe(seq!.shots.length);
+    // Sequence scenes reference the prefixed ids.
+    expect(seq!.scenes?.[2].shotIds).toEqual(['93-A', '93-B', '93-C', '93-D']);
+  });
+});

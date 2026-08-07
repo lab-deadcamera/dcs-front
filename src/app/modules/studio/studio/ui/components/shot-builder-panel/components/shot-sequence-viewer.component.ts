@@ -17,6 +17,21 @@ import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
 import { ShotReferenceResolverComponent } from './shot-reference-resolver.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 
+/** One shot row of the super-admin preview modal. */
+interface PreviewShot {
+  id: string;
+  title: string;
+  lang: 'en' | 'zh';
+  prompt: string;
+}
+
+/** One scene of the super-admin preview modal (approved shots grouped by scene). */
+interface PreviewScene {
+  scriptNumber: number;
+  scriptLocation: string;
+  shots: PreviewShot[];
+}
+
 @Component({
   selector: 'app-shot-sequence-viewer',
   standalone: true,
@@ -199,20 +214,33 @@ import { StudioStore } from '@app/core/stores/studio.store';
               [class.summary-approved]="approvedMap[shot.id]"
               [class.summary-unapproved]="!approvedMap[shot.id]"
             >
-              <span class="summary-id">
-                @if (sceneNumberFor(shot.id); as sceneNum) {
-                  <span class="summary-scene">#{{ sceneNum }}</span>
-                  <span class="summary-sep">·</span>
-                }
+              <button
+                type="button"
+                class="summary-id"
+                (click)="onShotHighlight(shot.id)"
+                [title]="'Go to shot ' + shot.id"
+              >
                 {{ shot.id }}
-              </span>
+              </button>
               <span class="summary-title">{{ shot.title }}</span>
               <span class="summary-lang">[{{ langMap[shot.id] || 'en' }}]</span>
               <span class="summary-text">{{ promptPreview(shot) }}</span>
             </div>
           }
         </div>
-        <div class="flex w-full justify-end">
+        <div class="flex w-full justify-end gap-2">
+          @if (isSuperAdmin()) {
+            <button
+              type="button"
+              class="preview-btn"
+              (click)="openPreview()"
+              [disabled]="creating() || approvedCount() === 0"
+              title="Ver los datos exactos (escenas y shots) que se crearían"
+            >
+              <i class="pi pi-eye" aria-hidden="true"></i>
+              Ver datos a crear
+            </button>
+          }
           <button
             type="button"
             class="create-btn"
@@ -232,6 +260,68 @@ import { StudioStore } from '@app/core/stores/studio.store';
         </div>
       </div>
     </div>
+
+    <!-- Super-admin preview: exact data "Crear listado" would create -->
+    <p-dialog
+      [visible]="previewVisible()"
+      (visibleChange)="previewVisible.set($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [style]="{ width: '44rem', maxWidth: '95vw' }"
+      header="Datos que se crearán"
+    >
+      <div class="flex max-h-[60vh] flex-col gap-3 overflow-y-auto py-2">
+        @if (previewScenes().length === 0) {
+          <p class="text-[13px] italic text-fg-muted">No hay shots aprobados para crear.</p>
+        } @else {
+          <p class="text-[13px] font-semibold text-fg">
+            {{ previewScenes().length }} escena{{ previewScenes().length !== 1 ? 's' : '' }} y
+            {{ previewShotCount() }} shot{{ previewShotCount() !== 1 ? 's' : '' }} se crearían.
+          </p>
+          @for (scene of previewScenes(); track scene.scriptNumber) {
+            <div class="rounded-lg border border-ink-700 bg-ink-900 px-3 py-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="min-w-0 text-[12px] font-medium text-fg">
+                  #{{ scene.scriptNumber }} — {{ scene.scriptLocation }}
+                </span>
+                <span class="shrink-0 text-[11px] text-fg-muted">
+                  {{ scene.shots.length }} shot{{ scene.shots.length !== 1 ? 's' : '' }}
+                </span>
+              </div>
+              <ul class="mt-1 flex flex-col gap-2">
+                @for (s of scene.shots; track s.id) {
+                  <li class="flex flex-col gap-0.5 border-t border-ink-800 pt-1.5">
+                    <div class="flex items-center gap-2">
+                      <span class="font-mono text-[10px] font-bold text-fg">{{ s.id }}</span>
+                      <span class="min-w-0 flex-1 truncate text-[12px] text-fg">{{ s.title }}</span>
+                      <span class="font-mono text-[9px] uppercase text-fg-muted"
+                        >[{{ s.lang }}]</span
+                      >
+                    </div>
+                    <p
+                      class="break-words whitespace-pre-wrap font-mono text-[10px] leading-relaxed text-fg-muted"
+                    >
+                      {{ s.prompt }}
+                    </p>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        }
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end">
+          <p-button
+            severity="secondary"
+            [text]="true"
+            label="Cerrar"
+            (onClick)="previewVisible.set(false)"
+          />
+        </div>
+      </ng-template>
+    </p-dialog>
 
     <!-- No approved shots confirmation -->
     <p-dialog
@@ -268,9 +358,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
     >
       <div class="flex flex-col gap-3 py-2">
         <p class="text-[13px] leading-relaxed">
-          Hay {{ unresolvedRefs().length }} referencia{{
-            unresolvedRefs().length !== 1 ? 's' : ''
-          }}
+          Hay {{ unresolvedRefs().length }} referencia{{ unresolvedRefs().length !== 1 ? 's' : '' }}
           sin un asset o character relacionado en el episodio:
         </p>
         <ul class="flex flex-col gap-1.5">
@@ -684,9 +772,29 @@ import { StudioStore } from '@app/core/stores/studio.store';
         white-space: nowrap;
       }
       .summary-id {
+        display: inline-flex;
+        align-items: center;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
         font-weight: 700;
         color: var(--ink, #ece6d8);
-        min-width: 76px;
+        min-width: 35px;
+        background: none;
+        border: none;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        transition: color 0.12s ease;
+      }
+      .summary-id:hover {
+        color: var(--teal, #4fb0b5);
+        text-decoration: underline;
+      }
+      .summary-id:focus-visible {
+        outline: 2px solid var(--teal, #4fb0b5);
+        outline-offset: 2px;
+        border-radius: 2px;
       }
       .summary-scene {
         font-weight: 500;
@@ -742,6 +850,35 @@ import { StudioStore } from '@app/core/stores/studio.store';
         opacity: 0.6;
         cursor: not-allowed;
       }
+
+      .preview-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: transparent;
+        color: var(--ink-dim, #9aa6a3);
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        padding: 9px 18px;
+        cursor: pointer;
+        transition:
+          color 0.16s ease,
+          border-color 0.16s ease,
+          background 0.16s ease;
+      }
+      .preview-btn:hover:not(:disabled) {
+        color: var(--ink, #ece6d8);
+        border-color: var(--ink-faint, #6a7977);
+        background: rgba(79, 176, 181, 0.05);
+      }
+      .preview-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     `,
   ],
 })
@@ -760,6 +897,9 @@ export class ShotSequenceViewerComponent {
   /** True while the parent is creating scenes/shots from this list — disables
    *  the create button and shows a spinner. */
   readonly creating = input(false);
+
+  /** Super admins get a preview of the exact data "Crear listado" would create. */
+  readonly isSuperAdmin = input(false);
 
   /** Mutable map of shot ID → approval status. */
   protected readonly approvedMap: Record<string, boolean> = {};
@@ -793,6 +933,57 @@ export class ShotSequenceViewerComponent {
     if (!seq) return [];
     return seq.shots.filter((s) => this.approvedMap[s.id]);
   });
+
+  // ── Super-admin preview of the data "Crear listado" would create ────
+
+  /** Visibility of the super-admin preview modal. */
+  protected readonly previewVisible = signal(false);
+
+  /** The approved shots grouped by scene (with location + prompt) exactly as
+   *  "Crear listado de pre-prompts" would create them. Reactive to approval
+   *  changes because it derives from approvedShots(). */
+  protected readonly previewScenes = computed<PreviewScene[]>(() => {
+    const seq = this.sequence();
+    if (!seq) return [];
+    const sceneInfo = new Map<number, SequenceScene>();
+    for (const sc of seq.scenes ?? []) sceneInfo.set(sc.scriptNumber, sc);
+
+    const groups = new Map<number, Shot[]>();
+    for (const shot of this.approvedShots()) {
+      const n = parseInt(this.sceneNumberFor(shot.id), 10);
+      const key = Number.isFinite(n) ? n : 0;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(shot);
+    }
+
+    const scenes: PreviewScene[] = [];
+    for (const [num, shots] of groups) {
+      const sc = sceneInfo.get(num);
+      scenes.push({
+        scriptNumber: num,
+        scriptLocation:
+          sc?.scriptLocation || (num === 0 ? 'Current scene (legacy)' : `Scene ${num}`),
+        shots: shots.map((s) => {
+          const lang = this.langMap[s.id] || 'en';
+          const over = this.promptOverrides()[s.id];
+          const prompt = lang === 'zh' ? (over?.zh ?? s.prompt.zh) : (over?.en ?? s.prompt.en);
+          return { id: s.id, title: s.title, lang, prompt: prompt || '' };
+        }),
+      });
+    }
+    return scenes;
+  });
+
+  /** Total approved shots across all preview scenes. */
+  protected readonly previewShotCount = computed(() =>
+    this.previewScenes().reduce((n, sc) => n + sc.shots.length, 0),
+  );
+
+  /** Open the super-admin preview modal (no-op for non admins). */
+  protected openPreview(): void {
+    if (!this.isSuperAdmin()) return;
+    this.previewVisible.set(true);
+  }
 
   private readonly studio = inject(StudioStore);
 

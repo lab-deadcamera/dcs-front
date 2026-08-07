@@ -704,10 +704,14 @@ export function shotBuilderResultToSequence(
   fallbackAspectRatio: AspectRatio = '9:16',
 ): Sequence | null {
   const scenes = result.scenes ?? [];
-  const flat: Array<{ shot: ShotBuilderShot; sceneType: string }> = [];
+  const flat: Array<{ shot: ShotBuilderShot; sceneType: string; scriptNumber: number }> = [];
   for (const scene of scenes) {
     for (const shot of scene.shots ?? []) {
-      flat.push({ shot, sceneType: scene.sceneType || 'present' });
+      flat.push({
+        shot,
+        sceneType: scene.sceneType || 'present',
+        scriptNumber: scene.scriptNumber,
+      });
     }
   }
   if (flat.length === 0) return null;
@@ -737,14 +741,29 @@ export function shotBuilderResultToSequence(
   const mode = (result.mode as RenderMode) || 'M1';
   const aspectRatio = (result.aspectRatio as AspectRatio) || fallbackAspectRatio;
 
-  // Unique shot ids across the whole sequence. Real responses don't carry ids,
-  // so fall back to a global S1, S2, … counter — scene numbers alone are not
-  // unique (every scene restarts its shots at number 1).
+  // Unique shot ids across the whole sequence. Real responses carry per-scene
+  // ids (e.g. "A", "B", "C") that restart in every scene, so a plain pass-through
+  // would produce duplicate keys — approval, tracking and the summary all key by
+  // shot id, so one approval would apply to every same-lettered shot. As a
+  // STANDARD, every shot id is prefixed with its scene number ("89-A", "90-B",
+  // "93-C") so it is globally unique AND reads as "scene · shot" in the summary;
+  // a global S1, S2, … counter is the fallback when there is no id/scene number.
   const idFor = new Map<ShotBuilderShot, string>();
+  const used = new Set<string>();
   let shotIndex = 0;
-  for (const { shot } of flat) {
+  for (const { shot, scriptNumber } of flat) {
     shotIndex++;
-    idFor.set(shot, shot.id || `S${shotIndex}`);
+    const raw = shot.id || '';
+    let id = `S${shotIndex}`;
+    if (raw && scriptNumber) {
+      const prefixed = raw.startsWith(`${scriptNumber}-`) ? raw : `${scriptNumber}-${raw}`;
+      id = prefixed;
+    } else if (raw && !used.has(raw)) {
+      id = raw; // flat legacy list (single scene) — the letter is already unique
+    }
+    if (used.has(id)) id = `S${shotIndex}`;
+    used.add(id);
+    idFor.set(shot, id);
   }
 
   // Build the strip segments; fall back to a running cursor when the backend

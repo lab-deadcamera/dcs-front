@@ -185,4 +185,65 @@ describe('ShotSequenceViewerComponent', () => {
     expect((component as any).unresolvedRefs()).toHaveLength(0);
     expect((component as any).refNameFor(seq.references[0])).toBe('Kitchen Plate.jpg');
   });
+
+  it('agrupa los shots aprobados por escena en el preview del super-admin', () => {
+    // Añade grouping de escenas al sequence (scriptNumber + shotIds con ids prefijados).
+    const shots = [
+      { ...makeShot('89-A', 'prompt 89a'), title: 'Wide shot' },
+      { ...makeShot('89-B', 'prompt 89b'), title: 'Medium shot' },
+      { ...makeShot('90-A', 'prompt 90a'), title: 'Close shot' },
+    ];
+    const seq = makeSequence(shots);
+    seq.scenes = [
+      {
+        scriptNumber: 89,
+        scriptLocation: 'EXT. BANK — DAY',
+        title: 'S1',
+        description: '',
+        duration: 10,
+        sceneType: 'present' as any,
+        mode: 'M1' as any,
+        references: [],
+        shotIds: ['89-A', '89-B'],
+      },
+      {
+        scriptNumber: 90,
+        scriptLocation: 'INT. BANK — CONT',
+        title: 'S2',
+        description: '',
+        duration: 10,
+        sceneType: 'present' as any,
+        mode: 'M1' as any,
+        references: [],
+        shotIds: ['90-A'],
+      },
+    ];
+    fixture.componentRef.setInput('sequence', seq);
+    fixture.detectChanges();
+
+    (component as any).approvedMap['89-B'] = true;
+    (component as any).approvedMap['90-A'] = true;
+    (component as any).approvedTick.update((n: number) => n + 1);
+    fixture.detectChanges();
+
+    const scenes = (component as any).previewScenes();
+    expect(scenes).toHaveLength(2);
+    expect(scenes[0].scriptNumber).toBe(89);
+    expect(scenes[0].scriptLocation).toBe('EXT. BANK — DAY');
+    expect(scenes[0].shots.map((s: any) => s.id)).toEqual(['89-B']);
+    expect(scenes[0].shots[0].prompt).toBe('prompt 89b');
+    expect(scenes[1].scriptNumber).toBe(90);
+    expect(scenes[1].shots.map((s: any) => s.id)).toEqual(['90-A']);
+    expect((component as any).previewShotCount()).toBe(2);
+  });
+
+  it('openPreview solo abre el modal para super-admin', () => {
+    fixture.componentRef.setInput('isSuperAdmin', false);
+    (component as any).openPreview();
+    expect((component as any).previewVisible()).toBe(false);
+
+    fixture.componentRef.setInput('isSuperAdmin', true);
+    (component as any).openPreview();
+    expect((component as any).previewVisible()).toBe(true);
+  });
 });

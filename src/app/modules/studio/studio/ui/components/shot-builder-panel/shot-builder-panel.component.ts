@@ -52,7 +52,7 @@ import {
   computeCharacterCount,
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
-import responseOkMock from '@app/core/mocks/new-response-2.json';
+import responseOkMock from '@app/core/mocks/response-07-08.json';
 import { Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
@@ -66,10 +66,7 @@ import { FilesApiService } from '@app/services/files-api.service';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { inferKind } from '@app/shared/utils';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
-import {
-  AssetType,
-  CharacterMetadata,
-} from '@app/modules/characters/characters/interfaces';
+import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -82,7 +79,14 @@ const SHOT_BUILDER_SYSTEM_PROMPT = '';
 
 /** Aspect ratios the video backend accepts (mirrors backend ValidRatios). */
 const SUPPORTED_ASPECT_RATIOS = new Set([
-  '16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '9:21', '2.35:1',
+  '16:9',
+  '9:16',
+  '1:1',
+  '4:3',
+  '3:4',
+  '21:9',
+  '9:21',
+  '2.35:1',
 ]);
 
 /** Safety cap for a single generated shot's duration, in seconds. */
@@ -280,7 +284,7 @@ export class ShotBuilderPanelComponent {
   /** Claude model for the shot builder — independent from studio video model. */
   private readonly claudeModelName = signal<string>(CLAUDE_MODELS[0].name);
   /** Whether to generate Chinese prompts (prompt.zh). */
-  protected readonly generateChinese = signal(true);
+  protected readonly generateChinese = signal(false);
 
   protected readonly selectedModelName = computed(() => this.claudeModelName());
 
@@ -812,58 +816,54 @@ export class ShotBuilderPanelComponent {
         continue;
       }
 
-      this.filesApi
-        .upload({ file: f, category, storage: 'persistent' })
-        .subscribe({
-          next: (up) => {
-            if (up.error || !up.data) {
-              this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
-              done();
-              return;
-            }
-            const fileId = up.data.id;
-            this.studio.addFreeAsset({
-              id: fileId,
-              kind: inferKind(f),
-              filename: up.data.filename,
-              thumbnailUrl: this.filesApi.serveUrl(fileId),
-              tag: '',
-              slot: 'free',
-            });
-            this.toast.add({
-              severity: 'success',
-              summary: 'Free asset added',
-              detail: `${f.name} added to the episode`,
-            });
-            // Persist as an episode asset so it survives chapter changes/reloads.
-            // The returned chapter_assets row id lets the user remove it right
-            // away without waiting for a reload.
-            if (projectId && chapterId) {
-              this.projectsApi
-                .assignAssetToChapter(projectId, chapterId, fileId)
-                .subscribe({
-                  next: (res) => {
-                    if (res?.data?.id) {
-                      this.studio.registerChapterAssetAssignment(fileId, res.data.id);
-                      assignedAny = true;
-                    }
-                  },
-                  error: () => done(),
-                  complete: () => done(),
-                });
-            } else {
-              done();
-            }
-          },
-          error: () => {
-            this.toast.add({
-              severity: 'error',
-              summary: 'Upload error',
-              detail: `Failed to upload ${f.name}`,
-            });
+      this.filesApi.upload({ file: f, category, storage: 'persistent' }).subscribe({
+        next: (up) => {
+          if (up.error || !up.data) {
+            this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
             done();
-          },
-        });
+            return;
+          }
+          const fileId = up.data.id;
+          this.studio.addFreeAsset({
+            id: fileId,
+            kind: inferKind(f),
+            filename: up.data.filename,
+            thumbnailUrl: this.filesApi.serveUrl(fileId),
+            tag: '',
+            slot: 'free',
+          });
+          this.toast.add({
+            severity: 'success',
+            summary: 'Free asset added',
+            detail: `${f.name} added to the episode`,
+          });
+          // Persist as an episode asset so it survives chapter changes/reloads.
+          // The returned chapter_assets row id lets the user remove it right
+          // away without waiting for a reload.
+          if (projectId && chapterId) {
+            this.projectsApi.assignAssetToChapter(projectId, chapterId, fileId).subscribe({
+              next: (res) => {
+                if (res?.data?.id) {
+                  this.studio.registerChapterAssetAssignment(fileId, res.data.id);
+                  assignedAny = true;
+                }
+              },
+              error: () => done(),
+              complete: () => done(),
+            });
+          } else {
+            done();
+          }
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Upload error',
+            detail: `Failed to upload ${f.name}`,
+          });
+          done();
+        },
+      });
     }
 
     // Allow selecting the same file again.

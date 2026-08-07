@@ -71,7 +71,7 @@
                   <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
                     Characters
                   </span>
-                  <div class="mt-1 flex flex-wrap gap-1">
+                  <div class="mt-1 flex flex-wrap gap-1 h-20 overflow-y-auto">
                     @for (c of sortedChapterCharacters(); track c.id) {
                       <button
                         type="button"
@@ -415,6 +415,7 @@
                   [chapterId]="chapterId() ?? studio.chapterId() ?? ''"
                   [showChinese]="generateChinese()"
                   [creating]="savingShots()"
+                  [isSuperAdmin]="isSuperAdmin()"
                   (createPrePromptsClicked)="onCreatePrePrompts($event)"
                 />
               </div>
@@ -820,18 +821,24 @@
           </div>
           <div class="flex items-center justify-between gap-3">
             <dt class="shrink-0 text-[11px] text-fg-muted">Character ID</dt>
-            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.charId }}</dd>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+              {{ info.charId }}
+            </dd>
           </div>
           <div class="flex items-center justify-between gap-3">
             <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
-            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.fileId || '—' }}</dd>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+              {{ info.fileId || '—' }}
+            </dd>
           </div>
         </dl>
       } @else {
         <dl class="m-0 flex flex-col gap-1.5">
           <div class="flex items-center justify-between gap-3">
             <dt class="shrink-0 text-[11px] text-fg-muted">Filename</dt>
-            <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">{{ info.filename }}</dd>
+            <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">
+              {{ info.filename }}
+            </dd>
           </div>
           <div class="flex items-center justify-between gap-3">
             <dt class="shrink-0 text-[11px] text-fg-muted">Type</dt>
@@ -843,7 +850,9 @@
           </div>
           <div class="flex items-center justify-between gap-3">
             <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
-            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.fileId }}</dd>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+              {{ info.fileId }}
+            </dd>
           </div>
         </dl>
         <div class="mt-2 flex justify-end border-t border-ink-700 pt-2">
@@ -862,10 +871,7 @@
 </p-popover>
 
 <!-- Full-screen asset viewer (same component as the Files module) -->
-<app-asset-viewer
-  [(visible)]="viewerVisible"
-  [file]="viewerFile()"
-/>
+<app-asset-viewer [(visible)]="viewerVisible" [file]="viewerFile()" />
 
 <!-- Preview payload dialog (super admin only) -->
 <p-dialog

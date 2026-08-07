@@ -40,6 +40,15 @@ const SLOT_SIZES: Record<RatingSize, { box: string; glyph: string }> = {
   selector: 'app-rating',
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+      .rating {
+        border: solid 1px;
+        border-radius: 4px;
+        padding: 2px;
+      }
+    `,
+  ],
   template: `
     <section class="px-6 py-3">
       <div class="flex items-center gap-0.5" role="radiogroup" [attr.aria-label]="ariaGroup()">
@@ -51,7 +60,7 @@ const SLOT_SIZES: Record<RatingSize, { box: string; glyph: string }> = {
             [attr.aria-checked]="display() === slot.value"
             [attr.aria-label]="ariaSlot(slot)"
             [disabled]="!hasClip()"
-            class="flex items-center justify-center leading-none transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            class="rating flex items-center justify-center leading-none transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
             [class]="sizeClasses().box"
             [class]="sizeClasses().glyph"
             [class.text-fg-faint]="!lit"
