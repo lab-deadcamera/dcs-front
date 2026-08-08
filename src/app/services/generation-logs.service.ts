@@ -4,6 +4,9 @@ import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
 import {
+  FixAssetResult,
+  GalleryAsset,
+  GalleryModel,
   GenerationLogEntry,
   GenerationLogListResponse,
   ModelAssetSync,
@@ -157,6 +160,80 @@ export class GenerationLogsService {
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
+      );
+  }
+
+  // ── External galleries (admin view) ───────────────────────────
+
+  /**
+   * Models with records in model_assets, with per-status counts.
+   * GET /studio/gallery/models
+   */
+  getGalleryModels(): Observable<{ error: boolean; msg: string; data?: GalleryModel[] }> {
+    return this.http
+      .get<ResponseBase<GalleryModel[]>>(`${this.apiUrl}/gallery/models`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<GalleryModel[]>),
+      );
+  }
+
+  /**
+   * Sync records for a model, enriched with the internal gallery match
+   * (file name/mime + characters). GET /studio/gallery/models/:modelId/assets
+   */
+  getGalleryAssets(
+    modelId: string,
+  ): Observable<{ error: boolean; msg: string; data?: GalleryAsset[] }> {
+    return this.http
+      .get<ResponseBase<GalleryAsset[]>>(`${this.apiUrl}/gallery/models/${modelId}/assets`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<GalleryAsset[]>),
+      );
+  }
+
+  /**
+   * Last failed sync attempts for one file in one model.
+   * GET /studio/gallery/errors?model_id=&file_id=
+   */
+  getGalleryErrors(
+    modelId: string,
+    fileId: string,
+  ): Observable<{ error: boolean; msg: string; data?: ModelAssetSync[] }> {
+    return this.http
+      .get<ResponseBase<ModelAssetSync[]>>(`${this.apiUrl}/gallery/errors`, {
+        params: { model_id: modelId, file_id: fileId },
+      })
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<ModelAssetSync[]>),
+      );
+  }
+
+  /**
+   * Retry a failed sync, auto-fixing the image first (normalize geometry,
+   * or regenerate with AI when mode is "ai" / normalize fails).
+   * POST /studio/gallery/fix-asset
+   */
+  fixAsset(
+    modelId: string,
+    fileId: string,
+    mode?: 'auto' | 'normalize' | 'ai',
+    ratio?: string,
+    model?: string,
+  ): Observable<{ error: boolean; msg: string; data?: FixAssetResult }> {
+    return this.http
+      .post<ResponseBase<FixAssetResult>>(`${this.apiUrl}/gallery/fix-asset`, {
+        model_id: modelId,
+        file_id: fileId,
+        ...(mode ? { mode } : {}),
+        ...(ratio ? { ratio } : {}),
+        ...(model ? { model } : {}),
+      })
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<FixAssetResult>),
       );
   }
 }

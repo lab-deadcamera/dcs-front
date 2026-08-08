@@ -129,8 +129,44 @@ export interface ModelAssetSync {
   asset_group_id: string;
   status: string; // "syncing", "active", "failed"
   error_message: string;
+  asset_type?: string;
+  asset_url?: string;
+  reference_uri?: string;
   created_at: string;
   updated_at: string;
+}
+
+/** Modelo con registros en model_assets — vista admin "Galerías Externas". */
+export interface GalleryModel {
+  model_id: string;
+  model_name: string;
+  total: number;
+  active: number;
+  failed: number;
+  syncing: number;
+  last_sync?: string;
+}
+
+/** Personaje interno que referencia el archivo sincronizado. */
+export interface GalleryCharacter {
+  id: string;
+  name: string;
+}
+
+/** Registro de sync enriquecido con la galería interna (archivo + personajes). */
+export interface GalleryAsset extends ModelAssetSync {
+  file_name: string;
+  mime_type: string;
+  characters: GalleryCharacter[];
+}
+
+/** Resultado del retry/reparación de un sync fallido. */
+export interface FixAssetResult {
+  file_id: string;
+  status: string;
+  error_message?: string;
+  /** "normalize" | "ai" | "none". */
+  used_fix: string;
 }
 
 /** Resumen del sync de un personaje. */

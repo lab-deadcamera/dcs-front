@@ -37,6 +37,13 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.AdminProjectManagementComponent,
           ),
       },
+      {
+        path: 'external-galleries',
+        loadComponent: () =>
+          import('./admin/ui/external-galleries/external-galleries.component').then(
+            (m) => m.ExternalGalleriesComponent,
+          ),
+      },
     ],
   },
 ];
