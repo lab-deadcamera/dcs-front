@@ -113,19 +113,20 @@ export function beatInfoFromSegments(
           }
         }
 
-        @if (shot().composition?.frameMap) {
+        @if (shot().composition.frameMap) {
           <div class="grow">
             <span class="k">Frame Map</span>
             <span class="v">{{ shot().composition.frameMap }}</span>
           </div>
         }
 
-        @if (shot().notes?.warnings && shot().notes!.warnings!.length > 0) {
+        @let warnings = shot().notes.warnings;
+        @if (warnings && warnings.length > 0) {
           <div class="grow">
             <span class="k">Advertencias</span>
             <span class="v">
               <ul class="warning-list">
-                @for (w of shot().notes!.warnings!; track w) {
+                @for (w of warnings; track w) {
                   <li>{{ w }}</li>
                 }
               </ul>
@@ -133,12 +134,13 @@ export function beatInfoFromSegments(
           </div>
         }
 
-        @if (shot().notes?.todos && shot().notes!.todos!.length > 0) {
+        @let todos = shot().notes.todos;
+        @if (todos && todos.length > 0) {
           <div class="grow">
             <span class="k">Ingredientes</span>
             <span class="v">
               <div class="cuts">
-                @for (todo of shot().notes!.todos!; track todo; let i = $index) {
+                @for (todo of todos; track todo; let i = $index) {
                   <span class="cut"
                     ><em>@image{{ i + 1 }}</em> {{ todo }}</span
                   >
