@@ -16,7 +16,20 @@
           [showClear]="false"
           styleClass="studio-bcrumb-select"
           (onChange)="onProjectChange($event.value)"
-        />
+        >
+          <ng-template pTemplate="item" let-item>
+            <span class="pr-3">{{ item.name }}</span>
+            <span class="flex items-center gap-2 ml-auto">
+              <i
+                class="pi pi-plus cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
+                aria-hidden="true"
+                (click)="onProjectCreateEpisodeClick(item); $event.stopPropagation()"
+                pTooltip="New episode"
+                tooltipPosition="right"
+              ></i>
+            </span>
+          </ng-template>
+        </p-select>
         <label for="on_label">Project</label>
       </p-floatlabel>
     }
@@ -350,6 +363,63 @@
         [disabled]="!newShotForm.valid || newShotSubmitting()"
         [loading]="newShotSubmitting()"
         (onClick)="onConfirmNewShot()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- New Episode dialog -->
+<p-dialog
+  [visible]="newEpisodeDialogVisible()"
+  (visibleChange)="newEpisodeDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '24rem' }"
+  header="New Episode"
+>
+  <form [formGroup]="newEpisodeForm">
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1">
+        <label for="new-episode-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >Number</label
+        >
+        <input
+          id="new-episode-number"
+          pInputText
+          type="number"
+          formControlName="number"
+          class="w-full p-component p-inputtext"
+        />
+        @if (newEpisodeForm.controls.number.touched && newEpisodeForm.controls.number.invalid) {
+          <p class="text-[10px] text-red-400">Enter a number of at least 1.</p>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="new-episode-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >Name</label
+        >
+        <input
+          id="new-episode-name"
+          pInputText
+          formControlName="name"
+          class="w-full p-component p-inputtext"
+        />
+        @if (newEpisodeForm.controls.name.touched && newEpisodeForm.controls.name.invalid) {
+          <p class="text-[10px] text-red-400">Enter a name.</p>
+        }
+      </div>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelNewEpisode()" />
+      <p-button
+        icon="pi pi-check"
+        label="Create"
+        [disabled]="!newEpisodeForm.valid || newEpisodeSubmitting()"
+        [loading]="newEpisodeSubmitting()"
+        (onClick)="onConfirmNewEpisode()"
       />
     </div>
   </ng-template>

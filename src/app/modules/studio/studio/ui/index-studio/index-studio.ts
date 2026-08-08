@@ -794,6 +794,34 @@ export class IndexStudio implements OnInit {
     this.reloadChapterAssignments();
   }
 
+  /** Create a new episode (chapter) for the selected project and refresh the
+   *  breadcrumb's chapter list so it shows up in the dropdown. */
+  protected onBreadcrumbCreateChapter(payload: { number: number; name: string }): void {
+    const projectId = this.navSelectedProjectId();
+    if (!projectId) return;
+    this.projectsApi
+      .createChapter(projectId, { number: payload.number, name: payload.name })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.msg || 'Failed to create episode',
+          });
+          this.breadcrumbComponent()?.resetNewEpisodeDialog();
+          return;
+        }
+        const created = res.data;
+        this.loadChapters(projectId);
+        this.breadcrumbComponent()?.resetNewEpisodeDialog();
+        this.toast.add({
+          severity: 'success',
+          summary: 'Episode created',
+          detail: `EP${String(created.number).padStart(2, '0')} — ${created.name}`,
+        });
+      });
+  }
+
   /** Edit the selected scene (number/name) and refresh the breadcrumb + session. */
   protected onBreadcrumbEditScene(payload: BreadcrumbOption): void {
     const projectId = this.navSelectedProjectId();

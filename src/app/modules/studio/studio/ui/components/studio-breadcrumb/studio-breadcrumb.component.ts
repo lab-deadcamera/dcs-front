@@ -136,6 +136,8 @@ export class StudioBreadcrumbComponent {
   readonly shotChange = output<string | null>();
   /** Emitted when "Create & Open" is confirmed in the New Shot dialog. */
   readonly createShot = output<{ name: string; sourceShot: BreadcrumbOption | null }>();
+  /** Emitted when the user confirms a new episode (chapter) in the dialog. */
+  readonly createChapter = output<{ number: number; name: string }>();
   /** Emitted after resources are assigned/changed in the dialog. */
   readonly assignmentsChanged = output<void>();
   /** Emitted when the user confirms an edit of the selected scene. */
@@ -232,6 +234,29 @@ export class StudioBreadcrumbComponent {
   /** The currently selected clone source (for the template helper text). */
   protected readonly newShotSource = computed(() => this.newShotForm.controls.source.value);
 
+  // ── New Episode dialog state ───────────────────────────────────────
+
+  protected readonly newEpisodeDialogVisible = signal(false);
+  protected readonly newEpisodeSubmitting = signal(false);
+
+  /** Reactive form for the New Episode dialog (number + name). */
+  protected readonly newEpisodeForm = new FormGroup({
+    number: new FormControl<number>(1, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(1)],
+    }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+  });
+
+  /** Next available episode number (max existing + 1), prefilled on open. */
+  protected readonly nextChapterNumber = computed(() => {
+    const nums = this.chapters().map((c) => c.number);
+    return nums.length > 0 ? Math.max(...nums) + 1 : 1;
+  });
+
   private newShotNameValidator(group: AbstractControl): ValidationErrors | null {
     const form = group as FormGroup;
     const name = (form.get('name')?.value ?? '').trim();
@@ -254,6 +279,20 @@ export class StudioBreadcrumbComponent {
     this.selectedSceneId.set(null);
     this.selectedShotId.set(null);
     this.projectChange.emit(id);
+  }
+
+  /** Click on the "+" icon inside a project dropdown option — select that
+   *  project first so the dialog creates the episode in the right project,
+   *  then open the New Episode dialog. Mirrors onEpisodeCogClick. */
+  protected onProjectCreateEpisodeClick(project: { id: string; name: string }): void {
+    // Select that project first so the dialog has the right project id
+    this.selectedProjectId.set(project.id);
+    this.selectedChapterId.set(null);
+    this.selectedSceneId.set(null);
+    this.selectedShotId.set(null);
+    this.projectChange.emit(project.id);
+    // Open the new-episode dialog
+    this.onOpenNewEpisodeDialog();
   }
 
   protected onChapterChange(id: string | null): void {
@@ -317,6 +356,33 @@ export class StudioBreadcrumbComponent {
     this.newShotSubmitting.set(false);
     this.newShotDialogVisible.set(false);
     this.newShotForm.reset({ source: null, name: '' });
+  }
+
+  // ── New Episode dialog ──────────────────────────────────────────────
+
+  protected onOpenNewEpisodeDialog(): void {
+    this.newEpisodeForm.setValue({ number: this.nextChapterNumber(), name: '' });
+    this.newEpisodeDialogVisible.set(true);
+  }
+
+  protected onCancelNewEpisode(): void {
+    this.newEpisodeDialogVisible.set(false);
+  }
+
+  protected onConfirmNewEpisode(): void {
+    if (this.newEpisodeForm.invalid) return;
+    const number = Number(this.newEpisodeForm.controls.number.value);
+    const name = (this.newEpisodeForm.controls.name.value ?? '').trim();
+    if (!number || !name) return;
+    this.newEpisodeSubmitting.set(true);
+    this.createChapter.emit({ number, name });
+  }
+
+  /** Called from parent after create completes to reset dialog state. */
+  resetNewEpisodeDialog(): void {
+    this.newEpisodeSubmitting.set(false);
+    this.newEpisodeDialogVisible.set(false);
+    this.newEpisodeForm.reset({ number: 1, name: '' });
   }
 
   // ── Edit / Delete dialogs (scene & shot) ─────────────────────────
