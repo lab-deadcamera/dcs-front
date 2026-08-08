@@ -483,6 +483,66 @@ export class SceneAssignmentComponent implements OnInit {
       });
   }
 
+  /**
+   * Auto-assign resources created via the mass-upload button in the embedded
+   * resource library. Only applies in episode (chapter) mode — scene mode
+   * leaves the new resources unassigned for the user to place manually.
+   * Asks for confirmation first; on acceptance, assigns the whole batch.
+   */
+  protected onMassCreated(evt: { ids: string[]; kind: string }): void {
+    if (!this.isChapterMode() || evt.ids.length === 0) return;
+    this.confirm.confirm({
+      header: 'Auto-assign to episode',
+      message: `Assign the ${evt.ids.length} created resource(s) to this episode automatically?`,
+      acceptLabel: 'Assign',
+      rejectLabel: 'Cancel',
+      accept: () => this.autoAssignToEpisode(evt),
+    });
+  }
+
+  /** POST one chapter assignment per created id, with unique slots. */
+  private autoAssignToEpisode(evt: { ids: string[]; kind: string }): void {
+    const base = this.assignmentBase();
+    if (!base) return;
+
+    // Compute unique slots across the whole batch up front so nothing
+    // collides on @image1/@audio1 (assignedCharacters() only refreshes
+    // after this request completes).
+    const prefix = this.prefixForKind(evt.kind);
+    const usedSlots = new Set(
+      this.assignedCharacters().map((a) => a.slot).filter(Boolean) as string[],
+    );
+    const nextFreeSlot = (): string => {
+      let n = 1;
+      while (usedSlots.has(`@${prefix}${n}`)) n++;
+      const slot = `@${prefix}${n}`;
+      usedSlots.add(slot);
+      return slot;
+    };
+
+    forkJoin(
+      evt.ids.map((id) =>
+        this.http.post(`${base}/characters`, { character_id: id, slot: nextFreeSlot() }),
+      ),
+    ).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Assigned to episode',
+          detail: `${evt.ids.length} resources assigned`,
+          life: 3000,
+        });
+        this.reload();
+      },
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: 'Failed to assign resources',
+          life: 3000,
+        }),
+    });
+  }
+
   assignAsset(fileId: string): void {
     const base = this.assignmentBase();
     if (!base) return;

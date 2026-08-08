@@ -95,6 +95,13 @@ export class IndexCharacters implements OnInit {
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
 
+  /**
+   * Emitted after the mass-upload pipeline finishes, with the ids of every
+   * asset created and the file kind they were created as — so a host in an
+   * episode context can auto-assign them.
+   */
+  readonly massCreated = output<{ ids: string[]; kind: 'image' | 'audio' }>();
+
   /** Which bucket is currently shown in the grid. */
   protected readonly activeType = signal<AssetType>('character');
 
@@ -256,6 +263,9 @@ export class IndexCharacters implements OnInit {
           this.characters.load().subscribe();
           for (const id of created) this.fetchPreviewFor(id);
           this.charactersChanged.emit();
+          // Let an episode host auto-assign the batch; the kind mirrors the
+          // fileKind stored on each created asset (see createAssetFromFile).
+          this.massCreated.emit({ ids: created, kind: type === 'audio' ? 'audio' : 'image' });
         }
       },
       error: () => {
