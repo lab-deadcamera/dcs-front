@@ -1,0 +1,564 @@
+{
+  "episode": {
+    "title": "THE LEGACY",
+    "totalDuration": 68,
+    "totalShots": 7,
+    "assetAssignments": [
+      {
+        "slot": "@image1",
+        "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+        "type": "character"
+      },
+      {
+        "slot": "@image5",
+        "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+        "type": "character"
+      },
+      {
+        "slot": "@image3",
+        "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+        "type": "character"
+      },
+      {
+        "slot": "@image11",
+        "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+        "type": "location"
+      },
+      {
+        "slot": "@image9",
+        "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+        "type": "location"
+      },
+      {
+        "slot": "@image17",
+        "assetId": "bcb757b2-4e2f-461b-881b-aaa116687cce",
+        "type": "prop"
+      },
+      {
+        "slot": "@image18",
+        "assetId": "443bf313-3068-4c80-900e-ebce1572e236",
+        "type": "prop"
+      },
+      {
+        "slot": "@image16",
+        "assetId": "d6568b0f-cfde-4c8c-a0c5-8c8e00a3eb59",
+        "type": "prop"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scriptNumber": 53,
+      "scriptLocation": "INT. WYATT'S KITCHEN — NIGHT (PRESENT DAY)",
+      "title": "The Question That Breaks",
+      "description": "Wyatt stares across the table at Dixie. She leans forward and asks why he doesn't just leave the shop. He opens his mouth to answer but the words die. The question lands like a stone in still water.",
+      "duration": 18,
+      "start": 0,
+      "end": 18,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S KITCHEN — NIGHT (PRESENT DAY)",
+        "locationChange": false,
+        "timeContinuity": "N/A — first scene",
+        "charactersPresent": ["Wyatt (adult)", "Dixie"],
+        "emotionalCarryover": "N/A — first scene",
+        "physicalCarryover": "N/A — first scene",
+        "wardrobeCarryover": "N/A — first scene",
+        "notes": [
+          "Cold open. Late night. Intimate two-person scene. Wyatt is trapped by the simplicity of her question."
+        ]
+      },
+      "references": [
+        {
+          "slot": "@image1",
+          "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+          "type": "character"
+        },
+        {
+          "slot": "@image5",
+          "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+          "type": "character"
+        },
+        {
+          "slot": "@image11",
+          "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt's opening stare",
+          "description": "Wyatt sits across from Dixie, holding her gaze. His eyes are steady but searching, the first crack of vulnerability in his posture.",
+          "references": [
+            {
+              "slot": "@image1",
+              "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+              "type": "character"
+            },
+            {
+              "slot": "@image5",
+              "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+              "type": "character"
+            },
+            {
+              "slot": "@image11",
+              "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image1 @image5 @image11\n\nScene and Mood: Wyatt sits across a small kitchen table from Dixie in late-night shadow, his chin resting on his hand, eyes holding hers without blinking. The question has already been asked—we enter after. His gaze reads as a man measuring the distance between what he wants to say and what he knows is true.\n\nComposition: Wyatt centered, seated, occupying roughly 40% of frame left-of-center. Dixie in soft focus at frame right, leaning forward. Kitchen plane recedes behind them, walls dark teal-blue from night and poor kitchen lighting. Warm tungsten edge light rakes across Wyatt's left side of face.\n\nSpace and Mélange: Intimate kitchen interior, late night. Small round table between them, worn laminate surface. Walls lined with cabinet shadows. Fluorescent fixture above creates pools of hard light and shadow on their faces. @image1 (Wyatt) sits with shoulders slightly hunched inward, spine against chair back. @image5 (Dixie) leans forward across table, elbows braced. Eye line: Wyatt's gaze locked on Dixie's eyes at roughly 15 degrees downward from horizontal.\n\nCross-Shot Rule: Wyatt and Dixie maintain direct eyeline across table. When cut to Dixie's reverse, Wyatt remains seated in shallow focus behind her, visible in edge of frame.\n\nAction: Wyatt holds his gaze for 3 seconds—steady, defiant, searching. At 2.5 seconds, a barely perceptible asymmetrical lip curl appears at his left mouth corner (reads as internal resignation, the first micro-tell that he knows the answer she's looking for). At 3.8 seconds, his eyes perform a rapid 2-frame dart down to the table surface, then back up to her face. This reads as calculation, the instant before he attempts to construct a defensive answer.\n\nDialogue: WYATT: \"So... what happened with that job?\" [2.0 seconds duration]\n\nEnding Shot: Wyatt's gaze still locked on Dixie, mouth tightening imperceptibly as he waits for her response. His left hand remains flat on table, right hand at his side. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S KITCHEN — NIGHT. Tungsten overhead fixtures, mostly off. Ambient kitchen light pools from adjacent room. Teal-cool color cast from night sky through window. Silence dominates; only ambient hum of refrigerator, faint electrical buzz.\n\nSound Layer: Diegetic only. Distant faint hum of kitchen appliances. Soft creak of chair wood as Wyatt shifts weight. No music, no score.\n\nCapture realism: matte skin texture, pore-level detail on face, no cosmetic shine or highlights, natural eye moisture with mild redness indicating late hour. Camera locked on a slow, imperceptible push-in toward Wyatt's face over 5 seconds—operator breathing visible in micro-tremor. Vintage 2x anamorphic, 55mm equivalent, handheld with stabilizer but not locked. 24fps, 180-degree shutter, color-negative stock, fine 35mm grain, teal-amber grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 5,
+          "start": 0,
+          "end": 5,
+          "notes": {
+            "todos": [
+              "Load @image1 Wyatt casual variant — neutral expression preset",
+              "Load @image5 Dixie purple dress — neutral listening preset",
+              "Load @image11 kitchen plate — night lighting"
+            ],
+            "warnings": [
+              "Micro-fidgeting at 2.5s (asymmetrical lip curl) and 3.8s (eye dart down). These must be subtle, not exaggerated."
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "id": "B",
+          "name": "Dixie leans in—the challenge",
+          "description": "Dixie's reverse angle. She speaks the pivotal question: 'If there are other ways out there, why don't you just leave?' Her tone is not cruel—it is kind, and that makes it worse.",
+          "references": [
+            {
+              "slot": "@image5",
+              "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+              "type": "character"
+            },
+            {
+              "slot": "@image1",
+              "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+              "type": "character"
+            },
+            {
+              "slot": "@image11",
+              "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image5 @image1 @image11\n\nScene and Mood: Dixie leans forward across the small kitchen table, chin resting on her hand. She is about to deliver a question that she knows will wound. Her face is gentle but resolute. She speaks as someone who loves him enough to ask the question he's been avoiding.\n\nComposition: Dixie centered in frame, occupying 50% of screen space, face in sharp focus. Wyatt in soft blur at frame left behind table edge, his silhouette visible. Kitchen depth recedes behind her. Warm edge light on her left cheekbone, shadow on right side of face.\n\nSpace and Mélange: Same kitchen interior, same late-night atmosphere. Dixie's body leans across the table plane toward Wyatt, elbows spread, hands clasped under her chin. Her gaze is locked on Wyatt's face at horizontal eyeline. @image5 (Dixie) occupies the foreground; @image1 (Wyatt) occupies the midground blur.\n\nCross-Shot Rule: Dixie's eyeline is direct, unwavering toward Wyatt. When cutting back to Wyatt, his eyeline must match—looking at her face. Table between them acts as anchor point for both angles.\n\nAction: Dixie speaks her first line (1.2 seconds), then pauses. At 2.0 seconds, she tilts her head slightly to the right, a gesture that reads as concern, and her eyes soften. At 3.2 seconds, she speaks the second line (3.5 seconds total). During the second line, at 4.8 seconds, she blinks slowly—a deliberate, extended blink lasting about 1.2 seconds—which reads as pain, an acknowledgment of what she knows is coming. Her hand remains clasped under her chin, but at 5.5 seconds, her left index finger taps once on the table surface—a subtle punctuation mark of finality.\n\nDialogue: DIXIE: \"The same thing that's happening to yours.\" [1.2s pause] DIXIE (CONT'D): \"If there are 'other ways' out there, Wyatt... why don't you just leave this shop and get another job?\" [3.5s]\n\nEnding Shot: Dixie's expression settled into a patient, waiting stillness. Her eyes remain on Wyatt's face. Hand clasped under chin, left index finger resting on table. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S KITCHEN — NIGHT. Same location, same time. Tungsten light from side. Refrigerator hum. Late-night silence pressing in. Teal-cool color palette.\n\nSound Layer: Diegetic only. Soft ambient kitchen hum, faint tick of Dixie's fingernail on laminate table surface at 5.5 seconds. No music, no score.\n\nCapture realism: skin texture detailed, eye moisture visible, slight asymmetry in Dixie's resting face reads as genuine, not performed. Camera on slow lateral push-in toward Dixie's face over 7 seconds, maintaining operator breath micro-tremor. Vintage 2x anamorphic, 55mm equivalent. 24fps, 180-degree shutter, color-negative stock, fine grain. Teal-amber grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 7,
+          "start": 5,
+          "end": 12,
+          "notes": {
+            "todos": [
+              "Load @image5 Dixie — concern expression preset",
+              "Ensure eyeline matches reverse shot to @image1"
+            ],
+            "warnings": [
+              "Slow blink at 4.8s critical—reads as emotional weight, not sleepiness. Finger tap at 5.5s is punctuation, not nervousness."
+            ]
+          }
+        },
+        {
+          "number": 3,
+          "id": "C",
+          "name": "Wyatt's collapse",
+          "description": "Cut back to Wyatt. He opens his mouth to defend himself, but the words die in his throat. His jaw clenches. His gaze fractures. In one gesture, he surrenders the lie he's been holding.",
+          "references": [
+            {
+              "slot": "@image1",
+              "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+              "type": "character"
+            },
+            {
+              "slot": "@image5",
+              "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+              "type": "character"
+            },
+            {
+              "slot": "@image11",
+              "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image1 @image5 @image11\n\nScene and Mood: Wyatt's mouth opens in the instant before speech—the moment of intention without execution. His face registers the gap between what he wants to say and what is true. The words die. This is a man watching his own lie collapse in real time.\n\nComposition: Wyatt centered and slightly left-of-center, occupying 55% of frame. His mouth is open in an oval shape, eyes still locked on Dixie's face. Dixie remains in soft focus at frame right. Kitchen recedes. Hard shadow under his jawline from the side light source.\n\nSpace and Mélange: Same intimate kitchen table. @image1 (Wyatt) sits with shoulders tensed inward, spine rigid against chair back. His left hand is now gripping the table edge. His chin is slightly lifted, mouth parted. Eyes remain locked forward but the internal gaze is broken—he is looking through her, not at her. @image5 (Dixie) in soft focus, waiting.\n\nCross-Shot Rule: Wyatt's eyeline breaks from direct contact with Dixie's face at 3.2 seconds, shifting to a downward-right diagonal (reads as avoidance, shame, calculation failure). When reverse cuts to Dixie, her expression must hold patient concern—she is watching him fail to defend himself.\n\nAction: At 0.5 seconds, Wyatt's mouth opens fully in a shallow oval (the shape of an attempted word). At 1.2 seconds, his brows lower slightly, pulling together in a micro-furrow. At 2.1 seconds, his jaw clenches hard—visible muscle tension in the masseter (the chewing muscle at the corner of the jaw). His lips press into a thin line. At 3.2 seconds, his eyes perform a rapid lateral dart to the right, then down to the table surface, and they stay there—held for 2 full seconds in fixed downward gaze. At 5.0 seconds, a slow, asymmetrical lip curl appears at the right corner of his mouth (reads as bitter resignation). His left hand tightens on the table edge, knuckles whitening.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Wyatt's gaze is now down and away, fixed on the table surface. His mouth is closed, lips compressed into a thin line. His left hand grips the table edge, knuckles visible. His shoulders are pulled inward. The silence is absolute. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S KITCHEN — NIGHT. Same time. Teal-cool late-night lighting. Refrigerator hum barely audible. Silence presses down.\n\nSound Layer: Diegetic only. Soft ambient kitchen hum. At 2.1 seconds, faint creak of wooden chair as Wyatt tenses his body. At 5.0 seconds, barely perceptible sound of his fingernails scratching table laminate as his grip tightens. No music, no score.\n\nCapture realism: Skin texture shows micro-perspiration on upper lip and forehead. Eyes have redness at inner corners indicating late hour and emotional strain. Stubble is visible on jaw. Matte skin, no cosmetic shine. Camera performs slow subtle push-in over 6 seconds, handheld with operator breath visible in imperceptible micro-tremor. Vintage 2x anamorphic, 55mm equivalent. 24fps, 180-degree shutter, color-negative stock, fine 35mm grain, teal-amber grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6,
+          "start": 12,
+          "end": 18,
+          "notes": {
+            "todos": [
+              "Load @image1 Wyatt — jaw clench active",
+              "Ensure downward eye gaze reads as psychological break, not shame-based looking down"
+            ],
+            "warnings": [
+              "Critical: The 'words die in throat' is a physical collapse, not a thinking pause. Jaw clench at 2.1s must be visible tension, not subtlety. Lip curl at 5.0s is resignation, not smirk."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 54,
+      "scriptLocation": "INT. WYATT'S GARAGE — DAY (FLASHBACK - 2010 / WYATT IS 10)",
+      "title": "The Promise",
+      "description": "Rewind ten years. Young Wyatt assembles a toy RC car, powers it on, and watches it race across the garage floor. His father enters, praises him, and makes a sacred promise: when you turn 18, we'll run this shop together. It is a promise made with love and certainty. It is the moment everything was decided.",
+      "duration": 32,
+      "start": 18,
+      "end": 50,
+      "sceneType": "flashback",
+      "mode": "M2",
+      "continuity": {
+        "location": "INT. WYATT'S GARAGE — DAY (FLASHBACK - 2010)",
+        "locationChange": true,
+        "timeContinuity": "FLASHBACK — 2010, ten years prior to present-day kitchen",
+        "charactersPresent": ["Young Wyatt (age 10)", "Wyatt's Father (40s)"],
+        "emotionalCarryover": "N/A — hard cut from present to past. Emotional shift from despair to hope and innocence.",
+        "physicalCarryover": "N/A — different character (Young Wyatt, not adult Wyatt). Different wardrobe, different setting.",
+        "wardrobeCarryover": "Young Wyatt wears child-scale casual clothing appropriate to 2010. Father wears mechanic's work shirt, grease-stained.",
+        "notes": [
+          "FLASHBACK VISUAL LANGUAGE: Brighter, warmer, cleaner lighting than present-day kitchen. No teal cast. Warmer color grade. M2 mode (cleaner, more editorial). Hard SMASH CUT from present-day kitchen to garage creates temporal discontinuity. This is memory, not reality—visual language must reflect that distinction. Micro-expressions should be warmer, more open than adult scenes."
+        ]
+      },
+      "references": [
+        {
+          "slot": "@image3",
+          "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+          "type": "character"
+        },
+        {
+          "slot": "@image17",
+          "assetId": "bcb757b2-4e2f-461b-881b-aaa116687cce",
+          "type": "prop"
+        },
+        {
+          "slot": "@image18",
+          "assetId": "443bf313-3068-4c80-900e-ebce1572e236",
+          "type": "prop"
+        },
+        {
+          "slot": "@image9",
+          "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Young Wyatt assembles the toy car",
+          "description": "Young Wyatt snaps the final plastic shell onto the RC car body, hands trembling with anticipation. His eyes are wide, focused, full of the seriousness and joy of creation.",
+          "references": [
+            {
+              "slot": "@image3",
+              "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+              "type": "character"
+            },
+            {
+              "slot": "@image17",
+              "assetId": "bcb757b2-4e2f-461b-881b-aaa116687cce",
+              "type": "prop"
+            },
+            {
+              "slot": "@image9",
+              "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image3 @image17 @image9\n\nScene and Mood: Ten-year-old Wyatt sits cross-legged on a clean concrete garage floor, a small toy RC car chassis in his lap. His hands are assembling the final plastic shell—snapping it down over the frame with careful precision. His face is a study in focus and anticipation. The garage is warm, sunlit, full of the smell of oil and metal. This is pure creation.\n\nComposition: Young Wyatt positioned in foreground-center, occupying 60% of frame. The toy car is held at chest height, visible in sharp focus. Garage interior recedes behind him—tool benches, workstations, the large sedan chassis visible in deep background at 30% frame depth. Warm diffuse sunlight rakes across the left side of his face and shoulders.\n\nSpace and Mélange: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Bright, clean daylight streams through garage doors and high windows. Concrete floor is swept. No clutter. @image3 (Young Wyatt) sits on floor with legs crossed, torso forward, eyes fixed on the toy car assembly in his hands. His posture reads as absorbed, careful, methodical. The toy car (@image17) is held at approximate chest-center-frame, occupying 15% of screen space. In the background (@image9 garage plate), the real American sedan sits elevated on lift or blocks, partially disassembled.\n\nCross-Shot Rule: N/A — single subject, close-up of assembly task. When Father enters in next shot, spatial relationship must be established: Father approaches from background left, moving toward Wyatt's right side.\n\nAction: At 1.0 second, Wyatt's fingers grip the plastic shell and begin the final snap-down motion over 2.0 seconds, exerting careful downward pressure with both thumbs. At 3.0 seconds, the shell clicks into place with an audible plastic snap. His eyes widen slightly (genuine surprise and satisfaction, not performed). At 3.2 seconds, his brows lift in what reads as achievement. At 5.0 seconds, he lifts the completed car chassis toward his face, examining it at arm's length, turning it slowly to inspect all sides. His breathing is shallow, focused. At 6.5 seconds, a micro-expression of pride flickers across his face—a brief asymmetrical smile pulling at the right corner of his mouth, and his pupils dilate slightly.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Young Wyatt holds the completed toy car at arm's length, turning it slowly to examine his work. His face is open, unguarded, full of the simple pride of creation. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Bright, warm daylight. Golden-hour quality despite midday appearance—soft diffusion from garage skylights. Concrete floor with fine dust particles visible in light rays. Smell of oil and metal (diegetic, not rendered). No teal cast. Warm color palette. 40-year-old American sedan visible in background, undergoing repair. Quiet, peaceful atmosphere—only ambient garage sounds.\n\nSound Layer: Diegetic only. At 3.0 seconds, crisp plastic snap as shell clicks into place. Faint ambient workshop ambience—distant hum of compressed air line, occasional metal tool shifts in background. Soft shuffle of Wyatt's legs on concrete. No music, no score.\n\nCapture realism: Child skin texture—clear, soft, sun-flushed. Eyes bright and moist. Tiny bead of sweat on upper lip from concentration. Hair slightly tousled. Hands and fingers show minute motor skill control appropriate to age 10. Camera locked on tripod, gentle push-in over 8 seconds toward Wyatt's hands and face. Spherical rectilinear lens, 50mm equivalent. 24fps, 180-degree shutter, color-positive daylight stock, fine grain, warm amber-gold grade, slight warm diffusion overlay. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 8,
+          "start": 18,
+          "end": 26,
+          "notes": {
+            "todos": [
+              "Load @image3 Young Wyatt age 10 variant",
+              "Load @image17 toy car blue prop",
+              "Load @image9 garage plate 2010 clean version"
+            ],
+            "warnings": [
+              "FLASHBACK MODE SHIFT: M2 cinematography — cleaner, more editorial than M1. Locked tripod, not handheld. Warm daylight, not teal-shadowed. This is memory-visual language, not present-day realism. Micro-expressions should be warmer, more open, less constrained than adult Wyatt."
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "id": "B",
+          "name": "The car powers on",
+          "description": "Young Wyatt holds the remote control in both hands, presses the joystick forward, and the toy car's headlights click on. The car accelerates smoothly across the clean garage floor, moving at child-scale speed.",
+          "references": [
+            {
+              "slot": "@image3",
+              "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+              "type": "character"
+            },
+            {
+              "slot": "@image18",
+              "assetId": "443bf313-3068-4c80-900e-ebce1572e236",
+              "type": "prop"
+            },
+            {
+              "slot": "@image17",
+              "assetId": "bcb757b2-4e2f-461b-881b-aaa116687cce",
+              "type": "prop"
+            },
+            {
+              "slot": "@image9",
+              "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image3 @image18 @image17 @image9\n\nScene and Mood: Young Wyatt holds the small plastic remote control in both hands, his eyes fixed downward at the RC car sitting on the garage floor. His thumbs rest on the joystick. The world narrows to this single moment—the moment the thing he built will prove itself alive. He presses the joystick forward.\n\nComposition: Young Wyatt positioned in left-center frame, occupying 40% of screen space, torso bent forward. His hands and the remote control (@image18) occupy the lower third of frame, in sharp focus. The toy car (@image17) sits on the concrete floor in the immediate foreground-right, 25% of frame. Garage floor recedes into deep background. Warm light remains diffuse.\n\nSpace and Mélange: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Concrete floor is the primary plane. @image3 (Young Wyatt) sits on haunches or kneeling, leaning forward slightly, arms extended downward. His hands hold @image18 (remote control with joystick) at chest-to-waist height. His eyes are locked downward on @image17 (toy car) positioned about 4 feet away on the concrete, centered in his sightline. Garage backdrop remains soft and warm.\n\nCross-Shot Rule: Wyatt's gaze is locked down on the car. Camera remains tight, maintaining his POV dominance. When cut to wide shot in next beat, spatial relationship must preserve Wyatt-to-car distance.\n\nAction: At 0.5 seconds, Young Wyatt's thumbs press the joystick forward with deliberate control. At 1.0 second, the toy car's headlights (@image17) click on—a soft amber glow appears in the plastic lens fixtures. At 1.2 seconds, the car begins to move forward smoothly across the concrete, accelerating to approximately 2-3 feet per second (child-scale toy car speed). At 2.5 seconds, Wyatt's eyes widen fractionally—the moment of validation is registering on his face. At 3.0 seconds, his brows lift, and a genuine, unguarded smile spreads across his face, mouth open in a soft O shape. At 4.0 seconds, his shoulders relax visibly—a full-body relief response as the car continues its straight trajectory across the floor. His breathing deepens slightly, becoming audible and steady.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Young Wyatt's face is open in genuine delight, eyes tracking the moving toy car as it travels across the floor. His mouth remains soft and open. The remote control is still held forward in his hands. The toy car is mid-motion, headlights on, moving steadily across the concrete. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Same warm, diffuse daylight. Concrete floor texture visible. Toy car headlights provide soft accent light on the floor plane. Peaceful, expectant atmosphere. The moment before triumph.\n\nSound Layer: Diegetic only. At 1.0 second, soft click of plastic as toy car headlights power on. At 1.2 seconds, miniature electric motor whine as car accelerates—a high-pitched, delicate mechanical sound appropriate to toy-scale machinery. Soft whisper of toy car tires on concrete. Ambient garage background. No music, no score.\n\nCapture realism: Wyatt's skin shows sun-flushed cheeks, moisture on lip. Eyes are bright, tear-free, engaged. Hands show miniature motor control. Hair texture is fine, child-scale. Camera performs slow lateral push-left over 7 seconds, following the toy car's motion trajectory while keeping Wyatt's face in partial frame. Spherical rectilinear lens, 50mm equivalent. 24fps, 180-degree shutter, color-positive daylight stock, fine grain, warm amber-gold grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 7,
+          "start": 26,
+          "end": 33,
+          "notes": {
+            "todos": [
+              "Load @image18 remote joystick prop in Young Wyatt's hands",
+              "Ensure @image17 toy car moves smoothly and headlights are visible",
+              "Load @image9 garage plate, maintain same lighting continuity"
+            ],
+            "warnings": [
+              "Genuine smile at 3.0s — not performed, not exaggerated. This is a real child experiencing real validation. Motor control must be precise—toy car moves in straight line, headlights click on audibly."
+            ]
+          }
+        },
+        {
+          "number": 3,
+          "id": "C",
+          "name": "The fist pump",
+          "description": "Young Wyatt's arms raise, fists clenched, in unguarded triumph. He shouts 'Yes!' and his whole body vibrates with the release of weeks of focused work.",
+          "references": [
+            {
+              "slot": "@image3",
+              "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+              "type": "character"
+            },
+            {
+              "slot": "@image9",
+              "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image3 @image9\n\nScene and Mood: Young Wyatt's entire body releases into triumph. His arms thrust upward, fists clenched, in the physical language of pure, uncomplicated victory. His mouth opens in a shout. This is a child who has just proven to himself that his mind and hands work. Nothing is held back.\n\nComposition: Young Wyatt now stands, occupying 70% of frame from waist to crown. His arms are raised above his head, fists clenched and visible in frame-top. His face is tilted up, mouth open in the shape of his shout. Garage recedes in soft focus behind him. Warm light pools across his upturned face.\n\nSpace and Mélange: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). @image3 (Young Wyatt) has risen to a full standing position, legs planted shoulder-width apart, spine extended upward, arms fully raised. His entire torso expresses upward energy. His face is exposed, vulnerable, open—the antithesis of controlled performance.\n\nCross-Shot Rule: N/A — single subject. Camera remains locked on him.\n\nAction: At 0.2 seconds, Young Wyatt's arms begin the upward thrust motion from waist height to above-head height, fists clenching as they rise (duration 1.0 second). At 0.8 seconds, his mouth opens in the shape of 'Yes' (the phoneme O-E sound). At 1.0 second, his voice releases the word fully. At 1.2 seconds, his whole body vibrates in a full-torso shudder of release—shoulders bounce upward, knees bend slightly, then extend with the release energy. His breathing is visible—a full exhale of held tension. This entire physical sequence reads as genuine, involuntary triumph, not performed celebration.\n\nDialogue: YOUNG WYATT: \"Yes!\" [0.8 seconds]\n\nEnding Shot: Wyatt's arms remain raised above his head, fists open slightly, fingers spread wide from the energy of the gesture. His face remains tilted upward, expression settled into unguarded joy. His whole body is relaxed into the moment. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Same warm, diffuse light. Garage backdrop remains soft and warm. Peaceful, celebratory atmosphere.\n\nSound Layer: Diegetic only. Young Wyatt's voice shout: 'Yes!' [0.8s]. Soft ambient garage ambience. The triumph is in the voice, not in added effects. No music, no score.\n\nCapture realism: Wyatt's skin is sun-flushed, slightly perspired. Eyes are bright, pupils dilated with adrenaline. Mouth is open and pink-toned. Hair moves with the body's motion. The whole body reads as a child who has just experienced genuine success. Camera remains locked or performs imperceptible push-in. Spherical rectilinear lens, 50mm equivalent. 24fps, 180-degree shutter, color-positive daylight stock, fine grain, warm amber-gold grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 4,
+          "start": 33,
+          "end": 37,
+          "notes": {
+            "todos": ["Load @image3 Young Wyatt — standing, arms raised preset"],
+            "warnings": [
+              "This is genuine triumph, not performed. The body must vibrate with real release, not choreographed celebration. Voice should be natural child-scale, not exaggerated or broadcast."
+            ]
+          }
+        },
+        {
+          "number": 4,
+          "id": "D",
+          "name": "Father enters with pride",
+          "description": "Wyatt's father walks into frame from background, wiping his greasy hands with a dark rag. He looks down at the toy car and laughs—a warm, genuine laugh. He is proud of his son.",
+          "references": [
+            {
+              "slot": "@image3",
+              "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+              "type": "character"
+            },
+            {
+              "slot": "@image16",
+              "assetId": "d6568b0f-cfde-4c8c-a0c5-8c8e00a3eb59",
+              "type": "prop"
+            },
+            {
+              "slot": "@image9",
+              "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image3 @image16 @image9\n\nScene and Mood: Wyatt's Father enters from the deep garage background, walking forward toward his son. His hands are occupied with wiping machine grease from his palms using a dark rag. His face is already smiling—he has heard the shout, or he simply knows what it means. As he approaches and sees the toy car, his smile deepens into genuine laughter. This is a man who recognizes his own legacy in his son's hands.\n\nComposition: Father walks from background-center toward midground, occupying increasing screen real estate as he moves closer over 5 seconds (starts at 15% frame, ends at 45% frame). Wyatt remains in frame-left, still standing with arms relaxed. The toy car is visible on the floor between them. Garage backdrop shifts spatially as camera maintains steady wide composition.\n\nSpace and Mélange: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Father approaches from the deep background where the large American sedan is visible. His trajectory is diagonal from background-left toward midground-center, moving at a casual walk pace (approximately 2 feet per second over 5 seconds). @image3 (Young Wyatt) remains standing in left-center frame. @image16 (dark rag) is visible in Father's hands, occupying 10% of frame as he walks. The toy car (@image17 from previous shot) sits on concrete floor, stationary, in immediate foreground. Lighting remains warm and diffuse.\n\nCross-Shot Rule: Father's approach trajectory must be consistent when cut to previous shot of Wyatt—spatial depth and direction preserved. Wyatt's position remains constant. Father's gaze is directed downward toward the toy car and his son.\n\nAction: At 1.0 second, Father enters frame walking. His right hand is occupied with the dark rag, wiping his palms in circular motions (the repetitive gesture of a mechanic cleaning grease—reads as habitual, muscle memory). At 2.0 seconds, Father's eyes land on the toy car and register what he is seeing. At 2.5 seconds, his mouth opens in a smile, and a soft laugh begins—not loud or performed, but warm and genuine. At 3.0 seconds, his laughter is audible, shoulders shaking slightly. At 3.5 seconds, he reaches his son's side and the laughter settles into a sustained smile. His posture reads as ease, pride, genuine parental affection.\n\nDialogue: None—Father's laughter is diegetic sound, not dialogue.\n\nEnding Shot: Father stands beside Wyatt, looking down at the toy car with sustained smile and warmth in his eyes. The dark rag hangs loosely in his right hand. His shoulders are relaxed. His gaze is full of recognition and pride. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Same warm garage interior. Lighting remains golden, diffuse, peaceful. The American sedan remains visible in background, partially disassembled—context for the Father's own work.\n\nSound Layer: Diegetic only. At 1.0 second, soft pad of Father's footsteps on concrete as he walks. At 2.5-3.5 seconds, genuine warm laughter—audible but not exaggerated, the natural vocal expression of pride and amusement. Ambient garage background. No music, no score.\n\nCapture realism: Father's face shows stubble, weathered skin from years of garage work, but his expression is open and unguarded. Hands show grease stains and calluses—texture-visible details. Hair is slightly tousled from work. Eyes show moisture—genuine warmth, not tears. The dark rag (@image16) shows authentic grease marks and wear. Camera performs slow push-in over 5 seconds, handheld with operator breath micro-tremor, following Father's approach. Spherical rectilinear lens, 50mm equivalent. 24fps, 180-degree shutter, color-positive daylight stock, fine grain, warm amber-gold grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 5,
+          "start": 37,
+          "end": 42,
+          "notes": {
+            "todos": [
+              "Load Father character (new character, not in pre-assigned assets but critical to scene)",
+              "Load @image16 dark rag prop in Father's hands",
+              "Ensure Father's laughter is genuine, not performed"
+            ],
+            "warnings": [
+              "Father is a new character introduced in flashback. Need to establish paternal warmth and pride through micro-expressions and body language. Laughter is key—must read as genuine affection, not patronizing."
+            ]
+          }
+        },
+        {
+          "number": 5,
+          "id": "E",
+          "name": "The fist bump and the promise",
+          "description": "Father holds out his fist. Young Wyatt bumps it with his tiny fist. Then Father points toward the large American sedan and speaks the promise: 'One day, you're gonna fix one of those big ones. When you turn 18, you'll go to school for Mechanics and Robotics. Then we'll run this shop together.' Young Wyatt nods, full of certainty.",
+          "references": [
+            {
+              "slot": "@image3",
+              "assetId": "2d60cc76-fc72-42e8-a73f-ad5e4b6dc57d",
+              "type": "character"
+            },
+            {
+              "slot": "@image9",
+              "assetId": "f77e2dd7-acd3-462a-8426-4c1506ac13cb",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image3 @image9\n\nScene and Mood: Father and Son stand together in the garage, the toy car at their feet. Father extends his fist downward toward his son. Wyatt meets it with his smaller fist—a gesture of partnership, of recognition. Then Father points toward the large American sedan and speaks the words that will define Wyatt's entire life. 'One day, you're gonna fix one of those big ones.' The promise is wrapped in certainty, not hope. This is the moment when a boy's future is decided.\n\nComposition: Father and Wyatt now occupy adjacent frame space, Father at frame-right (occupying 35% of frame), Wyatt at frame-left (occupying 40% of frame). The toy car remains on the floor between them in immediate foreground (10% frame). The large American sedan is visible in background-center (30% frame depth), providing visual anchor for Father's pointing gesture. Warm light pools across both figures.\n\nSpace and Mélange: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Father and Wyatt stand facing each other at close proximity (approximately 2 feet apart). The garage floor is the primary plane. @image3 (Young Wyatt) stands with posture open, receptive. Father stands at his side, slightly turned toward his son. Their fists meet in the center frame at waist-to-chest height. The toy car (@image17) sits on floor between them. In the background (@image9), the large American sedan is positioned at 40-60% frame depth, providing the physical referent for Father's speech.\n\nCross-Shot Rule: Father and Wyatt maintain direct spatial proximity and eye contact. When either subject moves or gestures, their relative positions must remain consistent if cut returns to this composition.\n\nAction: At 0.5 seconds, Father's right hand unfolds from a closed fist to an open palm, then reconfigures into a fist (the setup for the fist bump). At 1.0 second, Young Wyatt extends his right arm upward and makes his tiny fist. At 1.2 seconds, the fists meet in a gentle collision—not hard, but purposeful. The gesture reads as ritual, partnership, mutual recognition. At 1.8 seconds, Father's arm drops, and he straightens his posture slightly, turning to face the large sedan in the background. At 2.0 seconds, he raises his left arm and points toward the sedan with his index finger extended. At 2.5 seconds, he begins speaking. His voice is warm, clear, free of doubt. He speaks each beat of the promise with the certainty of a man who knows exactly what his son's life will be. At 4.0 seconds, Wyatt's eyes follow Father's pointing gesture to the sedan. At 5.0 seconds, as Father continues speaking the final line of the promise ('Then we'll run this shop together'), Wyatt's brows lift slightly and his head nods once—a micro-gesture of acceptance, understanding, certainty. His face is open, his eyes are bright.\n\nDialogue: FATHER: \"Good job, buddy.\" [1.0 second, during fist bump] FATHER: \"One day, you're gonna have to fix one of those big ones.\" [2.5 seconds] YOUNG WYATT: \"Yeah, Dad. And robots. I want to build robots too.\" [2.0 seconds] FATHER: \"Tell you what... when you turn 18, you're going to school for Mechanics and Robotics. Then, we'll run this shop together. What do you think, partner?\" [4.0 seconds] YOUNG WYATT: \"Can Mike come too?\" [1.5 seconds] FATHER: \"Mike wants to be the greatest football player in the world, Wy. He might not want to fix cars. But hey... maybe you can build him a robotic arm when he gets famous.\" [3.5 seconds] YOUNG WYATT: [laughter] [audible, shared]\n\nEnding Shot: Father and Son stand together, both laughing. Wyatt's face is open, eyes crinkled with genuine laughter. Father's arm remains extended or rests on his son's shoulder. The large American sedan is visible in background. Their laughter is audible and real. The moment is complete—the promise is sealed. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S GARAGE — DAY (FLASHBACK 2010). Same warm, golden, diffuse light. The large American sedan provides depth and context. The toy car sits on the floor, having served its purpose. Peaceful, warm, certain atmosphere. This is the moment that will haunt the present.\n\nSound Layer: Diegetic only. At 1.2 seconds, soft tap of fists meeting (not loud, not athletic—gentle, ritualistic). Ambient garage background hum. Father's voice is clear and carries weight. Young Wyatt's voice is bright, engaged, natural child-scale vocal production. Shared genuine laughter at the end—audible, warm, unperformed. No music, no score.\n\nCapture realism: Both figures' faces show genuine warmth. Eyes are bright, moist with warmth, not tears. Skin textures are detailed—Father shows weathering and calluses, Wyatt shows youthful smoothness and sun-flush. Laughter is visible on both faces—cheeks lifted, eyes crinkled, shoulders shaking slightly with involuntary response. The toy car on the floor shows authentic plastic texture and proportions. Camera performs slow orbital push around the two figures over 8 seconds, maintaining their faces in frame while showing the spatial relationship between them and the sedan in background. Spherical rectilinear lens, 50mm equivalent. 24fps, 180-degree shutter, color-positive daylight stock, fine grain, warm amber-gold grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 8,
+          "start": 42,
+          "end": 50,
+          "notes": {
+            "todos": [
+              "Ensure Father voice is warm, certain, paternal",
+              "Young Wyatt's laughter and nods must be natural, uncomplicated",
+              "Shared laughter at end anchors the emotional truth of this moment",
+              "Background sedan must be visible and provide context for the promise"
+            ],
+            "warnings": [
+              "This is the pivotal memory moment. The promise is made with absolute certainty—no hedging, no doubt. Father speaks as a man who knows his son's future with perfect clarity. This certainty is what makes the present-day collapse so devastating. The warmth and innocence here must be tangible—it is what Wyatt has lost."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 55,
+      "scriptLocation": "INT. WYATT'S KITCHEN — DAY",
+      "title": "The Breaking Point",
+      "description": "Fade back to present day, early morning light. Dixie speaks to Wyatt with gentler words—'We can do this'—but her firmness does not relent. Wyatt squeezes his eyes shut and tilts his head toward the ceiling. The scene ends in silence and darkness. The dream is over. The promise was broken.",
+      "duration": 18,
+      "start": 50,
+      "end": 68,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S KITCHEN — DAY",
+        "locationChange": false,
+        "timeContinuity": "PRESENT DAY — continuous from scene 53, but time has passed. Early morning light suggests hours have elapsed. Return from flashback.",
+        "charactersPresent": ["Wyatt (adult)", "Dixie"],
+        "emotionalCarryover": "Wyatt carries the weight of the broken promise. The flashback has recontextualized his present despair.",
+        "physicalCarryover": "Wyatt is now broken, collapsed inward. Dixie remains firm but her tone has softened—she is now speaking to a defeated man.",
+        "wardrobeCarryover": "Same wardrobe as scene 53. No changes. Wyatt may show signs of sleeplessness—dishevelment, redness around eyes.",
+        "notes": [
+          "RETURN FROM FLASHBACK: Hard visual contrast. Scene 55 is brighter (early morning light) than scene 53 (night), but the emotional atmosphere is darker. The kitchen is the same physical space, but Wyatt's relationship to it has been shattered by the memory. M1 cinematography resumes. The SMASH CUT to BLACK at end is absolute—emotional death, not transition."
+        ]
+      },
+      "references": [
+        {
+          "slot": "@image1",
+          "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+          "type": "character"
+        },
+        {
+          "slot": "@image5",
+          "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+          "type": "character"
+        },
+        {
+          "slot": "@image11",
+          "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie's plea",
+          "description": "Early morning light now fills the kitchen. Dixie leans across the table, her voice softer but her resolve unchanged. 'Wyatt, look at me. We can do this.' She is not offering hope—she is offering partnership in the wreckage.",
+          "references": [
+            {
+              "slot": "@image5",
+              "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+              "type": "character"
+            },
+            {
+              "slot": "@image1",
+              "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+              "type": "character"
+            },
+            {
+              "slot": "@image11",
+              "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image5 @image1 @image11\n\nScene and Mood: Early morning light now enters the kitchen through the window behind them. The quality of light is different from night—cooler, more clinical, more cruel. Dixie's face is visible in this new light, and her expression is resolved. She speaks with gentleness, but gentleness is not the same as hope. She is offering to walk into the wreckage with him.\n\nComposition: Dixie centered in foreground-right, occupying 50% of frame. Her face is in sharp focus. Wyatt visible in soft blur at frame left, seated, visible in edge of composition. Kitchen depth recedes. Early morning light creates subtle shadows across Dixie's face—one side lit, one side shadowed, reading as internal conflict held.\n\nSpace and Mélange: INT. WYATT'S KITCHEN — DAY (EARLY MORNING). The light quality has shifted from tungsten to daylight—cooler color temperature, higher contrast. Same physical space as scene 53, but transformed by time and light. @image5 (Dixie) leans across the table, elbows braced, her body language reads as determination. Her eyes are locked on @image1 (Wyatt) in soft blur. @image11 (kitchen plate) shows early-morning window light source from left edge of frame.\n\nCross-Shot Rule: Dixie's eyeline is direct toward Wyatt. When cut to Wyatt's reverse, Dixie must remain in shallow focus at frame right, her eyeline consistent.\n\nAction: At 0.5 seconds, Dixie's mouth opens to begin speaking. At 1.0 second, she speaks the first line with quiet authority. Her brows are slightly lifted, creating small horizontal lines on her forehead—reads as emotional effort, not anger. At 2.0 seconds, she pauses. During the pause, at 2.2 seconds, her right index finger taps once on the table surface (same table-tap as scene 53, but now it reads as resolve, not resignation). At 2.5 seconds, she speaks the second line. Her eyes remain locked on Wyatt's face. At 3.0 seconds, her brows lower slightly—she is watching him, waiting for him to meet her gaze. At 4.0 seconds, her expression settles into patient determination. She does not look away.\n\nDialogue: DIXIE: \"Wyatt, look at me, we can do this.\" [2.5 seconds]\n\nEnding Shot: Dixie's face is resolved, patient, firm. Her eyes remain on Wyatt's face (Wyatt in soft blur at frame left). Her hands rest on the table. Her expression reads as a woman who has decided to stay, no matter what. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S KITCHEN — DAY (EARLY MORNING). Daylight now fills the space. Color temperature is cooler than night—no longer amber. Early-morning light source is window left. Shadows are longer, more defined. The atmosphere is clinical, exposed, less forgiving than darkness. Silence presses in—no refrigerator hum, no ambient sound. The kitchen feels emptied of comfort.\n\nSound Layer: Diegetic only. At 2.2 seconds, soft tap of Dixie's fingernail on table surface (same timbre as scene 53). Faint ambient early-morning quiet—birds outside window, very distant traffic. Dixie's voice is clear and warm, but the room swallows it. No music, no score.\n\nCapture realism: Dixie's face shows signs of sleeplessness—subtle redness around eyes, slight puffiness under lower lids. Her skin is less luminous than in night scenes, more exposed by daylight. Matte texture. Hair shows slight disarray from hours awake. Eyes show moisture—not tears, but signs of emotional strain. Camera performs imperceptible push-in over 6 seconds, handheld with operator breath micro-tremor. Vintage 2x anamorphic, 55mm equivalent. 24fps, 180-degree shutter, color-negative stock, fine grain, teal-amber grade shifted slightly cooler for early morning. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6,
+          "start": 50,
+          "end": 56,
+          "notes": {
+            "todos": [
+              "Load @image5 Dixie — sleepless variant with eye redness",
+              "Ensure table-tap at 2.2s is clear and audible",
+              "Early-morning light should be noticeably different from night light in scene 53"
+            ],
+            "warnings": [
+              "TEMPORAL TRANSITION: This is morning of the same day/night. Hours have passed. Light quality must shift materially to signal time passage. Dixie's tone is gentler but her resolve is stronger—she has made a decision to commit to 'we' language."
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "id": "B",
+          "name": "Wyatt's capitulation",
+          "description": "Cut to Wyatt. His eyes squeeze shut. His head tilts back toward the ceiling. His whole body reads as surrender—not peace, but collapse. The promise has died inside him, and there is nothing left to defend.",
+          "references": [
+            {
+              "slot": "@image1",
+              "assetId": "7445c164-495b-4e3f-a822-ae57aaf3f54c",
+              "type": "character"
+            },
+            {
+              "slot": "@image5",
+              "assetId": "d177916a-236d-4724-95fa-0af200091e8c",
+              "type": "character"
+            },
+            {
+              "slot": "@image11",
+              "assetId": "07540323-f05a-40c2-9413-13fa394c9597",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "@image1 @image5 @image11\n\nScene and Mood: Wyatt's face turns away from Dixie. His eyes squeeze shut—not a blink, but a closing, a refusal to see. His head tilts backward toward the ceiling, and his neck extends, creating a long vertical line from his shoulders to his chin. This is not a gesture of contemation or prayer. This is a body's way of saying 'I have nothing left.' The promise is dead. His father is dead. The dream is dead. And he is still alive, which is the cruelest part.\n\nComposition: Wyatt's face now dominates the frame, occupying 65% of screen space, positioned center to left-center. His face is tilted upward at approximately 45 degrees from horizontal. Dixie visible in soft blur at frame right edge, watching. Kitchen ceiling and upper walls recede into background. Early morning light rakes across the underside of his chin and neck, creating harsh shadow lines.\n\nSpace and Mélange: INT. WYATT'S KITCHEN — DAY (EARLY MORNING). @image1 (Wyatt) remains seated at the table but his posture has shifted dramatically. His spine is now extended upward, his head is tilted back, his neck is exposed and elongated. His shoulders are pulled inward, spine collapsed forward in contradiction to the backward head tilt—reads as internal contradiction, body in conflict with itself. His eyes are squeezed shut, lids tightly pressed together creating deep furrows at the bridge of his nose. @image5 (Dixie) remains at frame right, her silhouette visible in shallow focus, watching him.\n\nCross-Shot Rule: Wyatt's eyeline is now directed upward toward the ceiling (unseen). Dixie's eyeline remains on Wyatt's face. When reverse-cut, Dixie's gaze must track to his now-tilted head position.\n\nAction: At 0.2 seconds, Wyatt's eyes begin the squeeze-shut motion, lids descending from open to fully closed over 0.6 seconds. At 0.8 seconds, his head begins the backward tilt—a slow, deliberate rotation of the neck and skull backward at approximately 45 degrees, completing by 2.0 seconds. During the head tilt, his shoulders tense inward—scapulae pull toward the spine, creating a hunched, collapsed posture. At 2.5 seconds, his whole body goes rigid—muscles locked, breathing suspended. This rigidity holds for 2.0 seconds. At 4.5 seconds, his breathing resumes—a slow, deep inhale visible in the expansion of his chest. At 5.2 seconds, a single tear emerges from the inside corner of his left eye (lids still shut), and it traces a slow path down his temple and into his hairline. His mouth remains closed, lips pressed into a thin line. At 5.8 seconds, his body remains in this surrendered position, held.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Wyatt's head remains tilted backward, eyes shut, neck extended, tears wetting his face. His shoulders are pulled inward. His body reads as broken, surrendered, empty. The promise is gone. The father is gone. He remains. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: INT. WYATT'S KITCHEN — DAY (EARLY MORNING). Early-morning light continues. The silence is absolute. No sound, no comfort, no way back. The kitchen is a tomb.\n\nSound Layer: Diegetic only. At 2.5 seconds, barely perceptible creak of Wyatt's chair wood as his body tenses. At 4.5 seconds, audible intake of breath—slow, deep, the sound of someone surfacing. Ambient early-morning quiet. No music, no score.\n\nCapture realism: Wyatt's face shows extreme emotional strain—lids pressed shut creating deep furrows, tear visible on temple, skin flushed and mottled with emotion, mouth corners pulled down in a subtle frown. Neck shows muscle tension and vascularity from the backward tilt. Skin is matte, texture detailed. Eyes show moisture under closed lids. Hair is slightly disheveled. Camera performs slow lateral push-left over 6 seconds, keeping Wyatt's face in frame-center as his head tilts. Handheld with operator breath micro-tremor. Vintage 2x anamorphic, 55mm equivalent. 24fps, 180-degree shutter, color-negative stock, fine grain, teal-amber grade. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6,
+          "start": 56,
+          "end": 62,
+          "notes": {
+            "todos": [
+              "Load @image1 Wyatt — defeated variant",
+              "Single tear from left eye at 5.2s — must be visible, singular, not sobbing",
+              "Ensure chair wood creak is audible at tension point"
+            ],
+            "warnings": [
+              "This is not sadness—this is psychological collapse. The body is breaking. The tear is involuntary, not performance. The silence is critical—no music, no score. Just the sound of a man giving up."
+            ]
+          }
+        },
+        {
+          "number": 3,
+          "id": "C",
+          "name": "The blackness",
+          "description": "SMASH CUT TO BLACK. Immediate hard cut. No fade, no transition. Black screen. Silence. The promise is sealed in darkness.",
+          "references": [],
+          "prompt_en": "\n\nScene and Mood: SMASH CUT TO BLACK. Complete visual cessation. No gradual fade, no transition. Hard cut from Wyatt's surrendered face to absolute blackness. This is not a gentle fade—this is an erasure, a finality. The episode ends in darkness because the dream has died in darkness.\n\nComposition: Full-frame black. No subjects, no composition. Black IS the composition.\n\nSpace and Mélange: No space. Black void.\n\nCross-Shot Rule: N/A.\n\nAction: None. Stillness. Darkness holds for the full duration.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Black screen. Duration holds. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nEnvironmental Base: Blackness. Void. The end.\n\nSound Layer: Diegetic only. At 0.5 seconds, the ambient kitchen sound cuts out abruptly—no fade-out, no music rise. Silence persists for full duration. At 2.0 seconds, a single, distant echo of Wyatt's father's voice from the flashback: 'Then we'll run this shop together.' Voice is faint, ghostly, barely audible. It holds for 1.5 seconds then fades to silence. The sound is a memory bleeding into the present—a echo of the broken promise. Black screen swallows all. No music, no score.\n\nCapture realism: Pure black. No texture, no grain visible—absolute darkness. The absence of image is itself the final statement.\n\nFinal paragraph: Black hold with ghostly voice echo at 2.0 seconds. The echo of the promise remains even after the image dies. This is the haunting—the ghost that will follow Wyatt forward. The episode ends not with resolution but with the sound of what will never be. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6,
+          "start": 62,
+          "end": 68,
+          "notes": {
+            "todos": [
+              "SMASH CUT — hard cut, not fade",
+              "Voice echo at 2.0s should be Father's voice, distant and ghostly, not distorted",
+              "Absolute black hold for full 6-second duration"
+            ],
+            "warnings": [
+              "This is not a resolution. This is an ending, not a conclusion. The promise hangs in the darkness. Wyatt's capitulation is sealed. The audience should feel unresolved—haunted by the ghost of what was promised and what was lost."
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "rawLength": 59593
+}
