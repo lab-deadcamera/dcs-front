@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
@@ -10,6 +11,7 @@ import { SkillFormDialogComponent } from '../components/skill-form-dialog/skill-
 @Component({
   selector: 'app-index-skills',
   imports: [
+    TranslatePipe,
     ButtonModule,
     TooltipModule,
     ToastModule,
@@ -24,6 +26,12 @@ export class IndexSkillsComponent implements OnInit {
   private readonly skillService = inject(SkillService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
 
   protected readonly skills = signal<Skill[]>([]);
   protected readonly loading = signal(true);
@@ -40,7 +48,7 @@ export class IndexSkillsComponent implements OnInit {
     this.skillService.list().subscribe((res) => {
       this.loading.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.skills.set(res.data || []);
@@ -59,18 +67,22 @@ export class IndexSkillsComponent implements OnInit {
 
   protected confirmDelete(skill: Skill): void {
     this.confirm.confirm({
-      header: 'Delete Skill',
-      message: `Delete "${skill.name}"? This cannot be undone.`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('SKILLS.DELETE_DIALOG.TITLE'),
+      message: this.t('SKILLS.DELETE_DIALOG.MESSAGE', { name: skill.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.skillService.delete(skill.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Skill deleted' });
+          this.toast.add({
+            severity: 'success',
+            summary: this.t('COMMON.OK'),
+            detail: this.t('SKILLS.TOAST.DELETED'),
+          });
           this.loadSkills();
         }),
     });

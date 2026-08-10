@@ -10,7 +10,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
@@ -79,10 +79,16 @@ export class IndexCharacters implements OnInit {
   protected readonly characters = inject(CharactersService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
 
   showUseButton = input<boolean>(false);
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
 
   /**
    * Optional header overrides. Host contexts (e.g. the Scene Resources
@@ -251,11 +257,11 @@ export class IndexCharacters implements OnInit {
         const total = files.length;
         this.toast.add({
           severity: created.length === total ? 'success' : created.length > 0 ? 'warn' : 'error',
-          summary: 'Mass upload',
+          summary: this.t('CHARACTERS.TOAST.MASS_UPLOAD'),
           detail:
             created.length === total
-              ? `${created.length} assets created`
-              : `${created.length}/${total} assets created`,
+              ? this.t('CHARACTERS.TOAST.ASSETS_CREATED', { count: created.length })
+              : this.t('CHARACTERS.TOAST.ASSETS_CREATED_PARTIAL', { count: created.length, total }),
         });
         if (created.length > 0) {
           // Refresh the list from the server and fetch thumbnails only for the
@@ -270,7 +276,11 @@ export class IndexCharacters implements OnInit {
       },
       error: () => {
         this.massUploading.set(false);
-        this.toast.add({ severity: 'error', summary: 'Mass upload', detail: 'Upload failed' });
+        this.toast.add({
+          severity: 'error',
+          summary: this.t('CHARACTERS.TOAST.MASS_UPLOAD'),
+          detail: this.t('CHARACTERS.TOAST.UPLOAD_FAILED'),
+        });
       },
     });
   }
@@ -280,7 +290,7 @@ export class IndexCharacters implements OnInit {
    *  The Audio tab accepts/uploads audio files; the rest accept images.
    *  Resolves to the new asset id, or null on any failure. */
   private createAssetFromFile(file: File, type: AssetType): Observable<string | null> {
-    const name = (file.name.replace(/\.[^.]+$/, '').trim() || 'Untitled').slice(0, 120);
+    const name = (file.name.replace(/\.[^.]+$/, '').trim() || this.t('CHARACTERS.TOAST.UNTITLED')).slice(0, 120);
     const isAudio = type === 'audio';
     return this.characters
       .create({
@@ -293,8 +303,8 @@ export class IndexCharacters implements OnInit {
           if (res.error || !res.data) {
             this.toast.add({
               severity: 'warn',
-              summary: 'Create failed',
-              detail: `${name}: ${res.msg}`,
+              summary: this.t('CHARACTERS.TOAST.CREATE_FAILED'),
+              detail: this.t('CHARACTERS.TOAST.NAME_MSG', { name, msg: res.msg }),
             });
             return of(null);
           }
@@ -306,8 +316,8 @@ export class IndexCharacters implements OnInit {
                 if (up.error || !up.data) {
                   this.toast.add({
                     severity: 'warn',
-                    summary: 'Upload failed',
-                    detail: `${name}: ${up.msg}`,
+                    summary: this.t('CHARACTERS.TOAST.UPLOAD_FAILED'),
+                    detail: this.t('CHARACTERS.TOAST.NAME_MSG', { name, msg: up.msg }),
                   });
                   return of(null);
                 }
@@ -472,8 +482,8 @@ export class IndexCharacters implements OnInit {
     if (!fileId) {
       this.toast.add({
         severity: 'warn',
-        summary: 'No file',
-        detail: `"${asset.name}" has no file uploaded yet — add one before referencing it.`,
+        summary: this.t('CHARACTERS.TOAST.NO_FILE'),
+        detail: this.t('CHARACTERS.TOAST.NO_FILE_DETAIL', { name: asset.name }),
       });
       return;
     }
@@ -491,7 +501,7 @@ export class IndexCharacters implements OnInit {
     });
     this.toast.add({
       severity: 'success',
-      summary: 'Reference added',
+      summary: this.t('CHARACTERS.TOAST.REFERENCE_ADDED'),
       detail: asset.name,
     });
     this.assetUsed.emit(asset.id);
@@ -535,10 +545,10 @@ export class IndexCharacters implements OnInit {
     this.characters.update(evt.id, evt.patch).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.UPDATED') });
       this.editDialogVisible.set(false);
       this.charactersChanged.emit();
       this.fetchPreviewFor(evt.id);
@@ -556,10 +566,10 @@ export class IndexCharacters implements OnInit {
     this.characters.create(payload).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.CREATED') });
       this.editDialogVisible.set(false);
       this.charactersChanged.emit();
     });
@@ -567,18 +577,18 @@ export class IndexCharacters implements OnInit {
 
   protected confirmDelete(asset: Character): void {
     this.confirm.confirm({
-      header: 'Delete asset',
-      message: `Delete "${asset.name}"? This is a soft delete.`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('CHARACTERS.DELETE_DIALOG.TITLE'),
+      message: this.t('CHARACTERS.DELETE_DIALOG.MESSAGE', { name: asset.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.characters.delete(asset.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.DELETED') });
         }),
     });
   }

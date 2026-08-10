@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -40,6 +41,7 @@ interface UserOption {
 @Component({
   selector: 'app-index-admin',
   imports: [
+    TranslatePipe,
     DatePipe,
     FormsModule,
     ButtonModule,
@@ -61,6 +63,7 @@ export class IndexAdmin implements OnInit {
   private readonly videoGenerator = inject(VideoGeneratorService);
   private readonly genLogs = inject(GenerationLogsService);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fileSvc = inject(FilesApiService);
 
@@ -265,8 +268,8 @@ export class IndexAdmin implements OnInit {
     } catch {
       this.toast.add({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Invalid outputs JSON',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('ADMIN.INDEX.INVALID_OUTPUTS_JSON'),
         life: 3000,
       });
     }
@@ -327,7 +330,7 @@ export class IndexAdmin implements OnInit {
       if (res.error) {
         this.toast.add({
           severity: 'error',
-          summary: 'Refresh failed',
+          summary: this.i18n.instant('ADMIN.INDEX.REFRESH_FAILED'),
           detail: res.msg,
           life: 3000,
         });
@@ -335,8 +338,10 @@ export class IndexAdmin implements OnInit {
       }
       this.toast.add({
         severity: res.data?.status === 'succeeded' ? 'success' : 'warn',
-        summary: 'Task refreshed',
-        detail: `Status: ${res.data?.status ?? 'unknown'}`,
+        summary: this.i18n.instant('ADMIN.INDEX.TASK_REFRESHED'),
+        detail: this.i18n.instant('ADMIN.INDEX.TASK_STATUS', {
+          status: res.data?.status ?? 'unknown',
+        }),
         life: 3000,
       });
       this.loadPage();

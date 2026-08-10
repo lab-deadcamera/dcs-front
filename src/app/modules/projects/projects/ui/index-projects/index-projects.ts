@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DecimalPipe } from '@angular/common';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -42,9 +42,15 @@ export class IndexProjects implements OnInit {
   private readonly service = inject(ProjectsService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
   private readonly session = inject(SessionStore);
   protected readonly projects = this.service.projects;
   protected readonly loading = this.service.loading;
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
 
   /** Track which project rows are expanded to show episodes. */
   protected readonly expandedProjects = signal<Record<string, boolean>>({});
@@ -146,10 +152,10 @@ export class IndexProjects implements OnInit {
     this.service.createProject(evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Project created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.CREATED') });
       this.projectDialogVisible.set(false);
     });
   }
@@ -161,10 +167,10 @@ export class IndexProjects implements OnInit {
       .subscribe((res) => {
         this.submitting.set(false);
         if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+          this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
           return;
         }
-        this.toast.add({ severity: 'success', summary: 'OK', detail: 'Project updated' });
+        this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.UPDATED') });
         this.projectDialogVisible.set(false);
       });
   }
@@ -172,31 +178,31 @@ export class IndexProjects implements OnInit {
   protected toggleProjectActive(p: Project): void {
     this.service.updateProject(p.id, { active: !p.active }).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: `${p.name} ${p.active ? 'deactivated' : 'activated'}`,
+        summary: this.t('COMMON.OK'),
+        detail: this.t(p.active ? 'PROJECTS.TOAST.DEACTIVATED' : 'PROJECTS.TOAST.ACTIVATED', { name: p.name }),
       });
     });
   }
 
   protected confirmDeleteProject(p: Project): void {
     this.confirm.confirm({
-      header: 'Delete Project',
-      message: `Delete "${p.name}" and all its episodes and scenes?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('PROJECTS.DELETE_DIALOG.TITLE'),
+      message: this.t('PROJECTS.DELETE_DIALOG.MESSAGE', { name: p.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.service.deleteProject(p.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Project deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.DELETED') });
         }),
     });
   }
@@ -225,10 +231,10 @@ export class IndexProjects implements OnInit {
     this.service.createChapter(projectId, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.EPISODE_CREATED') });
       this.chapterDialogVisible.set(false);
     });
   }
@@ -246,10 +252,10 @@ export class IndexProjects implements OnInit {
     this.service.updateChapter(projectId, evt.id, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.EPISODE_UPDATED') });
       this.chapterDialogVisible.set(false);
     });
   }
@@ -260,13 +266,13 @@ export class IndexProjects implements OnInit {
 
     this.service.updateChapter(projectId, c.id, { active: !c.active }).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: `${c.name} ${c.active ? 'deactivated' : 'activated'}`,
+        summary: this.t('COMMON.OK'),
+        detail: this.t(c.active ? 'PROJECTS.TOAST.EPISODE_DEACTIVATED' : 'PROJECTS.TOAST.EPISODE_ACTIVATED', { name: c.name }),
       });
     });
   }
@@ -276,18 +282,18 @@ export class IndexProjects implements OnInit {
     if (!projectId) return;
 
     this.confirm.confirm({
-      header: 'Delete Episode',
-      message: `Delete episode "${c.name}" and all its scenes?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('PROJECTS.DELETE_EPISODE_DIALOG.TITLE'),
+      message: this.t('PROJECTS.DELETE_EPISODE_DIALOG.MESSAGE', { name: c.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.service.deleteChapter(projectId, c.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Episode deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.EPISODE_DELETED') });
         }),
     });
   }
@@ -319,10 +325,10 @@ export class IndexProjects implements OnInit {
     this.service.createScene(projectId, chapterId, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Scene created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.SCENE_CREATED') });
       this.sceneDialogVisible.set(false);
     });
   }
@@ -341,10 +347,10 @@ export class IndexProjects implements OnInit {
     this.service.updateScene(projectId, chapterId, evt.id, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Scene updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.SCENE_UPDATED') });
       this.sceneDialogVisible.set(false);
     });
   }
@@ -356,13 +362,13 @@ export class IndexProjects implements OnInit {
 
     this.service.updateScene(projectId, chapterId, s.id, { active: !s.active }).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: `${s.name} ${s.active ? 'deactivated' : 'activated'}`,
+        summary: this.t('COMMON.OK'),
+        detail: this.t(s.active ? 'PROJECTS.TOAST.SCENE_DEACTIVATED' : 'PROJECTS.TOAST.SCENE_ACTIVATED', { name: s.name }),
       });
     });
   }
@@ -382,18 +388,18 @@ export class IndexProjects implements OnInit {
     const { projectId, chapterId } = ids;
 
     this.confirm.confirm({
-      header: 'Delete Scene',
-      message: `Delete scene "${s.name}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('PROJECTS.DELETE_SCENE_DIALOG.TITLE'),
+      message: this.t('PROJECTS.DELETE_SCENE_DIALOG.MESSAGE', { name: s.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.service.deleteScene(projectId, chapterId, s.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Scene deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.SCENE_DELETED') });
         }),
     });
   }
@@ -440,10 +446,10 @@ export class IndexProjects implements OnInit {
     this.service.updateShot(projectId, chapterId, sceneId, evt.id, evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: "error", summary: "Error", detail: res.msg });
+        this.toast.add({ severity: "error", summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: "success", summary: "OK", detail: "Shot updated" });
+      this.toast.add({ severity: "success", summary: this.t('COMMON.OK'), detail: this.t('PROJECTS.TOAST.SHOT_UPDATED') });
       this.shotDialogVisible.set(false);
     });
   }

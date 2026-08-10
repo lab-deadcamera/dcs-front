@@ -1,7 +1,11 @@
 <div class="mx-auto flex max-w-4xl flex-col gap-4 p-6">
   <div class="flex items-center justify-between">
-    <h1 class="text-[18px] font-bold uppercase tracking-[0.08em]">Skills</h1>
-    <p-button label="Create Skill" icon="pi pi-plus" (onClick)="openCreate()" />
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.08em]">{{ 'SKILLS.TITLE' | translate }}</h1>
+    <p-button
+      [label]="'SKILLS.CREATE' | translate"
+      icon="pi pi-plus"
+      (onClick)="openCreate()"
+    />
   </div>
 
   @if (loading()) {

@@ -196,13 +196,13 @@
         <ng-template #content>
           <div class="flex flex-col gap-3" style="min-width: 580px; max-width: 740px">
             <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
-              {{ 'Translate to' }} {{ translateLang() | uppercase }}
+              {{ 'STUDIO.PROMPT.TRANSLATE_TO' | translate }} {{ translateLang() | uppercase }}
             </span>
 
             @if (translating()) {
               <div class="flex items-center justify-center gap-2 py-4">
                 <i class="pi pi-spinner pi-spin text-primary-500" aria-hidden="true"></i>
-                <span class="font-mono text-xs text-fg-muted">Translating…</span>
+                <span class="font-mono text-xs text-fg-muted">{{ 'STUDIO.PROMPT.TRANSLATING' | translate }}</span>
               </div>
             } @else if (translatedText()) {
               <div class="max-h-60 overflow-y-auto rounded border border-ink-600 bg-ink-900 p-3">
@@ -215,7 +215,7 @@
                       [options]="translationLangOptions"
                       [(ngModel)]="sourceLang"
                       (onChange)="onLanguageSelected()"
-                      placeholder="Select language"
+                      [placeholder]="'STUDIO.PROMPT.SELECT_LANGUAGE' | translate"
                       optionLabel="label"
                       optionValue="value"
                       appendTo="body"
@@ -231,14 +231,14 @@
                   class="rounded border border-ink-500 bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500"
                   (click)="translatePop.hide()"
                 >
-                  Close
+                  {{ 'COMMON.CLOSE' | translate }}
                 </button>
                 <button
                   type="button"
                   class="rounded bg-primary-500 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-strong transition-opacity hover:opacity-90"
                   (click)="applyTranslation(translatePop)"
                 >
-                  Replace
+                  {{ 'STUDIO.PROMPT.REPLACE' | translate }}
                 </button>
               </div>
             }

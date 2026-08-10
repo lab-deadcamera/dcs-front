@@ -3,16 +3,16 @@
     <div class="flex w-full items-center justify-between">
       <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
         @if (isChapterMode()) {
-          Episode Resources
+          {{ 'DIRECT.RESOURCES.HEADER_EPISODE' | translate }}
         } @else {
-          Scene Resources
+          {{ 'DIRECT.RESOURCES.HEADER_SCENE' | translate }}
         }
       </h1>
 
       @switch (activeTab()) {
         @case ('characters') {
           <p-button
-            label="Create Resource"
+            [label]="'DIRECT.RESOURCES.CREATE_RESOURCE' | translate"
             icon="pi pi-user-plus"
             severity="secondary"
             (onClick)="characterDialogVisible.set(true)"
@@ -34,7 +34,7 @@
                 [disabled]="fileUploadLoading()"
                 maxFileSize="10000000"
                 (uploadHandler)="uploadFile($event); file.clear()"
-                chooseLabel="New Asset"
+                [chooseLabel]="'DIRECT.RESOURCES.NEW_ASSET' | translate"
               />
             }
           </div>
@@ -43,9 +43,9 @@
     </div>
     <p class="mt-1 text-[12px] text-fg-muted">
       @if (isChapterMode()) {
-        Assign and remove resources for this episode
+        {{ 'DIRECT.RESOURCES.HINT_EPISODE' | translate }}
       } @else {
-        Assign and remove resources for this scene
+        {{ 'DIRECT.RESOURCES.HINT_SCENE' | translate }}
       }
     </p>
   </div>
@@ -60,21 +60,21 @@
           SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}
         }
       </span>
-      <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || 'Loading...' }}</span>
+      <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || ('COMMON.LOADING' | translate) }}</span>
       @if (sceneInfo()?.description) {
         <span class="text-[12px] text-fg-muted">— {{ sceneInfo()?.description }}</span>
       }
     </div>
     <div class="flex gap-6 text-[11px] text-fg-muted">
       <span
-        ><span class="font-bold uppercase">Project:</span> {{ projectInfo()?.name || '...' }}</span
+        ><span class="font-bold uppercase">{{ 'DIRECT.RESOURCES.PROJECT' | translate }}</span> {{ projectInfo()?.name || '...' }}</span
       >
       <span>
         <span class="font-bold uppercase">
           @if (isChapterMode()) {
-            Episode ID:
+            {{ 'DIRECT.RESOURCES.EPISODE_ID' | translate }}
           } @else {
-            Scene ID:
+            {{ 'DIRECT.RESOURCES.SCENE_ID' | translate }}
           }
         </span>
         <span class="font-mono">
@@ -101,13 +101,13 @@
         "
         (click)="activeTab.set(tab.key)"
       >
-        {{ tab.label }}
+        {{ tab.labelKey | translate }}
       </button>
     }
   </div>
 
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'DIRECT.RESOURCES.LOADING' | translate }}</p>
   }
 
   <!-- Presets tab -->
@@ -115,7 +115,7 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Presets
+          {{ 'DIRECT.RESOURCES.AVAILABLE_PRESETS' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (p of availablePresets(); track p.id) {
@@ -132,18 +132,18 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
                 (click)="assignPreset(p.id)"
               >
-                + Assign
+                {{ 'DIRECT.RESOURCES.ASSIGN' | translate }}
               </button>
             </div>
           }
           @if (availablePresets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All presets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.ALL_PRESETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedPresets(); track a.id) {
@@ -159,12 +159,12 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removePreset(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedPresets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No presets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_PRESETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -176,14 +176,14 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Resources
+          {{ 'DIRECT.RESOURCES.AVAILABLE_RESOURCES' | translate }}
         </h2>
 
         <!-- Search -->
         <input
           #searchInput
           type="text"
-          placeholder="Search by name…"
+          [placeholder]="'DIRECT.RESOURCES.SEARCH' | translate"
           class="mb-3 w-full rounded border border-ink-700 bg-ink-800 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
           [value]="searchQuery()"
           (input)="searchQuery.set(searchInput.value)"
@@ -202,7 +202,7 @@
               "
               (click)="activeKindTab.set(kind)"
             >
-              {{ kindLabel[kind] }}
+              {{ kindLabel[kind] | translate }}
               @if (groupedCharacters()[kind]?.length; as count) {
                 <span class="ml-1 rounded bg-ink-700 px-1 py-0.5 text-[9px]">{{ count }}</span>
               }
@@ -266,14 +266,14 @@
           }
           @if (tabCharacters().length === 0) {
             <p class="py-4 text-center text-[12px] text-fg-muted">
-              {{ searchQuery() ? 'No characters match your search.' : 'All characters assigned.' }}
+              {{ searchQuery() ? ('DIRECT.RESOURCES.NO_SEARCH_MATCH' | translate) : ('DIRECT.RESOURCES.ALL_CHARACTERS_ASSIGNED' | translate) }}
             </p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedCharacters(); track a.id) {
@@ -291,12 +291,12 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removeCharacter(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedCharacters().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No characters assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_CHARACTERS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -308,7 +308,7 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Files
+          {{ 'DIRECT.RESOURCES.AVAILABLE_FILES' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (f of availableAssets(); track f.id) {
@@ -357,13 +357,13 @@
             </div>
           }
           @if (availableAssets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All files assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.ALL_FILES_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedAssets(); track a.id) {
@@ -383,12 +383,12 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removeAsset(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedAssets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No assets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_ASSETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -403,11 +403,11 @@
     [closable]="true"
     [draggable]="false"
     [style]="{ width: '90vw', maxWidth: '1200px' }"
-    header="Resources"
+    [header]="'DIRECT.RESOURCES.DIALOG_TITLE' | translate"
   >
     <app-index-characters
-      headerTitle="Resources"
-      headerHint="Scene resource library — name, description, metadata."
+      [headerTitle]="'DIRECT.RESOURCES.DIALOG_TITLE' | translate"
+      [headerHint]="'DIRECT.RESOURCES.DIALOG_HINT' | translate"
       (charactersChanged)="onCharactersChanged()"
       (massCreated)="onMassCreated($event)"
     />

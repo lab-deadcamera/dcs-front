@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
@@ -100,6 +101,7 @@ function normalizeModelName(name: string): string {
     DatePipe,
     Splitter,
     ShotBuilderPanelComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
@@ -115,6 +117,7 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly i18n = inject(TranslateService);
 
   // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
 
@@ -209,8 +212,8 @@ export class IndexStudio implements OnInit {
     if (!model?.id) {
       this.toast.add({
         severity: 'warn',
-        summary: 'Sync',
-        detail: 'Select a model first',
+        summary: this.i18n.instant('STUDIO.INDEX.SYNC'),
+        detail: this.i18n.instant('STUDIO.INDEX.SYNC_SELECT_MODEL'),
         life: 3000,
       });
       return;
@@ -222,7 +225,12 @@ export class IndexStudio implements OnInit {
       if (!res.error && res.data) {
         this.syncedAssets.set(res.data);
       } else {
-        this.toast.add({ severity: 'error', summary: 'Sync', detail: res.msg, life: 3000 });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.INDEX.SYNC'),
+          detail: res.msg,
+          life: 3000,
+        });
       }
     });
   }
@@ -745,8 +753,8 @@ export class IndexStudio implements OnInit {
           if (shotRes.error || !shotRes.data) {
             this.toast.add({
               severity: 'error',
-              summary: 'Error',
-              detail: shotRes.msg || 'Failed to create shot',
+              summary: this.i18n.instant('COMMON.ERROR'),
+              detail: shotRes.msg || this.i18n.instant('STUDIO.INDEX.CREATE_SHOT_FAILED'),
             });
             return;
           }
@@ -805,8 +813,8 @@ export class IndexStudio implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: res.msg || 'Failed to create episode',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.CREATE_EPISODE_FAILED'),
           });
           this.breadcrumbComponent()?.resetNewEpisodeDialog();
           return;
@@ -816,7 +824,7 @@ export class IndexStudio implements OnInit {
         this.breadcrumbComponent()?.resetNewEpisodeDialog();
         this.toast.add({
           severity: 'success',
-          summary: 'Episode created',
+          summary: this.i18n.instant('STUDIO.INDEX.EPISODE_CREATED'),
           detail: `EP${String(created.number).padStart(2, '0')} — ${created.name}`,
         });
       });
@@ -836,8 +844,8 @@ export class IndexStudio implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: res.msg || 'Failed to update scene',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.UPDATE_SCENE_FAILED'),
           });
           this.breadcrumbComponent()?.resetEditDialog();
           return;
@@ -853,7 +861,11 @@ export class IndexStudio implements OnInit {
         }
         this.loadScenes(projectId, chapterId);
         this.breadcrumbComponent()?.resetEditDialog();
-        this.toast.add({ severity: 'success', summary: 'Scene updated', detail: label });
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('STUDIO.INDEX.SCENE_UPDATED'),
+          detail: label,
+        });
       });
   }
 
@@ -872,8 +884,8 @@ export class IndexStudio implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: res.msg || 'Failed to update shot',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.UPDATE_SHOT_FAILED'),
           });
           this.breadcrumbComponent()?.resetEditDialog();
           return;
@@ -886,7 +898,7 @@ export class IndexStudio implements OnInit {
         this.breadcrumbComponent()?.resetEditDialog();
         this.toast.add({
           severity: 'success',
-          summary: 'Shot updated',
+          summary: this.i18n.instant('STUDIO.INDEX.SHOT_UPDATED'),
           detail: `SH${String(updated.number).padStart(2, '0')} — ${updated.name}`,
         });
       });
@@ -901,8 +913,8 @@ export class IndexStudio implements OnInit {
       if (res.error) {
         this.toast.add({
           severity: 'error',
-          summary: 'Error',
-          detail: res.msg || 'Failed to delete scene',
+          summary: this.i18n.instant('COMMON.ERROR'),
+          detail: res.msg || this.i18n.instant('STUDIO.INDEX.DELETE_SCENE_FAILED'),
         });
         this.breadcrumbComponent()?.resetDeleteDialog();
         return;
@@ -919,7 +931,11 @@ export class IndexStudio implements OnInit {
         this.reloadChapterAssignments();
       }
       this.loadScenes(projectId, chapterId);
-      this.toast.add({ severity: 'success', summary: 'Scene deleted', detail: payload.label });
+      this.toast.add({
+        severity: 'success',
+        summary: this.i18n.instant('STUDIO.INDEX.SCENE_DELETED'),
+        detail: payload.label,
+      });
     });
   }
 
@@ -933,8 +949,8 @@ export class IndexStudio implements OnInit {
       if (res.error) {
         this.toast.add({
           severity: 'error',
-          summary: 'Error',
-          detail: res.msg || 'Failed to delete shot',
+          summary: this.i18n.instant('COMMON.ERROR'),
+          detail: res.msg || this.i18n.instant('STUDIO.INDEX.DELETE_SHOT_FAILED'),
         });
         this.breadcrumbComponent()?.resetDeleteDialog();
         return;
@@ -946,7 +962,11 @@ export class IndexStudio implements OnInit {
         this.persistNav();
       }
       this.reloadShots();
-      this.toast.add({ severity: 'success', summary: 'Shot deleted', detail: payload.label });
+      this.toast.add({
+        severity: 'success',
+        summary: this.i18n.instant('STUDIO.INDEX.SHOT_DELETED'),
+        detail: payload.label,
+      });
     });
   }
 
@@ -1069,8 +1089,8 @@ export class IndexStudio implements OnInit {
   protected onGenerate(): void {
     if (!this.studio.projectId() || !this.studio.sceneId()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un proyecto y una escena antes de generar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_SESSION_GENERATE'),
         severity: 'error',
         life: 3000,
       });
@@ -1080,8 +1100,8 @@ export class IndexStudio implements OnInit {
     const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes escribir un prompt antes de generar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_PROMPT_GENERATE'),
         severity: 'error',
         life: 3000,
       });
@@ -1100,8 +1120,8 @@ export class IndexStudio implements OnInit {
     if (!this.isSuperAdmin()) return;
     if (!this.studio.projectId() || !this.studio.sceneId()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un proyecto y una escena antes de previsualizar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_SESSION_PREVIEW'),
         severity: 'error',
         life: 3000,
       });
@@ -1110,8 +1130,8 @@ export class IndexStudio implements OnInit {
     const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes escribir un prompt antes de previsualizar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_PROMPT_PREVIEW'),
         severity: 'error',
         life: 3000,
       });
@@ -1147,8 +1167,8 @@ export class IndexStudio implements OnInit {
 
     if (!this.studio.modelCode()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un modelo',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_MODEL'),
         severity: 'error',
         life: 3000,
       });
@@ -1162,7 +1182,7 @@ export class IndexStudio implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
         this.toast.add({
-          summary: 'Respuesta del servidor',
+          summary: this.i18n.instant('STUDIO.INDEX.SERVER_RESPONSE'),
           detail: res.msg,
           severity: res.error ? 'error' : 'success',
           life: 7000,
@@ -1220,7 +1240,7 @@ export class IndexStudio implements OnInit {
         if (res.error || !res.data) {
           this.studio.failGeneration(localId);
           this.toast.add({
-            summary: 'Error de generación',
+            summary: this.i18n.instant('STUDIO.INDEX.GENERATION_ERROR'),
             detail: res.msg || 'Error al consultar el estado de la tarea',
             severity: 'error',
             life: 5000,
@@ -1240,8 +1260,8 @@ export class IndexStudio implements OnInit {
         } else if (task.status === 'failed') {
           this.studio.failGeneration(localId);
           this.toast.add({
-            summary: 'Generación fallida',
-            detail: 'La tarea no pudo completarse',
+            summary: this.i18n.instant('STUDIO.INDEX.GENERATION_FAILED'),
+            detail: this.i18n.instant('STUDIO.INDEX.TASK_INCOMPLETE'),
             severity: 'error',
             life: 5000,
           });
@@ -1261,8 +1281,8 @@ export class IndexStudio implements OnInit {
     if (!out?.url) {
       this.studio.failGeneration(localId);
       this.toast.add({
-        summary: 'Error',
-        detail: 'No se recibió un video del servidor',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_VIDEO'),
         severity: 'error',
         life: 5000,
       });
@@ -1285,8 +1305,8 @@ export class IndexStudio implements OnInit {
     this.playNotificationSound();
 
     this.toast.add({
-      summary: 'Generación completada',
-      detail: 'El video se ha generado correctamente',
+      summary: this.i18n.instant('STUDIO.INDEX.GENERATION_COMPLETE'),
+      detail: this.i18n.instant('STUDIO.INDEX.VIDEO_GENERATED'),
       severity: 'success',
       life: 5000,
     });

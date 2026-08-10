@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
@@ -52,6 +53,7 @@ const AI_RATIOS: RatioOption[] = [
 @Component({
   selector: 'app-external-galleries',
   imports: [
+    TranslatePipe,
     DatePipe,
     FormsModule,
     ButtonModule,
@@ -69,6 +71,7 @@ export class ExternalGalleriesComponent implements OnInit {
   private readonly genLogs = inject(GenerationLogsService);
   private readonly modelService = inject(ModelService);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly modelOptions = signal<ModelOption[]>([]);
@@ -114,8 +117,8 @@ export class ExternalGalleriesComponent implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: res.msg || 'Failed to load gallery models',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.LOAD_MODELS_FAILED'),
             life: 3000,
           });
           return;
@@ -155,8 +158,8 @@ export class ExternalGalleriesComponent implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: res.msg || 'Failed to load gallery assets',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.LOAD_ASSETS_FAILED'),
             life: 3000,
           });
           return;
@@ -196,8 +199,8 @@ export class ExternalGalleriesComponent implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Fix failed',
-            detail: res.msg || 'Failed to fix sync',
+            summary: this.i18n.instant('ADMIN.GALLERIES.FIX_FAILED'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.FIX_SYNC_FAILED'),
             life: 4000,
           });
           return;
@@ -209,14 +212,20 @@ export class ExternalGalleriesComponent implements OnInit {
 
   private toastFixResult(r: FixAssetResult): void {
     const fixedLabel =
-      r.used_fix === 'ai' ? 'Regenerated with AI' : r.used_fix === 'normalize' ? 'Normalized' : '';
+      r.used_fix === 'ai'
+        ? this.i18n.instant('ADMIN.GALLERIES.REGENERATED_AI')
+        : r.used_fix === 'normalize'
+          ? this.i18n.instant('ADMIN.GALLERIES.NORMALIZED')
+          : '';
     const detail =
       r.status === 'failed'
-        ? `Failed${r.error_message ? ': ' + r.error_message : ''}`
+        ? this.i18n.instant('ADMIN.GALLERIES.FIX_RESULT_FAILED', {
+            msg: r.error_message ? ': ' + r.error_message : '',
+          })
         : `${fixedLabel ? fixedLabel + ' · ' : ''}${r.status}`;
     this.toast.add({
       severity: r.status === 'failed' ? 'error' : 'success',
-      summary: 'Sync fixed',
+      summary: this.i18n.instant('ADMIN.GALLERIES.SYNC_FIXED'),
       detail,
       life: 5000,
     });
@@ -243,8 +252,8 @@ export class ExternalGalleriesComponent implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'warn',
-            summary: 'No image models',
-            detail: res.msg || 'Failed to load image models',
+            summary: this.i18n.instant('ADMIN.GALLERIES.NO_IMAGE_MODELS'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.LOAD_IMAGE_MODELS_FAILED'),
             life: 3000,
           });
           return;

@@ -219,7 +219,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '42rem' }"
-  header="Sync Queue"
+  [header]="'STUDIO.INDEX.SYNC_QUEUE' | translate"
 >
   @if (syncLoading()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
@@ -232,9 +232,9 @@
       <table class="w-full text-[12px]">
         <thead>
           <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-            <th class="px-3 py-2 font-medium">File</th>
-            <th class="px-3 py-2 font-medium">Status</th>
-            <th class="px-3 py-2 font-medium">Sync date</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_FILE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_STATUS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_SYNC_DATE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -273,10 +273,14 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Close"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="syncDialogVisible.set(false)"
       />
-      <p-button icon="pi pi-refresh" label="Refresh" (onClick)="openSyncDialog()" />
+      <p-button
+        icon="pi pi-refresh"
+        [label]="'STUDIO.INDEX.REFRESH' | translate"
+        (onClick)="openSyncDialog()"
+      />
     </div>
   </ng-template>
 </p-dialog>
@@ -289,7 +293,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '60rem', maxWidth: '95vw' }"
-  header="Vista previa del payload"
+  [header]="'STUDIO.IMAGE_GEN.PREVIEW_PAYLOAD' | translate"
 >
   @if (previewLoading()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">Cargando…</p>
@@ -308,7 +312,7 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Cerrar"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="previewDialogVisible.set(false)"
       />
     </div>

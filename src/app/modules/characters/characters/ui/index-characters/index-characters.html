@@ -100,7 +100,7 @@
       type="text"
       class="w-full max-w-xs rounded border bg-transparent px-3 py-1.5 font-mono text-[12px] outline-none transition-colors focus:border-primary-500"
       style="border-color: var(--border-color); color: var(--text-primary)"
-      placeholder="Search by name..."
+      [placeholder]="'CHARACTERS.SEARCH_PLACEHOLDER' | translate"
       [ngModel]="searchValue()"
       (ngModelChange)="onSearchInput($event)"
     />

@@ -353,7 +353,11 @@ export class ViewerComponent implements OnDestroy {
     const url = this.clipUrl(clip?.videoLocalUrl);
     if (!url || !clip) return;
     const filename = this.studio.filenameForClip(clip);
-    this.toast.add({ severity: 'info', summary: 'Downloading video', life: 5000 });
+    this.toast.add({
+      severity: 'info',
+      summary: this.i18n.instant('STUDIO.VIEWER.DOWNLOADING'),
+      life: 5000,
+    });
     DOWNLOAD_VIDEO(url, filename);
   }
 

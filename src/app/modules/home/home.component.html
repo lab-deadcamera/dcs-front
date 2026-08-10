@@ -9,13 +9,13 @@
   @if (!loading()) {
     <!-- Project selector -->
     <div class="selector-bar">
-      <label>Project</label>
+      <label>{{ 'HOME.PROJECT' | translate }}</label>
       <p-select
         [options]="projectOptions()"
         [(ngModel)]="selectedProjectId"
         optionValue="value"
         optionLabel="label"
-        placeholder="Select a project"
+        [placeholder]="'HOME.SELECT_PROJECT' | translate"
         class="w-72"
       />
     </div>
@@ -26,35 +26,35 @@
         <div class="stat-card">
           <i class="pi pi-book stat-icon" style="color: #818cf8"></i>
           <span class="stat-value">{{ stats().chapters }}</span>
-          <span class="stat-label">Chapters</span>
+          <span class="stat-label">{{ 'HOME.CHAPTERS' | translate }}</span>
         </div>
         <div class="stat-card">
           <i class="pi pi-video stat-icon" style="color: #34d399"></i>
           <span class="stat-value">{{ stats().scenes }}</span>
-          <span class="stat-label">Scenes</span>
+          <span class="stat-label">{{ 'HOME.SCENES' | translate }}</span>
         </div>
         <div class="stat-card">
           <i class="pi pi-camera stat-icon" style="color: #fbbf24"></i>
           <span class="stat-value">{{ stats().shots }}</span>
-          <span class="stat-label">Shots</span>
+          <span class="stat-label">{{ 'HOME.SHOTS' | translate }}</span>
         </div>
         <div class="stat-card">
           <i class="pi pi-play stat-icon" style="color: #f472b6"></i>
           <span class="stat-value">{{ stats().takes }}</span>
-          <span class="stat-label">Takes</span>
+          <span class="stat-label">{{ 'HOME.TAKES' | translate }}</span>
         </div>
       </div>
 
       <!-- Charts row -->
       <div class="charts-row">
         <div class="chart-card">
-          <div class="chart-title">Scenes &amp; Shots per Chapter</div>
+          <div class="chart-title">{{ 'HOME.CHART_SCENES_SHOTS' | translate }}</div>
           <div class="chart-canvas-wrapper">
             <canvas #barCanvas></canvas>
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Shot Progress</div>
+          <div class="chart-title">{{ 'HOME.CHART_SHOT_PROGRESS' | translate }}</div>
           <div class="chart-canvas-wrapper">
             <canvas #doughnutCanvas></canvas>
           </div>
@@ -63,18 +63,18 @@
 
       <!-- Breakdown table -->
       <div class="breakdown-section">
-        <div class="breakdown-title">Chapter Breakdown</div>
+        <div class="breakdown-title">{{ 'HOME.CHAPTER_BREAKDOWN' | translate }}</div>
         @if (chapterRows().length === 0) {
-          <p class="op-50 py-4 text-center text-sm italic">No chapters found for this project.</p>
+          <p class="op-50 py-4 text-center text-sm italic">{{ 'HOME.NO_CHAPTERS' | translate }}</p>
         } @else {
           <table class="breakdown-table">
             <thead>
               <tr>
-                <th>Chapter</th>
-                <th class="text-center">Scenes</th>
-                <th class="text-center">Shots</th>
-                <th class="text-center">Takes</th>
-                <th class="text-center">Progress</th>
+                <th>{{ 'HOME.CHAPTER' | translate }}</th>
+                <th class="text-center">{{ 'HOME.SCENES' | translate }}</th>
+                <th class="text-center">{{ 'HOME.SHOTS' | translate }}</th>
+                <th class="text-center">{{ 'HOME.TAKES' | translate }}</th>
+                <th class="text-center">{{ 'HOME.PROGRESS' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,7 +118,7 @@
     } @else {
       <!-- No project selected -->
       <div class="flex flex-1 items-center justify-center py-16">
-        <p class="op-50 italic">Select a project to view its dashboard.</p>
+        <p class="op-50 italic">{{ 'HOME.NO_PROJECT' | translate }}</p>
       </div>
     }
   }

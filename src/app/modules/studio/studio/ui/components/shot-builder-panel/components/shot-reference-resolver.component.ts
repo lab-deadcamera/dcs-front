@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Popover } from 'primeng/popover';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -33,6 +34,7 @@ import { inferKind } from '@app/shared/utils';
   standalone: true,
   imports: [
     CommonModule,
+    TranslatePipe,
     Popover,
     ButtonModule,
     TooltipModule,
@@ -64,7 +66,7 @@ import { inferKind } from '@app/shared/utils';
                 type="button"
                 class="ref-assign-btn"
                 (click)="openAssignPopover($event, ref)"
-                pTooltip="Asignar free asset a este slot"
+                [pTooltip]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
                 tooltipPosition="top"
               >
                 <i class="pi pi-plus" aria-hidden="true"></i>
@@ -142,7 +144,7 @@ import { inferKind } from '@app/shared/utils';
                 (change)="onUploadSelected($event, target.slot)"
               />
               <p-button
-                label="Subir free asset"
+                [label]="'STUDIO.SHOT_BUILDER.UPLOAD_FREE_ASSET' | translate"
                 severity="secondary"
                 [outlined]="true"
                 size="small"

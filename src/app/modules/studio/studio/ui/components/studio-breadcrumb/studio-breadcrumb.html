@@ -1,8 +1,8 @@
-<nav class="studio-breadcrumb card mb-3" aria-label="Studio navigation">
+<nav class="studio-breadcrumb card mb-3" [attr.aria-label]="'STUDIO.BREADCRUMB.NAV_ARIA' | translate">
   <!-- Project breadcrumb segment -->
   <div class="studio-bcrumb-segment">
     @if (loadingProjects()) {
-      <span class="studio-bcrumb-loading">Loading…</span>
+      <span class="studio-bcrumb-loading">{{ 'COMMON.LOADING' | translate }}</span>
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
@@ -24,13 +24,13 @@
                 class="pi pi-plus cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
                 aria-hidden="true"
                 (click)="onProjectCreateEpisodeClick(item); $event.stopPropagation()"
-                pTooltip="New episode"
+                [pTooltip]="'STUDIO.BREADCRUMB.NEW_EPISODE_TOOLTIP' | translate"
                 tooltipPosition="right"
               ></i>
             </span>
           </ng-template>
         </p-select>
-        <label for="on_label">Project</label>
+        <label for="on_label">{{ 'STUDIO.BREADCRUMB.PROJECT' | translate }}</label>
       </p-floatlabel>
     }
   </div>
@@ -40,9 +40,9 @@
   <!-- Episode breadcrumb segment -->
   <div class="studio-bcrumb-segment" [class.disabled]="!selectedProjectId()">
     @if (!selectedProjectId()) {
-      <span class="studio-bcrumb-placeholder">Episode</span>
+      <span class="studio-bcrumb-placeholder">{{ 'STUDIO.BREADCRUMB.EPISODE' | translate }}</span>
     } @else if (loadingChapters()) {
-      <span class="studio-bcrumb-loading">Loading…</span>
+      <span class="studio-bcrumb-loading">{{ 'COMMON.LOADING' | translate }}</span>
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
@@ -53,7 +53,7 @@
           [filter]="chapters().length > 2"
           filterBy="name"
           [(ngModel)]="selectedChapterId"
-          [placeholder]="'Episode'"
+          [placeholder]="'STUDIO.BREADCRUMB.EPISODE' | translate"
           [showClear]="false"
           styleClass="studio-bcrumb-select"
           (onChange)="onChapterChange($event.value)"
@@ -65,13 +65,13 @@
                 class="pi pi-cog cursor-pointer text-[10px] text-fg-muted hover:text-primary-400"
                 aria-hidden="true"
                 (click)="onEpisodeCogClick(item); $event.stopPropagation()"
-                pTooltip="Assign resources to this episode"
+                [pTooltip]="'STUDIO.BREADCRUMB.ASSIGN_RESOURCES_TOOLTIP' | translate"
                 tooltipPosition="right"
               ></i>
             </span>
           </ng-template>
         </p-select>
-        <label for="on_label">Episode</label>
+        <label for="on_label">{{ 'STUDIO.BREADCRUMB.EPISODE' | translate }}</label>
       </p-floatlabel>
     }
   </div>
@@ -81,9 +81,9 @@
   <!-- Scene breadcrumb segment -->
   <div class="studio-bcrumb-segment" [class.disabled]="!selectedChapterId()">
     @if (!selectedChapterId()) {
-      <span class="studio-bcrumb-placeholder">Scene</span>
+      <span class="studio-bcrumb-placeholder">{{ 'STUDIO.BREADCRUMB.SCENE' | translate }}</span>
     } @else if (loadingScenes()) {
-      <span class="studio-bcrumb-loading">Loading…</span>
+      <span class="studio-bcrumb-loading">{{ 'COMMON.LOADING' | translate }}</span>
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
@@ -111,16 +111,16 @@
                   type="button"
                   class="studio-bcrumb-option-action"
                   (click)="onEditOption('scene', item); $event.stopPropagation()"
-                  pTooltip="Edit scene"
+                  [pTooltip]="'STUDIO.BREADCRUMB.EDIT_SCENE' | translate"
                   tooltipPosition="left"
-                  [attr.aria-label]="'Edit scene'"
+                  [attr.aria-label]="'STUDIO.BREADCRUMB.EDIT_SCENE' | translate"
                 >
                   <i class="pi pi-pencil"></i>
                 </button>
                 <span
                   [pTooltip]="(item.takeCount ?? 0) > 0
-                    ? 'Cannot delete: scene has ' + item.takeCount + ' take(s)'
-                    : 'Delete scene'"
+                    ? ('STUDIO.BREADCRUMB.CANT_DELETE_SCENE' | translate: { n: item.takeCount })
+                    : ('STUDIO.BREADCRUMB.DELETE_SCENE' | translate)"
                   tooltipPosition="left"
                 >
                   <button
@@ -128,7 +128,7 @@
                     class="studio-bcrumb-option-action studio-bcrumb-option-action--danger"
                     (click)="onDeleteOption('scene', item); $event.stopPropagation()"
                     [disabled]="(item.takeCount ?? 0) > 0"
-                    [attr.aria-label]="'Delete scene'"
+                    [attr.aria-label]="'STUDIO.BREADCRUMB.DELETE_SCENE' | translate"
                   >
                     <i class="pi pi-trash"></i>
                   </button>
@@ -142,7 +142,7 @@
             </span>
           </ng-template>
         </p-select>
-        <label for="on_label">Scene</label>
+        <label for="on_label">{{ 'STUDIO.BREADCRUMB.SCENE' | translate }}</label>
       </p-floatlabel>
     }
   </div>
@@ -152,9 +152,9 @@
   <!-- Shot breadcrumb segment -->
   <div class="studio-bcrumb-segment" [class.disabled]="!selectedSceneId()">
     @if (!selectedSceneId()) {
-      <span class="studio-bcrumb-placeholder">Shot</span>
+      <span class="studio-bcrumb-placeholder">{{ 'STUDIO.BREADCRUMB.SHOT' | translate }}</span>
     } @else if (loadingShots()) {
-      <span class="studio-bcrumb-loading">Loading…</span>
+      <span class="studio-bcrumb-loading">{{ 'COMMON.LOADING' | translate }}</span>
     } @else {
       <p-floatlabel class="w-full" variant="on">
         <p-select
@@ -177,16 +177,16 @@
                   type="button"
                   class="studio-bcrumb-option-action"
                   (click)="onEditOption('shot', item); $event.stopPropagation()"
-                  pTooltip="Edit shot"
+                  [pTooltip]="'STUDIO.BREADCRUMB.EDIT_SHOT' | translate"
                   tooltipPosition="left"
-                  [attr.aria-label]="'Edit shot'"
+                  [attr.aria-label]="'STUDIO.BREADCRUMB.EDIT_SHOT' | translate"
                 >
                   <i class="pi pi-pencil"></i>
                 </button>
                 <span
                   [pTooltip]="(item.takeCount ?? 0) > 0
-                    ? 'Cannot delete: shot has ' + item.takeCount + ' take(s)'
-                    : 'Delete shot'"
+                    ? ('STUDIO.BREADCRUMB.CANT_DELETE_SHOT' | translate: { n: item.takeCount })
+                    : ('STUDIO.BREADCRUMB.DELETE_SHOT' | translate)"
                   tooltipPosition="left"
                 >
                   <button
@@ -194,7 +194,7 @@
                     class="studio-bcrumb-option-action studio-bcrumb-option-action--danger"
                     (click)="onDeleteOption('shot', item); $event.stopPropagation()"
                     [disabled]="(item.takeCount ?? 0) > 0"
-                    [attr.aria-label]="'Delete shot'"
+                    [attr.aria-label]="'STUDIO.BREADCRUMB.DELETE_SHOT' | translate"
                   >
                     <i class="pi pi-trash"></i>
                   </button>
@@ -203,7 +203,7 @@
             </div>
           </ng-template>
         </p-select>
-        <label for="on_label">Shot</label>
+        <label for="on_label">{{ 'STUDIO.BREADCRUMB.SHOT' | translate }}</label>
       </p-floatlabel>
     }
   </div>
@@ -226,9 +226,9 @@
       type="button"
       class="studio-bcrumb-assign-btn ml-2"
       (click)="sortPopover.toggle($event)"
-      pTooltip="Sort order"
+      [pTooltip]="'STUDIO.BREADCRUMB.SORT_ORDER' | translate"
       tooltipPosition="top"
-      [attr.aria-label]="'Sort order'"
+      [attr.aria-label]="'STUDIO.BREADCRUMB.SORT_ORDER' | translate"
     >
       <i class="pi pi-sort-amount-down"></i>
     </button>
@@ -240,13 +240,13 @@
   <div class="w-72 p-4 flex flex-col gap-4">
     <div class="flex flex-col gap-1">
       <label for="sort-field" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-        >Field</label
+        >{{ 'STUDIO.BREADCRUMB.FIELD' | translate }}</label
       >
       <p-select
         id="sort-field"
         [options]="[
-          { label: 'Name', value: 'name' },
-          { label: 'Number', value: 'number' },
+          { label: 'STUDIO.BREADCRUMB.FIELD_NAME' | translate, value: 'name' },
+          { label: 'STUDIO.BREADCRUMB.NUMBER' | translate, value: 'number' },
         ]"
         optionLabel="label"
         optionValue="value"
@@ -257,13 +257,13 @@
     </div>
     <div class="flex flex-col gap-1">
       <label for="sort-dir" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-        >Direction</label
+        >{{ 'STUDIO.BREADCRUMB.DIRECTION' | translate }}</label
       >
       <p-select
         id="sort-dir"
         [options]="[
-          { label: 'Ascending', value: 'asc' },
-          { label: 'Descending', value: 'desc' },
+          { label: 'STUDIO.BREADCRUMB.ASCENDING' | translate, value: 'asc' },
+          { label: 'STUDIO.BREADCRUMB.DESCENDING' | translate, value: 'desc' },
         ]"
         optionLabel="label"
         optionValue="value"
@@ -274,8 +274,7 @@
       />
     </div>
     <p class="text-[10px] italic text-fg-muted">
-      Current: {{ sortFieldLabel() }} · {{ sortDirLabel() }}. Applies to Project, Episode, Scene and
-      Shot.
+      {{ 'STUDIO.BREADCRUMB.CURRENT_SORT' | translate: { field: sortFieldLabel(), dir: sortDirLabel() } }}
     </p>
   </div>
 </p-popover>
@@ -288,14 +287,14 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '28rem' }"
-  header="New Shot"
+  [header]="'STUDIO.BREADCRUMB.NEW_SHOT' | translate"
 >
   @if (selectedSceneObj()) {
     <div
       class="mb-3 rounded border p-2 text-[12px]"
       style="border-color: var(--border-color); background: var(--surface-ground)"
     >
-      <span class="font-semibold">Scene:</span>
+      <span class="font-semibold">{{ 'STUDIO.BREADCRUMB.SCENE_LABEL' | translate }}</span>
       SC{{ selectedSceneObj()!.number | number: '2.0' }} — {{ selectedSceneObj()!.name }}
     </div>
   }
@@ -303,51 +302,51 @@
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
         <label for="new-shot-source" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >Create from shot (optional)</label
+          >{{ 'STUDIO.BREADCRUMB.FROM_SHOT_OPTIONAL' | translate }}</label
         >
         <p-select
           id="new-shot-source"
           [options]="sortedShots()"
           optionLabel="label"
           [showClear]="true"
-          [placeholder]="'Brand new shot'"
+          [placeholder]="'STUDIO.BREADCRUMB.BRAND_NEW_SHOT' | translate"
           class="w-full"
           formControlName="source"
           (onChange)="onNewShotSourceChange($event.value ?? null)"
-          pTooltip="Choose an existing shot to clone — it inherits the number and pre-prompt"
+          [pTooltip]="'STUDIO.BREADCRUMB.CLONE_TOOLTIP' | translate"
           tooltipPosition="top"
         />
         <p class="text-[10px] italic text-fg-muted">
-          Pick a shot to inherit its number and pre-prompt. Leave empty for a brand new shot.
+          {{ 'STUDIO.BREADCRUMB.PICK_SHOT_HINT' | translate }}
         </p>
       </div>
       <div class="flex flex-col gap-1">
         <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >Shot name</label
+          >{{ 'STUDIO.BREADCRUMB.SHOT_NAME' | translate }}</label
         >
         <input
           id="new-shot-name"
           pInputText
           formControlName="name"
-          placeholder="e.g. Master wide, Close-up, …"
+          [placeholder]="'STUDIO.BREADCRUMB.SHOT_NAME_PLACEHOLDER' | translate"
           class="w-full p-component p-inputtext"
         />
         @if (newShotForm.controls.name.touched && newShotForm.controls.name.invalid) {
           <p class="text-[10px] text-red-400">
             @if (newShotForm.controls.name.hasError('suffixTooShort')) {
-              Cloning from "{{ newShotSource()?.name }}" — append a suffix of at least 3 letters.
+              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()?.name } }}
             } @else if (newShotForm.controls.name.hasError('suffixRequired')) {
-              Keep the source name "{{ newShotSource()?.name }}" and append your suffix.
+              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_REQUIRED' | translate: { name: newShotSource()?.name } }}
             } @else {
-              Enter a name for the new shot.
+              {{ 'STUDIO.BREADCRUMB.ENTER_SHOT_NAME' | translate }}
             }
           </p>
         } @else {
           <p class="text-[10px] italic text-fg-muted">
             @if (newShotSource()) {
-              Cloning from "{{ newShotSource()!.name }}" — append a suffix of at least 3 letters.
+              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()!.name } }}
             } @else {
-              Give your shot a descriptive name. A new shot will be created for this scene.
+              {{ 'STUDIO.BREADCRUMB.SHOT_HINT' | translate }}
             }
           </p>
         }
@@ -356,10 +355,15 @@
   </form>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelNewShot()" />
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        (onClick)="onCancelNewShot()"
+      />
       <p-button
         icon="pi pi-play"
-        label="Create &amp; Open"
+        [label]="'STUDIO.BREADCRUMB.CREATE_OPEN' | translate"
         [disabled]="!newShotForm.valid || newShotSubmitting()"
         [loading]="newShotSubmitting()"
         (onClick)="onConfirmNewShot()"
@@ -376,13 +380,13 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '24rem' }"
-  header="New Episode"
+  [header]="'STUDIO.BREADCRUMB.NEW_EPISODE' | translate"
 >
   <form [formGroup]="newEpisodeForm">
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
         <label for="new-episode-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >Number</label
+          >{{ 'STUDIO.BREADCRUMB.NUMBER' | translate }}</label
         >
         <input
           id="new-episode-number"
@@ -392,12 +396,12 @@
           class="w-full p-component p-inputtext"
         />
         @if (newEpisodeForm.controls.number.touched && newEpisodeForm.controls.number.invalid) {
-          <p class="text-[10px] text-red-400">Enter a number of at least 1.</p>
+          <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NUMBER_MIN' | translate }}</p>
         }
       </div>
       <div class="flex flex-col gap-1">
         <label for="new-episode-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >Name</label
+          >{{ 'STUDIO.BREADCRUMB.FIELD_NAME' | translate }}</label
         >
         <input
           id="new-episode-name"
@@ -406,17 +410,22 @@
           class="w-full p-component p-inputtext"
         />
         @if (newEpisodeForm.controls.name.touched && newEpisodeForm.controls.name.invalid) {
-          <p class="text-[10px] text-red-400">Enter a name.</p>
+          <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}</p>
         }
       </div>
     </div>
   </form>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelNewEpisode()" />
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        (onClick)="onCancelNewEpisode()"
+      />
       <p-button
         icon="pi pi-check"
-        label="Create"
+        [label]="'COMMON.CREATE' | translate"
         [disabled]="!newEpisodeForm.valid || newEpisodeSubmitting()"
         [loading]="newEpisodeSubmitting()"
         (onClick)="onConfirmNewEpisode()"
@@ -432,7 +441,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Episode Resources"
+  [header]="'STUDIO.BREADCRUMB.EPISODE_RESOURCES' | translate"
 >
   @if (episodeAssignmentDialogVisible()) {
     <app-scene-assignment
@@ -461,7 +470,7 @@
       <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
           <label for="edit-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-            >Number</label
+            >{{ 'STUDIO.BREADCRUMB.NUMBER' | translate }}</label
           >
           <input
             id="edit-number"
@@ -471,12 +480,12 @@
             class="w-full p-component p-inputtext"
           />
           @if (editForm.controls.number.touched && editForm.controls.number.invalid) {
-            <p class="text-[10px] text-red-400">Enter a number of at least 1.</p>
+            <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NUMBER_MIN' | translate }}</p>
           }
         </div>
         <div class="flex flex-col gap-1">
           <label for="edit-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-            >Name</label
+            >{{ 'STUDIO.BREADCRUMB.FIELD_NAME' | translate }}</label
           >
           <input
             id="edit-name"
@@ -485,7 +494,7 @@
             class="w-full p-component p-inputtext"
           />
           @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
-            <p class="text-[10px] text-red-400">Enter a name.</p>
+            <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}</p>
           }
         </div>
       </div>
@@ -493,10 +502,15 @@
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelEdit()" />
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        (onClick)="onCancelEdit()"
+      />
       <p-button
         icon="pi pi-check"
-        label="Save"
+        [label]="'COMMON.SAVE' | translate"
         [disabled]="!editForm.valid || editSubmitting()"
         [loading]="editSubmitting()"
         (onClick)="onConfirmEdit()"
@@ -513,21 +527,25 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '26rem' }"
-  header="Confirm deletion"
+  [header]="'STUDIO.BREADCRUMB.CONFIRM_DELETION' | translate"
 >
   @if (deleteTarget()) {
     <p class="text-[13px] leading-relaxed">
-      Delete <span class="font-semibold">{{ deleteTarget()!.option.label }}</span>? This cannot be
-      undone.
+      {{ 'STUDIO.BREADCRUMB.DELETE_CONFIRM' | translate: { name: deleteTarget()!.option.label } }}
     </p>
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="onCancelDelete()" />
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        (onClick)="onCancelDelete()"
+      />
       <p-button
         severity="danger"
         icon="pi pi-trash"
-        label="Delete"
+        [label]="'COMMON.DELETE' | translate"
         [loading]="deleteSubmitting()"
         (onClick)="onConfirmDelete()"
       />

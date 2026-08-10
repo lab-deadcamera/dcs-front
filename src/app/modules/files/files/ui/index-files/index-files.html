@@ -9,7 +9,7 @@
       </p>
     </div>
     <p-button
-      label="Create Character"
+      [label]="'FILES.CREATE_CHARACTER' | translate"
       icon="pi pi-user-plus"
       severity="secondary"
       (onClick)="characterDialogVisible.set(true)"
@@ -76,7 +76,7 @@
         type="text"
         class="w-full max-w-xs rounded border bg-transparent px-3 py-1.5 font-mono text-[12px] outline-none transition-colors focus:border-primary-500"
         style="border-color: var(--border-color); color: var(--text-primary)"
-        placeholder="Search by filename..."
+        [placeholder]="'FILES.SEARCH_PLACEHOLDER' | translate"
         [ngModel]="searchValue()"
         (ngModelChange)="onSearchInput($event)"
       />
@@ -314,7 +314,7 @@
     [closable]="true"
     [draggable]="false"
     [style]="{ width: '90vw', maxWidth: '1200px' }"
-    header="Characters"
+    [header]="'CHARACTERS.TABS.CHARACTER' | translate"
   >
     <app-index-characters />
   </p-dialog>

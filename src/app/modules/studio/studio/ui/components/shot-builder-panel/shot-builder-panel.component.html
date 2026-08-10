@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-4 h-full">
   <p-toast position="top-right" />
-  <h2 class="text-base font-semibold text-fg">Shot Builder</h2>
+  <h2 class="text-base font-semibold text-fg">{{ 'STUDIO.SHOT_BUILDER.TITLE' | translate }}</h2>
 
   <p-splitter class="shot-builder-splitter h-full" [panelSizes]="[55, 45]">
     <!-- LEFT: Chat + Input -->
@@ -10,7 +10,7 @@
         <div class="flex-1 overflow-y-auto">
           @if (chatMessages().length === 0) {
             <p class="text-center text-[12px] text-fg-muted">
-              Describe the scene, upload reference files, or paste a script to generate a shot list.
+              {{ 'STUDIO.SHOT_BUILDER.EMPTY_HINT' | translate }}
             </p>
           } @else {
             @for (msg of chatMessages(); track msg.id) {
@@ -24,7 +24,7 @@
                   [class.text-primary-400]="msg.role === 'assistant'"
                   [class.text-fg-muted]="msg.role === 'user'"
                 >
-                  {{ msg.role === 'assistant' ? 'Claude' : 'You' }}
+                  {{ msg.role === 'assistant' ? ('STUDIO.SHOT_BUILDER.CLAUDE' | translate) : ('STUDIO.SHOT_BUILDER.YOU' | translate) }}
                 </span>
                 @if (msg.kind) {
                   <span
@@ -35,11 +35,11 @@
                     [class.text-amber-400]="msg.kind === 'refine'"
                   >
                     @if (msg.kind === 'generate') {
-                      Generado
+                      {{ 'STUDIO.SHOT_BUILDER.KIND_GENERATED' | translate }}
                     } @else if (msg.role === 'assistant') {
-                      Refinado
+                      {{ 'STUDIO.SHOT_BUILDER.KIND_REFINED' | translate }}
                     } @else {
-                      Refinar
+                      {{ 'STUDIO.SHOT_BUILDER.KIND_REFINE' | translate }}
                     }
                   </span>
                 }
@@ -58,7 +58,7 @@
         <textarea
           class="h-24 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg focus:border-primary-400 focus:outline-none"
           rows="1"
-          placeholder="Describe the scene, list shots, or paste a script..."
+          [placeholder]="'STUDIO.SHOT_BUILDER.PLACEHOLDER' | translate"
           [disabled]="loading()"
           [(ngModel)]="promptText"
         ></textarea>
@@ -72,7 +72,7 @@
               (click)="episodeAssetsExpanded.set(!episodeAssetsExpanded())"
               [attr.aria-expanded]="episodeAssetsExpanded()"
             >
-              <span>Episode Assets</span>
+              <span>{{ 'STUDIO.SHOT_BUILDER.EPISODE_ASSETS' | translate }}</span>
               <span
                 aria-hidden="true"
                 class="inline-block transition-transform duration-150"
@@ -86,7 +86,7 @@
               @if (studio.chapterCharacterData().length > 0) {
                 <div class="mt-2">
                   <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                    Characters
+                    {{ 'STUDIO.SHOT_BUILDER.CHARACTERS' | translate }}
                   </span>
                   <div class="mt-1 flex flex-wrap gap-1 h-20 overflow-y-auto">
                     @for (c of sortedChapterCharacters(); track c.id) {
@@ -190,7 +190,7 @@
               (click)="refineExpanded.set(!refineExpanded())"
               [attr.aria-expanded]="refineExpanded()"
             >
-              <span>Refine breakdown</span>
+              <span>{{ 'STUDIO.SHOT_BUILDER.REFINE_TITLE' | translate }}</span>
               <span
                 aria-hidden="true"
                 class="inline-block transition-transform duration-150"
@@ -204,13 +204,13 @@
                 <textarea
                   class="h-16 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[12px] text-fg focus:border-primary-400 focus:outline-none"
                   rows="1"
-                  placeholder="What should change? e.g. make the tone darker and shorten shot C"
+                  [placeholder]="'STUDIO.SHOT_BUILDER.REFINE_PLACEHOLDER' | translate"
                   [disabled]="loading()"
                   [(ngModel)]="refineText"
                 ></textarea>
                 <div class="flex justify-end">
                   <p-button
-                    label="Refine"
+                    [label]="'STUDIO.SHOT_BUILDER.REFINE' | translate"
                     severity="secondary"
                     size="small"
                     icon="pi pi-refresh"
@@ -328,7 +328,7 @@
                 type="button"
                 class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
                 (click)="settingsDialogVisible.set(true)"
-                pTooltip="Settings: model, skill, language"
+                pTooltip="{{ 'STUDIO.SHOT_BUILDER.SETTINGS_TOOLTIP' | translate }}"
                 tooltipPosition="top"
               >
                 <i class="pi pi-cog text-fg-muted"></i>
@@ -337,26 +337,26 @@
 
               @if (isSuperAdmin()) {
                 <p-button
-                  label="Mock Seq"
+                  [label]="'STUDIO.SHOT_BUILDER.MOCK_SEQ' | translate"
                   severity="info"
                   [text]="true"
                   size="small"
                   (onClick)="loadSequenceMock()"
-                  pTooltip="Load real generate-shots response (Mock) for native viewer testing"
+                  [pTooltip]="'STUDIO.SHOT_BUILDER.MOCK_TOOLTIP' | translate"
                   tooltipPosition="top"
                 />
                 <p-button
-                  label="Preview"
+                  [label]="'STUDIO.SHOT_BUILDER.PREVIEW' | translate"
                   severity="warn"
                   [text]="true"
                   size="small"
                   (onClick)="previewDialogVisible.set(true)"
-                  pTooltip="Preview shot data as JSON"
+                  [pTooltip]="'STUDIO.SHOT_BUILDER.PREVIEW_TOOLTIP' | translate"
                   tooltipPosition="top"
                 />
               }
               <p-button
-                label="Clear"
+                [label]="'STUDIO.SHOT_BUILDER.CLEAR' | translate"
                 severity="secondary"
                 [text]="true"
                 size="small"
@@ -364,7 +364,7 @@
                 [disabled]="loading()"
               />
               <p-button
-                [label]="hasPreviousResponse() ? 'Refine Shots' : 'Generate Shots'"
+                [label]="(hasPreviousResponse() ? 'STUDIO.SHOT_BUILDER.REFINE_SHOTS' : 'STUDIO.SHOT_BUILDER.GENERATE_SHOTS') | translate"
                 severity="primary"
                 size="small"
                 [icon]="hasPreviousResponse() ? 'pi pi-refresh' : 'pi pi-send'"
@@ -509,17 +509,18 @@
                 @if (timeBudgetBar().length > 0) {
                   <div class="border-b border-ink-700 px-4 pb-3 pt-2">
                     <div class="flex items-center justify-between text-[10px] text-fg-muted mb-1">
-                      <span>Time budget</span>
+                      <span>{{ 'STUDIO.SHOT_BUILDER.TIME_BUDGET' | translate }}</span>
                       <span>{{ scenes().reduce((sum, s) => sum + s.duration, 0) }}s</span>
                     </div>
                     <div
                       class="flex h-3 w-full overflow-hidden rounded-full bg-ink-800"
                       role="img"
                       [attr.aria-label]="
-                        'Time budget: ' +
-                        timeBudgetBar()
-                          .map((s) => s.scriptLocation + ' ' + s.duration + 's')
-                          .join(', ')
+                        'STUDIO.SHOT_BUILDER.TIME_BUDGET_ARIA' | translate: {
+                          detail: timeBudgetBar()
+                            .map((s) => s.scriptLocation + ' ' + s.duration + 's')
+                            .join(', ')
+                        }
                       "
                     >
                       @for (seg of timeBudgetBar(); track seg.scriptNumber) {
@@ -527,15 +528,12 @@
                           class="relative h-full cursor-pointer transition-opacity hover:opacity-80"
                           [style]="{ width: seg.pct + '%', backgroundColor: seg.color }"
                           [title]="
-                            'Scene ' +
-                            seg.scriptNumber +
-                            ': ' +
-                            seg.scriptLocation +
-                            ' (' +
-                            seg.duration +
-                            's, ' +
-                            seg.shotCount +
-                            ' shots)'
+                            'STUDIO.SHOT_BUILDER.SCENE_TITLE' | translate: {
+                              number: seg.scriptNumber,
+                              location: seg.scriptLocation,
+                              duration: seg.duration,
+                              shots: seg.shotCount
+                            }
                           "
                         ></div>
                       }
@@ -584,9 +582,7 @@
                       </div>
                       <div class="flex items-center gap-2 shrink-0">
                         <span class="text-[10px] text-fg-muted"
-                          >{{ scene.shots.length }} shot{{
-                            scene.shots.length !== 1 ? 's' : ''
-                          }}</span
+                          >{{ 'STUDIO.SHOT_BUILDER.SHOTS_COUNT' | translate: { n: scene.shots.length } }}</span
                         >
                         <span class="text-fg-muted text-[10px]">▾</span>
                       </div>
@@ -599,29 +595,29 @@
                           @if (cont.locationChange) {
                             <span
                               class="rounded bg-cyan-900/30 px-1.5 py-0.5 text-[10px] text-cyan-400"
-                              title="Location changed"
-                              >📍 Location</span
+                              [title]="'STUDIO.SHOT_BUILDER.TB_LOCATION_CHANGED' | translate"
+                              >{{ 'STUDIO.SHOT_BUILDER.CONT_LOCATION' | translate }}</span
                             >
                           }
                           @if (isSignificant(cont.wardrobeCarryover)) {
                             <span
                               class="rounded bg-purple-900/30 px-1.5 py-0.5 text-[10px] text-purple-400"
-                              title="Wardrobe change"
-                              >👕 Wardrobe</span
+                              [title]="'STUDIO.SHOT_BUILDER.TB_WARDROBE' | translate"
+                              >{{ 'STUDIO.SHOT_BUILDER.CONT_WARDROBE' | translate }}</span
                             >
                           }
                           @if (isSignificant(cont.physicalCarryover)) {
                             <span
                               class="rounded bg-red-900/30 px-1.5 py-0.5 text-[10px] text-red-400"
-                              title="Physical state change"
-                              >💔 Physical</span
+                              [title]="'STUDIO.SHOT_BUILDER.TB_PHYSICAL' | translate"
+                              >{{ 'STUDIO.SHOT_BUILDER.CONT_PHYSICAL' | translate }}</span
                             >
                           }
                           @if (isSignificant(cont.emotionalCarryover)) {
                             <span
                               class="rounded bg-yellow-900/30 px-1.5 py-0.5 text-[10px] text-yellow-400"
-                              title="Emotional carryover"
-                              >💭 Emotional</span
+                              [title]="'STUDIO.SHOT_BUILDER.TB_EMOTIONAL' | translate"
+                              >{{ 'STUDIO.SHOT_BUILDER.CONT_EMOTIONAL' | translate }}</span
                             >
                           }
                         </div>
@@ -646,10 +642,10 @@
                             class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted"
                           >
                             <th class="w-10 px-1 py-1">#</th>
-                            <th class="px-1 py-1">Name</th>
-                            <th class="px-1 py-1 hidden sm:table-cell">Duration</th>
-                            <th class="px-1 py-1 hidden md:table-cell">Camera</th>
-                            <th class="w-20 px-1 py-1 text-right">Action</th>
+                            <th class="px-1 py-1">{{ 'STUDIO.SHOT_BUILDER.COL_NAME' | translate }}</th>
+                            <th class="px-1 py-1 hidden sm:table-cell">{{ 'STUDIO.SHOT_BUILDER.COL_DURATION' | translate }}</th>
+                            <th class="px-1 py-1 hidden md:table-cell">{{ 'STUDIO.SHOT_BUILDER.COL_CAMERA' | translate }}</th>
+                            <th class="w-20 px-1 py-1 text-right">{{ 'STUDIO.SHOT_BUILDER.COL_ACTION' | translate }}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -708,7 +704,7 @@
                     [text]="true"
                     size="small"
                     (onClick)="copyArtifact()"
-                    pTooltip="Copy raw response"
+                    [pTooltip]="'STUDIO.SHOT_BUILDER.COPY_TOOLTIP' | translate"
                     tooltipPosition="left"
                   />
                 </div>
@@ -718,14 +714,14 @@
             <!-- Markdown rendered as HTML artifact -->
             <div class="flex h-full flex-col">
               <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
-                <span class="text-[12px] font-semibold text-fg-muted"> Shot List </span>
+                <span class="text-[12px] font-semibold text-fg-muted"> {{ 'STUDIO.SHOT_BUILDER.SHOT_LIST' | translate }} </span>
                 <p-button
                   icon="pi pi-copy"
                   severity="secondary"
                   [text]="true"
                   size="small"
                   (onClick)="copyArtifact()"
-                  pTooltip="Copy raw response"
+                  [pTooltip]="'STUDIO.SHOT_BUILDER.COPY_TOOLTIP' | translate"
                   tooltipPosition="left"
                 />
               </div>
@@ -734,7 +730,7 @@
                   class="h-full w-full rounded-lg border-0"
                   sandbox="allow-scripts"
                   [src]="safeArtifactUrl()"
-                  title="Shot list artifact"
+                  [title]="'STUDIO.SHOT_BUILDER.ARTIFACT_TITLE' | translate"
                 ></iframe>
               </div>
             </div>
@@ -772,7 +768,7 @@
                       class="flex items-center gap-2 border-b border-ink-700 px-4 py-1.5 text-[11px] text-fg-muted"
                     >
                       <i class="pi pi-file" aria-hidden="true"></i>
-                      <span>{{ isDocPreview() ? 'Word' : 'Excel' }} document — parsed to text</span>
+                      <span>{{ 'STUDIO.SHOT_BUILDER.DOC_PARSED' | translate: { doc: isDocPreview() ? 'Word' : 'Excel' } }}</span>
                     </div>
                     <pre
                       class="flex-1 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink-900 p-4 text-[13px] text-fg"
@@ -793,10 +789,9 @@
               <i class="pi pi-camera text-3xl text-fg-muted opacity-30"></i>
               <p class="text-[13px] text-fg-muted">
                 @if (uploadedFiles().length > 0) {
-                  Select a file tab above to preview, or click <strong>Generate Shots</strong> to
-                  see the result.
+                  {{ 'STUDIO.SHOT_BUILDER.PREVIEW_EMPTY_HINT' | translate }}
                 } @else {
-                  Upload files or send a prompt to generate shots.
+                  {{ 'STUDIO.SHOT_BUILDER.EMPTY_ALT_HINT' | translate }}
                 }
               </p>
             </div>
@@ -820,7 +815,7 @@
           [class.pi-image]="info.kind === 'asset'"
           aria-hidden="true"
         ></i>
-        {{ info.kind === 'character' ? 'Character' : 'Free Asset' }}
+        {{ info.kind === 'character' ? ('STUDIO.SHOT_BUILDER.KIND_CHARACTER' | translate) : ('STUDIO.SHOT_BUILDER.KIND_FREE_ASSET' | translate) }}
       </p>
 
       <!-- Image preview (thumbnail for characters, full file for assets).
@@ -831,7 +826,7 @@
           class="group relative mb-2 block w-full cursor-zoom-in overflow-hidden rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
           [class.hidden]="isThumbBroken(info.fileId)"
           (click)="openAssetViewer()"
-          pTooltip="Open full image"
+          [pTooltip]="'STUDIO.SHOT_BUILDER.OPEN_IMAGE_TOOLTIP' | translate"
           tooltipPosition="top"
         >
           <img
@@ -858,7 +853,7 @@
           type="button"
           class="mb-2 flex h-20 w-full cursor-pointer items-center justify-center rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
           (click)="openAssetViewer()"
-          [pTooltip]="info.fileKind === 'video' ? 'Open video' : 'Open audio'"
+          [pTooltip]="info.fileKind === 'video' ? ('STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP' | translate) : ('STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP' | translate)"
           tooltipPosition="top"
         >
           <i
@@ -873,29 +868,29 @@
       @if (info.kind === 'character') {
         <dl class="m-0 flex flex-col gap-1.5">
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Name</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}</dt>
             <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">{{ info.name }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Type</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
             <dd class="m-0 text-[11px] capitalize text-fg">{{ assetInfoType() }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">File</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILE' | translate }}</dt>
             <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Slot</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
             <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Character ID</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_CHARACTER_ID' | translate }}</dt>
             <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
               {{ info.charId }}
             </dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}</dt>
             <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
               {{ info.fileId || '—' }}
             </dd>
@@ -904,21 +899,21 @@
       } @else {
         <dl class="m-0 flex flex-col gap-1.5">
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Filename</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILENAME' | translate }}</dt>
             <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">
               {{ info.filename }}
             </dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Type</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
             <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">Slot</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
             <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="shrink-0 text-[11px] text-fg-muted">File ID</dt>
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}</dt>
             <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
               {{ info.fileId }}
             </dd>
@@ -926,7 +921,7 @@
         </dl>
         <div class="mt-2 flex justify-end border-t border-ink-700 pt-2">
           <p-button
-            label="Remove from episode"
+            [label]="'STUDIO.SHOT_BUILDER.REMOVE_EPISODE' | translate"
             severity="danger"
             [text]="true"
             size="small"
@@ -950,10 +945,10 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '60rem', maxWidth: '95vw' }"
-  header="Preview — Shot Builder Data"
+  [header]="'STUDIO.SHOT_BUILDER.PREVIEW_HEADER' | translate"
 >
   @if (!previewDataPretty()) {
-    <p class="py-4 text-[13px] italic text-fg-muted">No data available. Generate shots first.</p>
+    <p class="py-4 text-[13px] italic text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.PREVIEW_NO_DATA' | translate }}</p>
   } @else {
     <pre
       class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
@@ -965,7 +960,7 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Close"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="previewDialogVisible.set(false)"
       />
     </div>
@@ -980,14 +975,11 @@
     [closable]="false"
     [draggable]="false"
     [style]="{ width: '36rem', maxWidth: '95vw' }"
-    header="Confirmar guardado"
+    [header]="'STUDIO.SHOT_BUILDER.CONFIRM_TITLE' | translate"
   >
     <div class="flex flex-col gap-3 py-2">
       <p class="text-[13px] font-semibold text-fg">
-        Se van a crear {{ confirmData().sceneCount }} escena{{
-          confirmData().sceneCount !== 1 ? 's' : ''
-        }}
-        y {{ confirmData().totalShots }} shot{{ confirmData().totalShots !== 1 ? 's' : '' }}:
+        {{ 'STUDIO.SHOT_BUILDER.CONFIRM_BODY' | translate: { scenes: confirmData().sceneCount, shots: confirmData().totalShots } }}
       </p>
       <pre
         class="overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[12px] leading-relaxed text-fg"
@@ -995,8 +987,7 @@
 {{ line }}
 }</pre>
       <p class="text-[12px] leading-relaxed text-fg-muted">
-        Las escenas se crearán automáticamente si no existen. Los shots se asignarán a su escena
-        correspondiente.
+        {{ 'STUDIO.SHOT_BUILDER.CONFIRM_HINT' | translate }}
       </p>
     </div>
     <ng-template pTemplate="footer">
@@ -1004,10 +995,14 @@
         <p-button
           severity="secondary"
           [text]="true"
-          label="Cancelar"
+          [label]="'COMMON.CANCEL' | translate"
           (onClick)="confirmDialogVisible.set(false)"
         />
-        <p-button severity="primary" label="Confirmar" (onClick)="onConfirmSave()" />
+        <p-button
+          severity="primary"
+          [label]="'STUDIO.SHOT_BUILDER.CONFIRM' | translate"
+          (onClick)="onConfirmSave()"
+        />
       </div>
     </ng-template>
   </p-dialog>
@@ -1022,12 +1017,11 @@
     [closable]="true"
     [draggable]="false"
     [style]="{ width: '38rem', maxWidth: '95vw' }"
-    header="Pre-prompts creados"
+    [header]="'STUDIO.SHOT_BUILDER.CREATED_TITLE' | translate"
   >
     <div class="flex flex-col gap-3 py-2">
       <p class="text-[13px] font-semibold text-fg">
-        Se crearon {{ summary.scenes.length }} escena{{ summary.scenes.length !== 1 ? 's' : '' }} y
-        {{ summary.shotsCreated }} shot{{ summary.shotsCreated !== 1 ? 's' : '' }}.
+        {{ 'STUDIO.SHOT_BUILDER.CREATED_BODY' | translate: { scenes: summary.scenes.length, shots: summary.shotsCreated } }}
       </p>
       <ul class="flex flex-col gap-1.5">
         @for (scene of summary.scenes; track scene.scriptNumber) {
@@ -1038,26 +1032,24 @@
               </span>
               <span class="flex shrink-0 items-center gap-1.5 text-[11px] text-fg-muted">
                 <span
-                  >{{ scene.shotNumbers.length }} shot{{
-                    scene.shotNumbers.length !== 1 ? 's' : ''
-                  }}</span
+                  >{{ 'STUDIO.SHOT_BUILDER.SHOTS_COUNT' | translate: { n: scene.shotNumbers.length } }}</span
                 >
                 @if (scene.created) {
                   <span
                     class="rounded bg-green-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-green-400"
-                    >nueva</span
+                    >{{ 'STUDIO.SHOT_BUILDER.CREATED_NEW' | translate }}</span
                   >
                 } @else {
                   <span
                     class="rounded bg-ink-700 px-1.5 py-0.5 text-[10px] font-semibold text-fg-muted"
-                    >existente</span
+                    >{{ 'STUDIO.SHOT_BUILDER.CREATED_EXISTING' | translate }}</span
                   >
                 }
               </span>
             </div>
             @if (scene.shotNumbers.length > 0) {
               <div class="mt-1 font-mono text-[10px] text-fg-muted">
-                Shots: {{ scene.shotNumbers.join(', ') }}
+                {{ 'STUDIO.SHOT_BUILDER.CREATED_SHOTS' | translate: { list: scene.shotNumbers.join(', ') } }}
               </div>
             }
           </li>
@@ -1065,7 +1057,7 @@
       </ul>
       @if (summary.errors.length > 0) {
         <div class="rounded-lg bg-red-900/30 px-3 py-2 text-[12px] text-red-400">
-          {{ summary.errors.length }} warning{{ summary.errors.length !== 1 ? 's' : '' }}:
+          {{ 'STUDIO.SHOT_BUILDER.CREATED_WARNINGS' | translate: { n: summary.errors.length } }}
           <ul class="mt-1 list-disc pl-4">
             @for (e of summary.errors; track e) {
               <li>{{ e }}</li>
@@ -1075,7 +1067,7 @@
       }
       @if (summary.shotsCreated > 0) {
         <p class="text-[12px] leading-relaxed text-fg-muted">
-          Te redirigiremos a la primera escena y al primer shot para continuar.
+          {{ 'STUDIO.SHOT_BUILDER.CREATED_REDIRECT' | translate }}
         </p>
       }
     </div>
@@ -1083,7 +1075,7 @@
       <div class="flex justify-end gap-2">
         <p-button
           severity="primary"
-          label="Abrir primera escena y shot"
+          [label]="'STUDIO.SHOT_BUILDER.OPEN_FIRST' | translate"
           [disabled]="summary.shotsCreated === 0"
           (onClick)="onCreationSummaryConfirm()"
         />
@@ -1099,28 +1091,33 @@
     [closable]="false"
     [draggable]="false"
     [style]="{ width: '28rem', maxWidth: '95vw' }"
-    header="Model Required"
+    [header]="'STUDIO.SHOT_BUILDER.MODEL_TITLE' | translate"
   >
     <div class="flex flex-col gap-4 py-2">
       <p class="text-[13px] leading-relaxed text-fg">
-        The Shot Builder requires a model named
+        {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_1' | translate }}
         <code class="rounded bg-ink-800 px-1 py-0.5 font-mono text-[12px] text-amber-400"
           >claude-shot-builder</code
         >
-        of type <strong>text</strong> to function.
+        {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_2' | translate }} <strong>text</strong>
+        {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_3' | translate }}
       </p>
       <p class="text-[13px] leading-relaxed text-fg-muted">
-        Please create this model in the <strong>Providers</strong> section before using the Shot
-        Builder.
+        {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_4' | translate }} <strong>Providers</strong>
+        {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_5' | translate }}
       </p>
     </div>
     <ng-template pTemplate="footer">
       <div class="flex justify-end gap-2">
-        <p-button severity="primary" label="Go to Providers" (onClick)="onGoToProviders()" />
+        <p-button
+          severity="primary"
+          [label]="'STUDIO.SHOT_BUILDER.GO_TO_PROVIDERS' | translate"
+          (onClick)="onGoToProviders()"
+        />
         <p-button
           severity="secondary"
           [text]="true"
-          label="Dismiss"
+          [label]="'STUDIO.SHOT_BUILDER.DISMISS' | translate"
           (onClick)="modelWarningVisible.set(false)"
         />
       </div>

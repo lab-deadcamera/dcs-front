@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SelectModule } from 'primeng/select';
 import {
   Chart,
@@ -70,7 +71,7 @@ interface DashboardStats {
 
 @Component({
   selector: 'app-home',
-  imports: [FormsModule, DecimalPipe, SelectModule],
+  imports: [FormsModule, DecimalPipe, SelectModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',

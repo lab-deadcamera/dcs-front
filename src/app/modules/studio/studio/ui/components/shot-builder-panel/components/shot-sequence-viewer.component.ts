@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { Sequence, SequenceScene, Shot, Reference, ReferenceType } from '@app/core/interfaces';
@@ -37,6 +38,7 @@ interface PreviewScene {
   standalone: true,
   imports: [
     CommonModule,
+    TranslatePipe,
     DialogModule,
     ButtonModule,
     ShotCardPreviewComponent,
@@ -101,16 +103,16 @@ interface PreviewScene {
       <!-- Meta grid -->
       <div class="meta-grid">
         <div class="card-flat">
-          <h3>Convenciones bloqueadas</h3>
+          <h3>{{ 'STUDIO.SEQUENCE.CONVENTIONS' | translate }}</h3>
           <div class="chips">
             <span class="chip"
-              ><b>{{ seq.aspectRatio }}</b> vertical</span
+              ><b>{{ seq.aspectRatio }}</b> {{ 'STUDIO.SEQUENCE.VERTICAL' | translate }}</span
             >
             <span class="chip"
-              ><b>{{ seq.sequenceFlow.duration }}s</b> tope</span
+              ><b>{{ seq.sequenceFlow.duration }}s</b> {{ 'STUDIO.SEQUENCE.CAP' | translate }}</span
             >
             <span class="chip"
-              ><b>{{ seq.mode }}</b> narrativo</span
+              ><b>{{ seq.mode }}</b> {{ 'STUDIO.SEQUENCE.NARRATIVE' | translate }}</span
             >
             @if (seq.directorNotes?.styleGuide) {
               <span class="chip rounded-sm!"
@@ -122,7 +124,7 @@ interface PreviewScene {
 
         @if (seq.directorNotes?.goal) {
           <div class="card-flat f2f">
-            <h3>Objetivo</h3>
+            <h3>{{ 'STUDIO.SEQUENCE.GOAL' | translate }}</h3>
             <p>{{ seq.directorNotes!.goal }}</p>
           </div>
         }
@@ -130,7 +132,7 @@ interface PreviewScene {
 
       @if (seq.directorNotes?.warnings && seq.directorNotes!.warnings!.length > 0) {
         <div class="warnings-block">
-          <span class="section-tag">Advertencias</span>
+          <span class="section-tag">{{ 'STUDIO.SEQUENCE.WARNINGS' | translate }}</span>
           <ul>
             @for (w of seq.directorNotes!.warnings!; track w) {
               <li class="warning-item">{{ w }}</li>
@@ -209,9 +211,9 @@ interface PreviewScene {
       <!-- Summary: selected prompt per shot + create button -->
       <div class="summary">
         <div class="section-tag">
-          Resumen de prompts
+          {{ 'STUDIO.SEQUENCE.PROMPT_SUMMARY' | translate }}
           <span class="summary-approved-count"
-            >{{ approvedCount() }}/{{ seq.shots.length }} aprobados</span
+            >{{ 'STUDIO.SEQUENCE.APPROVED_COUNT' | translate: { n: approvedCount(), total: seq.shots.length } }}</span
           >
         </div>
         <div class="summary-grid">
@@ -225,7 +227,7 @@ interface PreviewScene {
                 type="button"
                 class="summary-id"
                 (click)="onShotHighlight(shot.id)"
-                [title]="'Go to shot ' + shot.id"
+                [title]="'STUDIO.SEQUENCE.GO_TO_SHOT' | translate: { id: shot.id }"
               >
                 {{ shot.id }}
               </button>
@@ -242,10 +244,10 @@ interface PreviewScene {
               class="preview-btn"
               (click)="openPreview()"
               [disabled]="creating() || approvedCount() === 0"
-              title="Ver los datos exactos (escenas y shots) que se crearían"
+              [title]="'STUDIO.SEQUENCE.PREVIEW_TITLE' | translate"
             >
               <i class="pi pi-eye" aria-hidden="true"></i>
-              Ver datos a crear
+              {{ 'STUDIO.SEQUENCE.VIEW_DATA' | translate }}
             </button>
           }
           <button
@@ -262,7 +264,7 @@ interface PreviewScene {
               [class.pi-spin]="creating()"
               aria-hidden="true"
             ></i>
-            {{ creating() ? 'Creando escenas y shots…' : 'Crear listado de pre-prompts' }}
+            {{ creating() ? ('STUDIO.SEQUENCE.CREATING' | translate) : ('STUDIO.SEQUENCE.CREATE_PREPROMPTS' | translate) }}
           </button>
         </div>
       </div>
@@ -276,15 +278,14 @@ interface PreviewScene {
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '44rem', maxWidth: '95vw' }"
-      header="Datos que se crearán"
+      [header]="'STUDIO.SEQUENCE.PREVIEW_HEADER' | translate"
     >
       <div class="flex max-h-[60vh] flex-col gap-3 overflow-y-auto py-2">
         @if (previewScenes().length === 0) {
-          <p class="text-[13px] italic text-fg-muted">No hay shots aprobados para crear.</p>
+          <p class="text-[13px] italic text-fg-muted">{{ 'STUDIO.SEQUENCE.NO_APPROVED_TO_CREATE' | translate }}</p>
         } @else {
           <p class="text-[13px] font-semibold text-fg">
-            {{ previewScenes().length }} escena{{ previewScenes().length !== 1 ? 's' : '' }} y
-            {{ previewShotCount() }} shot{{ previewShotCount() !== 1 ? 's' : '' }} se crearían.
+            {{ 'STUDIO.SEQUENCE.SCENES_SHOTS_CREATED' | translate: { scenes: previewScenes().length, shots: previewShotCount() } }}
           </p>
           @for (scene of previewScenes(); track scene.scriptNumber) {
             <div class="rounded-lg border border-ink-700 bg-ink-900 px-3 py-2">
@@ -323,7 +324,7 @@ interface PreviewScene {
           <p-button
             severity="secondary"
             [text]="true"
-            label="Cerrar"
+            [label]="'COMMON.CLOSE' | translate"
             (onClick)="previewVisible.set(false)"
           />
         </div>
@@ -338,17 +339,16 @@ interface PreviewScene {
       [closable]="false"
       [draggable]="false"
       [style]="{ width: '30rem', maxWidth: '95vw' }"
-      header="Sin shots aprobados"
+      [header]="'STUDIO.SEQUENCE.NO_APPROVED_TITLE' | translate"
     >
       <div class="flex flex-col gap-3 py-2">
         <p class="text-[13px] leading-relaxed">
-          No hay ningún shot marcado como aprobado. Marca al menos un shot como aprobado para crear
-          su pre-prompt.
+          {{ 'STUDIO.SEQUENCE.NO_APPROVED_BODY' | translate }}
         </p>
       </div>
       <ng-template pTemplate="footer">
         <div class="flex justify-end">
-          <p-button severity="primary" label="Entendido" (onClick)="noApprovedVisible.set(false)" />
+          <p-button severity="primary" [label]="'STUDIO.SEQUENCE.GOT_IT' | translate" (onClick)="noApprovedVisible.set(false)" />
         </div>
       </ng-template>
     </p-dialog>
@@ -361,12 +361,11 @@ interface PreviewScene {
       [closable]="false"
       [draggable]="false"
       [style]="{ width: '38rem', maxWidth: '95vw' }"
-      header="Referencias sin resolver"
+      [header]="'STUDIO.SEQUENCE.UNRESOLVED_TITLE' | translate"
     >
       <div class="flex flex-col gap-3 py-2">
         <p class="text-[13px] leading-relaxed">
-          Hay {{ unresolvedRefs().length }} referencia{{ unresolvedRefs().length !== 1 ? 's' : '' }}
-          sin un asset o character relacionado en el episodio:
+          {{ 'STUDIO.SEQUENCE.UNRESOLVED_BODY' | translate: { n: unresolvedRefs().length } }}
         </p>
         <ul class="flex flex-col gap-1.5">
           @for (ref of unresolvedRefs(); track ref.slot) {
@@ -381,8 +380,7 @@ interface PreviewScene {
           }
         </ul>
         <p class="text-[12px] leading-relaxed text-fg-muted">
-          Puedes asignar un free asset a cada una en la sección "Referencias @image", o continuar de
-          todos modos.
+          {{ 'STUDIO.SEQUENCE.UNRESOLVED_HINT' | translate }}
         </p>
       </div>
       <ng-template pTemplate="footer">
@@ -390,10 +388,10 @@ interface PreviewScene {
           <p-button
             severity="secondary"
             [text]="true"
-            label="Cancelar"
+            [label]="'COMMON.CANCEL' | translate"
             (onClick)="confirmRefsVisible.set(false)"
           />
-          <p-button severity="primary" label="Continuar" (onClick)="emitCreatePrePrompts()" />
+          <p-button severity="primary" [label]="'STUDIO.SEQUENCE.CONTINUE' | translate" (onClick)="emitCreatePrePrompts()" />
         </div>
       </ng-template>
     </p-dialog>
@@ -1024,6 +1022,7 @@ export class ShotSequenceViewerComponent {
   }
 
   private readonly studio = inject(StudioStore);
+  private readonly i18n = inject(TranslateService);
 
   /**
    * Human-readable names for reference assetIds — resolved from the episode's
@@ -1106,13 +1105,13 @@ export class ShotSequenceViewerComponent {
   protected refTypeLabel(type: ReferenceType): string {
     switch (type) {
       case 'character':
-        return 'personaje';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_CHARACTER');
       case 'location':
-        return 'locación';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_LOCATION');
       case 'prop':
-        return 'objeto';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_PROP');
       case 'audio':
-        return 'audio';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_AUDIO');
       case 'plate':
         return 'plate';
       default:

@@ -6,7 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
@@ -67,6 +67,7 @@ export class CharacterAssetsComponent {
   private readonly toast = inject(MessageService);
   protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
+  private readonly i18n = inject(TranslateService);
 
   /**
    * Emitted once per file successfully added to the prompt's used-asset
@@ -316,8 +317,8 @@ export class CharacterAssetsComponent {
     if (a.files.length === 0) {
       this.toast.add({
         severity: 'warn',
-        summary: 'No file',
-        detail: `"${a.name}" has no file uploaded yet — open the library to add one.`,
+        summary: this.i18n.instant('STUDIO.ASSETS.TOAST_NO_FILE'),
+        detail: this.i18n.instant('STUDIO.ASSETS.TOAST_NO_FILE_DETAIL', { name: a.name }),
       });
       return;
     }
@@ -345,8 +346,11 @@ export class CharacterAssetsComponent {
     }
     this.toast.add({
       severity: 'success',
-      summary: 'Reference added',
-      detail: `${a.name} (${a.files.length} file${a.files.length !== 1 ? 's' : ''})`,
+      summary: this.i18n.instant('STUDIO.ASSETS.TOAST_REFERENCE_ADDED'),
+      detail: this.i18n.instant('STUDIO.ASSETS.TOAST_REFERENCE_ADDED_DETAIL', {
+        name: a.name,
+        n: a.files.length,
+      }),
     });
   }
 
@@ -355,7 +359,11 @@ export class CharacterAssetsComponent {
     if (!f) return;
     this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
       if (up.error || !up.data) {
-        this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
         return;
       }
       const asset: ReferenceAsset = {
@@ -376,7 +384,11 @@ export class CharacterAssetsComponent {
     if (!f) return;
     this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
       if (up.error || !up.data) {
-        this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
         return;
       }
       const asset: ReferenceAsset = {
@@ -404,18 +416,22 @@ export class CharacterAssetsComponent {
       } else {
         this.toast.add({
           severity: 'warn',
-          summary: 'Unsupported file type',
-          detail: 'Please upload an image, audio or video',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED'),
+          detail: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED_DETAIL'),
         });
         continue;
       }
 
       this.filesApi.upload({ file: f, category, storage: 'temp' }).subscribe((up) => {
         if (up.error || !up.data) {
-          this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
-          return;
-        }
-        this.studio.addFreeAsset({
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
+        return;
+      }
+      this.studio.addFreeAsset({
           id: up.data.id,
           kind: inferKind(f),
           filename: up.data.filename,
@@ -425,8 +441,10 @@ export class CharacterAssetsComponent {
         });
         this.toast.add({
           severity: 'success',
-          summary: 'Asset added',
-          detail: `${f.name} added to library`,
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_ASSET_ADDED'),
+          detail: this.i18n.instant('STUDIO.ASSETS.TOAST_ASSET_ADDED_DETAIL', {
+            name: f.name,
+          }),
         });
       });
     }

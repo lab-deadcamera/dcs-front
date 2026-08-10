@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   model,
   output,
@@ -18,6 +19,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -93,12 +95,15 @@ function sortOptions<T extends { name: string; number: number }>(
     SceneAssignmentComponent,
     TooltipModule,
     Popover,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './studio-breadcrumb.html',
   styleUrl: './studio-breadcrumb.css',
 })
 export class StudioBreadcrumbComponent {
+  private readonly i18n = inject(TranslateService);
+
   // ── Inputs: option arrays ───────────────────────────────────────────
 
   readonly projects = input<{ id: string; name: string }[]>([]);
@@ -168,10 +173,14 @@ export class StudioBreadcrumbComponent {
   protected readonly sortedShots = computed(() => sortOptions(this.shots(), this.sortPref()));
 
   protected readonly sortFieldLabel = computed(() =>
-    this.sortPref().field === 'number' ? 'Number' : 'Name',
+    this.sortPref().field === 'number'
+      ? this.i18n.instant('STUDIO.BREADCRUMB.NUMBER')
+      : this.i18n.instant('STUDIO.BREADCRUMB.FIELD_NAME'),
   );
   protected readonly sortDirLabel = computed(() =>
-    this.sortPref().dir === 'desc' ? 'Descending' : 'Ascending',
+    this.sortPref().dir === 'desc'
+      ? this.i18n.instant('STUDIO.BREADCRUMB.DESCENDING')
+      : this.i18n.instant('STUDIO.BREADCRUMB.ASCENDING'),
   );
 
   protected onSortFieldChange(field: SortField): void {
@@ -405,7 +414,9 @@ export class StudioBreadcrumbComponent {
   });
 
   protected readonly editDialogTitle = computed(() =>
-    this.editTarget()?.kind === 'scene' ? 'Edit Scene' : 'Edit Shot',
+    this.editTarget()?.kind === 'scene'
+      ? this.i18n.instant('STUDIO.BREADCRUMB.EDIT_SCENE')
+      : this.i18n.instant('STUDIO.BREADCRUMB.EDIT_SHOT'),
   );
 
   /** Which item the shared delete-confirm dialog is about to delete. */

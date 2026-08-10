@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="mb-6 flex items-center justify-between">
     <div>
-      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Projects</h1>
+      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'PROJECTS.TITLE' | translate }}</h1>
       <p class="mt-1 text-[12px] text-fg-muted">
         Manage your video projects, episodes, scenes, and takes
       </p>
@@ -147,10 +147,10 @@
                     <div class="flex items-center gap-2 flex-shrink-0">
                       @if (isDirectorOrAdmin()) {
                         <p-button
-                          label="RESOURCES"
+                          [label]="'PROJECTS.RESOURCES' | translate"
                           size="small"
                           severity="secondary"
-                          pTooltip="Assign resources to this episode"
+                          [pTooltip]="'STUDIO.BREADCRUMB.ASSIGN_RESOURCES_TOOLTIP' | translate"
                           (onClick)="openAssignResources(cwt.chapter, item.project.name)"
                         />
                       }
@@ -373,7 +373,7 @@
     [closable]="true"
     [draggable]="false"
     [style]="{ width: '90vw', maxWidth: '1200px' }"
-    header="Episode Resources"
+    [header]="'STUDIO.BREADCRUMB.EPISODE_RESOURCES' | translate"
   >
     @if (assignResourcesDialogVisible()) {
       <app-scene-assignment

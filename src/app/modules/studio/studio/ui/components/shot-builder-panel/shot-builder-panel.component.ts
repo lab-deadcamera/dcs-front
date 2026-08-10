@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SplitterModule } from 'primeng/splitter';
 import { FileUploadModule } from 'primeng/fileupload';
@@ -177,6 +178,7 @@ type AssetInfo =
     DialogModule,
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shot-builder-panel.component.html',
@@ -224,6 +226,7 @@ export class ShotBuilderPanelComponent {
   private readonly filesApi = inject(FilesApiService);
   private readonly charsApi = inject(CharactersApiService);
   private readonly modelService = inject(ModelService);
+  private readonly i18n = inject(TranslateService);
   private readonly toast = inject(MessageService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -558,7 +561,7 @@ export class ShotBuilderPanelComponent {
         if (res.error) {
           this.toast.add({
             severity: 'error',
-            summary: 'Remove failed',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_REMOVE_FAILED'),
             detail: res.msg,
           });
           return;
@@ -566,15 +569,17 @@ export class ShotBuilderPanelComponent {
         this.studio.removeChapterAsset(info.fileId);
         this.toast.add({
           severity: 'success',
-          summary: 'Free asset removed',
-          detail: `${info.filename} removed from the episode`,
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_REMOVED'),
+          detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_REMOVED_DETAIL', {
+            name: info.filename,
+          }),
         });
       },
       error: () => {
         this.toast.add({
           severity: 'error',
-          summary: 'Remove failed',
-          detail: 'Failed to remove the asset',
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_REMOVE_FAILED'),
+          detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_REMOVE_FAILED_DETAIL'),
         });
       },
       complete: close,
@@ -624,7 +629,11 @@ export class ShotBuilderPanelComponent {
     for (const s of sc) {
       totalShots += s.shots.length;
       sceneLines.push(
-        `    - Scene ${s.scriptNumber}: ${s.scriptLocation} (${s.shots.length} shot${s.shots.length !== 1 ? 's' : ''})`,
+        `    - ${this.i18n.instant('STUDIO.SHOT_BUILDER.CONFIRM_SCENE_LINE', {
+          number: s.scriptNumber,
+          location: s.scriptLocation,
+          shots: s.shots.length,
+        })}`,
       );
     }
     return { sceneCount: sc.length, totalShots, sceneLines };
@@ -764,7 +773,7 @@ export class ShotBuilderPanelComponent {
       };
 
       reader.onerror = () => {
-        this.error.set('Failed to read file');
+        this.error.set(this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_READ_FILE_FAILED'));
       };
 
       if (isPdf) {
@@ -827,8 +836,8 @@ export class ShotBuilderPanelComponent {
       } else {
         this.toast.add({
           severity: 'warn',
-          summary: 'Unsupported file type',
-          detail: 'Please upload an image, audio or video',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED'),
+          detail: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED_DETAIL'),
         });
         done();
         continue;
@@ -837,7 +846,11 @@ export class ShotBuilderPanelComponent {
       this.filesApi.upload({ file: f, category, storage: 'persistent' }).subscribe({
         next: (up) => {
           if (up.error || !up.data) {
-            this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+            this.toast.add({
+              severity: 'error',
+              summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+              detail: up.msg,
+            });
             done();
             return;
           }
@@ -852,8 +865,10 @@ export class ShotBuilderPanelComponent {
           });
           this.toast.add({
             severity: 'success',
-            summary: 'Free asset added',
-            detail: `${f.name} added to the episode`,
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ADDED_FREE'),
+            detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ADDED_FREE_DETAIL', {
+              name: f.name,
+            }),
           });
           // Persist as an episode asset so it survives chapter changes/reloads.
           // The returned chapter_assets row id lets the user remove it right
@@ -876,8 +891,10 @@ export class ShotBuilderPanelComponent {
         error: () => {
           this.toast.add({
             severity: 'error',
-            summary: 'Upload error',
-            detail: `Failed to upload ${f.name}`,
+            summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+            detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_FAILED', {
+              name: f.name,
+            }),
           });
           done();
         },
@@ -1052,10 +1069,14 @@ export class ShotBuilderPanelComponent {
           const hasRaw = result.rawText.length > 0;
           const summary =
             totalShots > 0
-              ? `Generated${epPrefix} ${sceneCount} scene${sceneCount > 1 ? 's' : ''} with ${totalShots} shot${totalShots > 1 ? 's' : ''}. See the preview tab for details.`
+              ? this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GENERATED', {
+                  ep: epPrefix,
+                  scenes: sceneCount,
+                  shots: totalShots,
+                })
               : hasRaw
-                ? 'Response received. Check the preview tab for the shot list.'
-                : 'Response received but no content could be parsed.';
+                ? this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GENERATED_RAW')
+                : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GENERATED_EMPTY');
           this.chatMessages.update((items) => [
             ...items,
             {
@@ -1068,12 +1089,13 @@ export class ShotBuilderPanelComponent {
           ]);
         },
         error: (err: unknown) => {
-          const message = err instanceof Error ? err.message : 'Failed to generate shots';
+          const message =
+            err instanceof Error ? err.message : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GEN_FAILED');
           this.error.set(message);
           this.loading.set(false);
           this.toast.add({
             severity: 'error',
-            summary: 'Shot Builder',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TITLE'),
             detail: message,
             life: 6000,
           });
@@ -1160,8 +1182,11 @@ export class ShotBuilderPanelComponent {
           const totalShots = allShots.length;
           const summary =
             totalShots > 0
-              ? `Refined: ${sceneCount} scene${sceneCount > 1 ? 's' : ''} with ${totalShots} shot${totalShots > 1 ? 's' : ''}. Review the preview tab.`
-              : 'Refinement received but no content could be parsed.';
+              ? this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_REFINED', {
+                  scenes: sceneCount,
+                  shots: totalShots,
+                })
+              : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_REFINED_EMPTY');
           this.chatMessages.update((items) => [
             ...items,
             {
@@ -1180,11 +1205,12 @@ export class ShotBuilderPanelComponent {
           this.refineExpanded.set(false);
         },
         error: (err: unknown) => {
-          const message = err instanceof Error ? err.message : 'Failed to refine shots';
+          const message =
+            err instanceof Error ? err.message : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_REFINE_FAILED');
           this.error.set(message);
           this.toast.add({
             severity: 'error',
-            summary: 'Shot Builder',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TITLE'),
             detail: message,
             life: 6000,
           });
@@ -1213,7 +1239,7 @@ export class ShotBuilderPanelComponent {
     const text = this.rawResponse();
     if (!text || typeof navigator === 'undefined' || !navigator.clipboard) return;
     navigator.clipboard.writeText(text).catch(() => {
-      this.error.set('Failed to copy to clipboard');
+      this.error.set(this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_COPY_FAILED'));
     });
   }
 
@@ -1332,8 +1358,15 @@ export class ShotBuilderPanelComponent {
           role: 'assistant',
           content:
             errors.length > 0
-              ? `Created ${totalCreated} shot${totalCreated !== 1 ? 's' : ''} across ${groups.length} scene${groups.length !== 1 ? 's' : ''} with ${errors.length} warning(s).`
-              : `Created ${totalCreated} shot${totalCreated !== 1 ? 's' : ''} across ${groups.length} scene${groups.length !== 1 ? 's' : ''}.`,
+              ? this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_CREATED', {
+                  shots: totalCreated,
+                  scenes: groups.length,
+                  warnings: errors.length,
+                })
+              : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_CREATED_CLEAN', {
+                  shots: totalCreated,
+                  scenes: groups.length,
+                }),
           timestamp: Date.now(),
         },
       ]);
@@ -1697,7 +1730,7 @@ export class ShotBuilderPanelComponent {
         this.error.set(errMsg);
         this.toast.add({
           severity: 'error',
-          summary: 'Save failed',
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_SAVE_FAILED'),
           detail: errMsg,
           life: 8000,
         });

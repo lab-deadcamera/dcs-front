@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
@@ -43,6 +44,7 @@ interface AdminRole {
 @Component({
   selector: 'app-user-management',
   imports: [
+    TranslatePipe,
     DatePipe,
     ReactiveFormsModule,
     ButtonModule,
@@ -59,27 +61,27 @@ interface AdminRole {
     <section class="px-6 py-6">
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">User Management</h1>
-          <p class="mt-1 text-[12px] text-fg-muted">Manage registered users and roles.</p>
+          <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.TITLE' | translate }}</h1>
+          <p class="mt-1 text-[12px] text-fg-muted">{{ 'ADMIN.USERS.SUBTITLE' | translate }}</p>
         </div>
-        <p-button label="Create User" icon="pi pi-plus" (onClick)="openCreate()" />
+        <p-button [label]="'ADMIN.USERS.CREATE_USER' | translate" icon="pi pi-plus" (onClick)="openCreate()" />
       </div>
 
       @if (loading()) {
-        <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading users…</p>
+        <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.USERS.LOADING' | translate }}</p>
       } @else {
         <div class="overflow-x-auto rounded border" style="border-color: var(--border-color);">
           <table class="w-full text-[12px]">
             <thead>
               <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                <th class="px-3 py-2 font-medium">ID</th>
-                <th class="px-3 py-2 font-medium">Username</th>
-                <th class="px-3 py-2 font-medium">Name</th>
-                <th class="px-3 py-2 font-medium">Email</th>
-                <th class="px-3 py-2 font-medium">Role</th>
-                <th class="px-3 py-2 font-medium">Status</th>
-                <th class="px-3 py-2 font-medium">Created</th>
-                <th class="px-3 py-2 font-medium">Actions</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_ID' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_USERNAME' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_NAME' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_EMAIL' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_ROLE' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_STATUS' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_CREATED' | translate }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'ADMIN.USERS.COL_ACTIONS' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -110,7 +112,7 @@ interface AdminRole {
                       [class.bg-red-900]="!u.active"
                       [class.text-red-400]="!u.active"
                     >
-                      {{ u.active ? 'Active' : 'Inactive' }}
+                      {{ u.active ? ('ADMIN.USERS.ACTIVE' | translate) : ('ADMIN.USERS.INACTIVE' | translate) }}
                     </span>
                   </td>
                   <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
@@ -123,7 +125,7 @@ interface AdminRole {
                         [severity]="u.active ? 'danger' : 'success'"
                         [text]="true"
                         [rounded]="true"
-                        [pTooltip]="u.active ? 'Deactivate' : 'Activate'"
+                        [pTooltip]="u.active ? ('ADMIN.USERS.DEACTIVATE' | translate) : ('ADMIN.USERS.ACTIVATE' | translate)"
                         (onClick)="toggleActive(u)"
                       />
                     }
@@ -144,18 +146,18 @@ interface AdminRole {
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '28rem' }"
-      header="Create User"
+      [header]="'ADMIN.USERS.DIALOG_TITLE' | translate"
     >
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Username</label>
-          <input pInputText formControlName="username" placeholder="username" autocomplete="off" />
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.USERNAME' | translate }}</label>
+          <input pInputText formControlName="username" [placeholder]="'ADMIN.USERS.USERNAME_PLACEHOLDER' | translate" autocomplete="off" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Password</label>
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.PASSWORD' | translate }}</label>
           <p-password
             formControlName="password"
-            placeholder="min 6 characters"
+            [placeholder]="'ADMIN.USERS.PASSWORD_PLACEHOLDER' | translate"
             [feedback]="false"
             [toggleMask]="true"
             styleClass="w-full"
@@ -163,29 +165,29 @@ interface AdminRole {
           />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Name</label>
-          <input pInputText formControlName="name" placeholder="First name" />
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.NAME' | translate }}</label>
+          <input pInputText formControlName="name" [placeholder]="'ADMIN.USERS.NAME_PLACEHOLDER' | translate" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Surname</label>
-          <input pInputText formControlName="surname" placeholder="Last name" />
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.SURNAME' | translate }}</label>
+          <input pInputText formControlName="surname" [placeholder]="'ADMIN.USERS.SURNAME_PLACEHOLDER' | translate" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Email</label>
-          <input pInputText formControlName="email" type="email" placeholder="user@example.com" />
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.EMAIL' | translate }}</label>
+          <input pInputText formControlName="email" type="email" [placeholder]="'ADMIN.USERS.EMAIL_PLACEHOLDER' | translate" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Display name</label>
-          <input pInputText formControlName="user_name" placeholder="Optional nickname" />
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.DISPLAY_NAME' | translate }}</label>
+          <input pInputText formControlName="user_name" [placeholder]="'ADMIN.USERS.DISPLAY_NAME_PLACEHOLDER' | translate" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">Role</label>
+          <label class="text-[11px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.USERS.ROLE' | translate }}</label>
           <p-select
             formControlName="role_id"
             [options]="roles()"
             optionLabel="label"
             optionValue="value"
-            placeholder="Select role"
+            [placeholder]="'ADMIN.USERS.SELECT_ROLE' | translate"
             styleClass="w-full"
             appendTo="body"
           />
@@ -197,11 +199,11 @@ interface AdminRole {
           <p-button
             severity="secondary"
             [text]="true"
-            label="Cancel"
+            [label]="'COMMON.CANCEL' | translate"
             (onClick)="dialogVisible.set(false)"
           />
           <p-button
-            label="Create"
+            [label]="'COMMON.CREATE' | translate"
             [disabled]="form.invalid || submitting()"
             [loading]="submitting()"
             (onClick)="onSubmit()"
@@ -217,6 +219,7 @@ export class UserManagementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly users = signal<AdminUser[]>([]);
@@ -274,10 +277,20 @@ export class UserManagementComponent implements OnInit {
       .subscribe((res) => {
         this.submitting.set(false);
         if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 4000 });
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg,
+            life: 4000,
+          });
           return;
         }
-        this.toast.add({ severity: 'success', summary: 'OK', detail: 'User created', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('COMMON.OK'),
+          detail: this.i18n.instant('ADMIN.USERS.TOAST_CREATED'),
+          life: 3000,
+        });
         this.dialogVisible.set(false);
         this.loadUsers();
       });
@@ -297,13 +310,21 @@ export class UserManagementComponent implements OnInit {
       )
       .subscribe((res) => {
         if (res.error) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 4000 });
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg,
+            life: 4000,
+          });
           return;
         }
         this.toast.add({
           severity: 'success',
-          summary: 'OK',
-          detail: `${u.username} ${newState ? 'activated' : 'deactivated'}`,
+          summary: this.i18n.instant('COMMON.OK'),
+          detail: this.i18n.instant(
+            newState ? 'ADMIN.USERS.TOAST_ACTIVATED' : 'ADMIN.USERS.TOAST_DEACTIVATED',
+            { name: u.username },
+          ),
           life: 3000,
         });
         this.loadUsers();
@@ -324,8 +345,8 @@ export class UserManagementComponent implements OnInit {
         if (res.error || !res.data) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load users',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: this.i18n.instant('ADMIN.USERS.LOAD_USERS_FAILED'),
             life: 3000,
           });
           return;
@@ -346,8 +367,10 @@ export class UserManagementComponent implements OnInit {
         if (res.error) {
           this.toast.add({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load roles: ' + (res.msg || 'unknown'),
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: this.i18n.instant('ADMIN.USERS.LOAD_ROLES_FAILED', {
+              msg: res.msg || 'unknown',
+            }),
             life: 5000,
           });
           return;
@@ -355,8 +378,8 @@ export class UserManagementComponent implements OnInit {
         if (!res.data || res.data.length === 0) {
           this.toast.add({
             severity: 'warn',
-            summary: 'Warning',
-            detail: 'No roles returned from server',
+            summary: this.i18n.instant('ADMIN.USERS.NO_ROLES'),
+            detail: this.i18n.instant('ADMIN.USERS.NO_ROLES'),
             life: 5000,
           });
           return;
@@ -365,7 +388,13 @@ export class UserManagementComponent implements OnInit {
         this.roles.set(
           res.data
             .filter((r: AdminRole) => r.level > 0)
-            .map((r: AdminRole) => ({ label: `${r.name} (level ${r.level})`, value: r.id })),
+            .map((r: AdminRole) => ({
+              label: this.i18n.instant('ADMIN.USERS.ROLE_LEVEL', {
+                name: r.name,
+                level: r.level,
+              }),
+              value: r.id,
+            })),
         );
       });
   }

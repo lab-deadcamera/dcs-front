@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { map, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -42,6 +43,7 @@ interface UserOption {
 @Component({
   selector: 'app-shot-builder-logs',
   imports: [
+    TranslatePipe,
     DatePipe,
     FormsModule,
     ButtonModule,
@@ -60,6 +62,7 @@ export class ShotBuilderLogsComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly logsSvc = inject(ShotBuilderLogsService);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   // Dropdown options
@@ -203,7 +206,12 @@ export class ShotBuilderLogsComponent implements OnInit {
       .subscribe((res) => {
         this.loading.set(false);
         if (res.error || !res.data) {
-          this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg, life: 3000 });
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg,
+            life: 3000,
+          });
           return;
         }
         this.logs.set(res.data.logs || []);

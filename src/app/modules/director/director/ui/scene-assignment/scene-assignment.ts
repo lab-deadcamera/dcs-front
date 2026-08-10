@@ -24,7 +24,7 @@ import { environment } from '@environment/environment';
 import { PresetsService } from '@core/stores/presets.service';
 import { SceneAssignments, SceneAssetAssignment } from '@core/interfaces/seedance.interface';
 import { Preset } from '@core/interfaces/studio.models';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
@@ -96,6 +96,7 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly presetsSvc = inject(PresetsService);
   private readonly fileSvc = inject(FilesApiService);
   private readonly confirm = inject(ConfirmationService);
@@ -147,7 +148,7 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   protected readonly tabs = [
-    { key: 'characters', label: 'Resources' },
+    { key: 'characters', labelKey: 'DIRECT.RESOURCES.DIALOG_TITLE' },
     // { key: 'assets', label: 'Temp' },
     // { key: 'presets', label: 'Presets' },
   ];
@@ -200,11 +201,11 @@ export class SceneAssignmentComponent implements OnInit {
 
   /** Human label for each asset type. */
   protected readonly kindLabel: Record<string, string> = {
-    character: 'Characters',
-    location: 'Locations',
-    prop: 'Props',
-    audio: 'Audio',
-    other: 'Other',
+    character: 'DIRECT.RESOURCES.KIND_CHARACTERS',
+    location: 'DIRECT.RESOURCES.KIND_LOCATIONS',
+    prop: 'DIRECT.RESOURCES.KIND_PROPS',
+    audio: 'DIRECT.RESOURCES.KIND_AUDIO',
+    other: 'DIRECT.RESOURCES.KIND_OTHER',
   };
 
   /** Characters for the currently active asset-type tab, filtered by search. */
@@ -412,11 +413,19 @@ export class SceneAssignmentComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Preset assigned', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_ASSIGNED'),
+            life: 2000,
+          });
           this.reload();
         },
         error: () =>
-          this.toast.add({ severity: 'error', summary: 'Failed to assign preset', life: 3000 }),
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_ASSIGN_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -427,11 +436,19 @@ export class SceneAssignmentComponent implements OnInit {
       .delete(`${base}/presets/${assignmentId}`)
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Preset removed', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVED'),
+            life: 2000,
+          });
           this.reload();
         },
         error: () =>
-          this.toast.add({ severity: 'error', summary: 'Failed to remove preset', life: 3000 }),
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVE_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -462,10 +479,19 @@ export class SceneAssignmentComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Character assigned', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_CHARACTER_ASSIGNED'),
+            life: 2000,
+          });
           this.reload();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -476,10 +502,19 @@ export class SceneAssignmentComponent implements OnInit {
       .delete(`${base}/characters/${assignmentId}`)
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Character removed', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_CHARACTER_REMOVED'),
+            life: 2000,
+          });
           this.reload();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -492,10 +527,12 @@ export class SceneAssignmentComponent implements OnInit {
   protected onMassCreated(evt: { ids: string[]; kind: string }): void {
     if (!this.isChapterMode() || evt.ids.length === 0) return;
     this.confirm.confirm({
-      header: 'Auto-assign to episode',
-      message: `Assign the ${evt.ids.length} created resource(s) to this episode automatically?`,
-      acceptLabel: 'Assign',
-      rejectLabel: 'Cancel',
+      header: this.i18n.instant('DIRECT.RESOURCES.AUTO_ASSIGN_TITLE'),
+      message: this.i18n.instant('DIRECT.RESOURCES.AUTO_ASSIGN_MESSAGE', {
+        n: evt.ids.length,
+      }),
+      acceptLabel: this.i18n.instant('DIRECT.RESOURCES.ASSIGN'),
+      rejectLabel: this.i18n.instant('COMMON.CANCEL'),
       accept: () => this.autoAssignToEpisode(evt),
     });
   }
@@ -528,8 +565,10 @@ export class SceneAssignmentComponent implements OnInit {
       next: () => {
         this.toast.add({
           severity: 'success',
-          summary: 'Assigned to episode',
-          detail: `${evt.ids.length} resources assigned`,
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSIGNED_EPISODE'),
+          detail: this.i18n.instant('DIRECT.RESOURCES.TOAST_RESOURCES_ASSIGNED', {
+            n: evt.ids.length,
+          }),
           life: 3000,
         });
         this.reload();
@@ -537,7 +576,7 @@ export class SceneAssignmentComponent implements OnInit {
       error: () =>
         this.toast.add({
           severity: 'error',
-          summary: 'Failed to assign resources',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSIGN_FAILED'),
           life: 3000,
         }),
     });
@@ -550,10 +589,19 @@ export class SceneAssignmentComponent implements OnInit {
       .post(`${base}/assets`, { file_id: fileId })
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Asset assigned', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_ASSIGNED'),
+            life: 2000,
+          });
           this.reload();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -564,10 +612,19 @@ export class SceneAssignmentComponent implements OnInit {
       .delete(`${base}/assets/${assignmentId}`)
       .subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Asset removed', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_REMOVED'),
+            life: 2000,
+          });
           this.reload();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
   }
 
@@ -578,10 +635,10 @@ export class SceneAssignmentComponent implements OnInit {
 
   deleteFile(f: FileLike): void {
     this.confirm.confirm({
-      header: 'Delete file',
-      message: `Move "${f.filename}" to trash?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.i18n.instant('FILES.DELETE_DIALOG.TITLE'),
+      message: this.i18n.instant('FILES.DELETE_DIALOG.MESSAGE', { name: f.filename }),
+      acceptLabel: this.i18n.instant('COMMON.DELETE'),
+      rejectLabel: this.i18n.instant('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.onDeleteFromViewer(f.id),
     });
@@ -589,10 +646,12 @@ export class SceneAssignmentComponent implements OnInit {
 
   deleteCharacter(p: Character) {
     this.confirm.confirm({
-      header: 'Delete Character',
-      message: `Are you sure you want to delete "${p.name}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.i18n.instant('DIRECT.RESOURCES.DELETE_CHARACTER_TITLE'),
+      message: this.i18n.instant('DIRECT.RESOURCES.DELETE_CHARACTER_MESSAGE', {
+        name: p.name,
+      }),
+      acceptLabel: this.i18n.instant('COMMON.DELETE'),
+      rejectLabel: this.i18n.instant('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.onDeleteCharater(p.id),
     });
@@ -601,10 +660,14 @@ export class SceneAssignmentComponent implements OnInit {
   private onDeleteCharater(id: string) {
     this.charSvc.delete(id).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.i18n.instant('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
+      this.toast.add({
+        severity: 'success',
+        summary: this.i18n.instant('COMMON.OK'),
+        detail: this.i18n.instant('CHARACTERS.TOAST.DELETED'),
+      });
       this.reload();
       this.loadAll(this.projectId());
     });
@@ -620,7 +683,11 @@ export class SceneAssignmentComponent implements OnInit {
         this.loadAll(this.projectId());
       },
       error: () =>
-        this.toast.add({ severity: 'error', summary: 'Failed to delete character', life: 3000 }),
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_DELETE_CHARACTER_FAILED'),
+          life: 3000,
+        }),
     });
   }
 
@@ -634,7 +701,11 @@ export class SceneAssignmentComponent implements OnInit {
         this.loadAll(this.projectId());
       },
       error: () =>
-        this.toast.add({ severity: 'error', summary: 'Failed to delete file', life: 3000 }),
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_DELETE_FILE_FAILED'),
+          life: 3000,
+        }),
     });
   }
 

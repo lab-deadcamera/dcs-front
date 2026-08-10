@@ -311,10 +311,10 @@ export class PromptBuilderComponent implements OnInit {
         this.translating.set(false);
       },
       error: (err) => {
-        this.translatedText.set('Translation failed');
+        this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.TRANSLATION_FAILED'));
         if (err.error && (err.error?.detail ?? '').includes('Idioma no soportado')) {
           this.languageNotSupported.set(true);
-          this.translatedText.set('Please define the source language manually');
+          this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.SELECT_SOURCE'));
         }
         this.translating.set(false);
       },

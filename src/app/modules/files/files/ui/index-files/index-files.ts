@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TabsModule } from 'primeng/tabs';
@@ -57,8 +57,14 @@ type ViewTab = FileCategory | 'trash';
 })
 export class IndexFiles implements OnInit {
   protected readonly files = inject(FilesService);
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly tabs: { id: ViewTab; labelKey: string; icon: string }[] = [
     { id: 'images', labelKey: 'FILES.TABS.IMAGES', icon: 'pi pi-image' },
@@ -145,15 +151,15 @@ export class IndexFiles implements OnInit {
       if (res.error) {
         this.toast.add({
           severity: 'error',
-          summary: 'Upload error',
+          summary: this.t('FILES.TOAST.UPLOAD_ERROR'),
           detail: res.msg,
         });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: 'File uploaded',
+        summary: this.t('COMMON.OK'),
+        detail: this.t('FILES.TOAST.UPLOADED'),
       });
       this.selectedFile.set(null);
     });
@@ -161,10 +167,10 @@ export class IndexFiles implements OnInit {
 
   protected confirmDelete(file: FileEntity): void {
     this.confirm.confirm({
-      header: 'Delete file',
-      message: `Move "${file.filename}" to trash?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('FILES.DELETE_DIALOG.TITLE'),
+      message: this.t('FILES.DELETE_DIALOG.MESSAGE', { name: file.filename }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.files.delete(file.id).subscribe((res) => this.notify(res)),
     });
@@ -176,10 +182,10 @@ export class IndexFiles implements OnInit {
 
   protected confirmHardDelete(file: FileEntity): void {
     this.confirm.confirm({
-      header: 'Permanently delete',
-      message: `Permanently delete "${file.filename}"? This cannot be undone.`,
-      acceptLabel: 'Delete forever',
-      rejectLabel: 'Cancel',
+      header: this.t('FILES.HARD_DELETE_DIALOG.TITLE'),
+      message: this.t('FILES.HARD_DELETE_DIALOG.MESSAGE', { name: file.filename }),
+      acceptLabel: this.t('FILES.HARD_DELETE_DIALOG.ACCEPT'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.files.hardDelete(file.id).subscribe((res) => this.notify(res)),
     });
@@ -244,9 +250,9 @@ export class IndexFiles implements OnInit {
 
   private notify(res: { error: boolean; msg: string }): void {
     if (res.error) {
-      this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+      this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
     } else {
-      this.toast.add({ severity: 'success', summary: 'OK', detail: res.msg });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: res.msg });
     }
   }
 }

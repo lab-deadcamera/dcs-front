@@ -8,7 +8,7 @@ import {
   viewChild,
   ElementRef,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -45,9 +45,15 @@ export class IndexProviders implements OnInit {
   public readonly session = inject(SessionStore);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly providers = this.service.providers;
   protected readonly loading = this.service.loading;
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
 
   /** Track which provider rows are expanded to show models. */
   protected readonly expandedIds = signal<Record<string, boolean>>({});
@@ -99,10 +105,10 @@ export class IndexProviders implements OnInit {
     this.service.createProvider(name).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Provider created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.CREATED') });
       this.providerDialogVisible.set(false);
     });
   }
@@ -112,10 +118,10 @@ export class IndexProviders implements OnInit {
     this.service.updateProvider(evt.id, { name: evt.name }).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Provider updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.UPDATED') });
       this.providerDialogVisible.set(false);
     });
   }
@@ -123,31 +129,31 @@ export class IndexProviders implements OnInit {
   protected toggleActive(p: Provider): void {
     this.service.updateProvider(p.id, { active: !p.active }).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: `${p.name} ${p.active ? 'deactivated' : 'activated'}`,
+        summary: this.t('COMMON.OK'),
+        detail: this.t(p.active ? 'PROVIDERS.TOAST.DEACTIVATED' : 'PROVIDERS.TOAST.ACTIVATED', { name: p.name }),
       });
     });
   }
 
   protected confirmDeleteProvider(p: Provider): void {
     this.confirm.confirm({
-      header: 'Delete Provider',
-      message: `Delete "${p.name}" and all its models?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('PROVIDERS.DELETE_DIALOG.TITLE'),
+      message: this.t('PROVIDERS.DELETE_DIALOG.MESSAGE', { name: p.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.service.deleteProvider(p.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Provider deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.DELETED') });
         }),
     });
   }
@@ -185,10 +191,10 @@ export class IndexProviders implements OnInit {
     this.service.createModel(evt).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Model created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.MODEL_CREATED') });
       this.modelDialogVisible.set(false);
     });
   }
@@ -201,10 +207,10 @@ export class IndexProviders implements OnInit {
     this.service.updateModel(evt.id, m.provider_id, evt.patch).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Model updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.MODEL_UPDATED') });
       this.modelDialogVisible.set(false);
     });
   }
@@ -212,31 +218,31 @@ export class IndexProviders implements OnInit {
   protected toggleModelActive(m: Model, providerId: string): void {
     this.service.updateModel(m.id, providerId, { active: !m.active }).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
-        detail: `${m.name} ${m.active ? 'deactivated' : 'activated'}`,
+        summary: this.t('COMMON.OK'),
+        detail: this.t(m.active ? 'PROVIDERS.TOAST.MODEL_DEACTIVATED' : 'PROVIDERS.TOAST.MODEL_ACTIVATED', { name: m.name }),
       });
     });
   }
 
   protected confirmDeleteModel(m: Model, providerId: string): void {
     this.confirm.confirm({
-      header: 'Delete Model',
-      message: `Delete model "${m.name}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('PROVIDERS.DELETE_MODEL_DIALOG.TITLE'),
+      message: this.t('PROVIDERS.DELETE_MODEL_DIALOG.MESSAGE', { name: m.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.service.deleteModel(m.id, providerId).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Model deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('PROVIDERS.TOAST.MODEL_DELETED') });
         }),
     });
   }
@@ -282,12 +288,12 @@ export class IndexProviders implements OnInit {
   protected onToggleFavorite(m: Model): void {
     this.modelService.setFavorite(m.id).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
       this.toast.add({
         severity: 'success',
-        summary: 'OK',
+        summary: this.t('COMMON.OK'),
         detail: m.favorite ? 'Favorite removed' : 'Set as favorite',
       });
       this.service.load().subscribe();
