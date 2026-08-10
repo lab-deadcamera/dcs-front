@@ -558,7 +558,15 @@
       "TOAST_COPY_FAILED": "Failed to copy to clipboard",
       "TOAST_SAVE_FAILED": "Save failed",
       "ASSIGN_FREE_ASSET": "Assign free asset to this slot",
-      "UPLOAD_FREE_ASSET": "Upload free asset"
+      "UPLOAD_FREE_ASSET": "Upload free asset",
+      "SETTINGS_TITLE": "Shot Builder Settings",
+      "CLAUDE_MODEL": "Claude Model",
+      "SELECT_MODEL": "Select a model",
+      "SKILL_LABEL": "Skill (system prompt)",
+      "LOADING_SKILLS": "Loading skills...",
+      "DEFAULT_NO_SKILL": "Default (no skill)",
+      "GENERATE_ZH": "Generate Chinese prompts ({{ zh }})",
+      "ZH_HINT": "When enabled, the shot builder generates both English and Chinese prompts. The language toggle appears on each shot card. When disabled, only English is generated."
     },
     "SEQUENCE": {
       "CONVENTIONS": "Locked conventions",
@@ -587,7 +595,30 @@
       "REF_TYPE_CHARACTER": "character",
       "REF_TYPE_LOCATION": "location",
       "REF_TYPE_PROP": "prop",
-      "REF_TYPE_AUDIO": "audio"
+      "REF_TYPE_AUDIO": "audio",
+      "GRADE": "Grade",
+      "SHOT_LIST_HINT": "Shots · ingredients listed per card",
+      "NO_REFS": "No references",
+      "NO_FREE_ASSETS": "No free assets in the episode.",
+      "DIRECTOR_GUIDE": "Director's guide",
+      "SCENE_LABEL": "Scene",
+      "TYPE": "Type",
+      "LENS": "Lens",
+      "FRAME_MAP": "Frame Map",
+      "INGREDIENTS": "Ingredients",
+      "REFS": "Refs",
+      "DIALOGUE": "Dialogue",
+      "APPROVED": "✓ Approved",
+      "MARK_APPROVED": "Mark as approved",
+      "PROMPT_LANG_ARIA": "Prompt language",
+      "COPY_PROMPT_ARIA": "Copy prompt",
+      "COPIED": "Copied ✓",
+      "COPY": "Copy",
+      "EDIT_PROMPT_ARIA": "Edit prompt",
+      "DOUBLE_CLICK_EDIT": "Double-click to edit",
+      "CURRENT_SCENE_LEGACY": "Current scene (legacy)",
+      "SCENE_FALLBACK": "Scene {{num}}",
+      "PRE_PROMPT": "Pre Prompt"
     }
   },
   "TOAST": {
@@ -606,7 +637,9 @@
     "EDIT": "Edit",
     "LOADING": "Loading…",
     "ERROR": "Error",
-    "OK": "OK"
+    "OK": "OK",
+    "APPLY": "Apply",
+    "DONE": "Done"
   },
   "VALIDATION": {
     "REQUIRED": "{{label}} is required.",

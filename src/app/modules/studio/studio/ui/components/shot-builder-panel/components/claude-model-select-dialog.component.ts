@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { TranslatePipe } from '@ngx-translate/core';
 import { CLAUDE_MODELS } from '@app/core/constants';
 import { ClaudeModelOption } from '@app/core/interfaces';
 
@@ -10,7 +11,7 @@ import { ClaudeModelOption } from '@app/core/interfaces';
  */
 @Component({
   selector: 'app-claude-model-select-dialog',
-  imports: [DialogModule, ButtonModule],
+  imports: [DialogModule, ButtonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -20,7 +21,7 @@ import { ClaudeModelOption } from '@app/core/interfaces';
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '28rem' }"
-      header="Claude Model"
+      [header]="'STUDIO.SHOT_BUILDER.CLAUDE_MODEL' | translate"
     >
       <div class="flex flex-col gap-2">
         @for (m of models; track m.id) {
@@ -56,7 +57,7 @@ import { ClaudeModelOption } from '@app/core/interfaces';
           <p-button
             severity="secondary"
             [text]="true"
-            label="Cancel"
+            [label]="'COMMON.CANCEL' | translate"
             (onClick)="visibleChange.emit(false)"
           />
         </div>

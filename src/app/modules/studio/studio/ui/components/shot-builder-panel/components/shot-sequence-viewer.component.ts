@@ -88,7 +88,7 @@ interface PreviewScene {
 
       @if (refineInfo(); as info) {
         <div class="refine-banner">
-          <span class="refine-tag">Refinado</span>
+          <span class="refine-tag">{{ 'STUDIO.SHOT_BUILDER.KIND_REFINED' | translate }}</span>
           <span class="refine-text">{{ info.changeRequest }}</span>
         </div>
       }
@@ -116,7 +116,7 @@ interface PreviewScene {
             >
             @if (seq.directorNotes?.styleGuide) {
               <span class="chip rounded-sm!"
-                >grade <b>{{ seq.directorNotes!.styleGuide }}</b></span
+                >{{ 'STUDIO.SEQUENCE.GRADE' | translate }} <b>{{ seq.directorNotes!.styleGuide }}</b></span
               >
             }
           </div>
@@ -151,7 +151,7 @@ interface PreviewScene {
       />
 
       <!-- Section tag -->
-      <div class="section-tag">Planos · ingredientes listados por tarjeta</div>
+      <div class="section-tag">{{ 'STUDIO.SEQUENCE.SHOT_LIST_HINT' | translate }}</div>
 
       @if (seq.scenes && seq.scenes.length > 0) {
         <!-- Per-scene accordion -->
@@ -998,7 +998,10 @@ export class ShotSequenceViewerComponent {
       scenes.push({
         scriptNumber: num,
         scriptLocation:
-          sc?.scriptLocation || (num === 0 ? 'Current scene (legacy)' : `Scene ${num}`),
+          sc?.scriptLocation ||
+          (num === 0
+            ? this.i18n.instant('STUDIO.SEQUENCE.CURRENT_SCENE_LEGACY')
+            : this.i18n.instant('STUDIO.SEQUENCE.SCENE_FALLBACK', { num })),
         shots: shots.map((s) => {
           const lang = this.langMap[s.id] || 'en';
           const over = this.promptOverrides()[s.id];

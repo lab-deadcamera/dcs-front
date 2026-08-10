@@ -558,7 +558,15 @@
       "TOAST_COPY_FAILED": "No se pudo copiar al portapapeles",
       "TOAST_SAVE_FAILED": "Error al guardar",
       "ASSIGN_FREE_ASSET": "Asignar free asset a este slot",
-      "UPLOAD_FREE_ASSET": "Subir free asset"
+      "UPLOAD_FREE_ASSET": "Subir free asset",
+      "SETTINGS_TITLE": "Configuración del Shot Builder",
+      "CLAUDE_MODEL": "Modelo Claude",
+      "SELECT_MODEL": "Seleccioná un modelo",
+      "SKILL_LABEL": "Skill (system prompt)",
+      "LOADING_SKILLS": "Cargando skills...",
+      "DEFAULT_NO_SKILL": "Default (sin skill)",
+      "GENERATE_ZH": "Generar prompts en chino ({{ zh }})",
+      "ZH_HINT": "Cuando está activado, el Shot Builder genera prompts en inglés y chino. El toggle de idioma aparece en cada tarjeta de shot. Cuando está desactivado, solo se genera en inglés."
     },
     "SEQUENCE": {
       "CONVENTIONS": "Convenciones bloqueadas",
@@ -587,7 +595,30 @@
       "REF_TYPE_CHARACTER": "personaje",
       "REF_TYPE_LOCATION": "locación",
       "REF_TYPE_PROP": "objeto",
-      "REF_TYPE_AUDIO": "audio"
+      "REF_TYPE_AUDIO": "audio",
+      "GRADE": "Etalonaje",
+      "SHOT_LIST_HINT": "Shots · ingredientes listados por tarjeta",
+      "NO_REFS": "Sin referencias",
+      "NO_FREE_ASSETS": "No hay free assets en el episodio.",
+      "DIRECTOR_GUIDE": "Guía de dirección",
+      "SCENE_LABEL": "Escena",
+      "TYPE": "Tipo",
+      "LENS": "Lente",
+      "FRAME_MAP": "Frame Map",
+      "INGREDIENTS": "Ingredientes",
+      "REFS": "Refs",
+      "DIALOGUE": "Diálogo",
+      "APPROVED": "✓ Aprobado",
+      "MARK_APPROVED": "Marcar como aprobado",
+      "PROMPT_LANG_ARIA": "Idioma del prompt",
+      "COPY_PROMPT_ARIA": "Copiar prompt",
+      "COPIED": "Copiado ✓",
+      "COPY": "Copiar",
+      "EDIT_PROMPT_ARIA": "Editar prompt",
+      "DOUBLE_CLICK_EDIT": "Doble clic para editar",
+      "CURRENT_SCENE_LEGACY": "Escena actual (legacy)",
+      "SCENE_FALLBACK": "Escena {{num}}",
+      "PRE_PROMPT": "Pre Prompt"
     }
   },
   "COMMON": {
@@ -600,7 +631,9 @@
     "EDIT": "Editar",
     "LOADING": "Cargando…",
     "ERROR": "Error",
-    "OK": "OK"
+    "OK": "OK",
+    "APPLY": "Aplicar",
+    "DONE": "Hecho"
   },
   "VALIDATION": {
     "REQUIRED": "{{label}} es obligatorio.",

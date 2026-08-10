@@ -4,6 +4,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
+import { TranslatePipe } from '@ngx-translate/core';
 import { CLAUDE_MODELS } from '@app/core/constants';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SkillService, Skill } from '@app/services/skill.service';
@@ -11,7 +12,7 @@ import { SkillService, Skill } from '@app/services/skill.service';
 @Component({
   selector: 'app-shot-builder-settings-dialog',
   standalone: true,
-  imports: [FormsModule, DialogModule, ButtonModule, SelectModule, CheckboxModule],
+  imports: [FormsModule, DialogModule, ButtonModule, SelectModule, CheckboxModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -21,13 +22,13 @@ import { SkillService, Skill } from '@app/services/skill.service';
       [closable]="true"
       [draggable]="false"
       [style]="{ width: '26rem' }"
-      header="Shot Builder Settings"
+      [header]="'STUDIO.SHOT_BUILDER.SETTINGS_TITLE' | translate"
     >
       <div class="flex flex-col gap-5 py-2">
         <!-- Model -->
         <div class="flex flex-col gap-1.5">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-            Claude Model
+            {{ 'STUDIO.SHOT_BUILDER.CLAUDE_MODEL' | translate }}
           </label>
           <p-select
             [options]="models"
@@ -35,17 +36,17 @@ import { SkillService, Skill } from '@app/services/skill.service';
             optionLabel="name"
             optionValue="id"
             [style]="{ width: '100%' }"
-            placeholder="Select a model"
+            [placeholder]="'STUDIO.SHOT_BUILDER.SELECT_MODEL' | translate"
           />
         </div>
 
         <!-- Skill -->
         <div class="flex flex-col gap-1.5">
           <label class="text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-            Skill (system prompt)
+            {{ 'STUDIO.SHOT_BUILDER.SKILL_LABEL' | translate }}
           </label>
           @if (skillsLoading()) {
-            <p class="text-[12px] italic text-fg-muted py-2" role="status">Loading skills...</p>
+            <p class="text-[12px] italic text-fg-muted py-2" role="status">{{ 'STUDIO.SHOT_BUILDER.LOADING_SKILLS' | translate }}</p>
           } @else {
             <p-select
               [options]="skills()"
@@ -53,7 +54,7 @@ import { SkillService, Skill } from '@app/services/skill.service';
               optionLabel="name"
               optionValue="id"
               [style]="{ width: '100%' }"
-              placeholder="Default (no skill)"
+              [placeholder]="'STUDIO.SHOT_BUILDER.DEFAULT_NO_SKILL' | translate"
               [showClear]="true"
             />
           }
@@ -67,12 +68,11 @@ import { SkillService, Skill } from '@app/services/skill.service';
             inputId="zh-toggle"
           />
           <label for="zh-toggle" class="cursor-pointer text-[13px] text-fg">
-            Generate Chinese prompts ({{ 'prompt.zh' }})
+            {{ 'STUDIO.SHOT_BUILDER.GENERATE_ZH' | translate: { zh: 'prompt.zh' } }}
           </label>
         </div>
         <p class="-mt-2 text-[11px] leading-snug text-fg-muted">
-          When enabled, the shot builder generates both English and Chinese prompts.
-          The language toggle appears on each shot card. When disabled, only English is generated.
+          {{ 'STUDIO.SHOT_BUILDER.ZH_HINT' | translate }}
         </p>
       </div>
 
@@ -81,12 +81,12 @@ import { SkillService, Skill } from '@app/services/skill.service';
           <p-button
             severity="secondary"
             [text]="true"
-            label="Cancel"
+            [label]="'COMMON.CANCEL' | translate"
             (onClick)="visibleChange.emit(false)"
           />
           <p-button
             severity="primary"
-            label="Apply"
+            [label]="'COMMON.APPLY' | translate"
             (onClick)="apply()"
           />
         </div>

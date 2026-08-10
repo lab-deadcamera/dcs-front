@@ -82,7 +82,7 @@ import { inferKind } from '@app/shared/utils';
           }
         }
         @if (references().length === 0) {
-          <span class="ref-empty">Sin referencias</span>
+          <span class="ref-empty">{{ 'STUDIO.SEQUENCE.NO_REFS' | translate }}</span>
         }
       </div>
 
@@ -130,7 +130,7 @@ import { inferKind } from '@app/shared/utils';
                 }
               </div>
             } @else {
-              <p class="ref-popover-empty">No hay free assets en el episodio.</p>
+              <p class="ref-popover-empty">{{ 'STUDIO.SEQUENCE.NO_FREE_ASSETS' | translate }}</p>
             }
 
             <!-- Upload new -->

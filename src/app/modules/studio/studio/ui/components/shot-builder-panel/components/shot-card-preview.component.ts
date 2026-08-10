@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Shot } from '@app/core/interfaces';
 
 export interface BeatInfo {
@@ -46,7 +47,7 @@ export function beatInfoFromSegments(
 @Component({
   selector: 'app-shot-card-preview',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
@@ -74,17 +75,17 @@ export function beatInfoFromSegments(
 
       <!-- Director guide -->
       <div class="guide">
-        <div class="gl">Guía de dirección</div>
+        <div class="gl">{{ 'STUDIO.SEQUENCE.DIRECTOR_GUIDE' | translate }}</div>
 
         @if (shot().description) {
           <div class="grow">
-            <span class="k">Escena</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.SCENE_LABEL' | translate }}</span>
             <span class="v">{{ shot().description }}</span>
           </div>
         }
 
         <div class="grow">
-          <span class="k">Duración</span>
+          <span class="k">{{ 'STUDIO.SHOT_BUILDER.COL_DURATION' | translate }}</span>
           <span class="v"
             ><b>{{ shot().duration }}s</b></span
           >
@@ -93,21 +94,21 @@ export function beatInfoFromSegments(
         @if (shot().camera) {
           @if (shot().camera.framing) {
             <div class="grow">
-              <span class="k">Tipo</span>
+              <span class="k">{{ 'STUDIO.SEQUENCE.TYPE' | translate }}</span>
               <span class="v">{{ shot().camera.framing }}</span>
             </div>
           }
 
           @if (shot().camera.movement) {
             <div class="grow">
-              <span class="k">Cámara</span>
+              <span class="k">{{ 'STUDIO.SHOT_BUILDER.COL_CAMERA' | translate }}</span>
               <span class="v">{{ shot().camera.movement }} · {{ shot().camera.lens }}</span>
             </div>
           }
 
           @if (shot().camera.lens) {
             <div class="grow">
-              <span class="k">Lente</span>
+              <span class="k">{{ 'STUDIO.SEQUENCE.LENS' | translate }}</span>
               <span class="v">{{ shot().camera.lens }}</span>
             </div>
           }
@@ -115,7 +116,7 @@ export function beatInfoFromSegments(
 
         @if (shot().composition.frameMap) {
           <div class="grow">
-            <span class="k">Frame Map</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.FRAME_MAP' | translate }}</span>
             <span class="v">{{ shot().composition.frameMap }}</span>
           </div>
         }
@@ -123,7 +124,7 @@ export function beatInfoFromSegments(
         @let warnings = shot().notes.warnings;
         @if (warnings && warnings.length > 0) {
           <div class="grow">
-            <span class="k">Advertencias</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.WARNINGS' | translate }}</span>
             <span class="v">
               <ul class="warning-list">
                 @for (w of warnings; track w) {
@@ -137,7 +138,7 @@ export function beatInfoFromSegments(
         @let todos = shot().notes.todos;
         @if (todos && todos.length > 0) {
           <div class="grow">
-            <span class="k">Ingredientes</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.INGREDIENTS' | translate }}</span>
             <span class="v">
               <div class="cuts">
                 @for (todo of todos; track todo; let i = $index) {
@@ -152,7 +153,7 @@ export function beatInfoFromSegments(
 
         @if (shot().references.length > 0) {
           <div class="grow">
-            <span class="k">Refs</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.REFS' | translate }}</span>
             <span class="v">
               <div class="cuts">
                 @for (ref of shot().references; track ref.slot) {
@@ -167,7 +168,7 @@ export function beatInfoFromSegments(
 
         @if (shot().acting && shot().acting.dialogue) {
           <div class="grow">
-            <span class="k">Diálogo</span>
+            <span class="k">{{ 'STUDIO.SEQUENCE.DIALOGUE' | translate }}</span>
             <span class="v b"
               ><em>{{ shot().acting.dialogue }}</em></span
             >
@@ -185,7 +186,7 @@ export function beatInfoFromSegments(
             (change)="onApprovedChange($event)"
           />
           <span class="approval-text" [class.approved]="approved()">
-            {{ approved() ? '✓ Aprobado' : 'Marcar como aprobado' }}
+            {{ approved() ? ('STUDIO.SEQUENCE.APPROVED' | translate) : ('STUDIO.SEQUENCE.MARK_APPROVED' | translate) }}
           </span>
         </label>
       </div>
@@ -193,10 +194,10 @@ export function beatInfoFromSegments(
       <!-- Prompt section (editable) -->
       <div class="prompt">
         <div class="prompt-bar">
-          <span class="pl">Pre Prompt</span>
+          <span class="pl">{{ 'STUDIO.SEQUENCE.PRE_PROMPT' | translate }}</span>
 
           @if (shot().prompt.zh) {
-            <div class="toggle" role="group" [attr.aria-label]="'Idioma del prompt'">
+            <div class="toggle" role="group" [attr.aria-label]="'STUDIO.SEQUENCE.PROMPT_LANG_ARIA' | translate">
               <button
                 class="toggle-btn"
                 [class.on]="lang() === 'en'"
@@ -230,9 +231,9 @@ export function beatInfoFromSegments(
             class="copy-btn"
             [class.done]="copied()"
             (click)="copyPrompt()"
-            [attr.aria-label]="'Copiar prompt'"
+            [attr.aria-label]="'STUDIO.SEQUENCE.COPY_PROMPT_ARIA' | translate"
           >
-            {{ copied() ? 'Copiado ✓' : 'Copy' }}
+            {{ copied() ? ('STUDIO.SEQUENCE.COPIED' | translate) : ('STUDIO.SEQUENCE.COPY' | translate) }}
           </button>
         </div>
         @if (editing()) {
@@ -243,10 +244,10 @@ export function beatInfoFromSegments(
             (input)="onPromptEdit($event)"
             (blur)="onPromptBlur()"
             rows="6"
-            aria-label="Editar prompt"
+            [attr.aria-label]="'STUDIO.SEQUENCE.EDIT_PROMPT_ARIA' | translate"
           ></textarea>
           <div class="edit-actions">
-            <button class="done-btn" (click)="doneEditing()">Hecho</button>
+            <button class="done-btn" (click)="doneEditing()">{{ 'COMMON.DONE' | translate }}</button>
           </div>
         } @else {
           <pre
@@ -258,7 +259,7 @@ export function beatInfoFromSegments(
             (keydown.enter)="startEditing()"
             >{{ currentPrompt() }}</pre
           >
-          <span class="edit-hint">Doble clic para editar</span>
+          <span class="edit-hint">{{ 'STUDIO.SEQUENCE.DOUBLE_CLICK_EDIT' | translate }}</span>
         }
       </div>
     </article>
