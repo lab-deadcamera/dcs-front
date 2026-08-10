@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -46,7 +54,9 @@ import { SkillService, Skill } from '@app/services/skill.service';
             {{ 'STUDIO.SHOT_BUILDER.SKILL_LABEL' | translate }}
           </label>
           @if (skillsLoading()) {
-            <p class="text-[12px] italic text-fg-muted py-2" role="status">{{ 'STUDIO.SHOT_BUILDER.LOADING_SKILLS' | translate }}</p>
+            <p class="text-[12px] italic text-fg-muted py-2" role="status">
+              {{ 'STUDIO.SHOT_BUILDER.LOADING_SKILLS' | translate }}
+            </p>
           } @else {
             <p-select
               [options]="skills()"
@@ -62,11 +72,7 @@ import { SkillService, Skill } from '@app/services/skill.service';
 
         <!-- Chinese toggle -->
         <div class="flex items-center gap-3 pt-1">
-          <p-checkbox
-            [binary]="true"
-            [(ngModel)]="generateChinese"
-            inputId="zh-toggle"
-          />
+          <p-checkbox [binary]="true" [(ngModel)]="generateChinese" inputId="zh-toggle" />
           <label for="zh-toggle" class="cursor-pointer text-[13px] text-fg">
             {{ 'STUDIO.SHOT_BUILDER.GENERATE_ZH' | translate: { zh: 'prompt.zh' } }}
           </label>
@@ -84,11 +90,7 @@ import { SkillService, Skill } from '@app/services/skill.service';
             [label]="'COMMON.CANCEL' | translate"
             (onClick)="visibleChange.emit(false)"
           />
-          <p-button
-            severity="primary"
-            [label]="'COMMON.APPLY' | translate"
-            (onClick)="apply()"
-          />
+          <p-button severity="primary" [label]="'COMMON.APPLY' | translate" (onClick)="apply()" />
         </div>
       </ng-template>
     </p-dialog>
@@ -110,16 +112,16 @@ export class ShotBuilderSettingsDialogComponent {
   protected readonly skills = signal<Skill[]>([]);
   protected readonly skillsLoading = signal(false);
 
-  protected selectedModelId = 'claude_sonnet';
+  protected selectedModelId = 'claude_haiku';
   protected selectedSkillId: string | null = null;
-  protected generateChinese = true;
+  protected generateChinese = false;
 
   /** Initialize form values when dialog opens. */
   private readonly syncOnOpen = effect(() => {
     if (!this.visible()) return;
-    this.selectedModelId = 'claude_sonnet';
+    this.selectedModelId = 'claude_haiku';
     this.selectedSkillId = this.studio.selectedSkill()?.id || null;
-    this.generateChinese = true;
+    this.generateChinese = false;
 
     this.skillsLoading.set(true);
     this.skillService.list().subscribe((res) => {
@@ -151,10 +153,14 @@ export class ShotBuilderSettingsDialogComponent {
       };
     }
     const skill = this.selectedSkillId
-      ? this.skills().find((s) => s.id === this.selectedSkillId) ?? null
+      ? (this.skills().find((s) => s.id === this.selectedSkillId) ?? null)
       : null;
     if (skill) {
-      this.studio.setSelectedSkill({ id: skill.id, name: skill.name, description: skill.description });
+      this.studio.setSelectedSkill({
+        id: skill.id,
+        name: skill.name,
+        description: skill.description,
+      });
       this.skillChange.emit(skill.id);
     } else {
       this.studio.setSelectedSkill(null);
