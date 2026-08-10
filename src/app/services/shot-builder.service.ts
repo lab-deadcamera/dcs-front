@@ -197,6 +197,81 @@ export class ShotBuilderService {
   }
 
   /**
+   * Refine an existing shot breakdown: sends the previous generate-shots
+   * response (data.text) plus a natural-language change_request, so Claude
+   * applies ONLY the requested changes and keeps the rest identical
+   * (anti-drift). Returns a fresh ShotBuilderResult like generate().
+   */
+  refineShots(request: {
+    projectId: string;
+    sceneId: string;
+    previousResponse: string;
+    changeRequest: string;
+    model?: string;
+    skillID?: string;
+    userName?: string;
+    generateZh?: boolean;
+  }) {
+    if (!request.projectId) {
+      return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
+        this.error.set('Select a project before refining shots');
+        return source$;
+      });
+    }
+
+    if (!request.previousResponse.trim()) {
+      return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
+        this.error.set('No previous response to refine');
+        return source$;
+      });
+    }
+
+    if (!request.changeRequest.trim()) {
+      return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
+        this.error.set('Write a change request before refining');
+        return source$;
+      });
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const body: Record<string, unknown> = {
+      scene_id: request.sceneId,
+      project_id: request.projectId,
+      model: 'claude-shot-builder',
+      api_model: request.model || 'claude-sonnet-4-6',
+      previous_response: request.previousResponse,
+      change_request: request.changeRequest,
+      system_prompt: '',
+      skill_id: request.skillID || '',
+      user_name: request.userName || '',
+      generate_zh: request.generateZh !== false,
+    };
+
+    return this.http
+      .post<{
+        success: boolean;
+        data?: { taskId: string; model: string; status: string; text?: string };
+        message?: string;
+      }>(`${environment.API_URL}/studio/text/claude/refine-shots`, body)
+      .pipe(
+        map((response) => {
+          if (!response.success || !response.data) {
+            throw new Error(response.message || 'Failed to refine shots');
+          }
+          return this.parseShotsResponse(response.data);
+        }),
+        catchError((err) => {
+          const message = err?.error?.message || err?.message || 'Could not refine shot list';
+          this.error.set(message);
+          return throwError(() => new Error(message));
+        }),
+        finalize(() => this.loading.set(false)),
+      );
+  }
+
+  /**
    * Send a prompt to the Claude proncer endpoint for optimization.
    */
   optimizePrompt(request: {

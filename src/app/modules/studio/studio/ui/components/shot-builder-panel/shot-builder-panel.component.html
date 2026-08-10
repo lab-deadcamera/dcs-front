@@ -26,6 +26,23 @@
                 >
                   {{ msg.role === 'assistant' ? 'Claude' : 'You' }}
                 </span>
+                @if (msg.kind) {
+                  <span
+                    class="ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                    [class.bg-teal-900]="msg.kind === 'generate'"
+                    [class.text-teal-400]="msg.kind === 'generate'"
+                    [class.bg-amber-900]="msg.kind === 'refine'"
+                    [class.text-amber-400]="msg.kind === 'refine'"
+                  >
+                    @if (msg.kind === 'generate') {
+                      Generado
+                    } @else if (msg.role === 'assistant') {
+                      Refinado
+                    } @else {
+                      Refinar
+                    }
+                  </span>
+                }
                 <pre class="mt-1 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
               </div>
             }
@@ -160,6 +177,51 @@
                   No assets assigned to this episode.
                 </p>
               }
+            }
+          </div>
+        }
+
+        <!-- Refine breakdown (iterate on the last generate-shots response) -->
+        @if (hasPreviousResponse()) {
+          <div class="border-t border-ink-700 pt-2">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg"
+              (click)="refineExpanded.set(!refineExpanded())"
+              [attr.aria-expanded]="refineExpanded()"
+            >
+              <span>Refine breakdown</span>
+              <span
+                aria-hidden="true"
+                class="inline-block transition-transform duration-150"
+                [class.rotate-180]="refineExpanded()"
+                >▾</span
+              >
+            </button>
+
+            @if (refineExpanded()) {
+              <div class="mt-2 flex flex-col gap-2">
+                <textarea
+                  class="h-16 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[12px] text-fg focus:border-primary-400 focus:outline-none"
+                  rows="1"
+                  placeholder="What should change? e.g. make the tone darker and shorten shot C"
+                  [disabled]="loading()"
+                  [(ngModel)]="refineText"
+                ></textarea>
+                <div class="flex justify-end">
+                  <p-button
+                    label="Refine"
+                    severity="secondary"
+                    size="small"
+                    icon="pi pi-refresh"
+                    (onClick)="refine()"
+                    [disabled]="!canRefine()"
+                    [loading]="loading()"
+                    pTooltip="Regenerate the breakdown applying only the requested changes (anti-drift)"
+                    tooltipPosition="top"
+                  />
+                </div>
+              </div>
             }
           </div>
         }
@@ -302,13 +364,19 @@
                 [disabled]="loading()"
               />
               <p-button
-                label="Generate Shots"
+                [label]="hasPreviousResponse() ? 'Refine Shots' : 'Generate Shots'"
                 severity="primary"
                 size="small"
-                icon="pi pi-send"
+                [icon]="hasPreviousResponse() ? 'pi pi-refresh' : 'pi pi-send'"
                 (onClick)="send()"
                 [disabled]="!canSend()"
                 [loading]="loading()"
+                [pTooltip]="
+                  hasPreviousResponse()
+                    ? 'Refine the current breakdown (keeps unchanged shots identical)'
+                    : 'Generate a shot list from the prompt'
+                "
+                tooltipPosition="top"
               />
             </div>
           </div>
@@ -416,6 +484,7 @@
                   [showChinese]="generateChinese()"
                   [creating]="savingShots()"
                   [isSuperAdmin]="isSuperAdmin()"
+                  [refineInfo]="lastRefineInfo()"
                   (createPrePromptsClicked)="onCreatePrePrompts($event)"
                 />
               </div>

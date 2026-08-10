@@ -97,6 +97,8 @@ type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  /** Whether this message belongs to a generate or a refine turn (badge). */
+  kind?: 'generate' | 'refine';
 };
 
 type UploadedFile = {
@@ -256,6 +258,10 @@ export class ShotBuilderPanelComponent {
   /** The raw text response for display. */
   readonly rawResponse = signal<string>('');
 
+  /** Change request applied by the last refine — shown as a banner in the
+   *  Sequence Viewer so it is clear the result came from a refine. */
+  readonly lastRefineInfo = signal<{ changeRequest: string } | null>(null);
+
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -356,6 +362,18 @@ export class ShotBuilderPanelComponent {
 
   readonly canSend = computed(
     () => !this.loading() && Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
+  );
+
+  /** True when there is a previous generate-shots response to refine. */
+  readonly hasPreviousResponse = computed(() => this.rawResponse().length > 0);
+
+  /** Text of the refine (change request) input. */
+  readonly refineText = signal('');
+  /** Whether the refine box is expanded. */
+  readonly refineExpanded = signal(false);
+
+  readonly canRefine = computed(
+    () => !this.loading() && this.hasPreviousResponse() && this.refineText().trim().length > 0,
   );
 
   /** Segments for the time budget bar: each scene as a colored segment. */
@@ -922,7 +940,17 @@ export class ShotBuilderPanelComponent {
   // ── Chat & generation ──────────────────────────────────────────────
 
   send(): void {
-    const content = this.getSendContent();
+    // Second+ turn in the chat refines the existing breakdown instead of
+    // regenerating from scratch — anchors on the previous response so only
+    // the requested changes are applied (anti-drift). Click "Clear" to
+    // generate a fresh breakdown from a new script.
+    const isRefine = this.hasPreviousResponse();
+
+    // For a refine, the previous breakdown IS the context: the change request
+    // is just the typed instruction (+ any NEW files, never the ones already
+    // sent to generate-shots — their content is already interpreted inside the
+    // previous response).
+    const content = isRefine ? this.getRefineContent() : this.getSendContent();
     if (!content) return;
 
     // Add user message to chat
@@ -931,6 +959,7 @@ export class ShotBuilderPanelComponent {
       {
         id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         role: 'user',
+        ...(isRefine ? { kind: 'refine' as const } : {}),
         content,
         timestamp: Date.now(),
       },
@@ -942,11 +971,17 @@ export class ShotBuilderPanelComponent {
     // Switch to Preview tab so the artifact is visible
     this.activeFileId.set(null);
 
+    if (isRefine) {
+      this.runRefine(content, false);
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
     this.shots.set([]);
     this.rawResponse.set('');
     this.sequenceData.set(null);
+    this.lastRefineInfo.set(null);
 
     const userName = this.sessionStore.user()?.handle || '';
     const selectedSkill = this.studio.selectedSkill();
@@ -1026,6 +1061,7 @@ export class ShotBuilderPanelComponent {
             {
               id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
               role: 'assistant',
+              kind: 'generate',
               content: summary,
               timestamp: Date.now(),
             },
@@ -1035,6 +1071,117 @@ export class ShotBuilderPanelComponent {
           const message = err instanceof Error ? err.message : 'Failed to generate shots';
           this.error.set(message);
           this.loading.set(false);
+          this.toast.add({
+            severity: 'error',
+            summary: 'Shot Builder',
+            detail: message,
+            life: 6000,
+          });
+        },
+        complete: () => {
+          this.loading.set(false);
+        },
+      });
+  }
+
+  /** Refine from the "Refine breakdown" box: sends the typed change request
+   *  and applies it to the last generate-shots response (anti-drift). */
+  refine(): void {
+    const changeRequest = this.refineText().trim();
+    if (!changeRequest || !this.hasPreviousResponse()) return;
+    this.runRefine(changeRequest, true);
+  }
+
+  /** Shared refine pipeline used by both the "Refine breakdown" box and the
+   *  main send() when a previous response already exists. addChatMessage is
+   *  false when called from send(), which already appended the user message. */
+  private runRefine(changeRequest: string, addChatMessage: boolean): void {
+    const previousResponse = this.rawResponse();
+    if (!previousResponse) return;
+
+    if (addChatMessage) {
+      // Add user message to chat
+      this.chatMessages.update((items) => [
+        ...items,
+        {
+          id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          role: 'user',
+          kind: 'refine',
+          content: changeRequest,
+          timestamp: Date.now(),
+        },
+      ]);
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const userName = this.sessionStore.user()?.handle || '';
+    const selectedSkill = this.studio.selectedSkill();
+
+    this.shotBuilderService
+      .refineShots({
+        projectId: this.projectId() || this.studio.projectId() || '',
+        // Same scene fallback as send(): the backend validates scene_id but
+        // the breakdown is generated at episode level.
+        sceneId:
+          this.sceneId() ||
+          this.studio.sceneId() ||
+          this.chapterId() ||
+          this.studio.chapterId() ||
+          '',
+        previousResponse,
+        changeRequest,
+        model: this.claudeModelName(),
+        skillID: selectedSkill?.id || undefined,
+        userName,
+        generateZh: this.generateChinese(),
+      })
+      .subscribe({
+        next: (result: ShotBuilderResult) => {
+          this.episodeData.set(result.episode || null);
+          this.scenes.set(result.scenes);
+          this.rawResponse.set(result.rawText);
+
+          // Re-render the native viewer from the refined response.
+          const seq = shotBuilderResultToSequence(result, this.studio.output().aspectRatio);
+          this.sequenceData.set(seq ? computeCharacterCount(seq) : null);
+
+          // Flatten all shots from all scenes for legacy compat.
+          const allShots: ShotBuilderShot[] = [];
+          for (const scene of result.scenes) {
+            for (const shot of scene.shots) {
+              allShots.push(shot);
+            }
+          }
+          this.shots.set(allShots);
+
+          const sceneCount = result.scenes.length;
+          const totalShots = allShots.length;
+          const summary =
+            totalShots > 0
+              ? `Refined: ${sceneCount} scene${sceneCount > 1 ? 's' : ''} with ${totalShots} shot${totalShots > 1 ? 's' : ''}. Review the preview tab.`
+              : 'Refinement received but no content could be parsed.';
+          this.chatMessages.update((items) => [
+            ...items,
+            {
+              id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              role: 'assistant',
+              kind: 'refine',
+              content: summary,
+              timestamp: Date.now(),
+            },
+          ]);
+
+          // Remember the applied change request for the viewer banner.
+          this.lastRefineInfo.set({ changeRequest });
+
+          this.refineText.set('');
+          this.refineExpanded.set(false);
+        },
+        error: (err: unknown) => {
+          const message = err instanceof Error ? err.message : 'Failed to refine shots';
+          this.error.set(message);
           this.toast.add({
             severity: 'error',
             summary: 'Shot Builder',
@@ -1059,6 +1206,7 @@ export class ShotBuilderPanelComponent {
     this.activeFileId.set(null);
     this.promptText.set('');
     this.sequenceData.set(null);
+    this.lastRefineInfo.set(null);
   }
 
   copyArtifact(): void {
@@ -1395,6 +1543,7 @@ export class ShotBuilderPanelComponent {
     this.rawResponse.set('');
     this.shots.set([]);
     this.sequenceData.set(null);
+    this.lastRefineInfo.set(null);
 
     setTimeout(() => {
       // Normalize the seedance slots in the mock's prompts ([Image1] → @image1)
@@ -1737,6 +1886,27 @@ export class ShotBuilderPanelComponent {
   }
 
   // ── Private ────────────────────────────────────────────────────────
+
+  /** Content for a refine turn: the typed prompt plus only NEW (unsent) files.
+   *  Files already sent to generate-shots are NOT resent — their content is
+   *  already interpreted inside the previous breakdown (previous_response). */
+  private getRefineContent(): string {
+    const prompt = this.promptText().trim();
+    const newFiles = this.uploadedFiles().filter((f) => !f.sent);
+
+    const parts: string[] = [];
+    if (prompt) parts.push(prompt);
+
+    if (newFiles.length > 0) {
+      const names = newFiles.map((f) => f.name).join(', ');
+      parts.push(`[Reference files: ${names}]`);
+      newFiles.forEach((f) => {
+        parts.push(`--- ${f.name} ---\n${f.sendContent ?? f.content}`);
+      });
+    }
+
+    return parts.join('\n\n');
+  }
 
   private getSendContent(): string {
     const prompt = this.promptText().trim();

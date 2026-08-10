@@ -84,6 +84,13 @@ interface PreviewScene {
         </div>
       </header>
 
+      @if (refineInfo(); as info) {
+        <div class="refine-banner">
+          <span class="refine-tag">Refinado</span>
+          <span class="refine-text">{{ info.changeRequest }}</span>
+        </div>
+      }
+
       <!-- Timeline strip -->
       <app-shot-timeline-strip
         [flow]="seq.sequenceFlow"
@@ -481,6 +488,33 @@ interface PreviewScene {
         color: var(--ink-dim, #9aa6a3);
         letter-spacing: 0.18em;
         text-transform: uppercase;
+      }
+
+      .refine-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: rgba(224, 169, 92, 0.08);
+        border: 1px solid rgba(224, 169, 92, 0.35);
+        border-left: 2px solid var(--amber, #e0a95c);
+        border-radius: 3px;
+        padding: 10px 14px;
+        margin-bottom: 24px;
+      }
+      .refine-tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--amber, #e0a95c);
+        white-space: nowrap;
+        font-weight: 700;
+      }
+      .refine-text {
+        font-size: 13px;
+        color: var(--ink-dim, #9aa6a3);
+        line-height: 1.5;
       }
 
       .meta-grid {
@@ -897,6 +931,10 @@ export class ShotSequenceViewerComponent {
   /** True while the parent is creating scenes/shots from this list — disables
    *  the create button and shows a spinner. */
   readonly creating = input(false);
+
+  /** When the current sequence came from a refine, shows the change request
+   *  that was applied (anti-drift banner). Null for fresh generations. */
+  readonly refineInfo = input<{ changeRequest: string } | null>(null);
 
   /** Super admins get a preview of the exact data "Crear listado" would create. */
   readonly isSuperAdmin = input(false);
