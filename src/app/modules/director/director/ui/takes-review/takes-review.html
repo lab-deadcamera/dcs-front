@@ -1,6 +1,8 @@
 <section class="p-6">
   <div class="mb-6">
-    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.TAKES.TITLE' | translate }}</h1>
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
+      {{ 'DIRECT.TAKES.TITLE' | translate }}
+    </h1>
     <p class="mt-1 text-[12px] text-fg-muted">
       {{ 'DIRECT.TAKES.SUBTITLE' | translate }}
     </p>
@@ -8,7 +10,9 @@
 
   <div class="mb-4 flex flex-wrap items-end gap-3">
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.TAKES.PROJECT' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.PROJECT' | translate
+      }}</label>
       <p-select
         [options]="projects()"
         optionLabel="label"
@@ -21,7 +25,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.TAKES.CHAPTER' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.CHAPTER' | translate
+      }}</label>
       <p-select
         [options]="chapters()"
         optionLabel="label"
@@ -35,7 +41,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.TAKES.SCENE' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.SCENE' | translate
+      }}</label>
       <p-select
         [options]="scenes()"
         optionLabel="label"
@@ -49,7 +57,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.TAKES.SHOT' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.SHOT' | translate
+      }}</label>
       <p-select
         [options]="shots()"
         optionLabel="label"
@@ -74,7 +84,9 @@
   </div>
 
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'DIRECT.TAKES.LOADING' | translate }}</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'DIRECT.TAKES.LOADING' | translate }}
+    </p>
   }
 
   @if (!loading() && takes().length > 0) {
@@ -95,7 +107,9 @@
         <tbody>
           @for (t of takes(); track t.id) {
             <tr class="border-t border-ink-700" [class.bg-green-900]="t.final">
-              <td class="px-3 py-2 font-mono font-bold">{{ 'DIRECT.TAKES.TAKE_NUMBER' | translate: { n: t.number } }}</td>
+              <td class="px-3 py-2 font-mono font-bold text-fg-muted">
+                {{ 'DIRECT.TAKES.TAKE_NUMBER' | translate: { n: t.number } }}
+              </td>
               <td class="px-3 py-2">
                 @if (t.video_local_url || t.video_url) {
                   <video
@@ -217,7 +231,9 @@
   }
 
   @if (!loading() && takes().length === 0 && selectedShotId()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'DIRECT.TAKES.EMPTY' | translate }}</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'DIRECT.TAKES.EMPTY' | translate }}
+    </p>
   }
 
   <p-dialog
