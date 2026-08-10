@@ -151,7 +151,7 @@ interface StagedFile {
                   }
                   <button
                     type="button"
-                    class="absolute top-0 right-0 z-10 flex h-3 w-3 items-center justify-center bg-ink-950/80 text-[8px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
+                    class="absolute top-0 right-0 z-10 flex h-3 w-3 items-center justify-center bg-ink-950/80 text-[8px] leading-none text-white opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
                     [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
                     (click)="removeStaged(s.key)"
                   >

@@ -192,7 +192,7 @@ import { MessageService } from 'primeng/api';
             aria-live="polite"
             data-testid="viewer-progress"
           >
-            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-muted">
+            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-white/85">
               {{
                 'STUDIO.VIEWER.GENERATING_COUNT'
                   | translate: { n: studio.pendingGenerations().length }
@@ -202,7 +202,7 @@ import { MessageService } from 'primeng/api';
               @for (g of studio.pendingGenerations(); track g.id) {
                 <div class="flex flex-col items-center gap-1">
                   <p class="font-mono text-3xl tabular-nums text-primary-500">
-                    {{ g.progress }}<span class="text-base text-fg-muted">%</span>
+                    {{ g.progress }}<span class="text-base text-white/85">%</span>
                   </p>
                   <div class="h-1 w-24 overflow-hidden bg-ink-700">
                     <div
@@ -211,7 +211,7 @@ import { MessageService } from 'primeng/api';
                     ></div>
                   </div>
                   @if (g.label) {
-                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-white/85">
                       {{ g.label }}
                     </p>
                   }

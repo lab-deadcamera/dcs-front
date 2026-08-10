@@ -230,7 +230,7 @@
                 -->
                 <button
                   type="button"
-                  class="absolute top-0 left-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
+                  class="absolute top-0 left-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-white opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary-500"
                   (click)="onRemoveFreeAsset(a.id)"
                   [attr.aria-label]="'STUDIO.ASSETS.REMOVE' | translate"
                 >
@@ -338,7 +338,7 @@
                       </span>
                       @if (a.files.length > 1) {
                         <span
-                          class="absolute top-0 left-0 flex h-4 min-w-[1rem] items-center justify-center bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-fg-muted"
+                          class="absolute top-0 left-0 flex h-4 min-w-[1rem] items-center justify-center bg-ink-950/80 px-1 font-mono text-[9px] leading-tight text-white/85"
                           [title]="'STUDIO.ASSETS.FILES_TITLE' | translate: { n: a.files.length }"
                           >{{ a.files.length }}</span
                         >
@@ -354,7 +354,7 @@
                     </button>
                     <button
                       type="button"
-                      class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-fg-strong opacity-0 transition-opacity hover:text-primary-500 group-hover:opacity-100 focus:opacity-100"
+                      class="absolute top-0 right-0 z-10 flex h-4 w-4 items-center justify-center bg-ink-950/80 text-[10px] leading-none text-white opacity-0 transition-opacity hover:text-primary-500 group-hover:opacity-100 focus:opacity-100"
                       (click)="hideFromLibrary(a.id, $event)"
                       [attr.aria-label]="'STUDIO.ASSETS.LIBRARY_HIDE' | translate"
                       [attr.data-testid]="'my-library-hide-' + a.id"

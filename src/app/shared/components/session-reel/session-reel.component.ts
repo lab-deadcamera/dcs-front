@@ -58,7 +58,7 @@ import { StudioStore } from '@app/core/stores/studio.store';
                   </span>
                 }
                 <span
-                  class="pointer-events-none absolute bottom-1 right-1 bg-ink-950/70 px-1 font-mono text-[9px] text-fg-strong"
+                  class="pointer-events-none absolute bottom-1 right-1 bg-ink-950/70 px-1 font-mono text-[9px] text-white"
                 >
                   {{ clip.durationSeconds }}s
                 </span>
