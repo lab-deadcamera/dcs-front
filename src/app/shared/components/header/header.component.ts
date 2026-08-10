@@ -65,10 +65,11 @@ const ROUTES: Array<{
     ModelSelectDialogComponent,
   ],
   // Sticky header — pins the brand strip + primary nav to the top of the
-  // viewport as the user scrolls. `bg-ink-950` matches the layout shell so
-  // content underneath doesn't bleed through; `z-50` keeps it above the
-  // studio's sticky right-rail and any dialog backdrops below modal-level.
-  host: { class: 'sticky top-0 z-50 bg-ink-950' },
+  // viewport as the user scrolls. Matches the layout shell (slate-50 in
+  // light, true-black ink-950 in dark) so content underneath doesn't bleed
+  // through; `z-50` keeps it above the studio's sticky right-rail and any
+  // dialog backdrops below modal-level.
+  host: { class: 'sticky top-0 z-50 bg-surface-50 dark:bg-ink-950' },
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

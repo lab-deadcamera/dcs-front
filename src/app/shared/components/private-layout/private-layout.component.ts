@@ -9,10 +9,10 @@ import { HeaderComponent } from '@shared/components/header/header.component';
     <!--
       Lateral chrome: the app body is condensed by ~200px on each side
       on xl, with progressively smaller gutters on md/lg. The whole shell
-      uses the same true-black ink-950 so the gutter and the content
-      blend into a single seamless surface.
+      uses a single seamless surface: slate-50 in light mode, true-black
+      ink-950 in dark mode, so the gutter and the content blend together.
     -->
-    <div class="min-h-dvh flex flex-col bg-ink-950 text-fg md:px-8 lg:px-16 3xl:px-[200px]">
+    <div class="min-h-dvh flex flex-col bg-surface-50 dark:bg-ink-950 text-fg md:px-8 lg:px-16 3xl:px-[200px]">
       <app-header />
 
       <main class="flex-1 flex flex-col">

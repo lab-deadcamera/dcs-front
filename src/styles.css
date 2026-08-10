@@ -71,7 +71,7 @@
   }
 
   html, body {
-    background-color: var(--color-surface-0);
+    background-color: var(--color-surface-50);
     color: var(--color-surface-900);
     font-family: 'Helvetica', system-ui, -apple-system, sans-serif;
   }
@@ -223,6 +223,38 @@
     --text-secondary:    var(--p-surface-600);
     --text-muted:        var(--p-surface-400);
     --text-on-primary:   #ffffff;
+
+    /*
+      Light-mode remap of the static "ink" (dark) and "fg" (light) ramps.
+      These are defined once in @theme with dark-first values, so every
+      bg-ink-* / text-fg-* / border-ink-* utility was stuck in dark mode.
+      Redefining the same variables here (base layer wins over theme)
+      makes the whole app theme-aware without touching component code.
+
+      Light uses a cool slate scale so surfaces read with depth instead of
+      flat white: the shell sits on surface-50, cards pop on ink-900, and
+      nested/hover states step down through ink-850/800/700.
+
+      NOTE: ink-950 stays true black in BOTH modes on purpose — it is the
+      dark media overlay (bg-ink-950/70 on thumbnails) and the dark text
+      used on primary-500 badges (text-ink-950).
+    */
+    color-scheme: light;
+
+    --color-ink-950: #000000;
+    --color-ink-900: #ffffff;
+    --color-ink-850: #f6f8fb;
+    --color-ink-800: #eef1f5;
+    --color-ink-700: #dfe4ea;
+    --color-ink-600: #c9d1da;
+    --color-ink-500: #8f9aa6;
+    --color-ink-400: #576370;
+
+    --color-fg-strong: #0f172a;
+    --color-fg:        #334155;
+    --color-fg-muted:  #64748b;
+    --color-fg-faint:  #94a3b8;
+    --color-fg-default: #334155;
   }
 
   .dark {
@@ -238,6 +270,24 @@
     --text-secondary:    var(--color-fg);
     --text-muted:        var(--color-fg-muted);
     --text-on-primary:   #ffffff;
+
+    /* Dark-mode remap — explicit mirror of the @theme defaults (dark-first). */
+    color-scheme: dark;
+
+    --color-ink-950: #000000;
+    --color-ink-900: #0a0a0a;
+    --color-ink-850: #111111;
+    --color-ink-800: #161616;
+    --color-ink-700: #1f1f1f;
+    --color-ink-600: #2a2a2a;
+    --color-ink-500: #3a3a3a;
+    --color-ink-400: #4a4a4a;
+
+    --color-fg-strong: #ffffff;
+    --color-fg:        #d4d4d4;
+    --color-fg-muted:  #8a8a8a;
+    --color-fg-faint:  #4a4a4a;
+    --color-fg-default: #d4d4d4;
   }
 
   /*
@@ -529,6 +579,7 @@
   --color-ink-700: #1f1f1f;
   --color-ink-600: #2a2a2a;
   --color-ink-500: #3a3a3a;
+  --color-ink-400: #4a4a4a;
 
   --color-brand-red:    #ef2b3a;
   --color-brand-green:  #b9ff3c;
@@ -540,6 +591,7 @@
   --color-fg:        #d4d4d4;
   --color-fg-muted:  #8a8a8a;
   --color-fg-faint:  #4a4a4a;
+  --color-fg-default: #d4d4d4;
 
   /* Display font for titles and step numbers. */
   --font-display: 'Akira Expanded', 'Impact', system-ui, sans-serif;
