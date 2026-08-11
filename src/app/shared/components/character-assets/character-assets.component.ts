@@ -324,7 +324,7 @@ export class CharacterAssetsComponent {
     }
     for (const f of a.files) {
       const before = this.studio.usedAssets().length;
-      // Respect the @imageN slot inherited from the chapter assignment:
+      // Respect the [ImageN] slot inherited from the chapter assignment:
       // characters keep it in chapterCharacterData, assets in chapterAssetSlots.
       const charSlot = this.studio
         .chapterCharacterData()

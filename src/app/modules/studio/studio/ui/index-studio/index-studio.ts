@@ -1380,7 +1380,7 @@ export class IndexStudio implements OnInit {
     const output = this.studio.output();
     const refs = this.collectReferenceAssets();
     const hints = this.buildFrameHints();
-    // Reindex @imageN/@videoN/@audioN tokens to positional numbers matching the
+    // Reindex [ImageN]/[VideoN]/[AudioN] tokens to positional numbers matching the
     // order the reference items are attached below. Every occurrence in the text
     // is rewritten, so the model resolves each token against the correct ref.
     const reindexedText = reindexSlotTokens(text, refs);
@@ -1468,7 +1468,7 @@ export class IndexStudio implements OnInit {
 
   /**
    * Register the shot's referenced chapter resources as used assets and reindex
-   * the prompt's @imageN/@videoN/@audioN tokens to positional numbers. Runs once
+   * the prompt's [ImageN]/[VideoN]/[AudioN] tokens to positional numbers. Runs once
    * the raw description AND the chapter assignments are both available; order of
    * arrival does not matter because registration always reads the ORIGINAL
    * description (never an already-reindexed or user-edited text).
@@ -1481,7 +1481,7 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Rewrite the loaded shot pre-prompt so its @imageN/@videoN/@audioN tokens
+   * Rewrite the loaded shot pre-prompt so its [ImageN]/[VideoN]/[AudioN] tokens
    * become positional (matching the order the references are attached), so the
    * editor shows the same numbers the payload will send. Guarded so it only
    * applies while the editor still holds the raw backend description — once

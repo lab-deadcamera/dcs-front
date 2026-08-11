@@ -31,8 +31,8 @@ El nuevo `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
     "title": "EPISODE 16: EXPERTISE",
     "totalDuration": 120,
     "assetAssignments": [
-      { "slot": "@image1", "assetId": "wyatt", "type": "character" },
-      { "slot": "@image4", "assetId": "kitchen-plate", "type": "environment" }
+      { "slot": "[Image1]", "assetId": "wyatt", "type": "character" },
+      { "slot": "[Image4]", "assetId": "kitchen-plate", "type": "environment" }
     ]
   },
   "aspectRatio": "9:16",
@@ -58,8 +58,8 @@ El nuevo `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
         "notes": [...]
       },
       "references": [
-        { "slot": "@image1", "assetId": "wyatt", "type": "character" },
-        { "slot": "@image4", "assetId": "kitchen-plate", "type": "environment" }
+        { "slot": "[Image1]", "assetId": "wyatt", "type": "character" },
+        { "slot": "[Image4]", "assetId": "kitchen-plate", "type": "environment" }
       ],
       "shots": [
         {
@@ -98,7 +98,7 @@ El shot list viewer debe mostrar:
 ```
 ▼ Scene 56 — INT. WYATT'S KITCHEN — DAY  (25s)  [present]
   │  Continuity: Cold open → Wyatt desperate → Dixie calm
-  │  Refs: @image1 wyatt, @image2 dixie, @image4 kitchen-plate
+  │  Refs: [Image1] wyatt, [Image2] dixie, [Image4] kitchen-plate
   │
   ├── Shot A: Wyatt paces frantically  (10s)   [Use] [Edit]
   │     Description: ...
@@ -114,7 +114,7 @@ El shot list viewer debe mostrar:
 
 ▼ Scene 57 — INT. CONVENIENCE STORE — NIGHT (FLASHBACK)  (18s)
   │  Continuity: ⚠️ LOCATION CHANGE → NIGHT → 2015
-  │  Refs: @image2 dixie(15), @image3 destiny, @image5 store-plate
+  │  Refs: [Image2] dixie(15), [Image3] destiny, [Image5] store-plate
   │
   └── Shot C: Dixie(15) waiting for the signal  (8s)  [Use] [Edit]
 ```
@@ -158,7 +158,7 @@ GET /projects/:pid/scenes?script_number=56
 
 ```
 POST /episodes/:episodeId/assets
-  Body: { slot: "@image1", assetId: "wyatt", type: "character" }
+  Body: { slot: "[Image1]", assetId: "wyatt", type: "character" }
 ```
 
 (O un bulk-assign si existe endpoint)
@@ -272,8 +272,8 @@ export const EPISODE_MOCK = {
     title: "EPISODE 16: EXPERTISE",
     totalDuration: 120,
     assetAssignments: [
-      { slot: "@image1", assetId: "wyatt", type: "character" },
-      { slot: "@image2", assetId: "dixie", type: "character" },
+      { slot: "[Image1]", assetId: "wyatt", type: "character" },
+      { slot: "[Image2]", assetId: "dixie", type: "character" },
     ]
   },
   scenes: [
@@ -295,12 +295,12 @@ export const EPISODE_MOCK = {
         notes: ["Cold open del episodio"]
       },
       references: [
-        { slot: "@image1", assetId: "wyatt", type: "character" }
+        { slot: "[Image1]", assetId: "wyatt", type: "character" }
       ],
       shots: [
         {
           number: 1, name: "Wyatt paces", description: "...",
-          references: [{ slot: "@image1", assetId: "wyatt", type: "character" }]
+          references: [{ slot: "[Image1]", assetId: "wyatt", type: "character" }]
         }
       ]
     }

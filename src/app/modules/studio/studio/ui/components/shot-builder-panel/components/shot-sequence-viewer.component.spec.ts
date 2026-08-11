@@ -152,20 +152,20 @@ describe('ShotSequenceViewerComponent', () => {
   });
 
   it('unresolvedRefs es la ÚNICA fuente: todas las refs sin resolver, aprobadas o no', () => {
-    setSequence([makeShot('S1', 'p1', ['@image1']), makeShot('S2', 'p2', ['@image2'])]);
+    setSequence([makeShot('S1', 'p1', ['[Image1]']), makeShot('S2', 'p2', ['[Image2]'])]);
     (component as any).approvedMap['S1'] = true;
     (component as any).approvedTick.update((n: number) => n + 1);
 
-    // No depende de la aprobación: @image1 y @image2 aparecen igual.
+    // No depende de la aprobación: [Image1] y [Image2] aparecen igual.
     expect((component as any).unresolvedRefs().map((r: any) => r.slot).sort()).toEqual([
-      '@image1',
-      '@image2',
+      '[Image1]',
+      '[Image2]',
     ]);
   });
 
   it('excluye los slots ya asignados por el resolver', () => {
-    setSequence([makeShot('S1', 'p1', ['@image1'])]);
-    (component as any).onAssignedSlotsChange(new Set(['@image1']));
+    setSequence([makeShot('S1', 'p1', ['[Image1]'])]);
+    (component as any).onAssignedSlotsChange(new Set(['[Image1]']));
 
     expect((component as any).unresolvedRefs()).toHaveLength(0);
   });
@@ -175,11 +175,11 @@ describe('ShotSequenceViewerComponent', () => {
     studioStub.freeAssets.mockReturnValue([
       { id: 'file-a', filename: 'Kitchen Plate.jpg', kind: 'image', tag: '', slot: 'free' },
     ]);
-    setSequence([makeShot('S1', 'p1', ['@image4'])]);
+    setSequence([makeShot('S1', 'p1', ['[Image4]'])]);
 
     // La ref apunta al nombre del archivo (como genera el backend), no al id.
     const seq = (component as any).sequence();
-    seq.references = [{ slot: '@image4', assetId: 'Kitchen Plate.jpg', type: 'location' }];
+    seq.references = [{ slot: '[Image4]', assetId: 'Kitchen Plate.jpg', type: 'location' }];
     fixture.detectChanges();
 
     expect((component as any).unresolvedRefs()).toHaveLength(0);

@@ -5,37 +5,37 @@
     "totalShots": 6,
     "assetAssignments": [
       {
-        "slot": "@image1",
+        "slot": "[Image1]",
         "assetId": "wyatt_adult",
         "type": "character"
       },
       {
-        "slot": "@image2",
+        "slot": "[Image2]",
         "assetId": "dixie_adult",
         "type": "character"
       },
       {
-        "slot": "@image3",
+        "slot": "[Image3]",
         "assetId": "dixie_15",
         "type": "character"
       },
       {
-        "slot": "@image4",
+        "slot": "[Image4]",
         "assetId": "destiny_15",
         "type": "character"
       },
       {
-        "slot": "@image5",
+        "slot": "[Image5]",
         "assetId": "wyatt_kitchen_plate",
         "type": "location"
       },
       {
-        "slot": "@image6",
+        "slot": "[Image6]",
         "assetId": "convenience_store_plate",
         "type": "location"
       },
       {
-        "slot": "@image7",
+        "slot": "[Image7]",
         "assetId": "gas_station_parking_lot_plate",
         "type": "location"
       }
@@ -64,17 +64,17 @@
       },
       "references": [
         {
-          "slot": "@image1",
+          "slot": "[Image1]",
           "assetId": "wyatt_adult",
           "type": "character"
         },
         {
-          "slot": "@image2",
+          "slot": "[Image2]",
           "assetId": "dixie_adult",
           "type": "character"
         },
         {
-          "slot": "@image5",
+          "slot": "[Image5]",
           "assetId": "wyatt_kitchen_plate",
           "type": "location"
         }
@@ -86,12 +86,12 @@
           "description": "Wide shot of Wyatt pacing back and forth across the kitchen while delivering his threat warning. Camera handheld, subtle dolly following his arc.",
           "references": [
             {
-              "slot": "@image1",
+              "slot": "[Image1]",
               "assetId": "wyatt_adult",
               "type": "character"
             },
             {
-              "slot": "@image5",
+              "slot": "[Image5]",
               "assetId": "wyatt_kitchen_plate",
               "type": "location"
             }
@@ -105,12 +105,12 @@
           "description": "Wyatt halts mid-stride and rotates to face Dixie. Single shot on Wyatt's face as he delivers his final desperate plea.",
           "references": [
             {
-              "slot": "@image1",
+              "slot": "[Image1]",
               "assetId": "wyatt_adult",
               "type": "character"
             },
             {
-              "slot": "@image5",
+              "slot": "[Image5]",
               "assetId": "wyatt_kitchen_plate",
               "type": "location"
             }
@@ -124,12 +124,12 @@
           "description": "Reverse shot: Dixie, completely unmoved, stares back at Wyatt with flat indifference. She doesn't blink.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "dixie_adult",
               "type": "character"
             },
             {
-              "slot": "@image5",
+              "slot": "[Image5]",
               "assetId": "wyatt_kitchen_plate",
               "type": "location"
             }
@@ -170,17 +170,17 @@
       },
       "references": [
         {
-          "slot": "@image3",
+          "slot": "[Image3]",
           "assetId": "dixie_15",
           "type": "character"
         },
         {
-          "slot": "@image4",
+          "slot": "[Image4]",
           "assetId": "destiny_15",
           "type": "character"
         },
         {
-          "slot": "@image6",
+          "slot": "[Image6]",
           "assetId": "convenience_store_plate",
           "type": "location"
         }
@@ -192,17 +192,17 @@
           "description": "Wide shot of the convenience store interior. Dixie and Destiny stand in separate aisles wearing plastic cat masks, waiting for the signal. The clerk is distracted with a magazine behind the counter.",
           "references": [
             {
-              "slot": "@image3",
+              "slot": "[Image3]",
               "assetId": "dixie_15",
               "type": "character"
             },
             {
-              "slot": "@image4",
+              "slot": "[Image4]",
               "assetId": "destiny_15",
               "type": "character"
             },
             {
-              "slot": "@image6",
+              "slot": "[Image6]",
               "assetId": "convenience_store_plate",
               "type": "location"
             }
@@ -216,7 +216,7 @@
           "description": "The store door flies open. Two figures in terrifying monster masks burst inside. One draws a handgun and points it at the clerk.",
           "references": [
             {
-              "slot": "@image6",
+              "slot": "[Image6]",
               "assetId": "convenience_store_plate",
               "type": "location"
             }
@@ -230,17 +230,17 @@
           "description": "The moment the gun is drawn, Dixie and Destiny react instantly, moving behind the counter with synchronized, lightning-fast movements to begin the heist.",
           "references": [
             {
-              "slot": "@image3",
+              "slot": "[Image3]",
               "assetId": "dixie_15",
               "type": "character"
             },
             {
-              "slot": "@image4",
+              "slot": "[Image4]",
               "assetId": "destiny_15",
               "type": "character"
             },
             {
-              "slot": "@image6",
+              "slot": "[Image6]",
               "assetId": "convenience_store_plate",
               "type": "location"
             }
@@ -254,17 +254,17 @@
           "description": "Dixie and Destiny finish loading the money and begin moving toward the exit. The robbers are still controlling the clerk.",
           "references": [
             {
-              "slot": "@image3",
+              "slot": "[Image3]",
               "assetId": "dixie_15",
               "type": "character"
             },
             {
-              "slot": "@image4",
+              "slot": "[Image4]",
               "assetId": "destiny_15",
               "type": "character"
             },
             {
-              "slot": "@image6",
+              "slot": "[Image6]",
               "assetId": "convenience_store_plate",
               "type": "location"
             }
@@ -305,17 +305,17 @@
       },
       "references": [
         {
-          "slot": "@image3",
+          "slot": "[Image3]",
           "assetId": "dixie_15",
           "type": "character"
         },
         {
-          "slot": "@image4",
+          "slot": "[Image4]",
           "assetId": "destiny_15",
           "type": "character"
         },
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "gas_station_parking_lot_plate",
           "type": "location"
         }
@@ -327,12 +327,12 @@
           "description": "Dixie runs hard through the dark parking lot, clutching the money bag. Police sirens wail in the distance. Blue and red lights begin to strobe against the surfaces.",
           "references": [
             {
-              "slot": "@image3",
+              "slot": "[Image3]",
               "assetId": "dixie_15",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "gas_station_parking_lot_plate",
               "type": "location"
             }
@@ -346,12 +346,12 @@
           "description": "Destiny's foot catches the curb. She slams hard onto the wet asphalt. A police officer steps over her and handcuffs her as she thrashes in terror.",
           "references": [
             {
-              "slot": "@image4",
+              "slot": "[Image4]",
               "assetId": "destiny_15",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "gas_station_parking_lot_plate",
               "type": "location"
             }
@@ -365,12 +365,12 @@
           "description": "Close on Destiny's face as she screams in pure terror, looking up at the sky/camera, calling for Dixie to help.",
           "references": [
             {
-              "slot": "@image4",
+              "slot": "[Image4]",
               "assetId": "destiny_15",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "gas_station_parking_lot_plate",
               "type": "location"
             }
@@ -406,12 +406,12 @@
       },
       "references": [
         {
-          "slot": "@image2",
+          "slot": "[Image2]",
           "assetId": "dixie_adult",
           "type": "character"
         },
         {
-          "slot": "@image5",
+          "slot": "[Image5]",
           "assetId": "wyatt_kitchen_plate",
           "type": "location"
         }
@@ -423,12 +423,12 @@
           "description": "Medium shot of Dixie as she slowly raises a beer bottle to her lips and takes a deliberate sip. Her face is calm, composed, utterly unbothered.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "dixie_adult",
               "type": "character"
             },
             {
-              "slot": "@image5",
+              "slot": "[Image5]",
               "assetId": "wyatt_kitchen_plate",
               "type": "location"
             }
@@ -442,12 +442,12 @@
           "description": "Close-up on Dixie's face as she delivers her final, chilling response: 'You could say I have some experience.' Her deadpan delivery lands with absolute finality.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "dixie_adult",
               "type": "character"
             },
             {
-              "slot": "@image5",
+              "slot": "[Image5]",
               "assetId": "wyatt_kitchen_plate",
               "type": "location"
             }

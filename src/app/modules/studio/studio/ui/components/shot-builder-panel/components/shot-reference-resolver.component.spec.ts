@@ -39,7 +39,7 @@ class FilesApiServiceStub {
 }
 
 function makeRef(partial: Partial<Reference> = {}): Reference {
-  return { slot: '@image1', assetId: 'xxx', type: 'character', ...partial };
+  return { slot: '[Image1]', assetId: 'xxx', type: 'character', ...partial };
 }
 
 // ─── Suite ─────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ describe('ShotReferenceResolverComponent', () => {
   });
 
   it('clasifica una referencia como no resuelta según el input unresolved', () => {
-    const ref = makeRef({ slot: '@image1', assetId: 'missing' });
+    const ref = makeRef({ slot: '[Image1]', assetId: 'missing' });
     fixture.componentRef.setInput('references', [ref]);
     fixture.componentRef.setInput('unresolved', [ref]);
     fixture.detectChanges();
@@ -102,18 +102,18 @@ describe('ShotReferenceResolverComponent', () => {
   });
 
   it('asigna un free asset con el slot de la referencia y refresca assignments', () => {
-    const ref = makeRef({ slot: '@image3', assetId: 'missing' });
+    const ref = makeRef({ slot: '[Image3]', assetId: 'missing' });
     (component as any).assignTarget.set(ref);
 
     (component as any).assignFile('file-1', ref.slot);
 
-    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-1', '@image3');
+    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-1', '[Image3]');
     expect(projects.getChapterAssignments).toHaveBeenCalledWith('proj-1', 'chap-1');
     expect(studio.setChapterAssignments).toHaveBeenCalled();
   });
 
   it('marca el slot como asignado y emite assignedSlotsChange tras asignar', () => {
-    const ref = makeRef({ slot: '@image6', assetId: 'missing' });
+    const ref = makeRef({ slot: '[Image6]', assetId: 'missing' });
     const emitted: Set<string>[] = [];
     (component as any).assignedSlotsChange.subscribe((s: Set<string>) => emitted.push(s));
     (component as any).assignTarget.set(ref);
@@ -128,12 +128,12 @@ describe('ShotReferenceResolverComponent', () => {
     // Tras asignar, deja de estar unresolved y se notificó al viewer.
     expect((component as any).isUnresolvedRef(ref)).toBe(false);
     expect(emitted.length).toBe(1);
-    expect(emitted[0].has('@image6')).toBe(true);
+    expect(emitted[0].has('[Image6]')).toBe(true);
   });
 
   it('no hace nada cuando el asset ya tiene el slot destino', () => {
-    const ref = makeRef({ slot: '@image2', assetId: 'missing' });
-    studio.chapterAssetSlots.mockReturnValue(new Map([['file-1', '@image2']]));
+    const ref = makeRef({ slot: '[Image2]', assetId: 'missing' });
+    studio.chapterAssetSlots.mockReturnValue(new Map([['file-1', '[Image2]']]));
     (component as any).assignTarget.set(ref);
 
     (component as any).assignFile('file-1', ref.slot);
@@ -143,8 +143,8 @@ describe('ShotReferenceResolverComponent', () => {
   });
 
   it('reasigna (remove + assign) cuando el asset ya tiene OTRO slot', () => {
-    const ref = makeRef({ slot: '@image4', assetId: 'missing' });
-    studio.chapterAssetSlots.mockReturnValue(new Map([['file-1', '@image1']]));
+    const ref = makeRef({ slot: '[Image4]', assetId: 'missing' });
+    studio.chapterAssetSlots.mockReturnValue(new Map([['file-1', '[Image1]']]));
     studio.chapterAssetAssignmentIds.mockReturnValue(new Map([['file-1', 'assign-old']]));
     (component as any).assignTarget.set(ref);
 
@@ -152,11 +152,11 @@ describe('ShotReferenceResolverComponent', () => {
 
     expect(projects.removeAssetFromChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'assign-old');
     // The assign happens in the remove's subscribe (synchronous of()).
-    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-1', '@image4');
+    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-1', '[Image4]');
   });
 
   it('sube un free asset y lo asigna con el slot de la referencia', () => {
-    const ref = makeRef({ slot: '@image5', assetId: 'missing' });
+    const ref = makeRef({ slot: '[Image5]', assetId: 'missing' });
     files.upload.mockReturnValue(
       of({ error: false, msg: 'ok', data: { id: 'file-9', filename: 'nuevo.png' } }),
     );
@@ -169,7 +169,7 @@ describe('ShotReferenceResolverComponent', () => {
     expect(studio.addFreeAsset).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'file-9', kind: 'image', filename: 'nuevo.png' }),
     );
-    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-9', '@image5');
+    expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-9', '[Image5]');
     expect(projects.getChapterAssignments).toHaveBeenCalled();
   });
 });

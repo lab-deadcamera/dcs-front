@@ -590,7 +590,7 @@
       "GOT_IT": "Entendido",
       "UNRESOLVED_TITLE": "Referencias sin resolver",
       "UNRESOLVED_BODY": "Hay {{n}} referencia(s) sin un asset o character relacionado en el episodio:",
-      "UNRESOLVED_HINT": "Puedes asignar un free asset a cada una en la sección \"Referencias @image\", o continuar de todos modos.",
+      "UNRESOLVED_HINT": "Puedes asignar un free asset a cada una en la sección \"Referencias [Image]\", o continuar de todos modos.",
       "CONTINUE": "Continuar",
       "REF_TYPE_CHARACTER": "personaje",
       "REF_TYPE_LOCATION": "locación",

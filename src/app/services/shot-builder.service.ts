@@ -458,7 +458,7 @@ export class ShotBuilderService {
   }
 
   /**
-   * Assign a character to a shot with an optional slot (@imageN).
+   * Assign a character to a shot with an optional slot ([ImageN]).
    */
   assignCharacterToShot(
     projectId: string,
@@ -752,14 +752,17 @@ export class ShotBuilderService {
 }
 
 /**
- * Normalize Seedance reference slots in a prompt from the bracketed
- * "[ImageN]" header the backend used to produce, to the "@imageN" slot format
- * the rest of the system uses (references, saved pre-prompts, the generator).
+ * Normalize legacy "@imageN"/"@videoN"/"@audioN" reference slots in a prompt
+ * to the canonical bracketed "[ImageN]"/"[VideoN]"/"[AudioN]" format used by
+ * the rest of the system (references, saved pre-prompts, the generator).
  * Idempotent — safe to apply to already-normalized text.
  */
 export function normalizeSeedanceSlots(text: string | undefined | null): string {
   if (!text) return text ?? '';
-  return text.replace(/\[image(\d+)\]/gi, '@image$1');
+  return text.replace(/@(image|video|audio)(\d+)/gi, (m, kind: string, num: string) => {
+    const label = kind[0].toUpperCase() + kind.slice(1).toLowerCase();
+    return `[${label}${num}]`;
+  });
 }
 
 /**

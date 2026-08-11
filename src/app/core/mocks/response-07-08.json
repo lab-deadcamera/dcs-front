@@ -5,72 +5,72 @@
     "totalShots": 14,
     "assetAssignments": [
       {
-        "slot": "@image1",
+        "slot": "[Image1]",
         "assetId": "2f08fef8-9e28-42fd-b1b2-bcee0968fcd1",
         "type": "character"
       },
       {
-        "slot": "@image2",
+        "slot": "[Image2]",
         "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
         "type": "character"
       },
       {
-        "slot": "@image6",
+        "slot": "[Image6]",
         "assetId": "255ef47b-91f0-49b5-99af-ee991194a48e",
         "type": "character"
       },
       {
-        "slot": "@image7",
+        "slot": "[Image7]",
         "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
         "type": "character"
       },
       {
-        "slot": "@image9",
+        "slot": "[Image9]",
         "assetId": "24bf6c20-c840-4d25-bab9-c37a72bfbc35",
         "type": "character"
       },
       {
-        "slot": "@image10",
+        "slot": "[Image10]",
         "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
         "type": "character"
       },
       {
-        "slot": "@image11",
+        "slot": "[Image11]",
         "assetId": "452d8b98-5a11-4769-82c9-b997e6807ddb",
         "type": "character"
       },
       {
-        "slot": "@image12",
+        "slot": "[Image12]",
         "assetId": "67c1d288-8a39-4c79-a5ce-e5911f39d1c7",
         "type": "character"
       },
       {
-        "slot": "@image13",
+        "slot": "[Image13]",
         "assetId": "cb0b0196-a58f-46bf-9fa6-5daf6e439594",
         "type": "location"
       },
       {
-        "slot": "@image16",
+        "slot": "[Image16]",
         "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
         "type": "location"
       },
       {
-        "slot": "@image18",
+        "slot": "[Image18]",
         "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
         "type": "location"
       },
       {
-        "slot": "@image20",
+        "slot": "[Image20]",
         "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
         "type": "location"
       },
       {
-        "slot": "@image21",
+        "slot": "[Image21]",
         "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
         "type": "location"
       },
       {
-        "slot": "@image28",
+        "slot": "[Image28]",
         "assetId": "616069cf-5d47-4615-a3bd-5cf3c89913d6",
         "type": "prop"
       }
@@ -102,12 +102,12 @@
       },
       "references": [
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image21",
+          "slot": "[Image21]",
           "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
           "type": "location"
         }
@@ -120,17 +120,17 @@
           "description": "Dixie walks steadily across the parking lot, eyes forward, ignoring the digital clock above the doors.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image21",
+              "slot": "[Image21]",
               "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image21\n\nScene and Mood: Dixie in brunette wig and tailored business suit strides across asphalt toward bank entrance; midday sunlight creates hard shadows. Objective: maintain operational discipline—play TO COMPARTMENTALIZE.\n\nComposition: @image7 enters frame left-center at two-thirds depth, walks toward camera right following the glass facade. Digital clock above doors sits in upper-right corner out of focus.\n\nSpace and Mélange: Broad parking lot, teal-tinted concrete, marble-faced bank facade ahead. Dixie walks the centerline with deliberate posture, shoulders relaxed but eyes locked forward. No peripheral glance at the clock—absolute tunnel vision.\n\nCross-Shot Rule: N/A — single subject establishing shot.\n\nAction: At 0s, she enters frame with a steady measured gait. At 3s, shoulders subtly settle—micro-fidget: one nostril flare (0.2s). At 5s, she lifts phone to ear, thumb pressing edge, no hesitation. At 7s, she reaches the glass doors.\n\nDialogue: \"Breathe, Wyatt.\" — Speaker: Dixie (into phone). Wyatt's V.O. line 'Truck's at 11:02' plays over, unattributed to lips.\n\nEnding Shot: Dixie's hand on the glass door handle, face partially obscured by reflection, body at threshold.\n\nEnvironmental Base: Exterior first city bank parking lot, daylight, warm-tinted asphalt, digital clock 10:58 visible but not centered.\n\nSound Layer: Ambient parking lot hum, distant traffic, phone line static underneath Wyatt's V.O.\n\nCapture: real skin texture, no bloom on lips despite makeup, asphalt grain visible, soft bokeh on clock. Handheld locked on tripod with breath-rhythm micro-drift. 35mm film stock, teal-amber grade, 24fps 180-degree, fine grain. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image21]\n\nScene and Mood: Dixie in brunette wig and tailored business suit strides across asphalt toward bank entrance; midday sunlight creates hard shadows. Objective: maintain operational discipline—play TO COMPARTMENTALIZE.\n\nComposition: [Image7] enters frame left-center at two-thirds depth, walks toward camera right following the glass facade. Digital clock above doors sits in upper-right corner out of focus.\n\nSpace and Mélange: Broad parking lot, teal-tinted concrete, marble-faced bank facade ahead. Dixie walks the centerline with deliberate posture, shoulders relaxed but eyes locked forward. No peripheral glance at the clock—absolute tunnel vision.\n\nCross-Shot Rule: N/A — single subject establishing shot.\n\nAction: At 0s, she enters frame with a steady measured gait. At 3s, shoulders subtly settle—micro-fidget: one nostril flare (0.2s). At 5s, she lifts phone to ear, thumb pressing edge, no hesitation. At 7s, she reaches the glass doors.\n\nDialogue: \"Breathe, Wyatt.\" — Speaker: Dixie (into phone). Wyatt's V.O. line 'Truck's at 11:02' plays over, unattributed to lips.\n\nEnding Shot: Dixie's hand on the glass door handle, face partially obscured by reflection, body at threshold.\n\nEnvironmental Base: Exterior first city bank parking lot, daylight, warm-tinted asphalt, digital clock 10:58 visible but not centered.\n\nSound Layer: Ambient parking lot hum, distant traffic, phone line static underneath Wyatt's V.O.\n\nCapture: real skin texture, no bloom on lips despite makeup, asphalt grain visible, soft bokeh on clock. Handheld locked on tripod with breath-rhythm micro-drift. 35mm film stock, teal-amber grade, 24fps 180-degree, fine grain. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 8,
           "start": 0,
           "end": 8
@@ -142,17 +142,17 @@
           "description": "Dixie holds her phone to her ear, delivering a short directive, then pushes through the glass doors.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image21",
+              "slot": "[Image21]",
               "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image21\n\nScene and Mood: Dixie at the threshold, phone pressed to ear, speaking into it with controlled breath. Objective: TO KEEP CONTROL—holding the heist's timeline despite internal pressure.\n\nComposition: @image7 shoulder-left in frame, three-quarter angle to camera, glass doors and marble facade behind her reflecting cool morning light. Phone hand at ear, elbow at ribcage.\n\nSpace and Mélange: Bank facade behind her, doors at frame-right edge, asphalt stretching away frame-left. Dixie stands at threshold, weight slightly forward on left foot, right foot braced. Eyes level, jaw tight.\n\nCross-Shot Rule: Continuation of Shot A — same location, closer framing. Eyeline to phone matches earpiece direction.\n\nAction: At 0s, she lifts phone, speaks the line 'Breathe, Wyatt.' with a measured cadence (1.8 words/sec). At 3s, micro-fidget: asymmetric lip curl on right corner (0.3s) — subtle irony. At 5s, jaw resets. At 7s, she pushes the door open with her left hand, body turning toward entry.\n\nDialogue: 'Breathe, Wyatt.' — Speaker: Dixie (into phone).\n\nEnding Shot: Dixie's body half in/half out of glass doors, phone still at ear, face turning inward toward bank interior.\n\nEnvironmental Base: Bank entrance, daylight bleeding into interior, glass reflections, marble facade, morning shadows.\n\nSound Layer: Door hinge click, phone static, ambient traffic faint beyond.\n\nCapture: fine facial detail, real lip texture, phone edge catching light realistically. Handheld slow push forward, 0.3mm/frame drift. 35mm film, teal-amber grade, 24fps, 180-degree shutter, fine grain. Runtime 10 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image21]\n\nScene and Mood: Dixie at the threshold, phone pressed to ear, speaking into it with controlled breath. Objective: TO KEEP CONTROL—holding the heist's timeline despite internal pressure.\n\nComposition: [Image7] shoulder-left in frame, three-quarter angle to camera, glass doors and marble facade behind her reflecting cool morning light. Phone hand at ear, elbow at ribcage.\n\nSpace and Mélange: Bank facade behind her, doors at frame-right edge, asphalt stretching away frame-left. Dixie stands at threshold, weight slightly forward on left foot, right foot braced. Eyes level, jaw tight.\n\nCross-Shot Rule: Continuation of Shot A — same location, closer framing. Eyeline to phone matches earpiece direction.\n\nAction: At 0s, she lifts phone, speaks the line 'Breathe, Wyatt.' with a measured cadence (1.8 words/sec). At 3s, micro-fidget: asymmetric lip curl on right corner (0.3s) — subtle irony. At 5s, jaw resets. At 7s, she pushes the door open with her left hand, body turning toward entry.\n\nDialogue: 'Breathe, Wyatt.' — Speaker: Dixie (into phone).\n\nEnding Shot: Dixie's body half in/half out of glass doors, phone still at ear, face turning inward toward bank interior.\n\nEnvironmental Base: Bank entrance, daylight bleeding into interior, glass reflections, marble facade, morning shadows.\n\nSound Layer: Door hinge click, phone static, ambient traffic faint beyond.\n\nCapture: fine facial detail, real lip texture, phone edge catching light realistically. Handheld slow push forward, 0.3mm/frame drift. 35mm film, teal-amber grade, 24fps, 180-degree shutter, fine grain. Runtime 10 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 10,
           "start": 8,
           "end": 18
@@ -189,22 +189,22 @@
       },
       "references": [
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image10",
+          "slot": "[Image10]",
           "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
           "type": "character"
         },
         {
-          "slot": "@image12",
+          "slot": "[Image12]",
           "assetId": "67c1d288-8a39-4c79-a5ce-e5911f39d1c7",
           "type": "character"
         },
         {
-          "slot": "@image18",
+          "slot": "[Image18]",
           "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
           "type": "location"
         }
@@ -217,17 +217,17 @@
           "description": "Dixie crosses the marble floor, assessing the guard position, the manager's glass office, and the vault door in the background.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image18",
+              "slot": "[Image18]",
               "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image18\n\nScene and Mood: Dixie walks through the marble bank lobby, phone still at ear, her eyes methodically cataloging positions and sightlines. Objective: TO GATHER INTEL—scanning for guard placement, camera blind spots, manager position, vault entry.\n\nComposition: @image7 enters frame center-left, walks toward vault position at frame-right depth. Marble floor extends horizontally. Glass office (manager's fishbowl) occupies upper-right background. Vault door visible but not dominant in frame yet.\n\nSpace and Mélange: High-ceilinged marble bank interior, cool institutional lighting, teal-gray tone. Guard positioned near entrance frame-right. Manager visible through glass partition in office rear-right. Dixie walks the centerline, head tracking vault direction without obvious stare. Phone at ear throughout.\n\nCross-Shot Rule: Single wide establishing shot of lobby layout.\n\nAction: At 0s, she enters frame, phone to ear, eyes moving left-to-right across the floor. At 3s, she glances left (guard position) without turning head—just eyes. At 6s, she passes a teller station. At 9s, her stride subtly slows as she reaches the vault-sightline position. Micro-fidget at 7s: rapid 2-frame eye-dart to the glass office (manager), then returns to vault focus.\n\nDialogue: 'One guard. Manager's in the fishbowl. Northwest camera's dead — nobody's cleaned that lens in a year.' — Speaker: Dixie (into phone, whispered).\n\nEnding Shot: Dixie at midpoint of lobby, body angled toward vault, phone still pressed to ear, jaw slightly clenched.\n\nEnvironmental Base: First City Bank interior, marble floor, institutional daylight from upper windows, cool-tinted walls, glass partitions, vault door visible in mid-distance.\n\nSound Layer: Marble floor subtle echo under her footsteps, phone static, ambient bank interior (faint cash register, papers shuffling distant).\n\nCapture: real marble texture, soft institutional lighting without gloss on face, phone antenna visible in hand. Handheld slow tracking follow-through from left to right, 0.4mm/frame drift. 35mm film, cool-tinted color-negative, fine grain, 24fps 180-degree. Runtime 12 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image18]\n\nScene and Mood: Dixie walks through the marble bank lobby, phone still at ear, her eyes methodically cataloging positions and sightlines. Objective: TO GATHER INTEL—scanning for guard placement, camera blind spots, manager position, vault entry.\n\nComposition: [Image7] enters frame center-left, walks toward vault position at frame-right depth. Marble floor extends horizontally. Glass office (manager's fishbowl) occupies upper-right background. Vault door visible but not dominant in frame yet.\n\nSpace and Mélange: High-ceilinged marble bank interior, cool institutional lighting, teal-gray tone. Guard positioned near entrance frame-right. Manager visible through glass partition in office rear-right. Dixie walks the centerline, head tracking vault direction without obvious stare. Phone at ear throughout.\n\nCross-Shot Rule: Single wide establishing shot of lobby layout.\n\nAction: At 0s, she enters frame, phone to ear, eyes moving left-to-right across the floor. At 3s, she glances left (guard position) without turning head—just eyes. At 6s, she passes a teller station. At 9s, her stride subtly slows as she reaches the vault-sightline position. Micro-fidget at 7s: rapid 2-frame eye-dart to the glass office (manager), then returns to vault focus.\n\nDialogue: 'One guard. Manager's in the fishbowl. Northwest camera's dead — nobody's cleaned that lens in a year.' — Speaker: Dixie (into phone, whispered).\n\nEnding Shot: Dixie at midpoint of lobby, body angled toward vault, phone still pressed to ear, jaw slightly clenched.\n\nEnvironmental Base: First City Bank interior, marble floor, institutional daylight from upper windows, cool-tinted walls, glass partitions, vault door visible in mid-distance.\n\nSound Layer: Marble floor subtle echo under her footsteps, phone static, ambient bank interior (faint cash register, papers shuffling distant).\n\nCapture: real marble texture, soft institutional lighting without gloss on face, phone antenna visible in hand. Handheld slow tracking follow-through from left to right, 0.4mm/frame drift. 35mm film, cool-tinted color-negative, fine grain, 24fps 180-degree. Runtime 12 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 12,
           "start": 18,
           "end": 30
@@ -239,22 +239,22 @@
           "description": "Dixie's expression shifts from operational focus to shock as she recognizes Destiny wearing a teller name tag behind the counter.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image10",
+              "slot": "[Image10]",
               "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
               "type": "character"
             },
             {
-              "slot": "@image18",
+              "slot": "[Image18]",
               "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image10 @image18\n\nScene and Mood: Dixie stops walking. Her eyes land on the teller station. Behind the counter in a bank uniform stands Destiny, name tag visible, counting hundreds. Recognition blooms into panic. Objective: TO CONTAIN THE PANIC—play TO HOLD THE LINE.\n\nComposition: @image7 occupies frame center, chest-up, phone still at ear. @image10 visible in soft focus behind the counter, frame-right, partially obscured by the station partition. Marble counter runs horizontally across lower frame.\n\nSpace and Mélange: Dixie stands mid-lobby, frozen. Teller station and counter occupy the right side, recessed into the back wall. Destiny behind the grill, counting cash. Dixie's focus sharpens and fixes on Destiny's face and name tag.\n\nCross-Shot Rule: Reverse angle to Shot A — Dixie now facing vault/teller area, recognition moment. Eyeline to Destiny at counter position.\n\nAction: At 0s, Dixie's stride stops. At 1s, her eyes narrow slightly and lock onto Destiny. At 3s, her jaw muscles tighten visibly — contracted pharynx. At 5s, micro-fidget: fast eye-dart down to the name tag (reading 'DESTINY'), then back up to face. At 7s, her shoulders settle, phone hand drops fractionally (0.5cm). At 10s, she presses the phone closer to ear, mouth closed.\n\nDialogue: 'Vault.' — Speaker: Wyatt (V.O., over earpiece, commanding).\n\nEnding Shot: Dixie's face still locked on Destiny, shoulders tense, breathing through nose visible, phone pressed hard against ear.\n\nEnvironmental Base: Bank interior, teller station, marble counter, cool institutional light on skin, uniform visible on Destiny in background.\n\nSound Layer: Faint cash machine beep, phone static, Wyatt's V.O. urgent underneath.\n\nCapture: real skin micro-texture, pupils dilated from recognition shock, phone edge creating subtle pressure mark on cheek. Handheld locked-off slow push forward into her face. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 12 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image10] [Image18]\n\nScene and Mood: Dixie stops walking. Her eyes land on the teller station. Behind the counter in a bank uniform stands Destiny, name tag visible, counting hundreds. Recognition blooms into panic. Objective: TO CONTAIN THE PANIC—play TO HOLD THE LINE.\n\nComposition: [Image7] occupies frame center, chest-up, phone still at ear. [Image10] visible in soft focus behind the counter, frame-right, partially obscured by the station partition. Marble counter runs horizontally across lower frame.\n\nSpace and Mélange: Dixie stands mid-lobby, frozen. Teller station and counter occupy the right side, recessed into the back wall. Destiny behind the grill, counting cash. Dixie's focus sharpens and fixes on Destiny's face and name tag.\n\nCross-Shot Rule: Reverse angle to Shot A — Dixie now facing vault/teller area, recognition moment. Eyeline to Destiny at counter position.\n\nAction: At 0s, Dixie's stride stops. At 1s, her eyes narrow slightly and lock onto Destiny. At 3s, her jaw muscles tighten visibly — contracted pharynx. At 5s, micro-fidget: fast eye-dart down to the name tag (reading 'DESTINY'), then back up to face. At 7s, her shoulders settle, phone hand drops fractionally (0.5cm). At 10s, she presses the phone closer to ear, mouth closed.\n\nDialogue: 'Vault.' — Speaker: Wyatt (V.O., over earpiece, commanding).\n\nEnding Shot: Dixie's face still locked on Destiny, shoulders tense, breathing through nose visible, phone pressed hard against ear.\n\nEnvironmental Base: Bank interior, teller station, marble counter, cool institutional light on skin, uniform visible on Destiny in background.\n\nSound Layer: Faint cash machine beep, phone static, Wyatt's V.O. urgent underneath.\n\nCapture: real skin micro-texture, pupils dilated from recognition shock, phone edge creating subtle pressure mark on cheek. Handheld locked-off slow push forward into her face. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 12 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 12,
           "start": 30,
           "end": 42
@@ -287,17 +287,17 @@
       },
       "references": [
         {
-          "slot": "@image11",
+          "slot": "[Image11]",
           "assetId": "452d8b98-5a11-4769-82c9-b997e6807ddb",
           "type": "character"
         },
         {
-          "slot": "@image8",
+          "slot": "[Image8]",
           "assetId": "4ea1aff7-dd7e-4734-b826-61f191000a41",
           "type": "character"
         },
         {
-          "slot": "@image13",
+          "slot": "[Image13]",
           "assetId": "cb0b0196-a58f-46bf-9fa6-5daf6e439594",
           "type": "location"
         }
@@ -310,17 +310,17 @@
           "description": "A police officer pins Young Destiny onto the asphalt while a duffel bag lies visible between their bodies on the street.",
           "references": [
             {
-              "slot": "@image11",
+              "slot": "[Image11]",
               "assetId": "452d8b98-5a11-4769-82c9-b997e6807ddb",
               "type": "character"
             },
             {
-              "slot": "@image13",
+              "slot": "[Image13]",
               "assetId": "cb0b0196-a58f-46bf-9fa6-5daf6e439594",
               "type": "location"
             }
           ],
-          "prompt_en": "@image11 @image13\n\nScene and Mood: Young Destiny (15) is forced face-down onto asphalt by a cop. A duffel bag sits on the ground between them. Red and blue police light stains the pavement. Objective: TO RESIST THE ARREST—play desperate physical struggle, then submission.\n\nComposition: @image11 lies horizontal on asphalt, arms extended upward, cop's body pressing down from above. Duffel bag in lower-center frame. Police car light flickers red-blue across the scene, creating harsh alternating shadows.\n\nSpace and Mélange: Street at night, asphalt texture rough, duffel bag (possibly containing money or evidence) sits center-frame between Destiny and cop. Police light casts red-blue wash over all surfaces. Cops body blocks the frame-left side, Destiny's face turned away.\n\nCross-Shot Rule: Single wide establishing shot of the arrest moment.\n\nAction: At 0s, Destiny's body is already pressed into asphalt. At 1s, her left arm thrashes upward — attempt to push cop away. At 2s, cop's weight settles, pinning arm back down. At 3s, Destiny's head turns toward the duffel bag, eyes desperate. At 4s, mouth opens — about to call out. Micro-fidget: nostril flare (0.3s) — gasping for air under pressure.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Destiny's face pressed down on asphalt, cheek against concrete, eyes toward the duffel bag, breathing shallow and visible.\n\nEnvironmental Base: Street at night, police flashers creating red-blue staccato light, asphalt with visible dirt and debris, duffel bag texture visible.\n\nSound Layer: Cop's radio chatter static, heavy breathing from Destiny, asphalt scrape from body resistance, police siren distant but growing louder.\n\nCapture: rough asphalt texture on skin, red-blue light casting unforgiving shadows, no makeup visible. Handheld shaky, operator-breath rhythm. 35mm color-negative, desaturated red-blue police grade, heavy low-light grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image11] [Image13]\n\nScene and Mood: Young Destiny (15) is forced face-down onto asphalt by a cop. A duffel bag sits on the ground between them. Red and blue police light stains the pavement. Objective: TO RESIST THE ARREST—play desperate physical struggle, then submission.\n\nComposition: [Image11] lies horizontal on asphalt, arms extended upward, cop's body pressing down from above. Duffel bag in lower-center frame. Police car light flickers red-blue across the scene, creating harsh alternating shadows.\n\nSpace and Mélange: Street at night, asphalt texture rough, duffel bag (possibly containing money or evidence) sits center-frame between Destiny and cop. Police light casts red-blue wash over all surfaces. Cops body blocks the frame-left side, Destiny's face turned away.\n\nCross-Shot Rule: Single wide establishing shot of the arrest moment.\n\nAction: At 0s, Destiny's body is already pressed into asphalt. At 1s, her left arm thrashes upward — attempt to push cop away. At 2s, cop's weight settles, pinning arm back down. At 3s, Destiny's head turns toward the duffel bag, eyes desperate. At 4s, mouth opens — about to call out. Micro-fidget: nostril flare (0.3s) — gasping for air under pressure.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Destiny's face pressed down on asphalt, cheek against concrete, eyes toward the duffel bag, breathing shallow and visible.\n\nEnvironmental Base: Street at night, police flashers creating red-blue staccato light, asphalt with visible dirt and debris, duffel bag texture visible.\n\nSound Layer: Cop's radio chatter static, heavy breathing from Destiny, asphalt scrape from body resistance, police siren distant but growing louder.\n\nCapture: rough asphalt texture on skin, red-blue light casting unforgiving shadows, no makeup visible. Handheld shaky, operator-breath rhythm. 35mm color-negative, desaturated red-blue police grade, heavy low-light grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 42,
           "end": 48
@@ -332,17 +332,17 @@
           "description": "Young Dixie's hand snatches the duffel bag from the pavement and she runs off-frame, ignoring Destiny's cry.",
           "references": [
             {
-              "slot": "@image8",
+              "slot": "[Image8]",
               "assetId": "4ea1aff7-dd7e-4734-b826-61f191000a41",
               "type": "character"
             },
             {
-              "slot": "@image13",
+              "slot": "[Image13]",
               "assetId": "cb0b0196-a58f-46bf-9fa6-5daf6e439594",
               "type": "location"
             }
           ],
-          "prompt_en": "@image8 @image13\n\nScene and Mood: Young Dixie's hand reaches down and grabs the duffel bag. She pivots and runs off-frame. Red-blue light flickers across her. Objective: TO SURVIVE—play raw self-preservation, abandonment of conscience.\n\nComposition: Close on @image8's hand and lower arm as she reaches down to asphalt level. Duffel bag fills lower-center frame. Her face is visible in profile, lit by police flasher, moving into frame-left as she pivots to run.\n\nSpace and Mélange: Asphalt, police car light staccato red-blue. Duffel bag on concrete. Young Dixie's body in motion, arm extended low to grab, legs driving into a sprint.\n\nCross-Shot Rule: Tightly framed close-up contrasting with Shot A's wide arrest angle. Same location, simultaneous action.\n\nAction: At 0s, her hand enters frame, reaches down. At 1s, fingers close around duffel handle. At 2s, she pivots hard on left foot, body rotating frame-right. At 3s, her legs extend into a run, shoulders hunched forward. At 4s, she's already off-frame-left edge, only her arm visible pulling the bag. Micro-fidget: 2-frame eye-dart downward (not looking at Destiny), reflex — guilt or fear, suppressed.\n\nDialogue: 'DIXIE!' — Speaker: Young Destiny (off-frame, calling after her).\n\nEnding Shot: Duffel bag in empty frame, hand gone, asphalt still lit red-blue, Destiny's voice fading into distance.\n\nEnvironmental Base: Street at night, asphalt, police flasher red-blue flicker, duffel bag texture visible.\n\nSound Layer: Hand contact on fabric (grab), feet on asphalt (run), duffel bag swinging (whoosh), siren swelling, Young Destiny's voice calling 'DIXIE!' — desperate, unanswered.\n\nCapture: real hand and arm texture, no makeup, asphalt detail sharp, police light casting motion blur on movement. Handheld fast-pan follow from grab to run-off. 35mm color-negative, red-blue police grade desaturated, heavy grain, 24fps 180-degree, shutter slightly faster for motion. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image8] [Image13]\n\nScene and Mood: Young Dixie's hand reaches down and grabs the duffel bag. She pivots and runs off-frame. Red-blue light flickers across her. Objective: TO SURVIVE—play raw self-preservation, abandonment of conscience.\n\nComposition: Close on [Image8]'s hand and lower arm as she reaches down to asphalt level. Duffel bag fills lower-center frame. Her face is visible in profile, lit by police flasher, moving into frame-left as she pivots to run.\n\nSpace and Mélange: Asphalt, police car light staccato red-blue. Duffel bag on concrete. Young Dixie's body in motion, arm extended low to grab, legs driving into a sprint.\n\nCross-Shot Rule: Tightly framed close-up contrasting with Shot A's wide arrest angle. Same location, simultaneous action.\n\nAction: At 0s, her hand enters frame, reaches down. At 1s, fingers close around duffel handle. At 2s, she pivots hard on left foot, body rotating frame-right. At 3s, her legs extend into a run, shoulders hunched forward. At 4s, she's already off-frame-left edge, only her arm visible pulling the bag. Micro-fidget: 2-frame eye-dart downward (not looking at Destiny), reflex — guilt or fear, suppressed.\n\nDialogue: 'DIXIE!' — Speaker: Young Destiny (off-frame, calling after her).\n\nEnding Shot: Duffel bag in empty frame, hand gone, asphalt still lit red-blue, Destiny's voice fading into distance.\n\nEnvironmental Base: Street at night, asphalt, police flasher red-blue flicker, duffel bag texture visible.\n\nSound Layer: Hand contact on fabric (grab), feet on asphalt (run), duffel bag swinging (whoosh), siren swelling, Young Destiny's voice calling 'DIXIE!' — desperate, unanswered.\n\nCapture: real hand and arm texture, no makeup, asphalt detail sharp, police light casting motion blur on movement. Handheld fast-pan follow from grab to run-off. 35mm color-negative, red-blue police grade desaturated, heavy grain, 24fps 180-degree, shutter slightly faster for motion. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 48,
           "end": 54
@@ -374,12 +374,12 @@
       },
       "references": [
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image18",
+          "slot": "[Image18]",
           "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
           "type": "location"
         }
@@ -392,17 +392,17 @@
           "description": "Dixie's face tightens as she looks up at the clock showing 11:01. Wyatt's urgent V.O. demands movement, but she whispers a refusal.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image18",
+              "slot": "[Image18]",
               "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image18\n\nScene and Mood: Dixie's face, close and centered, eyes lifting to the vault clock above the door reading 11:01. Her breath is shallow and controlled. Objective: TO SUPPRESS THE PANIC—play held composure fraying under timeline pressure.\n\nComposition: @image7 chest-up in frame center. Clock face visible in background upper-center, red digital digits reflecting onto her face. Marble wall behind her head.\n\nSpace and Mélange: Bank interior, cool institutional lighting on her skin. She stands frozen mid-floor. Phone no longer at ear now — hand at her side, earpiece still in.\n\nCross-Shot Rule: Single close-up, isolated moment of internal rupture.\n\nAction: At 0s, her eyes lift slowly to the clock. At 1s, pupils dilate slightly as she reads 11:01. At 2s, jaw muscles tighten noticeably — tension visible under skin. At 3s, her breathing becomes visible in her chest — inhale deeper, slower than normal. At 4s, she closes eyes for one full second. At 5s, eyes reopen. Micro-fidget at 6s: asymmetric lip curl (left corner only, 0.2s) — resignation.\n\nDialogue: 'I need a minute.' — Speaker: Dixie (whispered into earpiece). Wyatt's V.O. responds (unattributed): 'You don't HAVE a—'\n\nEnding Shot: Dixie's face still fixed on the clock, eyes slightly wider than normal, mouth just barely open.\n\nEnvironmental Base: Bank interior, institutional lighting, clock digits casting faint red glow on her face, marble surfaces.\n\nSound Layer: Phone static, Wyatt's urgent V.O., faint cash register beep distant, her own breathing audible in the frame.\n\nCapture: real skin pores visible, no foundation shine, sweat-free skin emphasizing the controlled suppression. Handheld locked-off slow push forward. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image18]\n\nScene and Mood: Dixie's face, close and centered, eyes lifting to the vault clock above the door reading 11:01. Her breath is shallow and controlled. Objective: TO SUPPRESS THE PANIC—play held composure fraying under timeline pressure.\n\nComposition: [Image7] chest-up in frame center. Clock face visible in background upper-center, red digital digits reflecting onto her face. Marble wall behind her head.\n\nSpace and Mélange: Bank interior, cool institutional lighting on her skin. She stands frozen mid-floor. Phone no longer at ear now — hand at her side, earpiece still in.\n\nCross-Shot Rule: Single close-up, isolated moment of internal rupture.\n\nAction: At 0s, her eyes lift slowly to the clock. At 1s, pupils dilate slightly as she reads 11:01. At 2s, jaw muscles tighten noticeably — tension visible under skin. At 3s, her breathing becomes visible in her chest — inhale deeper, slower than normal. At 4s, she closes eyes for one full second. At 5s, eyes reopen. Micro-fidget at 6s: asymmetric lip curl (left corner only, 0.2s) — resignation.\n\nDialogue: 'I need a minute.' — Speaker: Dixie (whispered into earpiece). Wyatt's V.O. responds (unattributed): 'You don't HAVE a—'\n\nEnding Shot: Dixie's face still fixed on the clock, eyes slightly wider than normal, mouth just barely open.\n\nEnvironmental Base: Bank interior, institutional lighting, clock digits casting faint red glow on her face, marble surfaces.\n\nSound Layer: Phone static, Wyatt's urgent V.O., faint cash register beep distant, her own breathing audible in the frame.\n\nCapture: real skin pores visible, no foundation shine, sweat-free skin emphasizing the controlled suppression. Handheld locked-off slow push forward. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 8,
           "start": 54,
           "end": 62
@@ -414,17 +414,17 @@
           "description": "Dixie turns and walks purposefully away from the vault, moving deeper into the bank toward the restroom corridor.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image18",
+              "slot": "[Image18]",
               "assetId": "a88baf9e-1a91-4229-9cfd-4054fb7021e8",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image18\n\nScene and Mood: Dixie pivots and walks away from the vault, her stride becoming deliberate and harder. She's breaking protocol. Objective: TO ESCAPE THE MOMENT—physical displacement, buying time.\n\nComposition: @image7 turns from center-frame and walks frame-right toward the rear corridor. Vault door drops out of frame behind her as she moves deeper into the bank. Marble floor extends ahead.\n\nSpace and Mélange: Bank interior, marble floor, institutional lighting. Dixie's body angled away from vault direction, legs carrying her toward a corridor entrance visible frame-right. Shoulders remain upright but stride is faster than before.\n\nCross-Shot Rule: Continuation of Shot A — same location, different angle. Movement breaks the vault positioning.\n\nAction: At 0s, she pivots smoothly on left foot. At 1s, her stride lengthens — two quick steps. At 2s, her head turns slightly frame-right (looking toward corridor). At 3s, shoulders flex slightly with each step — tension in trapezius visible. At 4s, her right hand reaches toward the corridor wall. Micro-fidget: nostril flare at 3.5s (0.2s) — controlled anger or suppressed emotion.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie's body at the corridor entrance, one hand touching the wall, back to camera, about to disappear into the restroom corridor.\n\nEnvironmental Base: Bank interior, marble floor and walls, institutional lighting, corridor entrance.\n\nSound Layer: Her footsteps on marble (crisp, deliberate), hand contact with wall (soft), phone earpiece hum underneath.\n\nCapture: real movement texture, no artificial smoothness, hand skin detail on wall contact. Handheld tracking follow, gentle 0.3mm/frame operator drift. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 7 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image18]\n\nScene and Mood: Dixie pivots and walks away from the vault, her stride becoming deliberate and harder. She's breaking protocol. Objective: TO ESCAPE THE MOMENT—physical displacement, buying time.\n\nComposition: [Image7] turns from center-frame and walks frame-right toward the rear corridor. Vault door drops out of frame behind her as she moves deeper into the bank. Marble floor extends ahead.\n\nSpace and Mélange: Bank interior, marble floor, institutional lighting. Dixie's body angled away from vault direction, legs carrying her toward a corridor entrance visible frame-right. Shoulders remain upright but stride is faster than before.\n\nCross-Shot Rule: Continuation of Shot A — same location, different angle. Movement breaks the vault positioning.\n\nAction: At 0s, she pivots smoothly on left foot. At 1s, her stride lengthens — two quick steps. At 2s, her head turns slightly frame-right (looking toward corridor). At 3s, shoulders flex slightly with each step — tension in trapezius visible. At 4s, her right hand reaches toward the corridor wall. Micro-fidget: nostril flare at 3.5s (0.2s) — controlled anger or suppressed emotion.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie's body at the corridor entrance, one hand touching the wall, back to camera, about to disappear into the restroom corridor.\n\nEnvironmental Base: Bank interior, marble floor and walls, institutional lighting, corridor entrance.\n\nSound Layer: Her footsteps on marble (crisp, deliberate), hand contact with wall (soft), phone earpiece hum underneath.\n\nCapture: real movement texture, no artificial smoothness, hand skin detail on wall contact. Handheld tracking follow, gentle 0.3mm/frame operator drift. 35mm color-negative, cool-tinted, fine grain, 24fps 180-degree. Runtime 7 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 7,
           "start": 62,
           "end": 69
@@ -459,17 +459,17 @@
       },
       "references": [
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image10",
+          "slot": "[Image10]",
           "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
           "type": "character"
         },
         {
-          "slot": "@image20",
+          "slot": "[Image20]",
           "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
           "type": "location"
         }
@@ -482,22 +482,22 @@
           "description": "Destiny stands at the locked restroom door, revealing she's counted $41,400 every night for three years, then throws herself at Dixie.",
           "references": [
             {
-              "slot": "@image10",
+              "slot": "[Image10]",
               "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image20",
+              "slot": "[Image20]",
               "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
               "type": "location"
             }
           ],
-          "prompt_en": "@image10 @image7 @image20\n\nScene and Mood: Destiny stands at the locked restroom door in her bank uniform. Cold institutional light. She speaks a number—$41,400—slowly, like a curse. Then she lunges at Dixie. Objective: TO PUNISH—play years of accumulated rage released as a physical strike.\n\nComposition: @image10 in center-frame at the door (frame-left), uniform visible, face hard. Sink and tile behind her. @image7 stands frame-right, hands raised defensively. Tile walls create hard angles.\n\nSpace and Mélange: Restroom interior, white tile walls, fluorescent overhead light casting sharp shadows. Sink counter runs horizontally left side. Both women roughly 8 feet apart initially. Destiny's body language shifts from static to explosive.\n\nCross-Shot Rule: Two subjects, different depths. Destiny at door, Dixie near sink.\n\nAction: At 0s, Destiny speaks 'Forty-one thousand four hundred' with slow, measured enunciation (counting precision leaking into every syllable). At 3s, she says 'Got very good at counting' — voice cold. At 4s, her body coils. At 5s, she launches forward with both hands. At 6s, she makes contact with Dixie at frame-center. Micro-fidget at 1s: Destiny's nostril flare (0.3s) — rage barely contained.\n\nDialogue: 'Forty-one thousand four hundred.' and 'Got very good at counting.' — Speaker: Destiny (bank teller uniform, @image10).\n\nEnding Shot: The two bodies colliding, Destiny's forearm driving toward Dixie's throat.\n\nEnvironmental Base: Restroom interior, white tile, fluorescent light, stainless sink, hard surface, cold atmosphere.\n\nSound Layer: Destiny's footsteps on tile, body contact (impact), breathing aggressive.\n\nCapture: real tile texture, harsh fluorescent light (no flattering angles), sweat-free initially. Handheld shaky, operator-breath throughout. 35mm color-negative, cool-clinical restroom light, heavy grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image10] [Image7] [Image20]\n\nScene and Mood: Destiny stands at the locked restroom door in her bank uniform. Cold institutional light. She speaks a number—$41,400—slowly, like a curse. Then she lunges at Dixie. Objective: TO PUNISH—play years of accumulated rage released as a physical strike.\n\nComposition: [Image10] in center-frame at the door (frame-left), uniform visible, face hard. Sink and tile behind her. [Image7] stands frame-right, hands raised defensively. Tile walls create hard angles.\n\nSpace and Mélange: Restroom interior, white tile walls, fluorescent overhead light casting sharp shadows. Sink counter runs horizontally left side. Both women roughly 8 feet apart initially. Destiny's body language shifts from static to explosive.\n\nCross-Shot Rule: Two subjects, different depths. Destiny at door, Dixie near sink.\n\nAction: At 0s, Destiny speaks 'Forty-one thousand four hundred' with slow, measured enunciation (counting precision leaking into every syllable). At 3s, she says 'Got very good at counting' — voice cold. At 4s, her body coils. At 5s, she launches forward with both hands. At 6s, she makes contact with Dixie at frame-center. Micro-fidget at 1s: Destiny's nostril flare (0.3s) — rage barely contained.\n\nDialogue: 'Forty-one thousand four hundred.' and 'Got very good at counting.' — Speaker: Destiny (bank teller uniform, [Image10]).\n\nEnding Shot: The two bodies colliding, Destiny's forearm driving toward Dixie's throat.\n\nEnvironmental Base: Restroom interior, white tile, fluorescent light, stainless sink, hard surface, cold atmosphere.\n\nSound Layer: Destiny's footsteps on tile, body contact (impact), breathing aggressive.\n\nCapture: real tile texture, harsh fluorescent light (no flattering angles), sweat-free initially. Handheld shaky, operator-breath throughout. 35mm color-negative, cool-clinical restroom light, heavy grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 8,
           "start": 69,
           "end": 77
@@ -509,22 +509,22 @@
           "description": "In close combat, Dixie grabs Destiny's wrist, twists, and delivers an elbow strike to her mouth. Destiny spits blood.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image10",
+              "slot": "[Image10]",
               "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
               "type": "character"
             },
             {
-              "slot": "@image20",
+              "slot": "[Image20]",
               "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image10 @image20\n\nScene and Mood: Dixie's hand locks onto Destiny's wrist. Her body rotates. Elbow drives toward Destiny's face. Impact. Blood from Destiny's mouth. Objective: TO NEUTRALIZE THE THREAT—play decisive, trained combat response.\n\nComposition: Tight framing on hands and faces. @image7's arm and elbow prominent frame-center. @image10's face fills frame-left, mouth opening from impact. Tile wall harsh behind.\n\nSpace and Mélange: Restroom tile, fluorescent overhead. Bodies close, within arm's length. Wrist lock visible, elbow trajectory clear. Tile provides static background.\n\nCross-Shot Rule: Close fight detail — same location as Shot A, but tightly framed on the strike mechanics.\n\nAction: At 0s, Dixie's hand clamps @image10's wrist. At 1s, she rotates her hips and shoulders, torque visible in her spine. At 2s, her elbow rises and accelerates. At 3s, impact — elbow to mouth. @image10's head snaps back. At 4s, she spits blood (dark red on tile). Micro-fidget: @image7's jaw clenches hard after impact (0.2s) — recoil and control assertion.\n\nDialogue: None—Silent shot (impact sound effect, spitting).\n\nEnding Shot: Blood on @image10's chin, Dixie's elbow still extended, both breathing heavily, tile wall backdrop.\n\nEnvironmental Base: Restroom interior, tile, fluorescent overhead, blood splatter on sink or tile visible.\n\nSound Layer: Wrist contact (grip), body rotation (effort sound), elbow impact (dull thud on soft target), blood spitting.\n\nCapture: real skin impact response, sweat now visible, blood realistic (dark, not bright). Handheld fast shaky follow, 0.8mm/frame operator movement. 35mm color-negative, clinical light, heavy grain, 24fps, 180-degree shutter — potentially 1/30th for motion blur on impact. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image10] [Image20]\n\nScene and Mood: Dixie's hand locks onto Destiny's wrist. Her body rotates. Elbow drives toward Destiny's face. Impact. Blood from Destiny's mouth. Objective: TO NEUTRALIZE THE THREAT—play decisive, trained combat response.\n\nComposition: Tight framing on hands and faces. [Image7]'s arm and elbow prominent frame-center. [Image10]'s face fills frame-left, mouth opening from impact. Tile wall harsh behind.\n\nSpace and Mélange: Restroom tile, fluorescent overhead. Bodies close, within arm's length. Wrist lock visible, elbow trajectory clear. Tile provides static background.\n\nCross-Shot Rule: Close fight detail — same location as Shot A, but tightly framed on the strike mechanics.\n\nAction: At 0s, Dixie's hand clamps [Image10]'s wrist. At 1s, she rotates her hips and shoulders, torque visible in her spine. At 2s, her elbow rises and accelerates. At 3s, impact — elbow to mouth. [Image10]'s head snaps back. At 4s, she spits blood (dark red on tile). Micro-fidget: [Image7]'s jaw clenches hard after impact (0.2s) — recoil and control assertion.\n\nDialogue: None—Silent shot (impact sound effect, spitting).\n\nEnding Shot: Blood on [Image10]'s chin, Dixie's elbow still extended, both breathing heavily, tile wall backdrop.\n\nEnvironmental Base: Restroom interior, tile, fluorescent overhead, blood splatter on sink or tile visible.\n\nSound Layer: Wrist contact (grip), body rotation (effort sound), elbow impact (dull thud on soft target), blood spitting.\n\nCapture: real skin impact response, sweat now visible, blood realistic (dark, not bright). Handheld fast shaky follow, 0.8mm/frame operator movement. 35mm color-negative, clinical light, heavy grain, 24fps, 180-degree shutter — potentially 1/30th for motion blur on impact. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 77,
           "end": 83
@@ -536,22 +536,22 @@
           "description": "Destiny counterattacks, lunging at Dixie. Dixie shoves her backward. Destiny's heel slips on the wet floor and her head cracks against the hand dryer. She drops.",
           "references": [
             {
-              "slot": "@image10",
+              "slot": "[Image10]",
               "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image20",
+              "slot": "[Image20]",
               "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
               "type": "location"
             }
           ],
-          "prompt_en": "@image10 @image7 @image20\n\nScene and Mood: Destiny launches forward again, mouth bleeding. Dixie sets her stance and drives her back with a sharp two-handed shove. Destiny's heel finds the wet floor and slides. Her head contacts the hand dryer mounted on the wall with a crack. She collapses. Objective: SELF-DEFENSE—play calculated force, not rage.\n\nComposition: Wide restroom shot showing both bodies. Destiny moving frame-left toward the hand dryer. Dixie frame-center, braced, hands extended for the shove. Hand dryer visible on wall frame-left.\n\nSpace and Mélange: Restroom tile, water visible on floor from the sink area. Hand dryer mounted on wall, silver/chrome, at head height. Destiny moving toward it, Dixie's hands making contact with her shoulders/chest. Momentum carries Destiny backward.\n\nCross-Shot Rule: Wide establishing shot of the second exchange. Same space as Shots A and B.\n\nAction: At 0s, Destiny lunges (blood still visible on chin). At 1s, Dixie plants her feet and extends both arms. At 2s, hands make full contact with Destiny's body. At 3s, Dixie drives through — a sharp two-handed shove-push. At 4s, Destiny's body travels backward. At 4.5s, her right heel slips on water. At 5s, her head cracks into the hand dryer mounted on the wall. At 5.5s, her body goes limp and she drops to the tile floor. Micro-fidget: @image7's eyes close for 0.5s after the head impact (involuntary reflex — she's committed the act).\n\nDialogue: None—Silent shot (except foley).\n\nEnding Shot: Destiny's body crumpled on the tile floor, head near the hand dryer, motionless. Dixie standing frame-center, breathing hard, hands still extended.\n\nEnvironmental Base: Restroom tile, water on floor, hand dryer on wall, harsh fluorescent light, blood visible on floor and Destiny's face.\n\nSound Layer: Shove impact (body contact), heel slip on wet tile, head crack on dryer (hard contact, dull thud), body drop, heavy breathing from Dixie.\n\nCapture: real head impact sound and response, sweat heavy on both, blood visible, wet tile texture. Handheld very shaky during the shove and impact. 35mm color-negative, hard fluorescent light (no softening), heavy grain, 24fps 180-degree, 1/30th shutter for motion blur. Runtime 7 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image10] [Image7] [Image20]\n\nScene and Mood: Destiny launches forward again, mouth bleeding. Dixie sets her stance and drives her back with a sharp two-handed shove. Destiny's heel finds the wet floor and slides. Her head contacts the hand dryer mounted on the wall with a crack. She collapses. Objective: SELF-DEFENSE—play calculated force, not rage.\n\nComposition: Wide restroom shot showing both bodies. Destiny moving frame-left toward the hand dryer. Dixie frame-center, braced, hands extended for the shove. Hand dryer visible on wall frame-left.\n\nSpace and Mélange: Restroom tile, water visible on floor from the sink area. Hand dryer mounted on wall, silver/chrome, at head height. Destiny moving toward it, Dixie's hands making contact with her shoulders/chest. Momentum carries Destiny backward.\n\nCross-Shot Rule: Wide establishing shot of the second exchange. Same space as Shots A and B.\n\nAction: At 0s, Destiny lunges (blood still visible on chin). At 1s, Dixie plants her feet and extends both arms. At 2s, hands make full contact with Destiny's body. At 3s, Dixie drives through — a sharp two-handed shove-push. At 4s, Destiny's body travels backward. At 4.5s, her right heel slips on water. At 5s, her head cracks into the hand dryer mounted on the wall. At 5.5s, her body goes limp and she drops to the tile floor. Micro-fidget: [Image7]'s eyes close for 0.5s after the head impact (involuntary reflex — she's committed the act).\n\nDialogue: None—Silent shot (except foley).\n\nEnding Shot: Destiny's body crumpled on the tile floor, head near the hand dryer, motionless. Dixie standing frame-center, breathing hard, hands still extended.\n\nEnvironmental Base: Restroom tile, water on floor, hand dryer on wall, harsh fluorescent light, blood visible on floor and Destiny's face.\n\nSound Layer: Shove impact (body contact), heel slip on wet tile, head crack on dryer (hard contact, dull thud), body drop, heavy breathing from Dixie.\n\nCapture: real head impact sound and response, sweat heavy on both, blood visible, wet tile texture. Handheld very shaky during the shove and impact. 35mm color-negative, hard fluorescent light (no softening), heavy grain, 24fps 180-degree, 1/30th shutter for motion blur. Runtime 7 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 7,
           "start": 83,
           "end": 90
@@ -563,22 +563,22 @@
           "description": "Dixie kneels beside Destiny's body, two fingers to her throat to check for a pulse. She exhales in relief. Then a siren wails outside. Dixie stands and leaves quickly, abandoning her earpiece in the water beside Destiny.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image10",
+              "slot": "[Image10]",
               "assetId": "538b9498-fc0b-40cc-88da-aa307f3955a8",
               "type": "character"
             },
             {
-              "slot": "@image20",
+              "slot": "[Image20]",
               "assetId": "25815727-d4e5-4d3e-bb5b-2f3923476129",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image10 @image20\n\nScene and Mood: Dixie drops to one knee beside Destiny's limp body. Two fingers to the neck, feeling for a pulse. A long second. Then: exhale. Relief mixed with horror. Then: siren, distant but growing. Objective: TO SURVIVE—play the decision to abandon everything and run.\n\nComposition: Close on @image7's hands and @image10's neck. Dixie's face in profile, focused and intense. Tile floor and water visible. Earpiece visible in the water frame-right.\n\nSpace and Mélange: Tile floor, water pooled near the sink. Destiny's body prone. Dixie kneeling, two fingers pressed to Destiny's carotid. Earpiece lying in the water nearby, visible but not dominant.\n\nCross-Shot Rule: Intimate moment — single subject focus on Dixie's relief and decision.\n\nAction: At 0s, she kneels beside the body. At 0.5s, two fingers press to Destiny's neck. At 1s, she holds (feeling for pulse). At 1.5s, her shoulders relax slightly — pulse found. At 2s, she exhales audibly through her nose. At 2.5s, SIREN SOUND begins, growing louder. At 3s, her head snaps up (eyes toward the direction of the sound outside). At 3.5s, she stands abruptly, body straightening in one fluid motion. At 4s, she looks down at the earpiece in the water, eyes flick to it, but she does NOT retrieve it. At 4.5s, she turns and moves frame-right toward the exit.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie's back as she exits the restroom frame-right. Destiny's body and the earpiece in water visible behind her in the frame, abandoned.\n\nEnvironmental Base: Restroom interior, tile, water, harsh fluorescent light, siren sound external.\n\nSound Layer: Siren rising (Doppler effect), her breathing, footsteps on tile exiting, water ambient underneath.\n\nCapture: real neck texture under fingers, water droplets reflecting light, blood still visible on skin and tile, sweat heavy. Handheld locked-off then rising with her as she stands. 35mm color-negative, harsh fluorescent light, heavy grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image10] [Image20]\n\nScene and Mood: Dixie drops to one knee beside Destiny's limp body. Two fingers to the neck, feeling for a pulse. A long second. Then: exhale. Relief mixed with horror. Then: siren, distant but growing. Objective: TO SURVIVE—play the decision to abandon everything and run.\n\nComposition: Close on [Image7]'s hands and [Image10]'s neck. Dixie's face in profile, focused and intense. Tile floor and water visible. Earpiece visible in the water frame-right.\n\nSpace and Mélange: Tile floor, water pooled near the sink. Destiny's body prone. Dixie kneeling, two fingers pressed to Destiny's carotid. Earpiece lying in the water nearby, visible but not dominant.\n\nCross-Shot Rule: Intimate moment — single subject focus on Dixie's relief and decision.\n\nAction: At 0s, she kneels beside the body. At 0.5s, two fingers press to Destiny's neck. At 1s, she holds (feeling for pulse). At 1.5s, her shoulders relax slightly — pulse found. At 2s, she exhales audibly through her nose. At 2.5s, SIREN SOUND begins, growing louder. At 3s, her head snaps up (eyes toward the direction of the sound outside). At 3.5s, she stands abruptly, body straightening in one fluid motion. At 4s, she looks down at the earpiece in the water, eyes flick to it, but she does NOT retrieve it. At 4.5s, she turns and moves frame-right toward the exit.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie's back as she exits the restroom frame-right. Destiny's body and the earpiece in water visible behind her in the frame, abandoned.\n\nEnvironmental Base: Restroom interior, tile, water, harsh fluorescent light, siren sound external.\n\nSound Layer: Siren rising (Doppler effect), her breathing, footsteps on tile exiting, water ambient underneath.\n\nCapture: real neck texture under fingers, water droplets reflecting light, blood still visible on skin and tile, sweat heavy. Handheld locked-off then rising with her as she stands. 35mm color-negative, harsh fluorescent light, heavy grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 5,
           "start": 90,
           "end": 95
@@ -611,17 +611,17 @@
       },
       "references": [
         {
-          "slot": "@image2",
+          "slot": "[Image2]",
           "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
           "type": "character"
         },
         {
-          "slot": "@image28",
+          "slot": "[Image28]",
           "assetId": "616069cf-5d47-4615-a3bd-5cf3c89913d6",
           "type": "prop"
         },
         {
-          "slot": "@image16",
+          "slot": "[Image16]",
           "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
           "type": "location"
         }
@@ -634,22 +634,22 @@
           "description": "Inside the SUV, Wyatt's eyes are fixed on the tablet displaying a red tracking dot. The dot remains static. His jaw tightens as seconds pass.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image28",
+              "slot": "[Image28]",
               "assetId": "616069cf-5d47-4615-a3bd-5cf3c89913d6",
               "type": "prop"
             },
             {
-              "slot": "@image16",
+              "slot": "[Image16]",
               "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
               "type": "location"
             }
           ],
-          "prompt_en": "@image2 @image28 @image16\n\nScene and Mood: Wyatt sits in the driver's seat of the parked SUV, eyes locked on the tablet screen. Red dot representing Dixie's position on the @image28. The dot is frozen—not moving. His face remains calm but his jaw muscles tense. Objective: TO MAINTAIN CONTROL—play the anxiety of monitoring a live operation without being able to intervene.\n\nComposition: Chest-up shot of @image2 framed behind the steering wheel. Tablet @image28 visible in his hands, screen bright, red dot visible in the center of the display. Window frame and street blurred behind him.\n\nSpace and Mélange: SUV interior, blue t-shirt visible, AirPods visible in ear. Dashboard ambient light, tablet glow on his face. Hands gripping tablet, shoulders relaxed but neck tense.\n\nCross-Shot Rule: Single subject close-up, isolated moment of remote monitoring.\n\nAction: At 0s, his eyes are already fixed on the tablet. At 1s, he tilts the tablet slightly (checking screen angle). At 2s, his jaw clenches briefly (0.3s). At 3s, he glances up at the window (external check), then back to tablet. At 4s, eyes return to tablet, pupils tracking the static red dot. At 5s, his right index finger hovers over the tablet edge (considering action, but doesn't touch). Micro-fidget at 3.5s: nostril flare (0.2s) — contained anxiety.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Wyatt's face still fixed on the tablet, jaw set, eyes unblinking.\n\nEnvironmental Base: SUV interior, dashboard ambient light, tablet glow, street outside window blurred.\n\nSound Layer: Ambient traffic outside, faint radio chatter (police band), tablet screen hum, Wyatt's breathing barely audible.\n\nCapture: real tablet screen reflection in eyes, skin texture under dashboard light (slight pallor), no makeup. Handheld locked-off on tripod, slight handheld breath-rhythm micro-drift. 35mm color-negative, cool-tinted interior, warm tablet glow, fine grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image2] [Image28] [Image16]\n\nScene and Mood: Wyatt sits in the driver's seat of the parked SUV, eyes locked on the tablet screen. Red dot representing Dixie's position on the [Image28]. The dot is frozen—not moving. His face remains calm but his jaw muscles tense. Objective: TO MAINTAIN CONTROL—play the anxiety of monitoring a live operation without being able to intervene.\n\nComposition: Chest-up shot of [Image2] framed behind the steering wheel. Tablet [Image28] visible in his hands, screen bright, red dot visible in the center of the display. Window frame and street blurred behind him.\n\nSpace and Mélange: SUV interior, blue t-shirt visible, AirPods visible in ear. Dashboard ambient light, tablet glow on his face. Hands gripping tablet, shoulders relaxed but neck tense.\n\nCross-Shot Rule: Single subject close-up, isolated moment of remote monitoring.\n\nAction: At 0s, his eyes are already fixed on the tablet. At 1s, he tilts the tablet slightly (checking screen angle). At 2s, his jaw clenches briefly (0.3s). At 3s, he glances up at the window (external check), then back to tablet. At 4s, eyes return to tablet, pupils tracking the static red dot. At 5s, his right index finger hovers over the tablet edge (considering action, but doesn't touch). Micro-fidget at 3.5s: nostril flare (0.2s) — contained anxiety.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Wyatt's face still fixed on the tablet, jaw set, eyes unblinking.\n\nEnvironmental Base: SUV interior, dashboard ambient light, tablet glow, street outside window blurred.\n\nSound Layer: Ambient traffic outside, faint radio chatter (police band), tablet screen hum, Wyatt's breathing barely audible.\n\nCapture: real tablet screen reflection in eyes, skin texture under dashboard light (slight pallor), no makeup. Handheld locked-off on tripod, slight handheld breath-rhythm micro-drift. 35mm color-negative, cool-tinted interior, warm tablet glow, fine grain, 24fps 180-degree. Runtime 8 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 8,
           "start": 95,
           "end": 103
@@ -661,17 +661,17 @@
           "description": "Outside the SUV, the armored truck enters frame, flanked by two police motorcycles. The heist logistics unfolding on schedule.",
           "references": [
             {
-              "slot": "@image33",
+              "slot": "[Image33]",
               "assetId": "6776527d-8891-4e8a-bc59-9c94e108a22f",
               "type": "prop"
             },
             {
-              "slot": "@image29",
+              "slot": "[Image29]",
               "assetId": "87951ccb-ef29-4a24-99c3-6db8b57c363d",
               "type": "prop"
             }
           ],
-          "prompt_en": "@image33 @image29 @image29\n\nScene and Mood: The armored truck @image33 rolls down the street, flanked by two police motorcycles @image29 on left and right. Professional security convoy, heist timeline on track.\n\nComposition: Wide street shot, truck centered, motorcycles flanking at equal distance. Street stretches ahead. Professional, controlled composition.\n\nSpace and Mélange: City street, daylight, asphalt, buildings in soft background. Truck and motorcycles in sharp focus, organized formation.\n\nCross-Shot Rule: Establishing shot of external action, no human subjects — machinery only.\n\nAction: At 0s, truck enters frame-left, motorcycles already flanking. At 1s, formation holds steady. At 2.5s, truck reaches center-frame. At 3.5s, formation exits frame-right. Smooth, procedural.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Truck and motorcycles exiting frame-right, street empty behind them.\n\nEnvironmental Base: City street, daylight, asphalt, buildings, professional convoy formation.\n\nSound Layer: Truck engine low rumble, motorcycle engines steady, street ambient, radio chatter faint.\n\nCapture: real metal texture on vehicles, asphalt grain, shadow play, daylight natural. Handheld slow tracking follow-through, locked-off afterward. 35mm color-negative, warm-daylight grade, fine grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image33] [Image29] [Image29]\n\nScene and Mood: The armored truck [Image33] rolls down the street, flanked by two police motorcycles [Image29] on left and right. Professional security convoy, heist timeline on track.\n\nComposition: Wide street shot, truck centered, motorcycles flanking at equal distance. Street stretches ahead. Professional, controlled composition.\n\nSpace and Mélange: City street, daylight, asphalt, buildings in soft background. Truck and motorcycles in sharp focus, organized formation.\n\nCross-Shot Rule: Establishing shot of external action, no human subjects — machinery only.\n\nAction: At 0s, truck enters frame-left, motorcycles already flanking. At 1s, formation holds steady. At 2.5s, truck reaches center-frame. At 3.5s, formation exits frame-right. Smooth, procedural.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Truck and motorcycles exiting frame-right, street empty behind them.\n\nEnvironmental Base: City street, daylight, asphalt, buildings, professional convoy formation.\n\nSound Layer: Truck engine low rumble, motorcycle engines steady, street ambient, radio chatter faint.\n\nCapture: real metal texture on vehicles, asphalt grain, shadow play, daylight natural. Handheld slow tracking follow-through, locked-off afterward. 35mm color-negative, warm-daylight grade, fine grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 5,
           "start": 103,
           "end": 108
@@ -683,22 +683,22 @@
           "description": "A police officer approaches and knocks on the SUV's window. Wyatt startles, pockets the tablet, and pulls into traffic to avoid suspicion.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image16",
+              "slot": "[Image16]",
               "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
               "type": "location"
             },
             {
-              "slot": "@image1",
+              "slot": "[Image1]",
               "assetId": "2f08fef8-9e28-42fd-b1b2-bcee0968fcd1",
               "type": "character"
             }
           ],
-          "prompt_en": "@image2 @image1 @image16\n\nScene and Mood: A cop @image1 in uniform approaches the driver's window. Knocks on the glass. Wyatt's head snaps toward the sound—involuntary startle response. He quickly pockets the tablet and puts the SUV into gear.\n\nComposition: Interior-exterior composite. @image2 visible through the windshield and side window, @image1 outside in frame-right approaching from behind. Window glass creates the boundary. Street visible ahead.\n\nSpace and Mélange: SUV interior, street outside. Cop visible in peripheral motion, approaching from the rear-right. Wyatt's body language shifts from focused to reactive.\n\nCross-Shot Rule: Two subjects separated by window glass — eyeline to cop through the glass.\n\nAction: At 0s, cop knocks on window (percussion sound). At 0.5s, Wyatt's shoulders jump (involuntary flinch). At 1s, his head turns toward the window. At 1.5s, he glances at the tablet, then quickly pockets it. At 2s, his hands move to the steering wheel. At 2.5s, he looks forward at the street (situational awareness). At 3s, he shifts into gear. At 3.5s, he begins accelerating forward smoothly into traffic. Micro-fidget at 1s: eye-dart downward to the tablet before pocketing (guilt response).\n\nDialogue: 'Can't sit here, son.' — Speaker: Cop (@image1, through window).\n\nEnding Shot: SUV beginning to move into traffic, cop visible in the mirror frame-right, growing smaller as Wyatt pulls away.\n\nEnvironmental Base: Street, SUV interior-exterior, police officer in uniform, traffic ahead.\n\nSound Layer: Knuckle rap on glass, Wyatt's sharp breath-intake, seatbelt or fabric shift, engine starting, traffic ambient, cop's V.O. muffled through glass.\n\nCapture: real glass reflection, window condensation or dirt visible (realism), Wyatt's pupils dilated in response to surprise. Handheld slow handheld (0.5mm/frame) before action, then slight increase as he accelerates. 35mm color-negative, daylight warm-tint, fine grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image2] [Image1] [Image16]\n\nScene and Mood: A cop [Image1] in uniform approaches the driver's window. Knocks on the glass. Wyatt's head snaps toward the sound—involuntary startle response. He quickly pockets the tablet and puts the SUV into gear.\n\nComposition: Interior-exterior composite. [Image2] visible through the windshield and side window, [Image1] outside in frame-right approaching from behind. Window glass creates the boundary. Street visible ahead.\n\nSpace and Mélange: SUV interior, street outside. Cop visible in peripheral motion, approaching from the rear-right. Wyatt's body language shifts from focused to reactive.\n\nCross-Shot Rule: Two subjects separated by window glass — eyeline to cop through the glass.\n\nAction: At 0s, cop knocks on window (percussion sound). At 0.5s, Wyatt's shoulders jump (involuntary flinch). At 1s, his head turns toward the window. At 1.5s, he glances at the tablet, then quickly pockets it. At 2s, his hands move to the steering wheel. At 2.5s, he looks forward at the street (situational awareness). At 3s, he shifts into gear. At 3.5s, he begins accelerating forward smoothly into traffic. Micro-fidget at 1s: eye-dart downward to the tablet before pocketing (guilt response).\n\nDialogue: 'Can't sit here, son.' — Speaker: Cop ([Image1], through window).\n\nEnding Shot: SUV beginning to move into traffic, cop visible in the mirror frame-right, growing smaller as Wyatt pulls away.\n\nEnvironmental Base: Street, SUV interior-exterior, police officer in uniform, traffic ahead.\n\nSound Layer: Knuckle rap on glass, Wyatt's sharp breath-intake, seatbelt or fabric shift, engine starting, traffic ambient, cop's V.O. muffled through glass.\n\nCapture: real glass reflection, window condensation or dirt visible (realism), Wyatt's pupils dilated in response to surprise. Handheld slow handheld (0.5mm/frame) before action, then slight increase as he accelerates. 35mm color-negative, daylight warm-tint, fine grain, 24fps 180-degree. Runtime 5 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 5,
           "start": 108,
           "end": 113
@@ -736,17 +736,17 @@
       },
       "references": [
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image2",
+          "slot": "[Image2]",
           "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
           "type": "character"
         },
         {
-          "slot": "@image21",
+          "slot": "[Image21]",
           "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
           "type": "location"
         }
@@ -759,17 +759,17 @@
           "description": "Dixie pushes through the glass bank doors, split lip bleeding, blood smeared on her white cuff. She scans the empty curb.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image21",
+              "slot": "[Image21]",
               "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
               "type": "location"
             }
           ],
-          "prompt_en": "@image7 @image21\n\nScene and Mood: Dixie's body emerges through the glass doors of @image21. Split lip bleeding, dark blood visible on her right cuff against the white business suit. Her face shows the aftermath of violence—composed but marked. Objective: TO GET OUT ALIVE—play the urgent scan for the extraction vehicle.\n\nComposition: @image7 pushes through glass doors, body at three-quarter angle, exiting frame-center. Curb and empty street visible beyond. Blood on lip visible in close detail, cuff blood dark against light fabric.\n\nSpace and Mélange: Bank facade behind her, glass doors opening outward, marble facing. Empty curb ahead. Daylight revealing her injuries clearly. She moves forward with purpose, eyes scanning left-to-right across the street.\n\nCross-Shot Rule: Single subject establishing shot of exit and injury visibility.\n\nAction: At 0s, she pushes through the doors, body already in forward motion. At 1s, she clears the threshold, eyes immediately scanning the curb left. At 2s, no vehicle visible — her shoulders tense slightly (concern/worry). At 3s, eyes scan right. At 4s, still no extraction SUV visible. At 5s, she steps fully onto the curb, posture tightening. Micro-fidget at 2s: jaw muscles visibly tight, teeth clenched (controlled panic).\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie on the curb, facing the street, blood visible on lip and cuff, body ready to move, curb empty behind her.\n\nEnvironmental Base: Bank facade, glass doors, marble, empty curb, daylight, street beyond.\n\nSound Layer: Glass door hinges (opening), her footsteps on pavement (quick), ambient street noise, distant traffic.\n\nCapture: real blood texture on lip (dark, not glossy), blood on fabric (dark stain spreading), sweat visible on forehead, breathing visible. Handheld slow push forward. 35mm color-negative, daylight warm-tint, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image21]\n\nScene and Mood: Dixie's body emerges through the glass doors of [Image21]. Split lip bleeding, dark blood visible on her right cuff against the white business suit. Her face shows the aftermath of violence—composed but marked. Objective: TO GET OUT ALIVE—play the urgent scan for the extraction vehicle.\n\nComposition: [Image7] pushes through glass doors, body at three-quarter angle, exiting frame-center. Curb and empty street visible beyond. Blood on lip visible in close detail, cuff blood dark against light fabric.\n\nSpace and Mélange: Bank facade behind her, glass doors opening outward, marble facing. Empty curb ahead. Daylight revealing her injuries clearly. She moves forward with purpose, eyes scanning left-to-right across the street.\n\nCross-Shot Rule: Single subject establishing shot of exit and injury visibility.\n\nAction: At 0s, she pushes through the doors, body already in forward motion. At 1s, she clears the threshold, eyes immediately scanning the curb left. At 2s, no vehicle visible — her shoulders tense slightly (concern/worry). At 3s, eyes scan right. At 4s, still no extraction SUV visible. At 5s, she steps fully onto the curb, posture tightening. Micro-fidget at 2s: jaw muscles visibly tight, teeth clenched (controlled panic).\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie on the curb, facing the street, blood visible on lip and cuff, body ready to move, curb empty behind her.\n\nEnvironmental Base: Bank facade, glass doors, marble, empty curb, daylight, street beyond.\n\nSound Layer: Glass door hinges (opening), her footsteps on pavement (quick), ambient street noise, distant traffic.\n\nCapture: real blood texture on lip (dark, not glossy), blood on fabric (dark stain spreading), sweat visible on forehead, breathing visible. Handheld slow push forward. 35mm color-negative, daylight warm-tint, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 113,
           "end": 119
@@ -781,27 +781,27 @@
           "description": "A squad car turns the corner and passes the bank. Immediately after, Wyatt's SUV swings into the curb. Dixie quickly gets into the passenger seat.",
           "references": [
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image21",
+              "slot": "[Image21]",
               "assetId": "fa880039-1b03-4e32-bd08-8a456da0ae03",
               "type": "location"
             },
             {
-              "slot": "@image26",
+              "slot": "[Image26]",
               "assetId": "ab6bf505-6949-48bf-aacb-c9efc37fce1e",
               "type": "prop"
             }
           ],
-          "prompt_en": "@image7 @image2 @image21 @image26\n\nScene and Mood: A squad car passes the bank corner in the background. Seconds later, Wyatt's SUV @image26 swings aggressively into the curb. Dixie steps forward and gets into the passenger seat. Extraction in motion, precision timing.\n\nComposition: Wide street view. Bank facade @image21 on left, curb center, street right. Squad car visible in background passing. Wyatt's SUV enters frame-right, brakes hard at curb. @image7 at curb ready, moves quickly to passenger door. @image2 visible through driver's window.\n\nSpace and Mélange: Street level, curb, bank facade behind. SUV pulls up perpendicular to curb, doors within easy reach. Dixie's body language shifts to urgency—quick walk to passenger door, hand reaching for handle.\n\nCross-Shot Rule: Wide establishing shot showing timing of squad car pass and SUV arrival. Two subjects coordinating extraction.\n\nAction: At 0s, squad car visible in background (mid-distance), passing the bank corner (no eye contact with Dixie or Wyatt). At 1s, squad car clears frame-right. At 1.5s, Wyatt's SUV swings into curb from frame-right, wheels audible (quick deceleration). At 2s, SUV comes to sudden stop (minor suspension bounce). At 2.5s, Dixie steps forward from curb, hand reaching toward passenger door handle. At 3.5s, she pulls the door open and begins to get in. At 4.5s, she's settling into the seat, door still open. At 5.5s, she pulls the door closed. Micro-fidget at 2s: @image7's eye-dart toward the retreating squad car (tracking threat), then back to the SUV.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie in the passenger seat, door closed, Wyatt visible in driver's seat, SUV ready to move away from curb.\n\nEnvironmental Base: Street, curb, bank facade, daylight, squad car in background, SUV stationary at curb.\n\nSound Layer: Squad car passing (engine, slight siren or radio), SUV hard brake and tire contact, door open (hinges), Dixie's footsteps on pavement (quick), door closing (solid contact), engine idle.\n\nCapture: real vehicle suspension response, dust particle movement visible in light, Dixie's sweat and blood still visible, real door friction. Handheld shaky tracking, 0.6mm/frame during SUV arrival and Dixie's movement. 35mm color-negative, daylight, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image7] [Image2] [Image21] [Image26]\n\nScene and Mood: A squad car passes the bank corner in the background. Seconds later, Wyatt's SUV [Image26] swings aggressively into the curb. Dixie steps forward and gets into the passenger seat. Extraction in motion, precision timing.\n\nComposition: Wide street view. Bank facade [Image21] on left, curb center, street right. Squad car visible in background passing. Wyatt's SUV enters frame-right, brakes hard at curb. [Image7] at curb ready, moves quickly to passenger door. [Image2] visible through driver's window.\n\nSpace and Mélange: Street level, curb, bank facade behind. SUV pulls up perpendicular to curb, doors within easy reach. Dixie's body language shifts to urgency—quick walk to passenger door, hand reaching for handle.\n\nCross-Shot Rule: Wide establishing shot showing timing of squad car pass and SUV arrival. Two subjects coordinating extraction.\n\nAction: At 0s, squad car visible in background (mid-distance), passing the bank corner (no eye contact with Dixie or Wyatt). At 1s, squad car clears frame-right. At 1.5s, Wyatt's SUV swings into curb from frame-right, wheels audible (quick deceleration). At 2s, SUV comes to sudden stop (minor suspension bounce). At 2.5s, Dixie steps forward from curb, hand reaching toward passenger door handle. At 3.5s, she pulls the door open and begins to get in. At 4.5s, she's settling into the seat, door still open. At 5.5s, she pulls the door closed. Micro-fidget at 2s: [Image7]'s eye-dart toward the retreating squad car (tracking threat), then back to the SUV.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie in the passenger seat, door closed, Wyatt visible in driver's seat, SUV ready to move away from curb.\n\nEnvironmental Base: Street, curb, bank facade, daylight, squad car in background, SUV stationary at curb.\n\nSound Layer: Squad car passing (engine, slight siren or radio), SUV hard brake and tire contact, door open (hinges), Dixie's footsteps on pavement (quick), door closing (solid contact), engine idle.\n\nCapture: real vehicle suspension response, dust particle movement visible in light, Dixie's sweat and blood still visible, real door friction. Handheld shaky tracking, 0.6mm/frame during SUV arrival and Dixie's movement. 35mm color-negative, daylight, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 119,
           "end": 125
@@ -835,22 +835,22 @@
       },
       "references": [
         {
-          "slot": "@image2",
+          "slot": "[Image2]",
           "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
           "type": "character"
         },
         {
-          "slot": "@image7",
+          "slot": "[Image7]",
           "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
           "type": "character"
         },
         {
-          "slot": "@image28",
+          "slot": "[Image28]",
           "assetId": "616069cf-5d47-4615-a3bd-5cf3c89913d6",
           "type": "prop"
         },
         {
-          "slot": "@image16",
+          "slot": "[Image16]",
           "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
           "type": "location"
         }
@@ -863,22 +863,22 @@
           "description": "Inside the moving SUV, Wyatt accelerates into traffic, angry and confused. He confronts Dixie about the four-minute communication blackout. She wipes blood from her lip and remains silent.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image16",
+              "slot": "[Image16]",
               "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
               "type": "location"
             }
           ],
-          "prompt_en": "@image2 @image7 @image16\n\nScene and Mood: SUV moving fast through traffic. Wyatt drives with controlled anger, eyes on the road, jaw tight. Dixie sits in passenger seat, blood visible on her mouth and cuff. She does not meet his gaze. Objective: WYATT — TO DEMAND ACCOUNTABILITY; DIXIE — TO AVOID EXPLANATION.\n\nComposition: Interior shot from rear-center, showing both driver and passenger. Windshield ahead shows city traffic and street movement. Wyatt's profile dominant frame-left, Dixie frame-right, turned slightly away. Dashboard visible, hands visible on steering wheel (Wyatt), hand rising to mouth (Dixie).\n\nSpace and Mélange: SUV interior, leather seats, moving. Sunlight through windshield creates moving shadows across their faces. Traffic visible ahead and in side windows, indicating forward motion and speed. Wyatt's posture rigid, hands 10-and-2 on wheel. Dixie's posture withdrawn, hand at mouth.\n\nCross-Shot Rule: Two subjects in close proximity. Wyatt driving, Dixie passenger. Different depths: Wyatt closer to camera, Dixie recessed. Eyeline: Wyatt focused on road; Dixie avoiding his glance.\n\nAction: At 0s, Wyatt's hands grip the wheel firmly, he shifts gears (acceleration). At 1s, he speaks: 'You went dark for four minutes.' Jaw clenched, eyes locked on traffic. At 2s, Dixie's right hand rises to her lip, pressing a tissue (or her hand) against the split. At 3s, Wyatt glances at her (taking his eyes off the road for 0.5s). At 4s, she says nothing — silence is her answer. At 5s, Wyatt looks back to the road. At 6s, he shifts again (frustrated). At 7s, Dixie continues wiping her lip. Micro-fidget at 3s: Wyatt's nostril flare (0.2s) — contained anger. Micro-fidget at 6.5s: Dixie's eye-dart toward Wyatt, then away (guilt/fear).\n\nDialogue: 'You went dark for four minutes.' — Speaker: Wyatt. Dixie: 'Says nothing' (silence is dialogue).\n\nEnding Shot: Both still in frame, Wyatt's face hardened, Dixie's hand still at her lip, neither speaking, tension between them visible.\n\nEnvironmental Base: SUV interior, moving vehicle, city traffic outside windshield, sunlight through glass creating motion, dashboard visible.\n\nSound Layer: Engine driving fast, tire contact with road (varying sound as traffic changes speed), Wyatt's breathing audible, faint radio chatter, city ambient outside.\n\nCapture: real blood on lip (dark, swollen), hand tissue texture (if present), sweating visible on foreheads, wind noise from SUV motion. Handheld slight movement synchronized with vehicle motion, 0.3mm/frame operator drift. 35mm color-negative, daylight warm-tint bleeding into vehicle interior, fine grain, 24fps 180-degree. Runtime 10 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image2] [Image7] [Image16]\n\nScene and Mood: SUV moving fast through traffic. Wyatt drives with controlled anger, eyes on the road, jaw tight. Dixie sits in passenger seat, blood visible on her mouth and cuff. She does not meet his gaze. Objective: WYATT — TO DEMAND ACCOUNTABILITY; DIXIE — TO AVOID EXPLANATION.\n\nComposition: Interior shot from rear-center, showing both driver and passenger. Windshield ahead shows city traffic and street movement. Wyatt's profile dominant frame-left, Dixie frame-right, turned slightly away. Dashboard visible, hands visible on steering wheel (Wyatt), hand rising to mouth (Dixie).\n\nSpace and Mélange: SUV interior, leather seats, moving. Sunlight through windshield creates moving shadows across their faces. Traffic visible ahead and in side windows, indicating forward motion and speed. Wyatt's posture rigid, hands 10-and-2 on wheel. Dixie's posture withdrawn, hand at mouth.\n\nCross-Shot Rule: Two subjects in close proximity. Wyatt driving, Dixie passenger. Different depths: Wyatt closer to camera, Dixie recessed. Eyeline: Wyatt focused on road; Dixie avoiding his glance.\n\nAction: At 0s, Wyatt's hands grip the wheel firmly, he shifts gears (acceleration). At 1s, he speaks: 'You went dark for four minutes.' Jaw clenched, eyes locked on traffic. At 2s, Dixie's right hand rises to her lip, pressing a tissue (or her hand) against the split. At 3s, Wyatt glances at her (taking his eyes off the road for 0.5s). At 4s, she says nothing — silence is her answer. At 5s, Wyatt looks back to the road. At 6s, he shifts again (frustrated). At 7s, Dixie continues wiping her lip. Micro-fidget at 3s: Wyatt's nostril flare (0.2s) — contained anger. Micro-fidget at 6.5s: Dixie's eye-dart toward Wyatt, then away (guilt/fear).\n\nDialogue: 'You went dark for four minutes.' — Speaker: Wyatt. Dixie: 'Says nothing' (silence is dialogue).\n\nEnding Shot: Both still in frame, Wyatt's face hardened, Dixie's hand still at her lip, neither speaking, tension between them visible.\n\nEnvironmental Base: SUV interior, moving vehicle, city traffic outside windshield, sunlight through glass creating motion, dashboard visible.\n\nSound Layer: Engine driving fast, tire contact with road (varying sound as traffic changes speed), Wyatt's breathing audible, faint radio chatter, city ambient outside.\n\nCapture: real blood on lip (dark, swollen), hand tissue texture (if present), sweating visible on foreheads, wind noise from SUV motion. Handheld slight movement synchronized with vehicle motion, 0.3mm/frame operator drift. 35mm color-negative, daylight warm-tint bleeding into vehicle interior, fine grain, 24fps 180-degree. Runtime 10 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 10,
           "start": 125,
           "end": 135
@@ -890,22 +890,22 @@
           "description": "Wyatt glances at the tablet resting on the center console. The comm icon flickers green with wet breathing sounds underneath. He looks back at Dixie, confused.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image28",
+              "slot": "[Image28]",
               "assetId": "616069cf-5d47-4615-a3bd-5cf3c89913d6",
               "type": "prop"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             }
           ],
-          "prompt_en": "@image2 @image28 @image7\n\nScene and Mood: Wyatt's eyes lower to the tablet @image28 on the center console. The comm icon flickers with wet breathing sounds—someone is live on the line. His brows draw together (confusion). Then: he looks back at Dixie, who sits rigid, still not meeting his eyes. Objective: WYATT — TO UNDERSTAND THE ANOMALY.\n\nComposition: Close on Wyatt's face in profile, eyes dropping from road to tablet, then back to Dixie. Tablet visible in lower-center frame with the green comm icon flickering. Dixie visible in soft background (out of focus) still facing forward.\n\nSpace and Mélange: SUV interior, windshield ahead slightly out of focus, indicating continued motion. Tablet glows in the interior light. Wyatt's face lit by tablet light and vehicle ambient. Breathing sounds create an invisible presence in the space.\n\nCross-Shot Rule: Close shot on Wyatt's face and reaction. Dixie visible but out of focus (secondary). Tablet @image28 is the focus anchor (the anomaly).\n\nAction: At 0s, Wyatt's eyes are already on the road. At 1s, his gaze drops to the tablet. At 1.5s, the comm icon on @image28 flickers GREEN (light change visible on his face). At 2s, breathing sound audible from the tablet speaker (wet, labored). At 2.5s, his brows draw down and together (frown of confusion). At 3s, he glances at Dixie in the passenger seat. At 4s, back to the tablet, eyes tracking the flickering icon. At 5s, he looks forward at the road again, confusion unresolved. Micro-fidget at 2.5s: eye-dart from tablet to Dixie (rapid assessment), then back.\n\nDialogue: None in this shot — only the breathing sound and the flickering comm icon as 'dialogue' of presence.\n\nEnding Shot: Wyatt's face still showing confusion, eyes forward on the road, tablet still visible in frame showing the green comm icon.\n\nEnvironmental Base: SUV interior, moving vehicle, tablet light source, interior ambient, windshield ahead.\n\nSound Layer: Tablet notification tone (subtle), breathing sound from speaker (wet, rhythmic, labored — someone alive but hurt or struggling), engine driving, tire contact, traffic ambient.\n\nCapture: tablet screen reflection in eyes, confusion micro-expression (brow furrow), green light casting subtle color on face. Handheld locked-off with vehicle motion. 35mm color-negative, tablet light adding green tint locally, daylight warm-tint dominant, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image2] [Image28] [Image7]\n\nScene and Mood: Wyatt's eyes lower to the tablet [Image28] on the center console. The comm icon flickers with wet breathing sounds—someone is live on the line. His brows draw together (confusion). Then: he looks back at Dixie, who sits rigid, still not meeting his eyes. Objective: WYATT — TO UNDERSTAND THE ANOMALY.\n\nComposition: Close on Wyatt's face in profile, eyes dropping from road to tablet, then back to Dixie. Tablet visible in lower-center frame with the green comm icon flickering. Dixie visible in soft background (out of focus) still facing forward.\n\nSpace and Mélange: SUV interior, windshield ahead slightly out of focus, indicating continued motion. Tablet glows in the interior light. Wyatt's face lit by tablet light and vehicle ambient. Breathing sounds create an invisible presence in the space.\n\nCross-Shot Rule: Close shot on Wyatt's face and reaction. Dixie visible but out of focus (secondary). Tablet [Image28] is the focus anchor (the anomaly).\n\nAction: At 0s, Wyatt's eyes are already on the road. At 1s, his gaze drops to the tablet. At 1.5s, the comm icon on [Image28] flickers GREEN (light change visible on his face). At 2s, breathing sound audible from the tablet speaker (wet, labored). At 2.5s, his brows draw down and together (frown of confusion). At 3s, he glances at Dixie in the passenger seat. At 4s, back to the tablet, eyes tracking the flickering icon. At 5s, he looks forward at the road again, confusion unresolved. Micro-fidget at 2.5s: eye-dart from tablet to Dixie (rapid assessment), then back.\n\nDialogue: None in this shot — only the breathing sound and the flickering comm icon as 'dialogue' of presence.\n\nEnding Shot: Wyatt's face still showing confusion, eyes forward on the road, tablet still visible in frame showing the green comm icon.\n\nEnvironmental Base: SUV interior, moving vehicle, tablet light source, interior ambient, windshield ahead.\n\nSound Layer: Tablet notification tone (subtle), breathing sound from speaker (wet, rhythmic, labored — someone alive but hurt or struggling), engine driving, tire contact, traffic ambient.\n\nCapture: tablet screen reflection in eyes, confusion micro-expression (brow furrow), green light casting subtle color on face. Handheld locked-off with vehicle motion. 35mm color-negative, tablet light adding green tint locally, daylight warm-tint dominant, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 135,
           "end": 141
@@ -917,22 +917,22 @@
           "description": "From the tablet speaker, a woman's voice: 'Hi, Wyatt.' Dixie's head snaps toward Wyatt in shock. Before either can react, black. End of episode.",
           "references": [
             {
-              "slot": "@image2",
+              "slot": "[Image2]",
               "assetId": "d0f78c87-806f-46d1-b51b-3b1d739e52fe",
               "type": "character"
             },
             {
-              "slot": "@image7",
+              "slot": "[Image7]",
               "assetId": "f8cf973d-f954-40eb-a5d6-8950238d5bd3",
               "type": "character"
             },
             {
-              "slot": "@image16",
+              "slot": "[Image16]",
               "assetId": "239ec561-38ce-4eec-a338-fa8c34d45bc7",
               "type": "location"
             }
           ],
-          "prompt_en": "@image2 @image7 @image16\n\nScene and Mood: The tablet speaker emits a woman's voice, clear and composed: 'Hi, Wyatt.' Dixie's entire body goes rigid. Her head snaps toward Wyatt with absolute shock. Wyatt's foot may ease off the accelerator. Then: total black. Objective: DIXIE — TO REGISTER IMPOSSIBLE THREAT; WYATT — TO PROCESS THE REVEAL.\n\nComposition: Wide interior shot showing both faces. Wyatt still forward, Dixie's face turning sharply toward him, eyes wide. Tablet visible on center console, speaker active. Windshield and traffic ahead still visible.\n\nSpace and Mélange: SUV interior, both subjects visible. Tablet light source continuing. Tension between them palpable. Wyatt's posture unchanged but grip on wheel tightens slightly. Dixie's entire body language shifts from withdrawn to alarmed.\n\nCross-Shot Rule: Two subjects in reaction. Same framing as previous shots, now showing simultaneous shock response.\n\nAction: At 0s, voice from tablet: 'Hi, Wyatt.' — clear, feminine, alive. At 0.5s, Dixie's shoulders stiffen visibly. At 1s, her head snaps frame-right toward Wyatt (extreme rapid head turn). At 1.5s, her eyes are fully open, pupils dilated, expression pure shock. At 2s, Wyatt's eyes may dart down to the tablet, then back to the road. At 2.5s, black begins fading in from edges of frame. At 3.5s, full black screen. At 5.5s, total silence and black. Micro-fidget at 0.5s: Dixie's nostril flare (0.3s) — involuntary fear response.\n\nDialogue: 'Hi, Wyatt.' — Speaker: Destiny (voice only, from tablet speaker). No response from Wyatt or Dixie — only silence and shock.\n\nEnding Shot: Full black. Zero visual information. Audio: breathing sound and silence.\n\nEnvironmental Base: SUV interior (last visible frame), then transition to black.\n\nSound Layer: Destiny's voice clean and present through tablet speaker, breathing from the earpiece still audible underneath, then silence, then black. Zero music, zero score, zero effects.\n\nCapture: real shock micro-expression on Dixie's face (pupils, eye opening, jaw relaxation), real hand tension on wheel (Wyatt), tablet glow casting light. Handheld slow to locked as black fades in. 35mm color-negative, tablet light dominant at end before black, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "prompt_en": "[Image2] [Image7] [Image16]\n\nScene and Mood: The tablet speaker emits a woman's voice, clear and composed: 'Hi, Wyatt.' Dixie's entire body goes rigid. Her head snaps toward Wyatt with absolute shock. Wyatt's foot may ease off the accelerator. Then: total black. Objective: DIXIE — TO REGISTER IMPOSSIBLE THREAT; WYATT — TO PROCESS THE REVEAL.\n\nComposition: Wide interior shot showing both faces. Wyatt still forward, Dixie's face turning sharply toward him, eyes wide. Tablet visible on center console, speaker active. Windshield and traffic ahead still visible.\n\nSpace and Mélange: SUV interior, both subjects visible. Tablet light source continuing. Tension between them palpable. Wyatt's posture unchanged but grip on wheel tightens slightly. Dixie's entire body language shifts from withdrawn to alarmed.\n\nCross-Shot Rule: Two subjects in reaction. Same framing as previous shots, now showing simultaneous shock response.\n\nAction: At 0s, voice from tablet: 'Hi, Wyatt.' — clear, feminine, alive. At 0.5s, Dixie's shoulders stiffen visibly. At 1s, her head snaps frame-right toward Wyatt (extreme rapid head turn). At 1.5s, her eyes are fully open, pupils dilated, expression pure shock. At 2s, Wyatt's eyes may dart down to the tablet, then back to the road. At 2.5s, black begins fading in from edges of frame. At 3.5s, full black screen. At 5.5s, total silence and black. Micro-fidget at 0.5s: Dixie's nostril flare (0.3s) — involuntary fear response.\n\nDialogue: 'Hi, Wyatt.' — Speaker: Destiny (voice only, from tablet speaker). No response from Wyatt or Dixie — only silence and shock.\n\nEnding Shot: Full black. Zero visual information. Audio: breathing sound and silence.\n\nEnvironmental Base: SUV interior (last visible frame), then transition to black.\n\nSound Layer: Destiny's voice clean and present through tablet speaker, breathing from the earpiece still audible underneath, then silence, then black. Zero music, zero score, zero effects.\n\nCapture: real shock micro-expression on Dixie's face (pupils, eye opening, jaw relaxation), real hand tension on wheel (Wyatt), tablet glow casting light. Handheld slow to locked as black fades in. 35mm color-negative, tablet light dominant at end before black, fine grain, 24fps 180-degree. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
           "duration": 6,
           "start": 141,
           "end": 147

@@ -312,31 +312,31 @@ describe('PromptBuilderComponent', () => {
   // ─── addReference ──────────────────────────────────────────────────
 
   describe('addReference', () => {
-    it('inserts " @text" at the current Quill selection index', () => {
+    it('inserts " [text]" at the current Quill selection index', () => {
       quill.getSelection.mockReturnValueOnce({ index: 5, length: 0 });
       component.addReference('Image1');
-      expect(quill.insertText).toHaveBeenCalledWith(5, ' @Image1');
+      expect(quill.insertText).toHaveBeenCalledWith(5, ' [Image1]');
     });
 
     it('falls back to (length - 1) when no selection (clamped at 0)', () => {
       quill.getSelection.mockReturnValueOnce(null);
       quill.getLength.mockReturnValueOnce(10);
       component.addReference('Image1');
-      expect(quill.insertText).toHaveBeenCalledWith(9, ' @Image1');
+      expect(quill.insertText).toHaveBeenCalledWith(9, ' [Image1]');
     });
 
     it('never inserts at a negative index even if Quill reports length 0', () => {
       quill.getSelection.mockReturnValueOnce(null);
       quill.getLength.mockReturnValueOnce(0);
       component.addReference('Image1');
-      expect(quill.insertText).toHaveBeenCalledWith(0, ' @Image1');
+      expect(quill.insertText).toHaveBeenCalledWith(0, ' [Image1]');
     });
 
     it('moves the cursor to right after the inserted token', () => {
       quill.getSelection.mockReturnValueOnce({ index: 5, length: 0 });
       component.addReference('Image1');
-      // ' @Image1' is 8 chars; 5 + 8 = 13
-      expect(quill.setSelection).toHaveBeenCalledWith(13, 0);
+      // ' [Image1]' is 9 chars; 5 + 9 = 14
+      expect(quill.setSelection).toHaveBeenCalledWith(14, 0);
     });
   });
 
@@ -350,7 +350,7 @@ describe('PromptBuilderComponent', () => {
         makeUsedAsset({ kind: 'image' }),
       ]);
       component.addReferenceForKind('image');
-      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' @image3');
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Image3]');
     });
 
     it('routes "mixed" through the image counter (mixed kind shares the image bucket)', () => {
@@ -359,13 +359,13 @@ describe('PromptBuilderComponent', () => {
         makeUsedAsset({ kind: 'mixed' }),
       ]);
       component.addReferenceForKind('mixed');
-      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' @image2');
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Image2]');
     });
 
     it('numbers video picks using the positional video count', () => {
       studio.setUsedAssets([makeUsedAsset({ kind: 'video' })]);
       component.addReferenceForKind('video');
-      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' @video1');
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Video1]');
     });
 
     it('numbers audio picks using the positional audio count', () => {
@@ -374,17 +374,17 @@ describe('PromptBuilderComponent', () => {
         makeUsedAsset({ kind: 'audio' }),
       ]);
       component.addReferenceForKind('audio');
-      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' @audio2');
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Audio2]');
     });
 
     it('numbers the last chip positionally even with inherited absolute slots', () => {
       studio.setUsedAssets([
-        makeUsedAsset({ kind: 'image', fileId: 'i1', slot: '@image4' }),
-        makeUsedAsset({ kind: 'image', fileId: 'i2', slot: '@image7' }),
+        makeUsedAsset({ kind: 'image', fileId: 'i1', slot: '[Image4]' }),
+        makeUsedAsset({ kind: 'image', fileId: 'i2', slot: '[Image7]' }),
       ]);
       component.addReferenceForKind('image');
-      // Inherited slots @image4/@image7 become positional 1..2 → last chip is 2.
-      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' @image2');
+      // Inherited slots [Image4]/[Image7] become positional 1..2 → last chip is 2.
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Image2]');
     });
   });
 
@@ -399,13 +399,13 @@ describe('PromptBuilderComponent', () => {
       ).pruneStaleTokens(label, allowed);
 
     it('removes only tokens whose number is not allowed', () => {
-      quill.getText.mockReturnValue('intro @image1 mid @image2 tail @image3\n');
+      quill.getText.mockReturnValue('intro [Image1] mid [Image2] tail [Image3]\n');
       prune('image', new Set([1]));
       expect(quill.deleteText).toHaveBeenCalledTimes(2);
     });
 
     it('iterates in reverse so earlier match indices remain valid', () => {
-      quill.getText.mockReturnValue('a @image2 b @image3 c\n');
+      quill.getText.mockReturnValue('a [Image2] b [Image3] c\n');
       const calls: number[] = [];
       quill.deleteText.mockImplementation((idx: number) => {
         calls.push(idx);
@@ -416,20 +416,20 @@ describe('PromptBuilderComponent', () => {
     });
 
     it('absorbs a single leading space so we do not leave double spaces', () => {
-      quill.getText.mockReturnValue('hi @image2\n');
+      quill.getText.mockReturnValue('hi [Image2]\n');
       prune('image', new Set([1]));
-      // Match length is 8 (includes the leading space before "@image2").
-      expect(quill.deleteText).toHaveBeenCalledWith(expect.any(Number), 8);
+      // Match length is 9 (includes the leading space before "[Image2]").
+      expect(quill.deleteText).toHaveBeenCalledWith(expect.any(Number), 9);
     });
 
     it('does nothing when there are no stale tokens', () => {
-      quill.getText.mockReturnValue('intro @image1 only\n');
+      quill.getText.mockReturnValue('intro [Image1] only\n');
       prune('image', new Set([1]));
       expect(quill.deleteText).not.toHaveBeenCalled();
     });
 
     it('only deletes the matching label kind', () => {
-      quill.getText.mockReturnValue('@image2 @video2 @audio2\n');
+      quill.getText.mockReturnValue('[Image2] [Video2] [Audio2]\n');
       prune('video', new Set([1]));
       // Only Video deletion expected.
       expect(quill.deleteText).toHaveBeenCalledTimes(1);
@@ -437,7 +437,7 @@ describe('PromptBuilderComponent', () => {
 
     it('pushes the cleaned text back into the studio store', () => {
       quill.getText
-        .mockReturnValueOnce('hi @image2\n') // initial scan
+        .mockReturnValueOnce('hi [Image2]\n') // initial scan
         .mockReturnValueOnce('hi \n'); // after delete (for the setRawDescription call)
       prune('image', new Set([1]));
       expect(studio.setRawDescription).toHaveBeenCalledWith('hi ');
@@ -501,7 +501,7 @@ describe('PromptBuilderComponent', () => {
         makeUsedAsset({ kind: 'image', fileId: 'i2' }),
       ]);
       fixture.detectChanges();
-      quill.getText.mockReturnValue('go @image1 @image2\n');
+      quill.getText.mockReturnValue('go [Image1] [Image2]\n');
       // Shrink: drop one image.
       studio.setUsedAssets([makeUsedAsset({ kind: 'image', fileId: 'i1' })]);
       fixture.detectChanges();
@@ -515,7 +515,7 @@ describe('PromptBuilderComponent', () => {
         makeUsedAsset({ kind: 'video', fileId: 'v2' }),
       ]);
       fixture.detectChanges();
-      quill.getText.mockReturnValue('clip @video1 @video2\n');
+      quill.getText.mockReturnValue('clip [Video1] [Video2]\n');
       studio.setUsedAssets([makeUsedAsset({ kind: 'video', fileId: 'v1' })]);
       fixture.detectChanges();
       await flushMicrotasks();

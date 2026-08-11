@@ -143,7 +143,7 @@ export function beatInfoFromSegments(
               <div class="cuts">
                 @for (todo of todos; track todo; let i = $index) {
                   <span class="cut"
-                    ><em>@image{{ i + 1 }}</em> {{ todo }}</span
+                    ><em>[Image{{ i + 1 }}]</em> {{ todo }}</span
                   >
                 }
               </div>

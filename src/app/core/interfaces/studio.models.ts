@@ -97,7 +97,7 @@ export interface ReferenceAsset {
   kind: 'image' | 'video' | 'audio';
   filename: string;
   thumbnailUrl?: string;
-  /** Tag used inside the prompt, e.g. "Image 1", "Video 1". */
+  /** Tag used inside the prompt, e.g. "[Image1]", "[Video1]". */
   tag: string;
   slot?: 'first-frame' | 'last-frame' | 'free';
 }
@@ -124,7 +124,7 @@ export interface UsedAsset {
   filename: string;
   /** Aggregated file type — drives the chip icon and content[].type. */
   kind: UsedAssetKind;
-  /** Slot @imageN/@videoN/@audioN inherited from the chapter assignment, or
+  /** Slot [ImageN]/[VideoN]/[AudioN] inherited from the chapter assignment, or
    *  undefined for brand-new assets (they get the next free number). */
   slot?: string;
 }

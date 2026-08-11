@@ -488,7 +488,7 @@ export class IndexCharacters implements OnInit {
       return;
     }
     const kind = resolveKind(asset.metadata?.['fileKind']);
-    // Respect the @imageN slot inherited from the chapter assignment when the
+    // Respect the [ImageN] slot inherited from the chapter assignment when the
     // character is assigned to the current episode.
     const assignedSlot = this.studio.chapterCharacterData().find((c) => c.id === asset.id)?.slot;
     this.studio.useAsset({

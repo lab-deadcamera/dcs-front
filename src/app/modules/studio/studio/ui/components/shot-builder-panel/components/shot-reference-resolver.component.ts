@@ -23,9 +23,9 @@ import { SourceAssetPipe } from '@app/core/pipes';
 import { inferKind } from '@app/shared/utils';
 
 /**
- * Embebido en el shot-sequence-viewer dentro de la sección "Referencias @image".
+ * Embebido en el shot-sequence-viewer dentro de la sección "Referencias [Image]".
  * Detecta las referencias que NO tienen un asset/character relacionado en el
- * episodio (por assetId o por slot @imageN) y las resalta. Para cada una
+ * episodio (por assetId o por slot [ImageN]) y las resalta. Para cada una
  * permite asignar un free asset del episodio (o subir uno nuevo), que toma el
  * slot de la referencia.
  */
@@ -46,7 +46,7 @@ import { inferKind } from '@app/shared/utils';
     <div class="ref-resolver">
       <!-- Header + unresolved badge -->
       <div class="ref-header">
-        <span class="section-tag ref-title">Referencias @image</span>
+        <span class="section-tag ref-title">Referencias [Image]</span>
         @if (unresolved().length > 0) {
           <span class="ref-badge" [attr.title]="unresolved().length + ' sin resolver'">
             {{ unresolved().length }} sin resolver
@@ -398,7 +398,7 @@ export class ShotReferenceResolverComponent {
     return map;
   });
 
-  /** Episode free assets ordered by their @imageN slot (slot-less last). */
+  /** Episode free assets ordered by their [ImageN] slot (slot-less last). */
   protected readonly sortedFreeAssets = computed(() => {
     const slotOf = (id: string) => slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
     return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
@@ -636,7 +636,7 @@ export class ShotReferenceResolverComponent {
   }
 }
 
-/** Extract the numeric part of an @imageN/@videoN/@audioN slot; 0 when absent. */
+/** Extract the numeric part of an [ImageN]/[VideoN]/[AudioN] slot; 0 when absent. */
 function slotNum(slot: string | undefined): number {
   if (!slot) return 0;
   const m = slot.match(/(\d+)$/);

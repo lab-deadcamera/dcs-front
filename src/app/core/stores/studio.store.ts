@@ -84,7 +84,7 @@ export class StudioStore {
   private readonly _chapterCharacterData = signal<
     Array<{ id: string; name: string; slot: string; fileId: string; kind: string }>
   >([]);
-  /** fileId → @imageN slot inherited from the chapter assignment for assets
+  /** fileId → [ImageN] slot inherited from the chapter assignment for assets
    *  (locations/props/audio). Characters keep their slot in chapterCharacterData. */
   private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
   /** fileId → chapter_assets row id, required to unassign an episode asset. */
@@ -104,7 +104,7 @@ export class StudioStore {
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
   /**
-   * Scan the shot's pre-prompt description for @image{N}, @video{N}, @audio{N}
+   * Scan the shot's pre-prompt description for [Image{N}], [Video{N}], [Audio{N}]
    * tokens and auto-register the matching chapter resources (characters first,
    * then chapter assets) as used assets.
    *
@@ -133,7 +133,7 @@ export class StudioStore {
       if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
     }
 
-    // Lookup slot → chapter asset (free asset that inherited an @imageN slot).
+    // Lookup slot → chapter asset (free asset that inherited an [ImageN] slot).
     const slotToAsset = new Map<
       string,
       { fileId: string; filename: string; kind: 'image' | 'video' | 'audio' }
@@ -144,7 +144,7 @@ export class StudioStore {
     }
 
     for (const token of tokens) {
-      const m = token.match(/^@(image|video|audio)(\d+)$/);
+      const m = token.match(/^\[(image|video|audio)(\d+)\]$/);
       if (!m) continue;
       const kind = m[1] === 'video' ? 'video' : m[1] === 'audio' ? 'audio' : 'image';
 
@@ -787,7 +787,7 @@ export class StudioStore {
     this._chapterAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
     );
-    // Preserve each asset's @imageN slot so the Prompt Builder respects it.
+    // Preserve each asset's [ImageN] slot so the Prompt Builder respects it.
     const assetSlots = new Map<string, string>();
     // fileId → chapter_assets row id (needed to unassign from the episode).
     const assignmentIds = new Map<string, string>();

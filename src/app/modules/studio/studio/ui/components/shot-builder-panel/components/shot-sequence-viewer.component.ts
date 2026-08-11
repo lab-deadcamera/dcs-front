@@ -1076,7 +1076,7 @@ export class ShotSequenceViewerComponent {
 
   /** True when a reference is resolved: its assetId matches a known character
    *  or free asset in the episode. (Slot-occupancy alone does NOT resolve it —
-   *  episode assets all carry auto-assigned @imageN slots, which would make
+   *  episode assets all carry auto-assigned [ImageN] slots, which would make
    *  every reference look resolved.) */
   /** Normalized lookup key for an assetId (trimmed, lowercased). */
   private refKey(assetId: string | undefined): string {

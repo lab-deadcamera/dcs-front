@@ -347,7 +347,7 @@ describe('ShotBuilderPanelComponent — duración', () => {
   });
 
   it('abre el popover de un character con sus metadatos', () => {
-    const character = { id: 'char-1', name: 'Wyatt', slot: '@image1', fileId: 'file-9', kind: 'image' };
+    const character = { id: 'char-1', name: 'Wyatt', slot: '[Image1]', fileId: 'file-9', kind: 'image' };
     (component as any).onCharacterInfo(new Event('click'), character);
 
     expect((component as any).assetInfo()).toEqual({
@@ -355,7 +355,7 @@ describe('ShotBuilderPanelComponent — duración', () => {
       name: 'Wyatt',
       charId: 'char-1',
       fileId: 'file-9',
-      slot: '@image1',
+      slot: '[Image1]',
       fileKind: 'image',
     });
     expect((component as any).assetPopover.toggle).toHaveBeenCalledTimes(1);
@@ -382,7 +382,7 @@ describe('ShotBuilderPanelComponent — duración', () => {
         ],
       }),
     );
-    const character = { id: 'char-1', name: 'Wyatt', slot: '@image1', fileId: 'file-9', kind: 'image' };
+    const character = { id: 'char-1', name: 'Wyatt', slot: '[Image1]', fileId: 'file-9', kind: 'image' };
     (component as any).onCharacterInfo(new Event('click'), character);
 
     // of(...) emits synchronously, so the map is populated by the time we assert.
@@ -425,7 +425,7 @@ describe('ShotBuilderPanelComponent — duración', () => {
       name: 'Wyatt',
       charId: 'char-1',
       fileId: 'file-9',
-      slot: '@image1',
+      slot: '[Image1]',
       fileKind: 'image',
     });
 

@@ -149,7 +149,7 @@ export class PromptBuilderComponent implements OnInit {
    * order the references are attached to the payload: first frame, last frame,
    * then used assets. This is the single source of truth for the chip label,
    * the inserted token and the stale-token prune. Because it follows the
-   * payload order, what the chips show always matches the @imageN/@videoN/@audioN
+   * payload order, what the chips show always matches the [ImageN]/[VideoN]/[AudioN]
    * tokens the model resolves against the reference items.
    */
   protected readonly assetNumbers = computed(() => {
@@ -414,7 +414,7 @@ export class PromptBuilderComponent implements OnInit {
     // Quill always appends a trailing newline → length-1 is the end of content.
     const fallbackEnd = Math.max(0, quill.getLength() - 1);
     const cursorPosition = selection?.index ?? fallbackEnd;
-    const text = ` @${reference}`;
+    const text = ` [${reference}]`;
     quill.insertText(cursorPosition, text);
     quill.setSelection(cursorPosition + text.length, 0);
   }
@@ -493,12 +493,17 @@ export class PromptBuilderComponent implements OnInit {
   /**
    * Canonical lowercase label for a chip kind. Hardcoded (not translated)
    * because the token also ships to the model in the payload and must
-   * match the frame hint vocabulary ("@image1", "@video1", "@audio1").
+   * match the frame hint vocabulary ("[Image1]", "[Video1]", "[Audio1]").
    */
   protected labelFor(kind: UsedAssetKind): 'image' | 'video' | 'audio' {
     if (kind === 'video') return 'video';
     if (kind === 'audio') return 'audio';
     return 'image';
+  }
+
+  /** Capitalize a kind label for the canonical token form ("image" → "Image"). */
+  private capLabel(label: 'image' | 'video' | 'audio'): string {
+    return label[0].toUpperCase() + label.slice(1);
   }
 
   /**
@@ -518,7 +523,7 @@ export class PromptBuilderComponent implements OnInit {
     const number = last
       ? (this.assetNumbers().get(last.fileId) ?? this.nextFreeSlot(kind))
       : this.nextFreeSlot(kind);
-    this.addReference(`${label}${number}`);
+    this.addReference(`${this.capLabel(label)}${number}`);
   }
 
   /** Next positional number for a kind = count of attached references + 1. */
@@ -533,7 +538,7 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * Remove every `@<label>N` token whose N is not one of the currently
+   * Remove every `[<Label>N]` token whose N is not one of the currently
    * assigned numbers (inherited slots + next-free fill). Iterates in reverse
    * so deletions don't shift the indices of earlier matches. Absorbs a single
    * leading space so we don't leave double spaces behind the way
@@ -544,7 +549,7 @@ export class PromptBuilderComponent implements OnInit {
     const quill = this.editorRef.getQuill();
     if (!quill) return;
     const text = quill.getText();
-    const pattern = new RegExp(` ?@${label}(\\d+)`, 'g');
+    const pattern = new RegExp(` ?\\[${this.capLabel(label)}(\\d+)\\]`, 'g');
     const stale: Array<{ index: number; length: number }> = [];
     let m: RegExpExecArray | null;
     while ((m = pattern.exec(text)) !== null) {

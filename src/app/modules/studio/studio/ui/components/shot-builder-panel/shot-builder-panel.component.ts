@@ -435,14 +435,14 @@ export class ShotBuilderPanelComponent {
   /** Collapsed/expanded state for the episode assets section. */
   protected readonly episodeAssetsExpanded = signal(true);
 
-  /** Chapter characters sorted by their @imageN slot number (slot-less last). */
+  /** Chapter characters sorted by their [ImageN] slot number (slot-less last). */
   protected readonly sortedChapterCharacters = computed(() => {
     return [...this.studio.chapterCharacterData()].sort(
       (a, b) => slotNum(a.slot) - slotNum(b.slot),
     );
   });
 
-  /** Episode assets sorted by their @imageN slot number (slot-less last). */
+  /** Episode assets sorted by their [ImageN] slot number (slot-less last). */
   protected readonly sortedFreeAssets = computed(() => {
     const slotOf = (id: string) => slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
     return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
@@ -472,7 +472,7 @@ export class ShotBuilderPanelComponent {
     });
   }
 
-  /** Tooltip label for an episode asset: its @imageN slot when assigned, else
+  /** Tooltip label for an episode asset: its [ImageN] slot when assigned, else
    *  the filename. */
   protected chapterAssetSlotLabel(id: string, filename: string): string {
     return this.studio.chapterAssetSlots().get(id) || filename;
@@ -1579,7 +1579,7 @@ export class ShotBuilderPanelComponent {
     this.lastRefineInfo.set(null);
 
     setTimeout(() => {
-      // Normalize the seedance slots in the mock's prompts ([Image1] → @image1)
+      // Normalize the seedance slots in the mock's prompts (@image1 → [Image1])
       // the same way parseShotsResponse does for live responses, so the mock
       // behaves exactly like a real generation. Non-mutating.
       const raw = responseOkMock as unknown as ShotBuilderResult;
@@ -1962,7 +1962,7 @@ export class ShotBuilderPanelComponent {
   }
 }
 
-/** Extract the numeric part of an @imageN/@videoN/@audioN slot; 0 when absent. */
+/** Extract the numeric part of an [ImageN]/[VideoN]/[AudioN] slot; 0 when absent. */
 function slotNum(slot: string | undefined): number {
   if (!slot) return 0;
   const m = slot.match(/(\d+)$/);

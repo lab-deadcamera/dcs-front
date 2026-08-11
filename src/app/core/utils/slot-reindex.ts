@@ -7,7 +7,7 @@ import { UsedAsset } from '@core/interfaces/studio.models';
 export interface SlotRef {
   fileId: string;
   kind: 'image' | 'video' | 'audio';
-  /** Original @imageN/@videoN/@audioN slot inherited from the chapter assignment. */
+  /** Original [ImageN]/[VideoN]/[AudioN] slot inherited from the chapter assignment. */
   slot?: string;
 }
 
@@ -15,7 +15,7 @@ export interface SlotRef {
  * The exact order in which reference assets are attached to the payload:
  * first frame, last frame, then used assets — deduped by fileId.
  * Slot numbering in the prompt must be positional over THIS order, because
- * Seedance resolves @imageN against the Nth reference item in the payload.
+ * Seedance resolves [ImageN] against the Nth reference item in the payload.
  */
 export function buildSlotReferences(
   first: { id: string; kind: 'image' | 'video' | 'audio' } | null,
@@ -42,10 +42,13 @@ export function buildSlotReferences(
   return out;
 }
 
-const TOKEN_PATTERN = /@(image|video|audio)(\d+)/gi;
+const TOKEN_PATTERN = /\[(image|video|audio)(\d+)\]/gi;
+
+/** Capitalize a kind label ("image" → "Image") for the canonical token form. */
+const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
 
 /**
- * Distinct @imageN/@videoN/@audioN tokens in `text`, in ORDER OF FIRST
+ * Distinct [ImageN]/[VideoN]/[AudioN] tokens in `text`, in ORDER OF FIRST
  * APPEARANCE, deduped (case-insensitive). The pre-prompt's first-appearance
  * order is what determines the positional numbering, so the model resolves
  * each token against the reference item at the same position.
@@ -66,9 +69,9 @@ export function collectSlotTokensInOrder(text: string): string[] {
 }
 
 /**
- * Reindex every @imageN/@videoN/@audioN token in `text` to a POSITIONAL number
- * (1..N per kind, in `refs` order), so the text matches the order in which the
- * reference items are attached to the payload.
+ * Reindex every [ImageN]/[VideoN]/[AudioN] token in `text` to a POSITIONAL
+ * number (1..N per kind, in `refs` order), so the text matches the order in
+ * which the reference items are attached to the payload.
  *
  * The mapping is per asset: a token whose number equals an asset's inherited
  * slot is rewritten to that asset's positional number. Every occurrence in the
@@ -85,17 +88,17 @@ export function reindexSlotTokens(
   for (const r of refs) {
     counts[r.kind]++;
     if (r.slot) {
-      const m = r.slot.match(/^@(image|video|audio)(\d+)$/i);
+      const m = r.slot.match(/^\[(image|video|audio)(\d+)\]$/i);
       if (m) {
-        const oldToken = `@${m[1].toLowerCase()}${m[2]}`;
-        map.set(oldToken, `@${r.kind}${counts[r.kind]}`);
+        const oldToken = `[${m[1].toLowerCase()}${m[2]}]`;
+        map.set(oldToken, `[${cap(r.kind)}${counts[r.kind]}]`);
       }
     }
   }
   if (map.size === 0) return text;
 
   return text.replace(TOKEN_PATTERN, (full, kind: string, num: string) => {
-    const token = `@${kind.toLowerCase()}${num}`;
+    const token = `[${kind.toLowerCase()}${num}]`;
     return map.get(token) ?? full;
   });
 }

@@ -453,9 +453,9 @@ export class SceneAssignmentComponent implements OnInit {
   }
 
   private prefixForKind(kind: string): string {
-    if (kind === 'video') return 'video';
-    if (kind === 'audio') return 'audio';
-    return 'image';
+    if (kind === 'video') return 'Video';
+    if (kind === 'audio') return 'Audio';
+    return 'Image';
   }
 
   private nextSlot(kind: string): string {
@@ -463,10 +463,10 @@ export class SceneAssignmentComponent implements OnInit {
     const assigned = this.assignedCharacters();
     const usedSlots = new Set(assigned.map((a: any) => a.slot).filter(Boolean));
     let n = 1;
-    while (usedSlots.has(`@${prefix}${n}`)) {
+    while (usedSlots.has(`[${prefix}${n}]`)) {
       n++;
     }
-    return `@${prefix}${n}`;
+    return `[${prefix}${n}]`;
   }
 
   assignCharacter(characterId: string, kind?: string): void {
@@ -543,7 +543,7 @@ export class SceneAssignmentComponent implements OnInit {
     if (!base) return;
 
     // Compute unique slots across the whole batch up front so nothing
-    // collides on @image1/@audio1 (assignedCharacters() only refreshes
+    // collides on [Image1]/[Audio1] (assignedCharacters() only refreshes
     // after this request completes).
     const prefix = this.prefixForKind(evt.kind);
     const usedSlots = new Set(
@@ -551,8 +551,8 @@ export class SceneAssignmentComponent implements OnInit {
     );
     const nextFreeSlot = (): string => {
       let n = 1;
-      while (usedSlots.has(`@${prefix}${n}`)) n++;
-      const slot = `@${prefix}${n}`;
+      while (usedSlots.has(`[${prefix}${n}]`)) n++;
+      const slot = `[${prefix}${n}]`;
       usedSlots.add(slot);
       return slot;
     };

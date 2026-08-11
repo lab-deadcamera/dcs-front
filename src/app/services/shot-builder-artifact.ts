@@ -193,7 +193,7 @@ ${slack > 0 ? `<div class="strip-slack" style="flex:${slack} 0 0" title="${slack
 ${data.faceToFaceRule ? `<div class="card-flat f2f"><h3>Regla cara-a-cara</h3><p>${esc(data.faceToFaceRule)}</p></div>` : ''}
 </div>
 
-<div class="section-tag">Planos · ingredientes (refs @image) listados por tarjeta</div>
+<div class="section-tag">Planos · ingredientes (refs [Image]) listados por tarjeta</div>
 <div id="shots">${shotsHtml}</div>
 
 <footer>Dead Camera Studios · ${data.shots.length} planos · revisar → cargar refs → pegar idioma → generar</footer>
