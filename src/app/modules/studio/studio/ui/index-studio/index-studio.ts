@@ -28,11 +28,13 @@ import {
   StudioBreadcrumbComponent,
 } from '../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
-import { ModelAssetSync } from '@core/interfaces/seedance.interface';
+import { FixAssetResult, ModelAssetSync } from '@core/interfaces/seedance.interface';
 import { buildSlotReferences, reindexSlotTokens } from '@core/utils/slot-reindex';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
 import { MAX_BATCH_COUNT, UsedAssetKind } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -50,6 +52,7 @@ import { ToastModule } from 'primeng/toast';
 import { Splitter } from 'primeng/splitter';
 import { LEVEL_ROL } from '@app/core/constants';
 import { ShotBuilderPanelComponent } from '../components/shot-builder-panel/shot-builder-panel.component';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /** localStorage key for breadcrumb selection persistence. */
 const LS_KEY = 'studio-breadcrumb-selection';
@@ -98,7 +101,10 @@ function normalizeModelName(name: string): string {
     ButtonModule,
     DialogModule,
     TooltipModule,
+    SelectModule,
+    FormsModule,
     DatePipe,
+    SourceThumbnailAssetPipe,
     Splitter,
     ShotBuilderPanelComponent,
     TranslatePipe,
@@ -164,6 +170,138 @@ export class IndexStudio implements OnInit {
   protected readonly syncDialogVisible = signal(false);
   protected readonly syncedAssets = signal<ModelAssetSync[]>([]);
   protected readonly syncLoading = signal(false);
+
+  // ── Sync Queue — retry / AI-regenerate ────────────────────────────
+
+  /** Id of the asset currently being fixed (row spinner). */
+  protected readonly fixingId = signal<string | null>(null);
+
+  /** AI-regenerate dialog for a failed sync. */
+  protected readonly aiDialogVisible = signal(false);
+  protected readonly aiTarget = signal<ModelAssetSync | null>(null);
+  protected readonly aiRatio = signal('1:1');
+  protected readonly aiImageModels = signal<any[]>([]);
+  protected readonly aiLoadingModels = signal(false);
+  protected readonly aiModelId = signal('');
+
+  protected readonly aiRatioOptions: { label: string; value: string; w: number; h: number }[] = [
+    { label: '1:1 (Square)', value: '1:1', w: 16, h: 16 },
+    { label: '4:3', value: '4:3', w: 16, h: 12 },
+    { label: '3:4', value: '3:4', w: 12, h: 16 },
+    { label: '3:2', value: '3:2', w: 18, h: 12 },
+    { label: '2:3', value: '2:3', w: 12, h: 18 },
+    { label: '4:5', value: '4:5', w: 16, h: 20 },
+    { label: '5:4', value: '5:4', w: 20, h: 16 },
+  ];
+
+  /** Retry the sync; the backend auto-normalizes geometry (or falls back to
+   *  AI regeneration in "auto" mode when configured). */
+  protected retrySyncAsset(a: ModelAssetSync): void {
+    this.runSyncFix(a, 'auto');
+  }
+
+  /** Shared runner for the sync-queue retry / AI-regenerate flows. */
+  private runSyncFix(a: ModelAssetSync, mode: 'auto' | 'normalize' | 'ai', model?: string): void {
+    this.fixingId.set(a.id);
+    this.aiDialogVisible.set(false);
+    this.genLogs
+      .fixAsset(
+        a.model_id,
+        a.file_id,
+        mode,
+        mode === 'ai' ? this.aiRatio() : undefined,
+        mode === 'ai' ? model : undefined,
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.fixingId.set(null);
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('ADMIN.GALLERIES.FIX_FAILED'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.FIX_SYNC_FAILED'),
+            life: 4000,
+          });
+          return;
+        }
+        this.toastSyncFixResult(res.data);
+        this.reloadSyncedAssets();
+      });
+  }
+
+  private toastSyncFixResult(r: FixAssetResult): void {
+    const fixedLabel =
+      r.used_fix === 'ai'
+        ? this.i18n.instant('ADMIN.GALLERIES.REGENERATED_AI')
+        : r.used_fix === 'normalize'
+          ? this.i18n.instant('ADMIN.GALLERIES.NORMALIZED')
+          : '';
+    const detail =
+      r.status === 'failed'
+        ? this.i18n.instant('ADMIN.GALLERIES.FIX_RESULT_FAILED', {
+            msg: r.error_message ? ': ' + r.error_message : '',
+          })
+        : `${fixedLabel ? fixedLabel + ' · ' : ''}${r.status}`;
+    this.toast.add({
+      severity: r.status === 'failed' ? 'error' : 'success',
+      summary: this.i18n.instant('ADMIN.GALLERIES.SYNC_FIXED'),
+      detail,
+      life: 5000,
+    });
+  }
+
+  /** Open the AI-regenerate dialog for a failed sync. */
+  protected openAiDialog(a: ModelAssetSync): void {
+    this.aiTarget.set(a);
+    this.aiRatio.set('1:1');
+    this.aiDialogVisible.set(true);
+    this.loadSyncAiModels();
+  }
+
+  /** Load the image generator models for the AI dialog. */
+  private loadSyncAiModels(): void {
+    if (this.aiImageModels().length > 0 || this.aiLoadingModels()) return;
+    this.aiLoadingModels.set(true);
+    this.modelService
+      .getAllModels('image')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.aiLoadingModels.set(false);
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'warn',
+            summary: this.i18n.instant('ADMIN.GALLERIES.NO_IMAGE_MODELS'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.LOAD_IMAGE_MODELS_FAILED'),
+            life: 3000,
+          });
+          return;
+        }
+        this.aiImageModels.set(res.data);
+        if (res.data.length > 0) this.aiModelId.set(res.data[0].id);
+      });
+  }
+
+  protected onAiModelChange(id: string): void {
+    this.aiModelId.set(id);
+  }
+
+  /** Regenerate the failed sync with the image generator at the chosen ratio. */
+  protected regenerateSyncWithAI(): void {
+    const a = this.aiTarget();
+    if (!a) return;
+    const model = this.aiImageModels().find((m) => m.id === this.aiModelId());
+    this.runSyncFix(a, 'ai', model?.name);
+  }
+
+  /** Re-fetch the synced-assets list after a fix so the row reflects its new
+   *  status without reopening the dialog. */
+  private reloadSyncedAssets(): void {
+    const model = this.studio.modelCode();
+    if (!model?.id) return;
+    this.genLogs.getSyncedAssets(model.id).subscribe((res) => {
+      if (!res.error && res.data) this.syncedAssets.set(res.data);
+    });
+  }
 
   protected readonly syncBtnPos = signal({ x: 16, y: 200 });
   private dragging = false;
@@ -724,7 +862,6 @@ export class IndexStudio implements OnInit {
           /* assignments not critical */
         },
       });
-
     });
   }
 

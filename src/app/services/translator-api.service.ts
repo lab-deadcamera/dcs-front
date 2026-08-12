@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '@environment/environment';
 
 export interface TranslateResponse {
@@ -41,6 +41,17 @@ export class TranslatorApiService {
     source: string = 'auto',
   ): Observable<TranslateBlocksResponse> {
     const body: TranslateBlocksRequest = { blocks, source, target };
-    return this.http.post<TranslateBlocksResponse>(`${this.apiUrl}/translate-blocks`, body);
+    return this.http.post<TranslateBlocksResponse>(`${this.apiUrl}/translate-blocks`, body).pipe(
+      map((response) => {
+        const translated = response.translations.map((t) =>
+          t
+            .replace(/\[图片/g, '[Image')
+            .replace(/\[视频/g, '[Video')
+            .replace(/\[语音/g, '[Audio')
+            .replace(/\[文档/g, '[Document'),
+        );
+        return { ...response, translations: translated };
+      }),
+    );
   }
 }

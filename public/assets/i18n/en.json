@@ -429,6 +429,7 @@
       "COL_FILE": "File",
       "COL_STATUS": "Status",
       "COL_SYNC_DATE": "Sync date",
+      "COL_ACTIONS": "Actions",
       "REFRESH": "Refresh",
       "SYNC": "Sync",
       "SYNC_SELECT_MODEL": "Select a model first",

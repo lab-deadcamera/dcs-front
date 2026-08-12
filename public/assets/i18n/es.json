@@ -429,6 +429,7 @@
       "COL_FILE": "Archivo",
       "COL_STATUS": "Estado",
       "COL_SYNC_DATE": "Fecha de sincronización",
+      "COL_ACTIONS": "Acciones",
       "REFRESH": "Actualizar",
       "SYNC": "Sincronizar",
       "SYNC_SELECT_MODEL": "Seleccioná un modelo primero",

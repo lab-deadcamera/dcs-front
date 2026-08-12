@@ -23,3 +23,7 @@
   width: auto;
   height: auto;
 }
+
+::ng-deep .p-overlay-mask {
+  z-index: 10001 !important;
+}
