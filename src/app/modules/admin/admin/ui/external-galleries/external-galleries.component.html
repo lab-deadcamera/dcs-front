@@ -98,8 +98,9 @@
                     <img
                       [src]="a.file_id | sourceThumbnailAsset"
                       alt="{{ a.file_name }}"
-                      class="h-10 w-10 rounded object-cover"
+                      class="h-10 w-10 cursor-pointer rounded object-cover"
                       loading="lazy"
+                      (click)="openAssetInfo($event, a)"
                     />
                   } @else if (a.mime_type.startsWith('audio')) {
                     <span class="flex h-10 w-10 items-center justify-center rounded bg-ink-700 text-fg-muted">
@@ -343,5 +344,8 @@
     </div>
   </ng-template>
 </p-dialog>
+
+<!-- Asset metadata popover (gallery thumbnails) -->
+<app-asset-info-popover #assetInfoPopover />
 
 <p-toast position="bottom-right" />

@@ -54,7 +54,7 @@ import {
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
 import responseOkMock from '@app/core/mocks/response-07-08.json';
-import { Sequence } from '@app/core/interfaces';
+import { Reference, Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS } from '@app/core/constants';
 import { ModelService } from '@app/services/model.service';
@@ -65,7 +65,7 @@ import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 import { FilesApiService } from '@app/services/files-api.service';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { inferKind } from '@app/shared/utils';
+import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 
@@ -188,6 +188,9 @@ type AssetInfo =
 export class ShotBuilderPanelComponent {
   constructor() {
     this.validateClaudeModel();
+    // Load the library's assetType map eagerly so the episode resource tabs
+    // (characters/locations/props/audio) are grouped correctly from the start.
+    this.ensureCharacterTypes();
   }
 
   /** Check that a text-type model named 'claude-shot-builder' exists and is active. */
@@ -283,7 +286,17 @@ export class ShotBuilderPanelComponent {
 
   /** Full-screen mode toggle for the right preview panel. */
   readonly fullscreen = signal(false);
-  protected readonly toggleFullscreen = () => this.fullscreen.update((v) => !v);
+  /** Full-screen mode toggle for the left editor panel. Only one panel can be
+   *  fullscreen at a time, so entering either exits the other. */
+  protected readonly leftFullscreen = signal(false);
+  protected readonly toggleFullscreen = () => {
+    this.leftFullscreen.set(false);
+    this.fullscreen.update((v) => !v);
+  };
+  protected readonly toggleLeftFullscreen = () => {
+    this.fullscreen.set(false);
+    this.leftFullscreen.update((v) => !v);
+  };
 
   // ── Skill & Model selection ────────────────────────────────────
 
@@ -415,8 +428,9 @@ export class ShotBuilderPanelComponent {
   /** Dialog visibility for the preview modal (JSON dump of current data). */
   protected readonly previewDialogVisible = signal(false);
 
-  /** Pretty-printed JSON of the current episode + scenes data for the preview modal. */
-  protected readonly previewDataPretty = computed(() => {
+  /** Parsed shot-builder data (episode + scenes) as a plain object — shared by
+   *  the preview modal and the JSON download so both show the same payload. */
+  private previewDataObject(): Record<string, unknown> {
     const snapshot: Record<string, unknown> = {};
     const ep = this.episodeData();
     if (ep) snapshot['episode'] = ep;
@@ -424,11 +438,47 @@ export class ShotBuilderPanelComponent {
     if (sc.length > 0) snapshot['scenes'] = sc;
     const raw = this.rawResponse();
     if (raw) snapshot['rawLength'] = raw.length;
+    return snapshot;
+  }
 
+  /** True when there's episode/scene data to preview or download. */
+  protected readonly hasPreviewData = computed(
+    () => Object.keys(this.previewDataObject()).length > 0,
+  );
+
+  /** Pretty-printed JSON of the current episode + scenes data for the preview modal. */
+  protected readonly previewDataPretty = computed(() => {
+    const snapshot = this.previewDataObject();
     if (Object.keys(snapshot).length === 0) return 'No data available. Generate shots first.';
-
     return JSON.stringify(snapshot, null, 2);
   });
+
+  /** Download the parsed response as a JSON file named "Shot Builder" + timestamp. */
+  protected downloadPreviewData(): void {
+    const snapshot = this.previewDataObject();
+    if (Object.keys(snapshot).length === 0) return;
+
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Shot Builder ${stamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    this.toast.add({
+      severity: 'success',
+      summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_DOWNLOADED'),
+    });
+  }
 
   // ── Episode Assets preview ─────────────────────────────────────────
 
@@ -447,6 +497,50 @@ export class ShotBuilderPanelComponent {
     const slotOf = (id: string) => slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
     return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
   });
+
+  // ── Resource tabs (characters / locations / props / audio / free) ───
+
+  /** Active resource tab in the episode assets preview. */
+  protected readonly activeAssetTab = signal<AssetType | 'free'>('character');
+
+  /** Resource tabs — the semantic types come from the library's assetType
+   *  metadata; 'free' shows untagged episode uploads. */
+  protected readonly assetTabs: (AssetType | 'free')[] = [
+    'character',
+    'location',
+    'prop',
+    'audio',
+    'free',
+  ];
+
+  /** i18n label for each resource tab. */
+  protected readonly assetTabLabel: Record<string, string> = {
+    character: 'STUDIO.SHOT_BUILDER.TAB_CHARACTERS',
+    location: 'STUDIO.SHOT_BUILDER.TAB_LOCATIONS',
+    prop: 'STUDIO.SHOT_BUILDER.TAB_PROPS',
+    audio: 'STUDIO.SHOT_BUILDER.TAB_AUDIO',
+    free: 'STUDIO.SHOT_BUILDER.TAB_FREE',
+  };
+
+  /** assetType of a chapter character row — from the library metadata,
+   *  defaulting to 'character' so untagged rows still land somewhere. */
+  protected assetTypeOf(c: { id: string }): AssetType {
+    return this.characterTypes().get(c.id) ?? 'character';
+  }
+
+  /** Chapter characters for the active typed tab (empty for the free tab). */
+  protected readonly tabCharacters = computed(() => {
+    const tab = this.activeAssetTab();
+    if (tab === 'free') return [];
+    return this.sortedChapterCharacters().filter((c) => this.assetTypeOf(c) === tab);
+  });
+
+  /** Item count badge for a tab: typed characters for the semantic tabs,
+   *  free-asset count for the free tab. */
+  protected assetTabCount(tab: AssetType | 'free'): number {
+    if (tab === 'free') return this.sortedFreeAssets().length;
+    return this.sortedChapterCharacters().filter((c) => this.assetTypeOf(c) === tab).length;
+  }
 
   /** Navigate to the Providers section so the user can create the missing model. */
   protected onGoToProviders(): void {
@@ -533,6 +627,44 @@ export class ShotBuilderPanelComponent {
       fileKind: a.kind,
     });
     this.assetPopover.toggle(event);
+  }
+
+  // ── Scene reference info popover (metadata of the resolved asset) ───────
+
+  /** Reference shown in the scene-reference metadata popover. */
+  protected readonly refInfoTarget = signal<Reference | null>(null);
+  @ViewChild('refInfoPopover') protected readonly refInfoPopover!: Popover;
+
+  /** Human label for a reference's semantic type. */
+  protected refTypeLabel(type: string): string {
+    switch (type) {
+      case 'character':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_CHARACTER');
+      case 'location':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_LOCATION');
+      case 'prop':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_PROP');
+      default:
+        return type;
+    }
+  }
+
+  /** Resolve a scene reference's assetId to a chapter character or free asset
+   *  (matched by id, file id, name/filename — case-insensitive), or null when
+   *  it doesn't match anything in the episode. */
+  protected refInfoOf(ref: Reference): ResolvedRefInfo | null {
+    return resolveReferenceInfo(
+      ref,
+      this.studio.chapterCharacterData(),
+      this.studio.freeAssets(),
+      this.studio.chapterAssetSlots(),
+    );
+  }
+
+  /** Open the metadata popover for a scene reference chip. */
+  protected openSceneRefInfo(event: Event, ref: Reference): void {
+    this.refInfoTarget.set(ref);
+    this.refInfoPopover.toggle(event);
   }
 
   /** Unassign a free asset from the episode (backend + store), then close. */
@@ -914,12 +1046,40 @@ export class ShotBuilderPanelComponent {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item) => ('str' in item ? item.str : ''))
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        parts.push(`[Page ${i}]\n${pageText}`);
+
+        // pdfjs returns one text item per word/run. Rebuild the visual line
+        // structure from each item's baseline Y (transform[5]) and its
+        // end-of-line flag (hasEOL) — joining everything with a single space
+        // flattens the screenplay into one giant line and destroys the
+        // scene-header/dialogue/action layout.
+        const lines: string[] = [];
+        let currentLine: string[] = [];
+        let lastY: number | null = null;
+        for (const item of textContent.items) {
+          if (!('str' in item) || item.str === '') continue;
+          const y = item.transform[5];
+
+          // Baseline jumped → the next word starts a new visual line.
+          if (lastY !== null && Math.abs(y - lastY) > 2 && currentLine.length > 0) {
+            lines.push(currentLine.join(' '));
+            currentLine = [];
+          }
+
+          currentLine.push(item.str);
+          lastY = y;
+
+          // pdfjs marks the last item of each line explicitly — catches
+          // same-baseline breaks (columns, table cells).
+          if (item.hasEOL && currentLine.length > 0) {
+            lines.push(currentLine.join(' '));
+            currentLine = [];
+          }
+        }
+        if (currentLine.length > 0) {
+          lines.push(currentLine.join(' '));
+        }
+
+        parts.push(`\n${lines.join('\n').trim()}`);
         page.cleanup();
       }
       return parts.join('\n\n');
@@ -992,6 +1152,8 @@ export class ShotBuilderPanelComponent {
       this.runRefine(content, false);
       return;
     }
+
+    console.log({ content });
 
     this.loading.set(true);
     this.error.set(null);
@@ -1090,7 +1252,9 @@ export class ShotBuilderPanelComponent {
         },
         error: (err: unknown) => {
           const message =
-            err instanceof Error ? err.message : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GEN_FAILED');
+            err instanceof Error
+              ? err.message
+              : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_GEN_FAILED');
           this.error.set(message);
           this.loading.set(false);
           this.toast.add({
@@ -1206,7 +1370,9 @@ export class ShotBuilderPanelComponent {
         },
         error: (err: unknown) => {
           const message =
-            err instanceof Error ? err.message : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_REFINE_FAILED');
+            err instanceof Error
+              ? err.message
+              : this.i18n.instant('STUDIO.SHOT_BUILDER.CHAT_REFINE_FAILED');
           this.error.set(message);
           this.toast.add({
             severity: 'error',

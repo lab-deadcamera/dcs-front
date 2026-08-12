@@ -30,6 +30,15 @@
   overflow: hidden;
 }
 
+/* Full-screen editor panel: overlays the viewport */
+.editor-panel.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg, #0c1315);
+  overflow: hidden;
+}
+
 .preview-panel.fullscreen .sequence-viewer-wrap {
   height: 100%;
   overflow-y: auto;

@@ -19,8 +19,8 @@ import { FilesApiService } from '@app/services/files-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 import { FileCategory } from '@app/core/interfaces';
 import { Reference, ReferenceType } from '@app/core/interfaces';
-import { SourceAssetPipe } from '@app/core/pipes';
-import { inferKind } from '@app/shared/utils';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
 
 /**
  * Embebido en el shot-sequence-viewer dentro de la sección "Referencias [Image]".
@@ -39,6 +39,7 @@ import { inferKind } from '@app/shared/utils';
     ButtonModule,
     TooltipModule,
     SourceAssetPipe,
+    SourceThumbnailAssetPipe,
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,12 +74,17 @@ import { inferKind } from '@app/shared/utils';
               </button>
             </span>
           } @else {
-            <!-- Resolved → normal chip -->
-            <span class="ref-chip ref-chip-ok">
+            <!-- Resolved → clickable chip that opens the asset metadata popover -->
+            <button
+              type="button"
+              class="ref-chip ref-chip-ok ref-chip-button"
+              (click)="openInfoPopover($event, ref)"
+              [title]="'Ver metadata del asset'"
+            >
               <em>{{ ref.slot }}</em>
               <span class="ref-name">{{ refNameFor(ref) }}</span>
               <span class="ref-type">{{ refTypeLabel(ref.type) }}</span>
-            </span>
+            </button>
           }
         }
         @if (references().length === 0) {
@@ -87,7 +93,7 @@ import { inferKind } from '@app/shared/utils';
       </div>
 
       <!-- Assign popover -->
-      <p-popover #assignPopover [dismissable]="true">
+      <p-popover #assignPopover [dismissable]="true" styleClass="asset-popover-z">
         @if (assignTarget(); as target) {
           <div class="ref-assign-popover">
             <p class="ref-popover-title">
@@ -154,6 +160,72 @@ import { inferKind } from '@app/shared/utils';
                 (onClick)="uploadInput.click()"
               />
             </div>
+          </div>
+        }
+      </p-popover>
+
+      <!-- Reference info popover — metadata of the assigned asset -->
+      <p-popover #infoPopover [dismissable]="true" styleClass="asset-popover-z">
+        @if (infoTarget(); as ref) {
+          <div class="ref-info-popover">
+            <p class="ref-popover-title">Referencia <b>{{ ref.slot }}</b></p>
+
+            @if (refInfoFor(ref); as info) {
+              @if (info.fileKind === 'image' && info.fileId && !isThumbBroken(info.fileId)) {
+                <img
+                  [src]="
+                    info.kind === 'character'
+                      ? (info.fileId | sourceThumbnailAsset)
+                      : (info.fileId | sourceAsset)
+                  "
+                  [alt]="info.name"
+                  class="ref-info-img"
+                  loading="lazy"
+                  (error)="onThumbError(info.fileId)"
+                />
+              }
+
+              <dl class="ref-info-dl">
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}</dt>
+                  <dd>{{ info.name }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
+                  <dd class="cap">{{ refTypeLabel(ref.type) }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+                  <dd class="mono">{{ ref.slot }}</dd>
+                </div>
+                @if (info.kind === 'character') {
+                  <div>
+                    <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_CHARACTER_ID' | translate }}</dt>
+                    <dd class="mono">{{ info.charId }}</dd>
+                  </div>
+                }
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}</dt>
+                  <dd class="mono">{{ info.fileId }}</dd>
+                </div>
+              </dl>
+            } @else {
+              <!-- assetId not matched against the episode → show the raw ref -->
+              <dl class="ref-info-dl">
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
+                  <dd class="cap">{{ refTypeLabel(ref.type) }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+                  <dd class="mono">{{ ref.slot }}</dd>
+                </div>
+                <div>
+                  <dt>AssetId</dt>
+                  <dd class="mono">{{ ref.assetId }}</dd>
+                </div>
+              </dl>
+            }
           </div>
         }
       </p-popover>
@@ -248,6 +320,68 @@ import { inferKind } from '@app/shared/utils';
       .ref-assign-btn:hover {
         background: #e0653c;
         color: #0c1315;
+      }
+      .ref-chip-button {
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+      .ref-chip-button:hover {
+        border-color: var(--teal, #4fb0b5);
+        opacity: 1;
+      }
+
+      /* Reference info popover */
+      .ref-info-popover {
+        width: 300px;
+        padding: 14px;
+        background: var(--panel, #121f21);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ref-info-img {
+        width: 100%;
+        max-height: 160px;
+        object-fit: cover;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: var(--bg2, #0f1a1c);
+      }
+      .ref-info-dl {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .ref-info-dl > div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .ref-info-dl dt {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint, #6a7977);
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .ref-info-dl dd {
+        margin: 0;
+        font-size: 12px;
+        color: var(--ink, #ece6d8);
+        text-align: right;
+        word-break: break-all;
+      }
+      .ref-info-dl dd.cap {
+        text-transform: capitalize;
+      }
+      .ref-info-dl dd.mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--ink-dim, #9aa6a3);
       }
       .ref-empty {
         font-size: 12px;
@@ -471,6 +605,29 @@ export class ShotReferenceResolverComponent {
   protected openAssignPopover(event: Event, ref: Reference): void {
     this.assignTarget.set(ref);
     this.assignPopover.toggle(event);
+  }
+
+  // ── Reference info popover (metadata of the resolved asset) ────────────
+
+  /** Resolved metadata for a reference, or null when the assetId doesn't match
+   *  a chapter character / free asset. */
+  protected refInfoFor(ref: Reference): ResolvedRefInfo | null {
+    return resolveReferenceInfo(
+      ref,
+      this.studio.chapterCharacterData(),
+      this.studio.freeAssets(),
+      this.studio.chapterAssetSlots(),
+    );
+  }
+
+  /** Reference shown in the asset-metadata info popover. */
+  protected readonly infoTarget = signal<Reference | null>(null);
+
+  @ViewChild('infoPopover') protected readonly infoPopover!: Popover;
+
+  protected openInfoPopover(event: Event, ref: Reference): void {
+    this.infoTarget.set(ref);
+    this.infoPopover.toggle(event);
   }
 
   /**

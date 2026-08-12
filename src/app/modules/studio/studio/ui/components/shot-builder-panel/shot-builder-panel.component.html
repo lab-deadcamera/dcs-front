@@ -5,7 +5,30 @@
   <p-splitter class="shot-builder-splitter h-full" [panelSizes]="[55, 45]">
     <!-- LEFT: Chat + Input -->
     <ng-template pTemplate>
-      <section class="flex h-full flex-col gap-3 border-r border-ink-700 px-4 py-3">
+      <section
+        class="editor-panel flex h-full flex-col gap-3 border-r border-ink-700 px-4 py-3"
+        [class.fullscreen]="leftFullscreen()"
+      >
+        <!-- Editor toolbar (full-screen toggle) -->
+        <div class="flex shrink-0 items-center justify-end">
+          <button
+            type="button"
+            class="flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold uppercase tracking-wide transition-colors hover:text-primary-400"
+            [class.text-primary-400]="leftFullscreen()"
+            [class.text-fg-muted]="!leftFullscreen()"
+            (click)="toggleLeftFullscreen()"
+            [pTooltip]="'STUDIO.SHOT_BUILDER.FULLSCREEN_EDITOR' | translate"
+            tooltipPosition="left"
+          >
+            <i
+              class="pi"
+              [class.pi-window-minimize]="leftFullscreen()"
+              [class.pi-window-maximize]="!leftFullscreen()"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </div>
+
         <!-- Chat messages -->
         <div class="flex-1 overflow-y-auto">
           @if (chatMessages().length === 0) {
@@ -82,55 +105,59 @@
             </button>
 
             @if (episodeAssetsExpanded()) {
-              <!-- Characters -->
-              @if (studio.chapterCharacterData().length > 0) {
-                <div class="mt-2">
-                  <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                    {{ 'STUDIO.SHOT_BUILDER.CHARACTERS' | translate }}
-                  </span>
-                  <div class="mt-1 flex flex-wrap gap-1 h-20 overflow-y-auto">
-                    @for (c of sortedChapterCharacters(); track c.id) {
-                      <button
-                        type="button"
-                        class="group relative inline-flex cursor-pointer items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500 transition-colors hover:bg-ink-700"
-                        [title]="c.slot || c.name"
-                        (click)="onCharacterInfo($event, c)"
-                      >
-                        <i
-                          class="pi text-[10px]"
-                          [class.pi-user]="c.kind === 'image'"
-                          [class.pi-video]="c.kind === 'video'"
-                          [class.pi-volume-up]="c.kind === 'audio'"
-                          aria-hidden="true"
-                        ></i>
-                        {{ c.name }}
-
-                        <!-- Hover preview: show the character's image -->
-                        @if (c.kind === 'image' && c.fileId && !isThumbBroken(c.id)) {
-                          <div
-                            class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover:block"
-                          >
-                            <img
-                              [src]="c.fileId | sourceThumbnailAsset"
-                              [alt]="c.slot || c.name"
-                              class="h-24 w-auto rounded border border-ink-400 bg-ink-900 object-cover shadow-lg"
-                              loading="lazy"
-                              (error)="onThumbError(c.id)"
-                            />
-                          </div>
-                        }
-                      </button>
+              <!-- Resource tabs: characters / locations / props / audio / free -->
+              <div class="mt-2 flex gap-1 overflow-x-auto border-b border-ink-600">
+                @for (tab of assetTabs; track tab) {
+                  <button
+                    type="button"
+                    class="whitespace-nowrap border-b-2 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors"
+                    [class]="
+                      activeAssetTab() === tab
+                        ? 'border-primary-500 !text-fg-strong'
+                        : 'border-transparent text-fg-muted hover:text-fg-strong'
+                    "
+                    (click)="activeAssetTab.set(tab)"
+                  >
+                    {{ assetTabLabel[tab] | translate }}
+                    @if (assetTabCount(tab); as count) {
+                      <span class="ml-1 rounded bg-ink-700 px-1 py-0.5 text-[9px]">{{ count }}</span>
                     }
-                  </div>
+                  </button>
+                }
+              </div>
+
+              <!-- Typed resources (characters / locations / props / audio) -->
+              @if (activeAssetTab() !== 'free') {
+                <div class="mt-2 flex h-20 flex-wrap gap-1 overflow-y-auto">
+                  @for (c of tabCharacters(); track c.id) {
+                    <button
+                      type="button"
+                      class="inline-flex cursor-pointer items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500 transition-colors hover:bg-ink-700"
+                      [title]="c.slot || c.name"
+                      (click)="onCharacterInfo($event, c)"
+                    >
+                      <i
+                        class="pi text-[10px]"
+                        [class.pi-user]="c.kind === 'image'"
+                        [class.pi-video]="c.kind === 'video'"
+                        [class.pi-volume-up]="c.kind === 'audio'"
+                        aria-hidden="true"
+                      ></i>
+                      {{ c.name }}
+                    </button>
+                  }
+
+                  @if (tabCharacters().length === 0) {
+                    <p class="mt-2 text-[11px] italic text-fg-muted">
+                      {{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}
+                    </p>
+                  }
                 </div>
               }
 
-              <!-- Free Assets (images, video, audio) -->
-              @if (studio.freeAssets().length > 0) {
+              <!-- Free assets (untagged episode uploads) -->
+              @if (activeAssetTab() === 'free') {
                 <div class="mt-2">
-                  <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                    Free Assets
-                  </span>
                   <div class="mt-1 flex flex-wrap gap-1.5">
                     @for (a of sortedFreeAssets(); track a.id) {
                       <button
@@ -168,14 +195,13 @@
                       </button>
                     }
                   </div>
-                </div>
-              }
 
-              <!-- Empty state -->
-              @if (studio.chapterCharacterData().length === 0 && studio.freeAssets().length === 0) {
-                <p class="mt-2 text-[11px] italic text-fg-muted">
-                  No assets assigned to this episode.
-                </p>
+                  @if (sortedFreeAssets().length === 0) {
+                    <p class="mt-2 text-[11px] italic text-fg-muted">
+                      {{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}
+                    </p>
+                  }
+                </div>
               }
             }
           </div>
@@ -627,9 +653,11 @@
                     @if (scene.references.length) {
                       <div class="mx-3 mb-1 flex flex-wrap gap-1">
                         @for (ref of scene.references; track ref.slot) {
-                          <span
-                            class="rounded bg-ink-800 px-1.5 py-0.5 text-[10px] font-mono text-primary-400"
-                            >{{ ref.slot }}</span
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded bg-ink-800 px-1.5 py-0.5 font-mono text-[10px] text-primary-400 transition-colors hover:bg-ink-700"
+                            (click)="openSceneRefInfo($event, ref)"
+                            >{{ ref.slot }}</button
                           >
                         }
                       </div>
@@ -802,8 +830,10 @@
   </p-splitter>
 </div>
 
-<!-- Episode asset metadata popover (characters + free assets) -->
-<p-popover #assetPopover [dismissable]="true">
+<!-- Episode asset metadata popover (characters + free assets). The high
+     z-index keeps it above the full-screen editor/preview overlays (9999),
+     which would otherwise hide the popover behind the panel. -->
+<p-popover #assetPopover [dismissable]="true" styleClass="asset-popover-z">
   @if (assetInfo(); as info) {
     <div class="w-80 p-2">
       <p
@@ -934,6 +964,67 @@
   }
 </p-popover>
 
+<!-- Scene reference info popover (metadata of the resolved asset) -->
+<p-popover #refInfoPopover [dismissable]="true" styleClass="asset-popover-z">
+  @if (refInfoTarget(); as ref) {
+    <div class="w-80 p-2">
+      <p class="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted">
+        {{ ref.slot }} · {{ refTypeLabel(ref.type) }}
+      </p>
+
+      @if (refInfoOf(ref); as info) {
+        @if (info.fileKind === 'image' && info.fileId) {
+          <img
+            [src]="
+              info.kind === 'character'
+                ? (info.fileId | sourceThumbnailAsset)
+                : (info.fileId | sourceAsset)
+            "
+            [alt]="info.name"
+            class="mb-2 w-full rounded border border-ink-700 bg-ink-900 object-contain"
+            style="max-height: 160px"
+            loading="lazy"
+          />
+        }
+        <dl class="m-0 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}</dt>
+            <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">{{ info.name }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILE' | translate }}</dt>
+            <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+            <dd class="m-0 text-[11px] font-mono text-fg">{{ ref.slot }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}</dt>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ info.fileId }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <!-- assetId not matched against the episode → show the raw reference -->
+        <dl class="m-0 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
+            <dd class="m-0 text-[11px] capitalize text-fg">{{ refTypeLabel(ref.type) }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+            <dd class="m-0 text-[11px] font-mono text-fg">{{ ref.slot }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="shrink-0 text-[11px] text-fg-muted">AssetId</dt>
+            <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">{{ ref.assetId }}</dd>
+          </div>
+        </dl>
+      }
+    </div>
+  }
+</p-popover>
+
 <!-- Full-screen asset viewer (same component as the Files module) -->
 <app-asset-viewer [(visible)]="viewerVisible" [file]="viewerFile()" />
 
@@ -956,7 +1047,16 @@
     >
   }
   <ng-template pTemplate="footer">
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-2">
+      <p-button
+        icon="pi pi-download"
+        severity="secondary"
+        [label]="'STUDIO.SHOT_BUILDER.DOWNLOAD_JSON' | translate"
+        (onClick)="downloadPreviewData()"
+        [disabled]="!hasPreviewData()"
+        [pTooltip]="'STUDIO.SHOT_BUILDER.DOWNLOAD_JSON_TOOLTIP' | translate"
+        tooltipPosition="top"
+      />
       <p-button
         severity="secondary"
         [text]="true"

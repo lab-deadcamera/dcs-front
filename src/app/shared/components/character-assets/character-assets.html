@@ -170,6 +170,15 @@
                   [attr.data-testid]="'free-asset-pick-' + a.id"
                   (click)="onPickFreeAsset(a)"
                 >
+                  <span
+                    role="button"
+                    tabindex="0"
+                    class="absolute right-0.5 top-0.5 z-10 flex h-4 w-4 items-center justify-center rounded bg-ink-950/70 text-[9px] leading-none text-white/85 transition-colors hover:text-primary-400"
+                    (click)="openAssetInfo($event, a)"
+                    (keydown.enter)="openAssetInfo($event, a)"
+                    [attr.aria-label]="'Ver metadata del asset'"
+                    >ⓘ</span
+                  >
                   @if (a.kind === 'image' && !isThumbBroken(a.id)) {
                     <img
                       [src]="a.id | sourceAsset"
@@ -313,7 +322,7 @@
                       [attr.aria-pressed]="isUsed(a.id)"
                       [attr.aria-label]="a.name"
                       [attr.data-testid]="'my-library-pick-' + a.id"
-                      (click)="onPickLibraryAsset(a)"
+                      (click)="openLibraryInfo($event, a)"
                     >
                       @if (a.firstFile?.thumbUrl && !isThumbBroken(a.id)) {
                         <img
@@ -409,5 +418,13 @@
     </p-dialog>
   }
 </section>
+
+<!-- Asset metadata popover (free-asset tiles + My library quick-pick). The
+     Use button is only shown when the popover opens from the library. -->
+<app-asset-info-popover
+  #assetInfoPopover
+  [useLabel]="popoverUseLabel()"
+  (use)="onUseFromPopover()"
+/>
 
 <p-toast />

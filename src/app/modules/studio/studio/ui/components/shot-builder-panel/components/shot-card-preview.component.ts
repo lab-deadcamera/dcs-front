@@ -2,15 +2,21 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   model,
   output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
-import { Shot } from '@app/core/interfaces';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Popover } from 'primeng/popover';
+import { Reference, Shot } from '@app/core/interfaces';
+import { StudioStore } from '@app/core/stores/studio.store';
+import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { ResolvedRefInfo, resolveReferenceInfo } from '@app/shared/utils';
 
 export interface BeatInfo {
   label: string;
@@ -47,7 +53,14 @@ export function beatInfoFromSegments(
 @Component({
   selector: 'app-shot-card-preview',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    Popover,
+    SourceAssetPipe,
+    SourceThumbnailAssetPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
@@ -157,8 +170,12 @@ export function beatInfoFromSegments(
             <span class="v">
               <div class="cuts">
                 @for (ref of shot().references; track ref.slot) {
-                  <span class="cut"
-                    ><em>{{ ref.slot }}</em> {{ ref.type }}</span
+                  <button
+                    type="button"
+                    class="cut ref-chip-button"
+                    (click)="openRefInfo($event, ref)"
+                    [title]="'Ver metadata del asset'"
+                    ><em>{{ ref.slot }}</em> {{ ref.type }}</button
                   >
                 }
               </div>
@@ -262,6 +279,70 @@ export function beatInfoFromSegments(
           <span class="edit-hint">{{ 'STUDIO.SEQUENCE.DOUBLE_CLICK_EDIT' | translate }}</span>
         }
       </div>
+
+      <!-- Ref info popover — metadata of the resolved asset -->
+      <p-popover #refInfoPopover [dismissable]="true" styleClass="asset-popover-z">
+        @if (refInfoTarget(); as ref) {
+          <div class="ref-info">
+            <p class="ref-info-title">{{ ref.slot }} · {{ refTypeLabel(ref.type) }}</p>
+
+            @if (refInfoFor(ref); as info) {
+              @if (info.fileKind === 'image' && info.fileId) {
+                <img
+                  [src]="
+                    info.kind === 'character'
+                      ? (info.fileId | sourceThumbnailAsset)
+                      : (info.fileId | sourceAsset)
+                  "
+                  [alt]="info.name"
+                  class="ref-info-img"
+                  loading="lazy"
+                />
+              }
+              <dl class="ref-info-dl">
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}</dt>
+                  <dd>{{ info.name }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
+                  <dd class="cap">{{ refTypeLabel(ref.type) }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+                  <dd class="mono">{{ ref.slot }}</dd>
+                </div>
+                @if (info.kind === 'character') {
+                  <div>
+                    <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_CHARACTER_ID' | translate }}</dt>
+                    <dd class="mono">{{ info.charId }}</dd>
+                  </div>
+                }
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}</dt>
+                  <dd class="mono">{{ info.fileId }}</dd>
+                </div>
+              </dl>
+            } @else {
+              <!-- assetId not matched against the episode → show the raw ref -->
+              <dl class="ref-info-dl">
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}</dt>
+                  <dd class="cap">{{ refTypeLabel(ref.type) }}</dd>
+                </div>
+                <div>
+                  <dt>{{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}</dt>
+                  <dd class="mono">{{ ref.slot }}</dd>
+                </div>
+                <div>
+                  <dt>AssetId</dt>
+                  <dd class="mono">{{ ref.assetId }}</dd>
+                </div>
+              </dl>
+            }
+          </div>
+        }
+      </p-popover>
     </article>
   `,
   styles: [
@@ -469,6 +550,73 @@ export function beatInfoFromSegments(
         font-style: normal;
         font-weight: 700;
       }
+      .ref-chip-button {
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+      .ref-chip-button:hover {
+        border-color: var(--teal, #4fb0b5);
+      }
+
+      /* Ref info popover */
+      .ref-info {
+        width: 300px;
+        padding: 14px;
+        background: var(--panel, #121f21);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ref-info-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--ink-dim, #9aa6a3);
+        margin: 0;
+      }
+      .ref-info-img {
+        width: 100%;
+        max-height: 160px;
+        object-fit: cover;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: var(--bg2, #0f1a1c);
+      }
+      .ref-info-dl {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .ref-info-dl > div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .ref-info-dl dt {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint, #6a7977);
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .ref-info-dl dd {
+        margin: 0;
+        font-size: 12px;
+        color: var(--ink, #ece6d8);
+        text-align: right;
+        word-break: break-all;
+      }
+      .ref-info-dl dd.cap {
+        text-transform: capitalize;
+      }
+      .ref-info-dl dd.mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--ink-dim, #9aa6a3);
+      }
 
       .prompt {
         margin: 18px clamp(16px, 3vw, 26px) 22px;
@@ -646,6 +794,45 @@ export class ShotCardPreviewComponent {
   readonly promptChange = output<{ lang: 'en' | 'zh'; value: string }>();
   /** Output emitted when the language toggle changes. */
   readonly langChange = output<'en' | 'zh'>();
+
+  private readonly studio = inject(StudioStore);
+  private readonly i18n = inject(TranslateService);
+
+  // ── Reference info popover (metadata of the resolved asset) ────────────
+
+  /** Reference shown in the ref info popover. */
+  protected readonly refInfoTarget = signal<Reference | null>(null);
+  @ViewChild('refInfoPopover') protected readonly refInfoPopover!: Popover;
+
+  /** Human label for a reference's semantic type. */
+  protected refTypeLabel(type: string): string {
+    switch (type) {
+      case 'character':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_CHARACTER');
+      case 'location':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_LOCATION');
+      case 'prop':
+        return this.i18n.instant('STUDIO.SHOT_BUILDER.REF_TYPE_PROP');
+      default:
+        return type;
+    }
+  }
+
+  /** Resolved metadata for a shot reference, or null when it doesn't match a
+   *  chapter character / free asset. */
+  protected refInfoFor(ref: Reference): ResolvedRefInfo | null {
+    return resolveReferenceInfo(
+      ref,
+      this.studio.chapterCharacterData(),
+      this.studio.freeAssets(),
+      this.studio.chapterAssetSlots(),
+    );
+  }
+
+  protected openRefInfo(event: Event, ref: Reference): void {
+    this.refInfoTarget.set(ref);
+    this.refInfoPopover.toggle(event);
+  }
 
   readonly lang = signal<'en' | 'zh'>('en');
   readonly copied = signal(false);

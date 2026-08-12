@@ -18,10 +18,11 @@ import { Editor, EditorModule } from 'primeng/editor';
 import { Popover } from 'primeng/popover';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { TranslatorApiService } from '@app/services/translator-api.service';
-import { UsedAssetKind } from '@core/interfaces/studio.models';
+import { UsedAsset, UsedAssetKind } from '@core/interfaces/studio.models';
 import { buildSlotReferences } from '@core/utils/slot-reindex';
 import { Tooltip } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -51,6 +52,7 @@ import { SelectModule } from 'primeng/select';
     Tooltip,
     SelectModule,
     SelectButtonModule,
+    AssetInfoPopoverComponent,
   ],
   styles: [
     `
@@ -72,6 +74,7 @@ export class PromptBuilderComponent implements OnInit {
   @ViewChild('editor') private editorRef!: Editor;
   @ViewChild('translatePop') private translatePopRef!: Popover;
   @ViewChild('translateBtn') private translateBtn!: { nativeElement: HTMLElement };
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
   protected readonly studio = inject(StudioStore);
   protected readonly session = inject(SessionStore);
   private readonly translator = inject(TranslatorApiService);
@@ -499,6 +502,24 @@ export class PromptBuilderComponent implements OnInit {
     if (kind === 'video') return 'video';
     if (kind === 'audio') return 'audio';
     return 'image';
+  }
+
+  /** Open the asset metadata popover for a reference chip. */
+  protected openAssetInfo(event: Event, a: UsedAsset, index: number): void {
+    this.assetInfoPopover.open(event, {
+      id: a.fileId,
+      name: a.name || a.filename,
+      kind: a.kind,
+      slot:
+        a.slot ||
+        `[${this.labelFor(a.kind)}${this.assetNumbers().get(a.fileId) ?? index + 1}]`,
+    });
+  }
+
+  /** Remove a reference without triggering the chip's metadata popover. */
+  protected removeAsset(event: Event, fileId: string): void {
+    event.stopPropagation();
+    this.studio.unuseAsset(fileId);
   }
 
   /** Capitalize a kind label for the canonical token form ("image" → "Image"). */

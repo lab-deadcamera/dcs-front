@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Injectable } from '@angular/core';
 import { describe, beforeEach, beforeAll, it, expect, vi } from 'vitest';
+import { TranslateService } from '@ngx-translate/core';
 
 import { StudioStore } from '@app/core/stores/studio.store';
 import { Sequence, Shot } from '@app/core/interfaces';
@@ -77,7 +78,10 @@ describe('ShotSequenceViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      providers: [{ provide: StudioStore, useClass: StudioStoreStub }],
+      providers: [
+        { provide: StudioStore, useClass: StudioStoreStub },
+        { provide: TranslateService, useValue: { instant: (k: string) => k } },
+      ],
     })
       .overrideComponent(ComponentClass, {
         set: {

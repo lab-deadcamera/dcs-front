@@ -165,8 +165,9 @@
                       <img
                         [src]="fid | sourceThumbnailAsset"
                         [alt]="a.name"
-                        class="h-full w-full object-cover"
+                        class="h-full w-full cursor-pointer object-cover"
                         loading="lazy"
+                        (click)="openCharacterFileInfo($event, a, fid)"
                         (error)="onPreviewError(a.id, fid)"
                       />
                     }
@@ -298,4 +299,7 @@
 
   <p-confirmDialog />
   <p-toast position="bottom-right" />
+
+  <!-- Asset metadata popover (character preview images) -->
+  <app-asset-info-popover #assetInfoPopover />
 </section>

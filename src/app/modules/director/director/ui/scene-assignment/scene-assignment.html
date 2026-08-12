@@ -222,18 +222,24 @@
                     <audio
                       controls
                       [src]="c.thumbnailUrl"
-                      class="h-12 w-12 rounded object-cover"
+                      class="h-12 w-12 cursor-pointer rounded object-cover"
+                      (click)="openAssetInfo($event, c)"
                     ></audio>
                   }
                   @case ('video') {
                     <video
-                      [src]="c.id | sourceAsset"
-                      class="h-12 w-12 rounded object-cover"
+                      [src]="c.fileId | sourceAsset"
+                      class="h-12 w-12 cursor-pointer rounded object-cover"
+                      (click)="openAssetInfo($event, c)"
                     ></video>
                   }
                   @default {
                     @if (c.thumbnailUrl) {
-                      <img [src]="c.thumbnailUrl" class="h-12 w-12 rounded object-cover" />
+                      <img
+                        [src]="c.thumbnailUrl"
+                        class="h-12 w-12 cursor-pointer rounded object-cover"
+                        (click)="openAssetInfo($event, c)"
+                      />
                     } @else {
                       <span
                         class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
@@ -277,15 +283,46 @@
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedCharacters(); track a.id) {
+            @let info = characterInfo().get(a.character_id || '');
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <span class="text-[12px]"
-                >{{ a.name }}
-                @if (a.slot) {
-                  <span class="ml-2 font-mono text-[10px] text-fg-muted">[{{ a.slot }}]</span>
+              <div class="flex min-w-0 items-center gap-2">
+                @if (info && info.fileId) {
+                  @if (info.kind === 'video') {
+                    <span
+                      class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      ><i class="pi pi-video"></i
+                    ></span>
+                  } @else if (info.kind === 'audio') {
+                    <span
+                      class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      ><i class="pi pi-volume-up"></i
+                    ></span>
+                  } @else {
+                    <img
+                      [src]="info.fileId | sourceThumbnailAsset"
+                      [alt]="info.name || a.name"
+                      class="h-10 w-10 cursor-pointer rounded object-cover"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      loading="lazy"
+                    />
+                  }
+                } @else {
+                  <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
+                    >☺</span
+                  >
                 }
-              </span>
+                <span class="truncate text-[12px]">
+                  {{ info?.name || a.name }}
+                  @if (a.slot) {
+                    <span class="ml-2 font-mono text-[10px] text-fg-muted">{{ a.slot }}</span>
+                  }
+                </span>
+              </div>
               <button
                 type="button"
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
@@ -334,6 +371,16 @@
                     (click)="openPreview(f)"
                   />
                 }
+                <span
+                  role="button"
+                  tabindex="0"
+                  class="ml-1 cursor-pointer text-[10px] text-fg-muted transition-colors hover:text-primary-400"
+                  (click)="openFileInfo($event, f)"
+                  (keydown.enter)="openFileInfo($event, f)"
+                  [attr.aria-label]="'Ver metadata del asset'"
+                  title="Ver metadata del asset"
+                  >ⓘ</span
+                >
                 <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
               </div>
 
@@ -370,13 +417,41 @@
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="min-w-0 flex-1">
-                <span
-                  class="truncate cursor-pointer text-[12px] hover:text-primary-400"
-                  (click)="openPreview(a)"
-                  >{{ a.filename }}</span
-                >
-                <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
+              <div class="flex min-w-0 flex-1 items-center gap-2">
+                @if (a.mime_type.startsWith('image')) {
+                  <img
+                    [src]="a.file_id | sourceThumbnailAsset"
+                    [alt]="a.filename"
+                    class="h-10 w-10 shrink-0 cursor-pointer rounded object-cover"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    loading="lazy"
+                  />
+                } @else if (a.mime_type.startsWith('video')) {
+                  <span
+                    class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    ><i class="pi pi-video"></i
+                  ></span>
+                } @else if (a.mime_type.startsWith('audio')) {
+                  <span
+                    class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    ><i class="pi pi-volume-up"></i
+                  ></span>
+                } @else {
+                  <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    ><i class="pi pi-image"></i
+                  ></span>
+                }
+                <span class="min-w-0 flex-1">
+                  <span
+                    class="truncate cursor-pointer text-[12px] hover:text-primary-400"
+                    (click)="openPreview(a)"
+                    >{{ a.filename }}</span
+                  >
+                  <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
+                </span>
               </div>
               <button
                 type="button"
@@ -420,5 +495,8 @@
   [allowDelete]="true"
   (deleteFile)="onDeleteFromViewer($event)"
 />
+
+<!-- Asset metadata popover (resource thumbnails) -->
+<app-asset-info-popover #assetInfoPopover />
 
 <p-confirmDialog />

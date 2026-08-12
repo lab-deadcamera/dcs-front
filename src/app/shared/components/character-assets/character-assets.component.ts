@@ -5,6 +5,7 @@ import {
   inject,
   output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -24,6 +25,7 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes';
 import { FileCategory } from '@app/core/interfaces';
 import { Toast } from 'primeng/toast';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 interface LibraryItem {
   id: string;
@@ -57,6 +59,7 @@ interface LibraryItem {
     DialogModule,
     IndexCharacters,
     Toast,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
@@ -68,6 +71,55 @@ export class CharacterAssetsComponent {
   protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
   private readonly i18n = inject(TranslateService);
+
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Library item whose popover's Use button is currently open. */
+  protected readonly libraryInfoTarget = signal<LibraryItem | null>(null);
+  /** "Use" label for the popover — set when opened from the library so its
+   *  Use button adds the asset to the prompt builder; empty elsewhere. */
+  protected readonly popoverUseLabel = signal('');
+
+  /** Open the asset metadata popover for a free-asset tile, without selecting it. */
+  protected openAssetInfo(event: Event, a: ReferenceAsset): void {
+    event.stopPropagation();
+    this.popoverUseLabel.set('');
+    this.libraryInfoTarget.set(null);
+    this.assetInfoPopover.open(event, {
+      id: a.id,
+      name: a.filename,
+      kind: a.kind,
+      slot: this.studio.chapterAssetSlots().get(a.id) || undefined,
+    });
+  }
+
+  /** Open the asset metadata popover for a library item, with a Use button
+   *  that adds the asset to the prompt builder (or removes it when already
+   *  in use — the label reflects the action). */
+  protected openLibraryInfo(event: Event, a: LibraryItem): void {
+    this.libraryInfoTarget.set(a);
+    this.popoverUseLabel.set(
+      this.i18n.instant(this.isUsed(a.id) ? 'STUDIO.ASSETS.UNUSE' : 'STUDIO.ASSETS.USE'),
+    );
+    this.assetInfoPopover.open(event, {
+      // Preview the first asset's file, not the library/character id.
+      id: a.firstFile?.fileId || a.id,
+      name: a.name,
+      kind: a.fileKind,
+      type: this.activeLibraryType(),
+    });
+  }
+
+  /** Use the library item currently shown in the popover (adds it to the
+   *  prompt builder) and close the popover. */
+  protected onUseFromPopover(): void {
+    const a = this.libraryInfoTarget();
+    if (!a) return;
+    this.assetInfoPopover.close();
+    this.popoverUseLabel.set('');
+    this.libraryInfoTarget.set(null);
+    this.onPickLibraryAsset(a);
+  }
 
   /**
    * Emitted once per file successfully added to the prompt's used-asset

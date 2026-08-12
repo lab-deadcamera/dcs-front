@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Injectable, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 import { describe, beforeEach, it, expect, vi, Mock } from 'vitest';
 
 import { CharacterAssetsComponent } from './character-assets.component';
@@ -113,6 +114,7 @@ describe('CharacterAssetsComponent', () => {
         { provide: StudioStore, useClass: StudioStoreStub },
         { provide: CharactersService, useClass: CharactersServiceStub },
         { provide: FilesApiService, useClass: FilesApiStub },
+        { provide: TranslateService, useValue: { instant: (k: string) => k } },
         // Real component has `providers: [MessageService]`. We rely on
         // overrideComponent below to drop that and route to our stub.
       ],

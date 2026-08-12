@@ -17,9 +17,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of imageAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -46,12 +50,12 @@
                   </div>
                 }
                 <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
-                <span>@{{ labelFor(a.kind) }}{{ assetNumbers().get(a.fileId) ?? i + 1 }}</span>
+                <span>[{{ labelFor(a.kind) }}{{ assetNumbers().get(a.fileId) ?? i + 1 }}]</span>
                 <button
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  (click)="removeAsset($event, a.fileId)"
                 >
                   ×
                 </button>
@@ -70,9 +74,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of videoAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -104,7 +112,7 @@
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  (click)="removeAsset($event, a.fileId)"
                 >
                   ×
                 </button>
@@ -123,9 +131,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of audioAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -157,7 +169,7 @@
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  (click)="removeAsset($event, a.fileId)"
                 >
                   ×
                 </button>
@@ -202,7 +214,9 @@
             @if (translating()) {
               <div class="flex items-center justify-center gap-2 py-4">
                 <i class="pi pi-spinner pi-spin text-primary-500" aria-hidden="true"></i>
-                <span class="font-mono text-xs text-fg-muted">{{ 'STUDIO.PROMPT.TRANSLATING' | translate }}</span>
+                <span class="font-mono text-xs text-fg-muted">{{
+                  'STUDIO.PROMPT.TRANSLATING' | translate
+                }}</span>
               </div>
             } @else if (translatedText()) {
               <div class="max-h-60 overflow-y-auto rounded border border-ink-600 bg-ink-900 p-3">
@@ -300,4 +314,7 @@
       </button>
     }
   </div>
+
+  <!-- Asset metadata popover (reference chips) -->
+  <app-asset-info-popover #assetInfoPopover />
 </section>

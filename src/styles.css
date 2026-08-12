@@ -622,6 +622,13 @@
   outline-offset: 2px;
 }
 
+/* Episode-asset popover in the shot builder: must float above the
+   full-screen editor/preview overlays (z-index 9999). PrimeNG gives
+   popovers z-index 1000 inline, so the !important class wins. */
+.asset-popover-z {
+  z-index: 10000 !important;
+}
+
 /* Honor reduced-motion preference for non-essential animations. */
 @media (prefers-reduced-motion: reduce) {
   *,

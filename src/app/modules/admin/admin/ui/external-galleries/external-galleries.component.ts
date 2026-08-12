@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +28,7 @@ import {
 } from '@core/interfaces/seedance.interface';
 import { ModelData } from '@app/core/interfaces';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 interface ModelOption {
   label: string;
@@ -62,6 +70,7 @@ const AI_RATIOS: RatioOption[] = [
     TooltipModule,
     ToastModule,
     SourceThumbnailAssetPipe,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MessageService],
@@ -73,6 +82,24 @@ export class ExternalGalleriesComponent implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly i18n = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Asset metadata popover for a gallery thumbnail. */
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Open the metadata popover for a gallery asset. */
+  protected openAssetInfo(event: Event, a: GalleryAsset): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: a.file_id,
+      name: a.file_name || a.file_id,
+      kind: a.mime_type.startsWith('video')
+        ? 'video'
+        : a.mime_type.startsWith('audio')
+          ? 'audio'
+          : 'image',
+      type: a.mime_type,
+    });
+  }
 
   protected readonly modelOptions = signal<ModelOption[]>([]);
   protected readonly modelsMeta = signal<GalleryModel[]>([]);

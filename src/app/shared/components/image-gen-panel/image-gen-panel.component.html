@@ -165,17 +165,19 @@
     >
     @for (ref of referenceImages(); track ref.id) {
       <div
-        class="group relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-ink-600"
+        class="group relative h-12 w-12 shrink-0 cursor-pointer overflow-hidden rounded-md border border-ink-600"
+        [title]="'Ver metadata del asset'"
       >
         <img
           [src]="ref.id | sourceThumbnailAsset"
           class="h-full w-full object-cover"
           alt="{{ 'STUDIO.IMAGE_GEN.ADD_REFERENCE' | translate }}"
+          (click)="assetInfoPopover.open($event, { id: ref.fileId, name: ref.fileId, kind: 'image' })"
         />
         <button
           type="button"
           class="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/70 text-[9px] text-white opacity-0 transition-opacity hover:bg-red-500 group-hover:opacity-100"
-          (click)="removeReference(ref.id)"
+          (click)="$event.stopPropagation(); removeReference(ref.id)"
         >
           ✕
         </button>
@@ -381,3 +383,6 @@
     </div>
   </ng-template>
 </p-dialog>
+
+<!-- Asset metadata popover (reference strip) -->
+<app-asset-info-popover #assetInfoPopover />

@@ -4,6 +4,7 @@ import {
   EventEmitter,
   OnInit,
   Output,
+  ViewChild,
   computed,
   inject,
   input,
@@ -35,6 +36,7 @@ import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
 import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 import { FileEntity } from '@modules/files/files/interfaces';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 /** Items revealed initially per tab before progressive render kicks in. */
 const INITIAL_RENDER_COUNT = 200;
@@ -67,6 +69,7 @@ const RENDER_STEP = 50;
     AssetCreateDialogComponent,
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -82,6 +85,25 @@ export class IndexCharacters implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
+
+  /** Asset metadata popover for a character's preview image. */
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Open the metadata popover for one of a character's preview files. */
+  protected openCharacterFileInfo(event: Event, a: Character, fid: string): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: fid,
+      name: a.name,
+      kind:
+        a.metadata.fileKind === 'video'
+          ? 'video'
+          : a.metadata.fileKind === 'audio'
+            ? 'audio'
+            : 'image',
+      type: a.metadata.assetType,
+    });
+  }
 
   showUseButton = input<boolean>(false);
 

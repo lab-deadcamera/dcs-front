@@ -28,6 +28,7 @@ import {
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 @Component({
   selector: 'app-image-gen-panel',
@@ -39,6 +40,7 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
     Popover,
     SourceThumbnailAssetPipe,
     TranslatePipe,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './image-gen-panel.component.html',

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  ViewChild,
   computed,
   inject,
   signal,
@@ -21,6 +22,7 @@ import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { DOWNLOAD_VIDEO, GENERATE_URL_FILE } from '@app/shared/utils';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 type ViewTab = FileCategory | 'trash';
@@ -49,6 +51,7 @@ type ViewTab = FileCategory | 'trash';
     IndexCharacters,
     DialogModule,
     AssetViewerComponent,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -216,6 +219,20 @@ export class IndexFiles implements OnInit {
 
   protected isAudio(file: FileEntity): boolean {
     return file.mimeType.startsWith('audio/');
+  }
+
+  /** Asset metadata popover for a file thumbnail. */
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Open the metadata popover for a file, without triggering openPreview. */
+  protected openFileInfo(event: Event, f: FileEntity): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: f.id,
+      name: f.filename,
+      kind: this.isImage(f) ? 'image' : this.isVideo(f) ? 'video' : this.isAudio(f) ? 'audio' : f.format,
+      type: f.category,
+    });
   }
 
   /**

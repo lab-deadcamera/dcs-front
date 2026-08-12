@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  ViewChild,
   computed,
   inject,
   signal,
@@ -33,6 +34,7 @@ import { FilesApiService } from '@app/services';
 import { UploadParams } from '@app/core/interfaces';
 import { INFER_CATEGORY } from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 import {
   AssetType,
   Character,
@@ -86,6 +88,7 @@ interface SceneAssignmentItem {
     SourceAssetPipe,
     IndexCharacters,
     AssetViewerComponent,
+    AssetInfoPopoverComponent,
   ],
   providers: [ConfirmationService, MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,6 +105,69 @@ export class SceneAssignmentComponent implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly charSvc = inject(CharactersService);
   private readonly apiUrl = environment.API_URL;
+
+  /** Asset metadata popover for a resource thumbnail. */
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Open the metadata popover for a resource row, without triggering delete/assign. */
+  protected openAssetInfo(
+    event: Event,
+    c: { id: string; fileId?: string; name: string; kind: string; assetType?: string },
+  ): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      // The popover previews the asset's first file, not the character id.
+      id: c.fileId || c.id,
+      name: c.name,
+      kind: c.kind === 'audio' ? 'audio' : c.kind === 'video' ? 'video' : 'image',
+      type: c.assetType,
+    });
+  }
+
+  /** Open the metadata popover for an available asset file. */
+  protected openFileInfo(
+    event: Event,
+    f: { id: string; filename: string; type?: string; mime_type?: string },
+  ): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: f.id,
+      name: f.filename,
+      kind: f.mime_type?.includes('video')
+        ? 'video'
+        : f.mime_type?.includes('audio')
+          ? 'audio'
+          : 'image',
+      type: f.type,
+    });
+  }
+
+  /** Open the metadata popover for an assigned character (uses its first asset). */
+  protected openAssignedCharacterInfo(event: Event, a: SceneAssignmentItem): void {
+    const info = this.characterInfo().get(a.character_id || '');
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: info?.fileId || a.character_id || '',
+      name: info?.name || a.name || a.character_id || a.id,
+      kind: info?.kind || 'image',
+      type: info?.assetType,
+    });
+  }
+
+  /** Open the metadata popover for an assigned asset. */
+  protected openAssignedAssetInfo(event: Event, a: SceneAssetAssignment): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: a.file_id,
+      name: a.filename,
+      kind: a.mime_type.startsWith('video')
+        ? 'video'
+        : a.mime_type.startsWith('audio')
+          ? 'audio'
+          : 'image',
+      type: a.mime_type,
+    });
+  }
 
   /** Optional inputs when used inside a dialog (no route params). */
   readonly projectIdInput = input<string>('');
@@ -177,6 +243,35 @@ export class SceneAssignmentComponent implements OnInit {
   protected readonly characterDialogVisible = signal(false);
   protected readonly previewFile = signal<FileLike | null>(null);
   protected readonly previewVisible = signal(false);
+
+  /** character id → first asset info, for rendering assigned characters'
+   *  thumbnails and their metadata popover. */
+  protected readonly characterInfo = computed<
+    Map<string, { fileId: string; name: string; kind: string; assetType?: string }>
+  >(() => {
+    const map = new Map<
+      string,
+      { fileId: string; name: string; kind: string; assetType?: string }
+    >();
+    for (const c of this.allCharacters()) {
+      const cid = c.character?.id || c.id;
+      if (!cid) continue;
+      let metadata: CharacterMetadata = {};
+      try {
+        metadata = c.character?.metadata ? JSON.parse(c.character.metadata) : {};
+      } catch {
+        metadata = {};
+      }
+      const kind = metadata.fileKind ?? 'image';
+      map.set(cid, {
+        fileId: c.files?.[0]?.file_id || '',
+        name: c.character?.name || c.name || '',
+        kind: kind === 'video' ? 'video' : kind === 'audio' ? 'audio' : 'image',
+        assetType: metadata.assetType,
+      });
+    }
+    return map;
+  });
 
   /** Available characters grouped by asset type, filtered by searchQuery. */
   protected readonly groupedCharacters = computed(() => {
@@ -385,6 +480,10 @@ export class SceneAssignmentComponent implements OnInit {
           const kind = metadata.fileKind ?? 'image';
           return {
             id: c.character?.id || c.id,
+            /** First asset's file id — what the metadata popover / previews
+             *  serve, since the character id itself is not a file id.
+             *  CharacterFile uses `file_id`, not `id`. */
+            fileId: c.files?.[0]?.file_id || '',
             name: c.character?.name || c.name,
             assetType,
             kind,
