@@ -574,6 +574,7 @@
       "TOAST_COPY_FAILED": "No se pudo copiar al portapapeles",
       "TOAST_SAVE_FAILED": "Error al guardar",
       "ASSIGN_FREE_ASSET": "Asignar free asset a este slot",
+      "CHANGE_ASSIGNED_RESOURCE": "Cambiar recurso asignado",
       "UPLOAD_FREE_ASSET": "Subir free asset",
       "SETTINGS_TITLE": "Configuración del Shot Builder",
       "CLAUDE_MODEL": "Modelo Claude",

@@ -66,27 +66,12 @@ import { CharactersService } from '@app/modules/characters/characters/services';
 
       <div class="refs-summary">
         @for (ref of references(); track ref.slot) {
-          @if (isUnresolvedRef(ref)) {
-            <!-- Unresolved → highlighted chip + assign button -->
-            <span class="ref-chip ref-chip-unresolved">
-              <em>{{ ref.slot }}</em>
-              <span class="ref-name">{{ refNameFor(ref) }}</span>
-              <span class="ref-type">{{ refTypeLabel(ref.type) }}</span>
-              <button
-                type="button"
-                class="ref-assign-btn"
-                (click)="openAssignPopover($event, ref)"
-                [pTooltip]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
-                tooltipPosition="top"
-              >
-                <i class="pi pi-plus" aria-hidden="true"></i>
-              </button>
-            </span>
-          } @else {
-            <!-- Resolved → clickable chip that opens the asset metadata popover -->
+          <span class="ref-chip-wrap">
             <button
               type="button"
-              class="ref-chip ref-chip-ok ref-chip-button"
+              class="ref-chip ref-chip-button"
+              [class.ref-chip-unresolved]="isUnresolvedRef(ref)"
+              [class.ref-chip-ok]="!isUnresolvedRef(ref)"
               (click)="openInfoPopover($event, ref)"
               [title]="'Ver metadata del asset'"
             >
@@ -94,7 +79,30 @@ import { CharactersService } from '@app/modules/characters/characters/services';
               <span class="ref-name">{{ refNameFor(ref) }}</span>
               <span class="ref-type">{{ refTypeLabel(ref.type) }}</span>
             </button>
-          }
+            @if (isUnresolvedRef(ref)) {
+              <button
+                type="button"
+                class="ref-assign-btn"
+                (click)="openAssignPopover($event, ref)"
+                [pTooltip]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
+                tooltipPosition="top"
+                [attr.aria-label]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
+              >
+                <i class="pi pi-plus" aria-hidden="true"></i>
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="ref-reassign-btn"
+                (click)="openAssignPopover($event, ref)"
+                [pTooltip]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
+                tooltipPosition="top"
+                [attr.aria-label]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
+              >
+                <i class="pi pi-refresh" aria-hidden="true"></i>
+              </button>
+            }
+          </span>
         }
         @if (references().length === 0) {
           <span class="ref-empty">{{ 'STUDIO.SEQUENCE.NO_REFS' | translate }}</span>
@@ -114,7 +122,16 @@ import { CharactersService } from '@app/modules/characters/characters/services';
             <div class="ref-lib">
               <div class="ref-lib-head">
                 <span class="ref-lib-label">Biblioteca</span>
-                <div class="ref-lib-tabs">
+                <input
+                  type="text"
+                  class="ref-lib-search"
+                  placeholder="Buscar por nombre…"
+                  [value]="libSearch()"
+                  (input)="onLibSearch($event)"
+                  [attr.aria-label]="'Buscar recurso por nombre'"
+                />
+              </div>
+              <div class="ref-lib-tabs">
                   @for (t of libTabs; track t.id) {
                     <button
                       type="button"
@@ -128,7 +145,6 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                     </button>
                   }
                 </div>
-              </div>
 
               <div class="ref-lib-grid">
                 @for (r of libraryByType()[activeLibType()]; track r.id) {
@@ -352,6 +368,11 @@ import { CharactersService } from '@app/modules/characters/characters/services';
         flex-wrap: wrap;
         gap: 6px;
       }
+      .ref-chip-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
       .ref-chip {
         font-family: 'JetBrains Mono', monospace;
         font-size: 11px;
@@ -405,6 +426,25 @@ import { CharactersService } from '@app/modules/characters/characters/services';
       }
       .ref-assign-btn:hover {
         background: #e0653c;
+        color: #0c1315;
+      }
+      .ref-reassign-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border: 1px solid rgba(79, 176, 181, 0.6);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--teal, #4fb0b5);
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0;
+        transition: all 0.15s ease;
+      }
+      .ref-reassign-btn:hover {
+        background: var(--teal, #4fb0b5);
         color: #0c1315;
       }
       .ref-chip-button {
@@ -592,6 +632,24 @@ import { CharactersService } from '@app/modules/characters/characters/services';
         gap: 10px;
         flex-wrap: wrap;
       }
+      .ref-lib-search {
+        flex: 1;
+        min-width: 0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--ink, #ece6d8);
+        background: var(--bg2, #0f1a1c);
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        padding: 3px 7px;
+        outline: none;
+      }
+      .ref-lib-search:focus {
+        border-color: var(--teal, #4fb0b5);
+      }
+      .ref-lib-search::placeholder {
+        color: var(--ink-faint, #6a7977);
+      }
       .ref-lib-label {
         font-family: 'JetBrains Mono', monospace;
         font-size: 10px;
@@ -714,6 +772,13 @@ export class ShotReferenceResolverComponent {
 
   protected readonly activeLibType = signal<AssetType>('character');
 
+  /** Text the user typed in the library search box (filters by resource name). */
+  protected readonly libSearch = signal('');
+
+  protected onLibSearch(event: Event): void {
+    this.libSearch.set((event.target as HTMLInputElement).value);
+  }
+
   protected readonly libTabs: { id: AssetType; labelKey: string }[] = [
     { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER' },
     { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION' },
@@ -725,6 +790,7 @@ export class ShotReferenceResolverComponent {
    *  the chapter, grouped by asset type. Assigning one to a ref slot creates a
    *  chapter-character assignment so the reference resolves by name/id. */
   protected readonly libraryByType = computed<Record<AssetType, LibResource[]>>(() => {
+    const query = this.libSearch().trim().toLowerCase();
     const assignedIds = this.studio.chapterCharacterIds();
     const buckets: Record<AssetType, LibResource[]> = {
       character: [],
@@ -735,6 +801,7 @@ export class ShotReferenceResolverComponent {
     for (const item of this.chars.items()) {
       const c = item.character;
       if (!c?.id || assignedIds.has(c.id)) continue;
+      if (query && !c.name.toLowerCase().includes(query)) continue;
       const metadata = parseCharacterMetadata(c.metadata);
       const assetType: AssetType = metadata.assetType ?? 'character';
       (buckets[assetType] ?? buckets.character).push({
@@ -851,6 +918,7 @@ export class ShotReferenceResolverComponent {
   openAssignPopover(event: Event, ref: Reference): void {
     this.assignTarget.set(ref);
     this.assignPopover.toggle(event);
+    this.libSearch.set('');
     // Refresh chapter assignments so the library excludes resources already
     // assigned to this chapter — otherwise re-assigning one would fail with a
     // unique-constraint 400 (which, before, was silent because the resolver's

@@ -183,7 +183,18 @@ export function beatInfoFromSegments(
                       [title]="'Ver metadata del asset'"
                       ><em>{{ ref.slot }}</em> {{ ref.type }}</button
                     >
-                    @if (!refInfo) {
+                    @if (refInfo) {
+                      <button
+                        type="button"
+                        class="ref-chip-reassign"
+                        (click)="onRefAssign($event, ref)"
+                        [pTooltip]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
+                        tooltipPosition="top"
+                        [attr.aria-label]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
+                      >
+                        <i class="pi pi-refresh" aria-hidden="true"></i>
+                      </button>
+                    } @else {
                       <button
                         type="button"
                         class="ref-chip-assign"
@@ -617,6 +628,25 @@ export function beatInfoFromSegments(
       }
       .ref-chip-assign:hover {
         background: #e0653c;
+        color: #0c1315;
+      }
+      .ref-chip-reassign {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border: 1px solid rgba(79, 176, 181, 0.6);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--teal, #4fb0b5);
+        cursor: pointer;
+        font-size: 9px;
+        padding: 0;
+        transition: all 0.15s ease;
+      }
+      .ref-chip-reassign:hover {
+        background: var(--teal, #4fb0b5);
         color: #0c1315;
       }
 

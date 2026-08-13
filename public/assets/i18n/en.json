@@ -574,6 +574,7 @@
       "TOAST_COPY_FAILED": "Failed to copy to clipboard",
       "TOAST_SAVE_FAILED": "Save failed",
       "ASSIGN_FREE_ASSET": "Assign free asset to this slot",
+      "CHANGE_ASSIGNED_RESOURCE": "Change assigned resource",
       "UPLOAD_FREE_ASSET": "Upload free asset",
       "SETTINGS_TITLE": "Shot Builder Settings",
       "CLAUDE_MODEL": "Claude Model",
