@@ -4,7 +4,7 @@
   [text]="true"
   severity="secondary"
   (onClick)="popover.toggle($event)"
-  aria-label="Open theme settings"
+  [attr.aria-label]="'GLOBAL.SETTINGS.OPEN' | translate"
 />
 
 <p-popover #popover [dismissable]="true">
@@ -25,7 +25,7 @@
         [rounded]="true"
         [text]="true"
         (onClick)="theme.toggleMode()"
-        [attr.aria-label]="'Switch to ' + (theme.mode() === 'light' ? 'dark' : 'light') + ' mode'"
+        [attr.aria-label]="'GLOBAL.SETTINGS.SWITCH_MODE' | translate: { mode: theme.mode() === 'light' ? 'dark' : 'light' }"
       />
     </div>
 

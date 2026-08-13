@@ -17,6 +17,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           Generation Logs
         </a>
         <a
+          routerLink="/admin/shot-builder-logs"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        >
+          Shot Builder Logs
+        </a>
+        <a
           routerLink="/admin/users"
           routerLinkActive="!text-fg-strong !border-primary-500"
           class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
@@ -29,6 +36,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
         >
           Projects
+        </a>
+        <a
+          routerLink="/admin/external-galleries"
+          routerLinkActive="!text-fg-strong !border-primary-500"
+          class="border-b-2 border-transparent px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-fg-muted transition-colors hover:text-fg-strong"
+        >
+          External Galleries
         </a>
       </nav>
       <div class="flex-1">

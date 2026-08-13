@@ -1,0 +1,351 @@
+<section class="px-6 py-6">
+  <div class="mb-6">
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.GALLERIES.TITLE' | translate }}</h1>
+    <p class="mt-1 text-[12px] text-fg-muted">
+      {{ 'ADMIN.GALLERIES.SUBTITLE' | translate }}
+    </p>
+  </div>
+
+  <!-- Model selector -->
+  <div class="mb-4 flex flex-col gap-2">
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.GALLERIES.MODEL' | translate }}</label>
+        <p-select
+          [options]="modelOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="'ADMIN.GALLERIES.SELECT_MODEL' | translate"
+          [ngModel]="selectedModelId()"
+          (ngModelChange)="onModelChange($event ?? '')"
+          [showClear]="false"
+          [loading]="loadingModels()"
+          [filter]="true"
+          filterBy="label"
+          styleClass="w-80"
+        />
+      </div>
+    </div>
+
+    @if (selectedModelMeta(); as meta) {
+      <div class="flex items-center gap-3 text-[11px] text-fg-muted">
+        <span class="font-bold uppercase tracking-[0.08em]">{{ 'ADMIN.GALLERIES.TOTAL' | translate }}</span>
+        <span class="font-mono">{{ meta.total }}</span>
+        <span class="rounded-full bg-green-900 px-2 py-0.5 font-bold uppercase tracking-widest text-[10px] text-green-400">
+          {{ 'ADMIN.GALLERIES.ACTIVE' | translate: { n: meta.active } }}
+        </span>
+        <span class="rounded-full bg-red-900 px-2 py-0.5 font-bold uppercase tracking-widest text-[10px] text-red-400">
+          {{ 'ADMIN.GALLERIES.FAILED' | translate: { n: meta.failed } }}
+        </span>
+        @if (meta.syncing > 0) {
+          <span class="rounded-full bg-yellow-900 px-2 py-0.5 font-bold uppercase tracking-widest text-[10px] text-yellow-400">
+            {{ 'ADMIN.GALLERIES.SYNCING' | translate: { n: meta.syncing } }}
+          </span>
+        }
+        @if (meta.last_sync) {
+          <span class="ml-auto font-mono text-[10px]">
+            {{ 'ADMIN.GALLERIES.LAST_SYNC' | translate: { date: (meta.last_sync | date: 'dd/MM/yy HH:mm') } }}
+          </span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loadingAssets()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.GALLERIES.LOADING' | translate }}</p>
+  }
+
+  <!-- Empty: no models with sync data -->
+  @if (!loadingModels() && !loadingAssets() && modelOptions().length === 0) {
+    <div class="flex flex-col items-center gap-4 py-16">
+      <i class="pi pi-images text-4xl text-fg-muted"></i>
+      <p class="text-[13px] text-fg-muted">{{ 'ADMIN.GALLERIES.EMPTY_MODELS' | translate }}</p>
+    </div>
+  }
+
+  <!-- Empty: selected model has no records -->
+  @if (!loadingAssets() && selectedModelId() && assets().length === 0) {
+    <div class="flex flex-col items-center gap-4 py-16">
+      <i class="pi pi-images text-4xl text-fg-muted"></i>
+      <p class="text-[13px] text-fg-muted">{{ 'ADMIN.GALLERIES.EMPTY_MODEL' | translate }}</p>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loadingAssets() && assets().length > 0) {
+    <div class="overflow-x-auto rounded border" style="border-color: var(--border-color)">
+      <table class="w-full text-[12px]">
+        <thead>
+          <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_FILE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_CHARACTERS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_STATUS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_ASSET_ID' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_GROUP' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_TYPE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_ERROR' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_DATE' | translate }}</th>
+            <th class="w-36 px-3 py-2 font-medium">{{ 'ADMIN.GALLERIES.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of assets(); track a.id) {
+            <tr class="border-t" style="border-color: var(--border-color)">
+              <td class="px-3 py-2">
+                <div class="flex items-center gap-2">
+                  @if (a.mime_type.startsWith('image')) {
+                    <img
+                      [src]="a.file_id | sourceThumbnailAsset"
+                      alt="{{ a.file_name }}"
+                      class="h-10 w-10 cursor-pointer rounded object-cover"
+                      loading="lazy"
+                      (click)="openAssetInfo($event, a)"
+                    />
+                  } @else if (a.mime_type.startsWith('audio')) {
+                    <span class="flex h-10 w-10 items-center justify-center rounded bg-ink-700 text-fg-muted">
+                      <i class="pi pi-volume-up"></i>
+                    </span>
+                  } @else if (a.mime_type.startsWith('video')) {
+                    <span class="flex h-10 w-10 items-center justify-center rounded bg-ink-700 text-fg-muted">
+                      <i class="pi pi-video"></i>
+                    </span>
+                  } @else {
+                    <span class="flex h-10 w-10 items-center justify-center rounded bg-ink-700 text-fg-muted">
+                      <i class="pi pi-image"></i>
+                    </span>
+                  }
+                  <span class="max-w-40 truncate font-semibold" [title]="a.file_name || a.file_id">
+                    {{ a.file_name || a.file_id }}
+                  </span>
+                </div>
+              </td>
+              <td class="px-3 py-2">
+                @if (a.characters.length > 0) {
+                  <div class="flex flex-wrap gap-1">
+                    @for (ch of a.characters; track ch.id) {
+                      <span class="rounded bg-ink-700 px-1.5 py-0.5 text-[10px] text-fg-strong">
+                        {{ ch.name }}
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-fg-muted">—</span>
+                }
+              </td>
+              <td class="px-3 py-2">
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                  [class.bg-green-900]="a.status === 'active'"
+                  [class.text-green-400]="a.status === 'active'"
+                  [class.bg-red-900]="a.status === 'failed'"
+                  [class.text-red-400]="a.status === 'failed'"
+                  [class.bg-yellow-900]="a.status === 'syncing'"
+                  [class.text-yellow-400]="a.status === 'syncing'"
+                >
+                  {{ a.status }}
+                </span>
+              </td>
+              <td class="max-w-32 truncate px-3 py-2 font-mono text-[10px]" [title]="a.asset_id">
+                {{ a.asset_id || '—' }}
+              </td>
+              <td class="max-w-32 truncate px-3 py-2 font-mono text-[10px]" [title]="a.asset_group_id">
+                {{ a.asset_group_id || '—' }}
+              </td>
+              <td class="px-3 py-2 font-mono text-[10px]">{{ a.asset_type || '—' }}</td>
+              <td class="px-3 py-2">
+                @if (a.error_message) {
+                  <p class="max-w-40 truncate text-[10px] text-red-400" [pTooltip]="a.error_message">
+                    {{ a.error_message }}
+                  </p>
+                } @else {
+                  <span class="text-fg-muted">—</span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 font-mono text-[10px] text-fg-muted">
+                {{ a.created_at | date: 'dd/MM/yy HH:mm' }}
+              </td>
+              <td class="px-3 py-2">
+                <div class="flex items-center gap-1">
+                  @if (a.status === 'failed' || a.status === 'syncing') {
+                    <p-button
+                      icon="pi pi-refresh"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      [pTooltip]="'ADMIN.GALLERIES.RETRY' | translate"
+                      [loading]="fixingId() === a.id"
+                      (onClick)="retryAsset(a)"
+                    />
+                  }
+                  @if (a.status === 'failed') {
+                    <p-button
+                      icon="pi pi-sparkles"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      [pTooltip]="'ADMIN.GALLERIES.REGENERATE_AI' | translate"
+                      (onClick)="openAiDialog(a)"
+                    />
+                    <p-button
+                      icon="pi pi-history"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      [pTooltip]="'ADMIN.GALLERIES.VIEW_ERRORS' | translate"
+                      (onClick)="showErrors(a)"
+                    />
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Last errors dialog -->
+<p-dialog
+  [visible]="errorsDialogVisible()"
+  (visibleChange)="errorsDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '42rem', maxWidth: '95vw' }"
+  [header]="'ADMIN.GALLERIES.ERRORS_TITLE' | translate: { name: errorsTitle() }"
+>
+  @if (errorsLoading()) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.GALLERIES.LOADING' | translate }}</p>
+  } @else if (errors().length === 0) {
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.GALLERIES.NO_ERRORS' | translate }}</p>
+  } @else {
+    <div class="flex flex-col gap-2">
+      @for (e of errors(); track e.id; let i = $index) {
+        <div class="rounded border p-3" style="border-color: var(--border-color)">
+          <div class="mb-1 flex items-center justify-between gap-2">
+            <span class="font-mono text-[10px] text-fg-muted">
+              #{{ i + 1 }} · {{ e.created_at | date: 'dd/MM/yy HH:mm' }}
+            </span>
+            <span class="font-mono text-[10px] text-fg-muted">{{ e.asset_group_id || ('ADMIN.GALLERIES.NO_GROUP' | translate) }}</span>
+          </div>
+          <p class="font-mono text-[11px] leading-relaxed text-red-400">{{ e.error_message || '—' }}</p>
+        </div>
+      }
+      <p class="mt-1 text-[10px] italic text-fg-muted">
+        {{ 'ADMIN.GALLERIES.ERRORS_PARTIAL' | translate: { n: errors().length, max: MAX_ERRORS } }}
+      </p>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end">
+      <p-button severity="secondary" [text]="true" [label]="'COMMON.CLOSE' | translate" (onClick)="errorsDialogVisible.set(false)" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Regenerate with AI dialog -->
+<p-dialog
+  [visible]="aiDialogVisible()"
+  (visibleChange)="aiDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '26rem' }"
+  [header]="'ADMIN.GALLERIES.REGENERATE_AI' | translate"
+>
+  @if (aiTarget(); as target) {
+    <div class="flex flex-col gap-3">
+      <p class="text-[12px] leading-relaxed text-fg-muted">
+        {{ 'ADMIN.GALLERIES.REGENERATE_BODY' | translate: { name: target.file_name || target.file_id } }}
+      </p>
+      <div class="flex flex-col gap-1">
+        <label for="ai-model" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >{{ 'ADMIN.GALLERIES.IMAGE_MODEL' | translate }}</label
+        >
+        @if (aiLoadingModels()) {
+          <p class="text-[11px] italic text-fg-muted">{{ 'ADMIN.GALLERIES.LOADING_MODELS' | translate }}</p>
+        } @else if (aiImageModels().length > 0) {
+          <p-select
+            id="ai-model"
+            [options]="aiImageModels()"
+            optionLabel="name"
+            optionValue="id"
+            [ngModel]="aiModelId()"
+            (ngModelChange)="onAiModelChange($event)"
+            class="w-full"
+            appendTo="body"
+          />
+        } @else {
+          <p class="text-[11px] text-fg-muted">{{ 'ADMIN.GALLERIES.NO_IMAGE_MODELS' | translate }}</p>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="ai-ratio" class="text-[12px] font-bold uppercase tracking-[0.12em]"
+          >{{ 'ADMIN.GALLERIES.ASPECT_RATIO' | translate }}</label
+        >
+        <p-select
+          id="ai-ratio"
+          [options]="aiRatioOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="aiRatio()"
+          (ngModelChange)="aiRatio.set($event)"
+          class="w-full"
+          appendTo="body"
+        >
+          <ng-template pTemplate="item" let-item>
+            <div class="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                class="inline-block rounded-[2px] border border-primary-400/70 bg-primary-400/25"
+                [style.width.px]="item.w"
+                [style.height.px]="item.h"
+              ></span>
+              <span>{{ item.label }}</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="selectedItem" let-item>
+            <div class="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                class="inline-block rounded-[2px] border border-primary-400/70 bg-primary-400/25"
+                [style.width.px]="item.w"
+                [style.height.px]="item.h"
+              ></span>
+              <span>{{ item.label }}</span>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+      @if (fixingId() === target.id) {
+        <p class="flex items-center gap-2 text-[12px] italic text-fg-muted">
+          <i class="pi pi-spin pi-spinner"></i> {{ 'ADMIN.GALLERIES.GENERATING' | translate }}
+        </p>
+      }
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        [disabled]="fixingId() !== null"
+        (onClick)="aiDialogVisible.set(false)"
+      />
+      <p-button
+        icon="pi pi-sparkles"
+        [label]="'ADMIN.GALLERIES.GENERATE_SYNC' | translate"
+        [loading]="fixingId() === aiTarget()?.id"
+        (onClick)="regenerateWithAI()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Asset metadata popover (gallery thumbnails) -->
+<app-asset-info-popover #assetInfoPopover />
+
+<p-toast position="bottom-right" />

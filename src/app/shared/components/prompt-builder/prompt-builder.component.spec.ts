@@ -6,6 +6,7 @@ import { describe, beforeEach, it, expect, vi, Mock } from 'vitest';
 
 import { PromptBuilderComponent } from './prompt-builder.component';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { SessionStore } from '@app/core/stores/session.store';
 import { UsedAsset } from '@core/interfaces/studio.models';
 
 // ─── Test doubles ──────────────────────────────────────────────────────
@@ -16,10 +17,14 @@ class StudioStoreStub {
   private readonly _used = signal<UsedAsset[]>([]);
   private readonly _raw = signal<string>('');
   private readonly _canGenerate = signal<boolean>(true);
+  private readonly _first = signal<unknown>(null);
+  private readonly _last = signal<unknown>(null);
 
   readonly usedAssets = this._used.asReadonly();
   readonly rawDescription = this._raw.asReadonly();
   readonly canGenerate = this._canGenerate.asReadonly();
+  readonly firstFrame = this._first.asReadonly();
+  readonly lastFrame = this._last.asReadonly();
 
   readonly setRawDescription = vi.fn((v: string) => this._raw.set(v));
 
@@ -34,6 +39,10 @@ class StudioStoreStub {
     this._raw.set(v);
   }
 }
+
+/** SessionStore is injected by the component but never read — an empty stub suffices. */
+@Injectable()
+class SessionStoreStub {}
 
 /** Quill stub — every Quill API the component reaches for. */
 function makeQuillStub() {
@@ -84,6 +93,7 @@ describe('PromptBuilderComponent', () => {
     await TestBed.configureTestingModule({
       providers: [
         { provide: StudioStore, useClass: StudioStoreStub },
+        { provide: SessionStore, useClass: SessionStoreStub },
         { provide: TranslateService, useValue: translate },
       ],
     })
@@ -199,21 +209,7 @@ describe('PromptBuilderComponent', () => {
     });
   });
 
-  // ─── Computed: generateLabel, placeholder ───────────────────────────
-
-  describe('generateLabel computed', () => {
-    it('returns GENERATE key by default', () => {
-      const c = component as unknown as { generateLabel: () => string };
-      expect(c.generateLabel()).toBe('T(STUDIO.PROMPT.GENERATE)');
-    });
-
-    it('returns REGENERATE key when isRegenerating is true', () => {
-      fixture.componentRef.setInput('isRegenerating', true);
-      fixture.detectChanges();
-      const c = component as unknown as { generateLabel: () => string };
-      expect(c.generateLabel()).toBe('T(STUDIO.PROMPT.REGENERATE)');
-    });
-  });
+  // ─── Computed: placeholder ─────────────────────────────────────────
 
   describe('placeholder computed', () => {
     it('returns translated PLACEHOLDER key', () => {
@@ -243,19 +239,19 @@ describe('PromptBuilderComponent', () => {
 
   describe('labelFor', () => {
     const c = () =>
-      component as unknown as { labelFor: (k: string) => 'Image' | 'Video' | 'Audio' };
+      component as unknown as { labelFor: (k: string) => 'image' | 'video' | 'audio' };
 
-    it('maps image → Image', () => {
-      expect(c().labelFor('image')).toBe('Image');
+    it('maps image → image', () => {
+      expect(c().labelFor('image')).toBe('image');
     });
-    it('maps mixed → Image (mixed shares the image bucket)', () => {
-      expect(c().labelFor('mixed')).toBe('Image');
+    it('maps mixed → image (mixed shares the image bucket)', () => {
+      expect(c().labelFor('mixed')).toBe('image');
     });
-    it('maps video → Video', () => {
-      expect(c().labelFor('video')).toBe('Video');
+    it('maps video → video', () => {
+      expect(c().labelFor('video')).toBe('video');
     });
-    it('maps audio → Audio', () => {
-      expect(c().labelFor('audio')).toBe('Audio');
+    it('maps audio → audio', () => {
+      expect(c().labelFor('audio')).toBe('audio');
     });
   });
 
@@ -347,7 +343,7 @@ describe('PromptBuilderComponent', () => {
   // ─── addReferenceForKind ───────────────────────────────────────────
 
   describe('addReferenceForKind', () => {
-    it('numbers image picks using the current imageAssets count', () => {
+    it('numbers image picks using the positional image count', () => {
       studio.setUsedAssets([
         makeUsedAsset({ kind: 'image' }),
         makeUsedAsset({ kind: 'image' }),
@@ -366,13 +362,13 @@ describe('PromptBuilderComponent', () => {
       expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Image2]');
     });
 
-    it('numbers video picks using the videoAssets count', () => {
+    it('numbers video picks using the positional video count', () => {
       studio.setUsedAssets([makeUsedAsset({ kind: 'video' })]);
       component.addReferenceForKind('video');
       expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Video1]');
     });
 
-    it('numbers audio picks using the audioAssets count', () => {
+    it('numbers audio picks using the positional audio count', () => {
       studio.setUsedAssets([
         makeUsedAsset({ kind: 'audio' }),
         makeUsedAsset({ kind: 'audio' }),
@@ -380,23 +376,31 @@ describe('PromptBuilderComponent', () => {
       component.addReferenceForKind('audio');
       expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Audio2]');
     });
+
+    it('numbers the last chip positionally even with inherited absolute slots', () => {
+      studio.setUsedAssets([
+        makeUsedAsset({ kind: 'image', fileId: 'i1', slot: '[Image4]' }),
+        makeUsedAsset({ kind: 'image', fileId: 'i2', slot: '[Image7]' }),
+      ]);
+      component.addReferenceForKind('image');
+      // Inherited slots [Image4]/[Image7] become positional 1..2 → last chip is 2.
+      expect(quill.insertText).toHaveBeenCalledWith(expect.any(Number), ' [Image2]');
+    });
   });
 
   // ─── pruneStaleTokens (private, accessed via [])  ──────────────────
 
   describe('pruneStaleTokens', () => {
-    const prune = (label: 'Image' | 'Video' | 'Audio', max: number) =>
+    const prune = (label: 'image' | 'video' | 'audio', allowed: Set<number>) =>
       (
         component as unknown as {
-          pruneStaleTokens: (l: typeof label, m: number) => void;
+          pruneStaleTokens: (l: typeof label, a: Set<number>) => void;
         }
-      ).pruneStaleTokens(label, max);
+      ).pruneStaleTokens(label, allowed);
 
-    it('removes only tokens whose index exceeds maxAllowed', () => {
+    it('removes only tokens whose number is not allowed', () => {
       quill.getText.mockReturnValue('intro [Image1] mid [Image2] tail [Image3]\n');
-      prune('Image', 1);
-      // Tokens removed: [Image2] (idx 19, len 9) and [Image3] (idx 33, len 9, with leading space → 10)
-      // Actual matches captured with the leading-space pattern: " [Image2]" (len 9) and " [Image3]" (len 9).
+      prune('image', new Set([1]));
       expect(quill.deleteText).toHaveBeenCalledTimes(2);
     });
 
@@ -406,27 +410,27 @@ describe('PromptBuilderComponent', () => {
       quill.deleteText.mockImplementation((idx: number) => {
         calls.push(idx);
       });
-      prune('Image', 1);
+      prune('image', new Set([1]));
       // First call should be the LATER index, second the earlier.
       expect(calls[0]).toBeGreaterThan(calls[1]);
     });
 
     it('absorbs a single leading space so we do not leave double spaces', () => {
       quill.getText.mockReturnValue('hi [Image2]\n');
-      prune('Image', 1);
-      // Match length is 9 (includes the leading space before "[")
+      prune('image', new Set([1]));
+      // Match length is 9 (includes the leading space before "[Image2]").
       expect(quill.deleteText).toHaveBeenCalledWith(expect.any(Number), 9);
     });
 
     it('does nothing when there are no stale tokens', () => {
       quill.getText.mockReturnValue('intro [Image1] only\n');
-      prune('Image', 5);
+      prune('image', new Set([1]));
       expect(quill.deleteText).not.toHaveBeenCalled();
     });
 
     it('only deletes the matching label kind', () => {
       quill.getText.mockReturnValue('[Image2] [Video2] [Audio2]\n');
-      prune('Video', 1);
+      prune('video', new Set([1]));
       // Only Video deletion expected.
       expect(quill.deleteText).toHaveBeenCalledTimes(1);
     });
@@ -435,7 +439,7 @@ describe('PromptBuilderComponent', () => {
       quill.getText
         .mockReturnValueOnce('hi [Image2]\n') // initial scan
         .mockReturnValueOnce('hi \n'); // after delete (for the setRawDescription call)
-      prune('Image', 1);
+      prune('image', new Set([1]));
       expect(studio.setRawDescription).toHaveBeenCalledWith('hi ');
     });
 
@@ -448,13 +452,13 @@ describe('PromptBuilderComponent', () => {
         writable: true,
       });
       // Should not throw.
-      expect(() => prune('Image', 0)).not.toThrow();
+      expect(() => prune('image', new Set())).not.toThrow();
       expect(quill.deleteText).not.toHaveBeenCalled();
     });
 
     it('no-ops safely when getQuill() returns null', () => {
       editor.getQuill.mockReturnValueOnce(null);
-      expect(() => prune('Image', 0)).not.toThrow();
+      expect(() => prune('image', new Set())).not.toThrow();
       expect(quill.deleteText).not.toHaveBeenCalled();
     });
   });

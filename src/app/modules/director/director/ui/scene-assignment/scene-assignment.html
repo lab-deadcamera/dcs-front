@@ -1,12 +1,18 @@
 <section class="p-6">
   <div class="mb-6">
     <div class="flex w-full items-center justify-between">
-      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Scene Resources</h1>
+      <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
+        @if (isChapterMode()) {
+          {{ 'DIRECT.RESOURCES.HEADER_EPISODE' | translate }}
+        } @else {
+          {{ 'DIRECT.RESOURCES.HEADER_SCENE' | translate }}
+        }
+      </h1>
 
       @switch (activeTab()) {
         @case ('characters') {
           <p-button
-            label="Create Resource"
+            [label]="'DIRECT.RESOURCES.CREATE_RESOURCE' | translate"
             icon="pi pi-user-plus"
             severity="secondary"
             (onClick)="characterDialogVisible.set(true)"
@@ -28,35 +34,57 @@
                 [disabled]="fileUploadLoading()"
                 maxFileSize="10000000"
                 (uploadHandler)="uploadFile($event); file.clear()"
-                chooseLabel="New Asset"
+                [chooseLabel]="'DIRECT.RESOURCES.NEW_ASSET' | translate"
               />
             }
           </div>
         }
       }
     </div>
-    <p class="mt-1 text-[12px] text-fg-muted">Assign and remove resources for this scene</p>
+    <p class="mt-1 text-[12px] text-fg-muted">
+      @if (isChapterMode()) {
+        {{ 'DIRECT.RESOURCES.HINT_EPISODE' | translate }}
+      } @else {
+        {{ 'DIRECT.RESOURCES.HINT_SCENE' | translate }}
+      }
+    </p>
   </div>
 
   <!-- Scene & Project info -->
   <div class="mb-6 rounded border border-ink-700 bg-ink-800 p-4">
     <div class="mb-3 flex items-center gap-4">
-      <span class="font-mono text-[11px] text-primary-400"
-        >SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}</span
-      >
-      <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || 'Loading...' }}</span>
+      <span class="font-mono text-[11px] text-primary-400">
+        @if (isChapterMode()) {
+          EP{{ sceneInfo()?.number ?? 0 | number: '2.0' }}
+        } @else {
+          SC{{ sceneInfo()?.number ?? 0 | number: '2.0' }}
+        }
+      </span>
+      <span class="text-[14px] font-semibold">{{ sceneInfo()?.name || ('COMMON.LOADING' | translate) }}</span>
       @if (sceneInfo()?.description) {
         <span class="text-[12px] text-fg-muted">— {{ sceneInfo()?.description }}</span>
       }
     </div>
     <div class="flex gap-6 text-[11px] text-fg-muted">
       <span
-        ><span class="font-bold uppercase">Project:</span> {{ projectInfo()?.name || '...' }}</span
+        ><span class="font-bold uppercase">{{ 'DIRECT.RESOURCES.PROJECT' | translate }}</span> {{ projectInfo()?.name || '...' }}</span
       >
-      <span
-        ><span class="font-bold uppercase">Scene ID:</span>
-        <span class="font-mono">{{ sceneId() }}</span></span
-      >
+      <span>
+        <span class="font-bold uppercase">
+          @if (isChapterMode()) {
+            {{ 'DIRECT.RESOURCES.EPISODE_ID' | translate }}
+          } @else {
+            {{ 'DIRECT.RESOURCES.SCENE_ID' | translate }}
+          }
+        </span>
+        <span class="font-mono">
+          @if (isChapterMode()) {
+            {{ chapterId() }}
+          } @else {
+            {{ sceneId() }}
+          }
+        </span>
+      </span>
     </div>
   </div>
 
@@ -73,13 +101,13 @@
         "
         (click)="activeTab.set(tab.key)"
       >
-        {{ tab.label }}
+        {{ tab.labelKey | translate }}
       </button>
     }
   </div>
 
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'DIRECT.RESOURCES.LOADING' | translate }}</p>
   }
 
   <!-- Presets tab -->
@@ -87,7 +115,7 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Presets
+          {{ 'DIRECT.RESOURCES.AVAILABLE_PRESETS' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (p of availablePresets(); track p.id) {
@@ -104,18 +132,18 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
                 (click)="assignPreset(p.id)"
               >
-                + Assign
+                {{ 'DIRECT.RESOURCES.ASSIGN' | translate }}
               </button>
             </div>
           }
           @if (availablePresets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All presets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.ALL_PRESETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedPresets(); track a.id) {
@@ -131,12 +159,12 @@
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removePreset(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedPresets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No presets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_PRESETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -148,31 +176,70 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Resources
+          {{ 'DIRECT.RESOURCES.AVAILABLE_RESOURCES' | translate }}
         </h2>
+
+        <!-- Search -->
+        <input
+          #searchInput
+          type="text"
+          [placeholder]="'DIRECT.RESOURCES.SEARCH' | translate"
+          class="mb-3 w-full rounded border border-ink-700 bg-ink-800 px-3 py-2 text-[12px] text-fg-strong placeholder:text-fg-muted focus:border-primary-500 focus:outline-none"
+          [value]="searchQuery()"
+          (input)="searchQuery.set(searchInput.value)"
+        />
+
+        <!-- Kind tabs -->
+        <div class="mb-3 flex gap-1 border-b border-ink-600">
+          @for (kind of kindTabs; track kind) {
+            <button
+              type="button"
+              class="border-b-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors"
+              [class]="
+                activeKindTab() === kind
+                  ? 'border-primary-500 !text-fg-strong'
+                  : 'border-transparent text-fg-muted hover:text-fg-strong'
+              "
+              (click)="activeKindTab.set(kind)"
+            >
+              {{ kindLabel[kind] | translate }}
+              @if (groupedCharacters()[kind]?.length; as count) {
+                <span class="ml-1 rounded bg-ink-700 px-1 py-0.5 text-[9px]">{{ count }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Characters for active tab -->
         <div class="flex flex-col gap-1">
-          @for (c of availableCharacters(); track c.id) {
+          @for (c of tabCharacters(); track c.id) {
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="flex min-w-0 items-center gap-2" [attr.data-kind]="c.kind">
+              <div class="flex min-w-0 items-center gap-2">
                 @switch (c.kind) {
                   @case ('audio') {
                     <audio
                       controls
                       [src]="c.thumbnailUrl"
-                      class="h-12 w-12 rounded object-cover"
+                      class="h-12 w-12 cursor-pointer rounded object-cover"
+                      (click)="openAssetInfo($event, c)"
                     ></audio>
                   }
                   @case ('video') {
                     <video
-                      [src]="c.id | sourceAsset"
-                      class="h-12 w-12 rounded object-cover"
+                      [src]="c.fileId | sourceAsset"
+                      class="h-12 w-12 cursor-pointer rounded object-cover"
+                      (click)="openAssetInfo($event, c)"
                     ></video>
                   }
                   @default {
                     @if (c.thumbnailUrl) {
-                      <img [src]="c.thumbnailUrl" class="h-12 w-12 rounded object-cover" />
+                      <img
+                        [src]="c.thumbnailUrl"
+                        class="h-12 w-12 cursor-pointer rounded object-cover"
+                        (click)="openAssetInfo($event, c)"
+                      />
                     } @else {
                       <span
                         class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
@@ -196,39 +263,77 @@
                 <button
                   type="button"
                   class="rounded px-2 py-1 text-[10px] font-bold uppercase text-primary-400 transition-colors hover:bg-primary-500/20"
-                  (click)="assignCharacter(c.id)"
+                  (click)="assignCharacter(c.id, c.kind)"
                 >
                   + Assign
                 </button>
               </div>
             </div>
           }
-          @if (availableCharacters().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All characters assigned.</p>
+          @if (tabCharacters().length === 0) {
+            <p class="py-4 text-center text-[12px] text-fg-muted">
+              {{ searchQuery() ? ('DIRECT.RESOURCES.NO_SEARCH_MATCH' | translate) : ('DIRECT.RESOURCES.ALL_CHARACTERS_ASSIGNED' | translate) }}
+            </p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedCharacters(); track a.id) {
+            @let info = characterInfo().get(a.character_id || '');
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <span class="text-[12px]">{{ a.name }}</span>
+              <div class="flex min-w-0 items-center gap-2">
+                @if (info && info.fileId) {
+                  @if (info.kind === 'video') {
+                    <span
+                      class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      ><i class="pi pi-video"></i
+                    ></span>
+                  } @else if (info.kind === 'audio') {
+                    <span
+                      class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      ><i class="pi pi-volume-up"></i
+                    ></span>
+                  } @else {
+                    <img
+                      [src]="info.fileId | sourceThumbnailAsset"
+                      [alt]="info.name || a.name"
+                      class="h-10 w-10 cursor-pointer rounded object-cover"
+                      (click)="openAssignedCharacterInfo($event, a)"
+                      loading="lazy"
+                    />
+                  }
+                } @else {
+                  <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted"
+                    >☺</span
+                  >
+                }
+                <span class="truncate text-[12px]">
+                  {{ info?.name || a.name }}
+                  @if (a.slot) {
+                    <span class="ml-2 font-mono text-[10px] text-fg-muted">{{ a.slot }}</span>
+                  }
+                </span>
+              </div>
               <button
                 type="button"
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removeCharacter(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedCharacters().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No characters assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_CHARACTERS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -240,7 +345,7 @@
     <div class="grid grid-cols-2 gap-6">
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Available Files
+          {{ 'DIRECT.RESOURCES.AVAILABLE_FILES' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (f of availableAssets(); track f.id) {
@@ -266,6 +371,16 @@
                     (click)="openPreview(f)"
                   />
                 }
+                <span
+                  role="button"
+                  tabindex="0"
+                  class="ml-1 cursor-pointer text-[10px] text-fg-muted transition-colors hover:text-primary-400"
+                  (click)="openFileInfo($event, f)"
+                  (keydown.enter)="openFileInfo($event, f)"
+                  [attr.aria-label]="'Ver metadata del asset'"
+                  title="Ver metadata del asset"
+                  >ⓘ</span
+                >
                 <span class="ml-2 text-[10px] text-fg-muted">{{ f.mime_type }}</span>
               </div>
 
@@ -289,38 +404,66 @@
             </div>
           }
           @if (availableAssets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">All files assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.ALL_FILES_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
       <div>
         <h2 class="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-fg-muted">
-          Assigned
+          {{ 'DIRECT.RESOURCES.ASSIGNED' | translate }}
         </h2>
         <div class="flex flex-col gap-1">
           @for (a of assignedAssets(); track a.id) {
             <div
               class="flex items-center justify-between rounded border border-ink-700 bg-ink-800 px-3 py-2"
             >
-              <div class="min-w-0 flex-1">
-                <span
-                  class="truncate cursor-pointer text-[12px] hover:text-primary-400"
-                  (click)="openPreview(a)"
-                  >{{ a.filename }}</span
-                >
-                <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
+              <div class="flex min-w-0 flex-1 items-center gap-2">
+                @if (a.mime_type.startsWith('image')) {
+                  <img
+                    [src]="a.file_id | sourceThumbnailAsset"
+                    [alt]="a.filename"
+                    class="h-10 w-10 shrink-0 cursor-pointer rounded object-cover"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    loading="lazy"
+                  />
+                } @else if (a.mime_type.startsWith('video')) {
+                  <span
+                    class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    ><i class="pi pi-video"></i
+                  ></span>
+                } @else if (a.mime_type.startsWith('audio')) {
+                  <span
+                    class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    (click)="openAssignedAssetInfo($event, a)"
+                    ><i class="pi pi-volume-up"></i
+                  ></span>
+                } @else {
+                  <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-ink-700 text-fg-muted"
+                    ><i class="pi pi-image"></i
+                  ></span>
+                }
+                <span class="min-w-0 flex-1">
+                  <span
+                    class="truncate cursor-pointer text-[12px] hover:text-primary-400"
+                    (click)="openPreview(a)"
+                    >{{ a.filename }}</span
+                  >
+                  <span class="ml-2 text-[10px] text-fg-muted">{{ a.mime_type }}</span>
+                </span>
               </div>
               <button
                 type="button"
                 class="rounded px-2 py-1 text-[10px] font-bold uppercase text-red-400 transition-colors hover:bg-red-500/20"
                 (click)="removeAsset(a.id)"
               >
-                Remove
+                {{ 'DIRECT.RESOURCES.REMOVE' | translate }}
               </button>
             </div>
           }
           @if (assignedAssets().length === 0) {
-            <p class="py-4 text-center text-[12px] text-fg-muted">No assets assigned.</p>
+            <p class="py-4 text-center text-[12px] text-fg-muted">{{ 'DIRECT.RESOURCES.NO_ASSETS_ASSIGNED' | translate }}</p>
           }
         </div>
       </div>
@@ -328,20 +471,23 @@
   }
 </section>
 
-<p-dialog
-  [(visible)]="characterDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Resources"
->
-  <app-index-characters
-    headerTitle="Resources"
-    headerHint="Scene resource library — name, description, metadata."
-    (charactersChanged)="onCharactersChanged()"
-  />
-</p-dialog>
+@if (characterDialogVisible()) {
+  <p-dialog
+    [(visible)]="characterDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    [header]="'DIRECT.RESOURCES.DIALOG_TITLE' | translate"
+  >
+    <app-index-characters
+      [headerTitle]="'DIRECT.RESOURCES.DIALOG_TITLE' | translate"
+      [headerHint]="'DIRECT.RESOURCES.DIALOG_HINT' | translate"
+      (charactersChanged)="onCharactersChanged()"
+      (massCreated)="onMassCreated($event)"
+    />
+  </p-dialog>
+}
 
 <app-asset-viewer
   [(visible)]="previewVisible"
@@ -349,5 +495,8 @@
   [allowDelete]="true"
   (deleteFile)="onDeleteFromViewer($event)"
 />
+
+<!-- Asset metadata popover (resource thumbnails) -->
+<app-asset-info-popover #assetInfoPopover />
 
 <p-confirmDialog />

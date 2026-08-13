@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, JsonPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,7 +11,7 @@ import { MessageService } from 'primeng/api';
 import { environment } from '@environment/environment';
 import { catchError, of } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
-import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
+import { DOWNLOAD_VIDEO, isChecksRating, RESOLVE_URL, ratingSymbols } from '@app/shared/utils';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import { Take } from '@modules/projects/projects/interfaces';
 
@@ -34,6 +35,7 @@ interface PickerOption {
   templateUrl: './takes-review.html',
   standalone: true,
   imports: [
+    TranslatePipe,
     DatePipe,
     FormsModule,
     JsonPipe,
@@ -49,6 +51,7 @@ interface PickerOption {
 export class TakesReviewComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
   private readonly projectsApi = inject(ProjectsApiService);
   private readonly apiUrl = environment.API_URL;
 
@@ -84,6 +87,8 @@ export class TakesReviewComponent implements OnInit {
   protected readonly downloadingId = signal<string | null>(null);
   protected readonly payloadVisible = signal(false);
   protected readonly payloadTake = signal<Take | null>(null);
+  protected readonly isChecksRating = isChecksRating;
+  protected readonly ratingSymbols = ratingSymbols;
 
   ngOnInit(): void {
     this.projectsApi.listProjects().subscribe((res) => {
@@ -207,15 +212,27 @@ export class TakesReviewComponent implements OnInit {
         next: (res: any) => {
           this.savingId.set(null);
           if (res && res.data) {
-            this.toast.add({ severity: 'success', summary: 'Video saved locally', life: 2000 });
+            this.toast.add({
+              severity: 'success',
+              summary: this.i18n.instant('DIRECT.TAKES.TOAST_SAVED_LOCAL'),
+              life: 2000,
+            });
             this.loadTakes();
           } else {
-            this.toast.add({ severity: 'error', summary: 'Failed to save video', life: 3000 });
+            this.toast.add({
+              severity: 'error',
+              summary: this.i18n.instant('DIRECT.TAKES.TOAST_SAVE_FAILED'),
+              life: 3000,
+            });
           }
         },
         error: () => {
           this.savingId.set(null);
-          this.toast.add({ severity: 'error', summary: 'Failed to save video', life: 3000 });
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.TAKES.TOAST_SAVE_FAILED'),
+            life: 3000,
+          });
         },
       });
   }
@@ -234,7 +251,11 @@ export class TakesReviewComponent implements OnInit {
     const url = this.videoUrl(take.video_local_url);
     if (!url) return;
     this.downloadingId.set(take.id);
-    this.toast.add({ severity: 'info', summary: 'Downloading video', life: 5000 });
+    this.toast.add({
+      severity: 'info',
+      summary: this.i18n.instant('STUDIO.VIEWER.DOWNLOADING'),
+      life: 5000,
+    });
     DOWNLOAD_VIDEO(url).finally(() => {
       this.downloadingId.set(null);
     });
@@ -263,15 +284,27 @@ export class TakesReviewComponent implements OnInit {
         next: (res) => {
           this.loadingId.set(null);
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
+            this.toast.add({
+              severity: 'error',
+              summary: this.i18n.instant('DIRECT.TAKES.TOAST_UPDATE_FAILED'),
+              life: 3000,
+            });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'Take selected as final', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.TAKES.TOAST_FINAL_SELECTED'),
+            life: 2000,
+          });
           this.loadTakes();
         },
         error: () => {
           this.loadingId.set(null);
-          this.toast.add({ severity: 'error', summary: 'Failed to update', life: 3000 });
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.TAKES.TOAST_UPDATE_FAILED'),
+            life: 3000,
+          });
         },
       });
   }

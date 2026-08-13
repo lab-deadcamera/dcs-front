@@ -10,7 +10,7 @@
       <label
         class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-500"
       >
-        <i class="pi pi-sparkles text-[10px]"></i> Model
+        <i class="pi pi-sparkles text-[10px]"></i> {{ 'STUDIO.IMAGE_GEN.MODEL' | translate }}
       </label>
       @if (imageModels().length > 0) {
         <p-select
@@ -22,9 +22,9 @@
           styleClass="w-full image-gen-select"
         />
       } @else if (loading()) {
-        <p class="text-[11px] italic text-fg-muted">Loading models…</p>
+        <p class="text-[11px] italic text-fg-muted">{{ 'STUDIO.IMAGE_GEN.LOADING_MODELS' | translate }}</p>
       } @else {
-        <p class="text-[11px] text-fg-muted">No image models available.</p>
+        <p class="text-[11px] text-fg-muted">{{ 'STUDIO.IMAGE_GEN.NO_MODELS' | translate }}</p>
       }
     </div>
 
@@ -33,7 +33,7 @@
       <label
         class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500"
       >
-        <i class="pi pi-clone text-[10px]"></i> Ratio
+        <i class="pi pi-clone text-[10px]"></i> {{ 'STUDIO.IMAGE_GEN.RATIO' | translate }}
       </label>
       <button
         type="button"
@@ -59,7 +59,7 @@
       <label
         class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500"
       >
-        <i class="pi pi-th-large text-[10px]"></i> Quality
+        <i class="pi pi-th-large text-[10px]"></i> {{ 'STUDIO.IMAGE_GEN.QUALITY' | translate }}
       </label>
       <button
         type="button"
@@ -86,7 +86,7 @@
       <p
         class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-500"
       >
-        <i class="pi pi-clone text-[10px]"></i> Aspect Ratio
+        <i class="pi pi-clone text-[10px]"></i> {{ 'STUDIO.IMAGE_GEN.ASPECT_RATIO' | translate }}
       </p>
       <ul class="grid grid-cols-4 gap-1.5">
         @for (r of ratioOptions; track r.value) {
@@ -101,7 +101,7 @@
               "
               (click)="onPickRatio(r.value); ratioPop.hide()"
               [attr.aria-pressed]="selectedRatio() === r.value"
-              [attr.aria-label]="'Aspect ratio ' + r.value"
+              [attr.aria-label]="'STUDIO.IMAGE_GEN.ASPECT_RATIO_ARIA' | translate: { value: r.value }"
               [attr.data-testid]="'image-gen-ratio-' + r.value"
             >
               <span
@@ -128,7 +128,7 @@
       <p
         class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-500"
       >
-        <i class="pi pi-th-large text-[10px]"></i> Quality
+        <i class="pi pi-th-large text-[10px]"></i> {{ 'STUDIO.IMAGE_GEN.QUALITY' | translate }}
       </p>
       <ul class="grid grid-cols-3 gap-1.5">
         @for (r of resolutionOptions; track r.value) {
@@ -161,21 +161,23 @@
       -->
   <div class="flex items-center gap-2 overflow-x-auto py-1">
     <span class="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted"
-      >Refs</span
+      >{{ 'STUDIO.IMAGE_GEN.REFS' | translate }}</span
     >
     @for (ref of referenceImages(); track ref.id) {
       <div
-        class="group relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-ink-600"
+        class="group relative h-12 w-12 shrink-0 cursor-pointer overflow-hidden rounded-md border border-ink-600"
+        [title]="'Ver metadata del asset'"
       >
         <img
           [src]="ref.id | sourceThumbnailAsset"
           class="h-full w-full object-cover"
-          alt="Reference"
+          alt="{{ 'STUDIO.IMAGE_GEN.ADD_REFERENCE' | translate }}"
+          (click)="assetInfoPopover.open($event, { id: ref.fileId, name: ref.fileId, kind: 'image' })"
         />
         <button
           type="button"
           class="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/70 text-[9px] text-white opacity-0 transition-opacity hover:bg-red-500 group-hover:opacity-100"
-          (click)="removeReference(ref.id)"
+          (click)="$event.stopPropagation(); removeReference(ref.id)"
         >
           ✕
         </button>
@@ -183,7 +185,7 @@
     }
     <label
       class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-dashed border-primary-500/50 bg-primary-500/5 text-primary-500 transition-colors hover:border-primary-500 hover:bg-primary-500/15"
-      title="Add reference image"
+      [title]="'STUDIO.IMAGE_GEN.ADD_REFERENCE' | translate"
     >
       <i class="pi pi-plus text-[14px]"></i>
       <input type="file" accept="image/*" class="hidden" (change)="onReferencePicked($event)" />
@@ -196,7 +198,7 @@
     (ngModelChange)="prompt.set($event)"
     rows="2"
     class="w-full resize-y rounded-md border border-ink-600 bg-ink-800 px-3 py-2 text-[13px] text-fg-strong placeholder:italic placeholder:text-fg-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/40"
-    placeholder="Describe the image you want to generate…"
+    [placeholder]="'STUDIO.IMAGE_GEN.PLACEHOLDER' | translate"
   ></textarea>
 
   <!-- Generate CTA — gradient button + optional preview + meta on the same row -->
@@ -211,10 +213,10 @@
       >
         @if (generating()) {
           <i class="pi pi-spin pi-spinner text-[12px]"></i>
-          <span>Generating…</span>
+          <span>{{ 'STUDIO.IMAGE_GEN.GENERATING' | translate }}</span>
         } @else {
           <i class="pi pi-bolt text-[12px] transition-transform group-hover:scale-110"></i>
-          <span>Generate</span>
+          <span>{{ 'STUDIO.IMAGE_GEN.GENERATE' | translate }}</span>
         }
       </button>
       @if (canPreview()) {
@@ -226,7 +228,7 @@
           data-testid="image-gen-preview-button"
         >
           <i class="pi pi-eye text-[12px]" aria-hidden="true"></i>
-          <span>Preview</span>
+          <span>{{ 'STUDIO.IMAGE_GEN.PREVIEW' | translate }}</span>
         </button>
       }
     </div>
@@ -245,7 +247,7 @@
     <div class="mt-2 flex flex-col gap-2">
       <img
         [src]="img.url"
-        alt="Generated image"
+        alt="{{ 'STUDIO.IMAGE_GEN.DIALOG_TITLE' | translate }}"
         class="w-full cursor-pointer rounded object-contain"
         style="max-height: 300px; background: var(--ink-900)"
         (click)="previewVisible.set(true)"
@@ -255,14 +257,14 @@
           severity="secondary"
           [text]="true"
           icon="pi pi-window-maximize"
-          label="Preview"
+          [label]="'STUDIO.IMAGE_GEN.PREVIEW' | translate"
           (onClick)="previewVisible.set(true)"
         />
         <p-button
           severity="secondary"
           [text]="true"
           icon="pi pi-download"
-          label="Download"
+          [label]="'COMMON.DOWNLOAD' | translate"
           (onClick)="downloadImage(img.url)"
         />
         @if (!savedAssetUrl()) {
@@ -270,7 +272,7 @@
             severity="info"
             [text]="true"
             icon="pi pi-save"
-            [label]="saving() ? 'Saving…' : 'Save as temp asset'"
+            [label]="saving() ? ('STUDIO.IMAGE_GEN.SAVING' | translate) : ('STUDIO.IMAGE_GEN.SAVE_TEMP' | translate)"
             [loading]="saving()"
             (onClick)="saveAsTempAsset(img.url)"
           />
@@ -279,7 +281,7 @@
           severity="secondary"
           [text]="true"
           icon="pi pi-trash"
-          label="Clear"
+          [label]="'STUDIO.IMAGE_GEN.CLEAR' | translate"
           (onClick)="generatedImage.set(null)"
         />
         @if (savedAssetUrl()) {
@@ -287,13 +289,13 @@
             severity="secondary"
             [text]="true"
             icon="pi pi-plus"
-            label="Use"
+            [label]="'STUDIO.IMAGE_GEN.USE' | translate"
             (onClick)="saveAsFreeAssets()"
           />
         }
       </div>
       @if (savedAssetUrl(); as url) {
-        <p class="text-[11px] text-green-400">Saved in the temp assets</p>
+        <p class="text-[11px] text-green-400">{{ 'STUDIO.IMAGE_GEN.SAVED_TEMP' | translate }}</p>
       }
     </div>
   }
@@ -306,12 +308,12 @@
     [closable]="true"
     [draggable]="false"
     [style]="{ width: '80vw', maxWidth: '1024px' }"
-    header="Generated Image"
+    [header]="'STUDIO.IMAGE_GEN.DIALOG_TITLE' | translate"
   >
     @if (generatedImage(); as img) {
       <img
         [src]="img.url"
-        alt="Generated image"
+        alt="{{ 'STUDIO.IMAGE_GEN.DIALOG_TITLE' | translate }}"
         class="w-full rounded object-contain"
         style="max-height: 80vh; background: var(--ink-900)"
       />
@@ -322,20 +324,20 @@
           severity="secondary"
           [text]="true"
           icon="pi pi-download"
-          label="Download"
+          [label]="'COMMON.DOWNLOAD' | translate"
           (onClick)="downloadImage(generatedImage()!.url)"
         />
         <p-button
           severity="info"
           icon="pi pi-save"
-          [label]="saving() ? 'Saving…' : 'Save as temp asset'"
+          [label]="saving() ? ('STUDIO.IMAGE_GEN.SAVING' | translate) : ('STUDIO.IMAGE_GEN.SAVE_TEMP' | translate)"
           [loading]="saving()"
           (onClick)="saveAsTempAsset(generatedImage()!.url)"
         />
         <p-button
           severity="secondary"
           [text]="true"
-          label="Close"
+          [label]="'COMMON.CLOSE' | translate"
           (onClick)="previewVisible.set(false)"
         />
       </div>
@@ -356,14 +358,14 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '60rem', maxWidth: '95vw' }"
-  header="Vista previa del payload"
+  [header]="'STUDIO.IMAGE_GEN.PREVIEW_PAYLOAD' | translate"
 >
   @if (previewLoading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">Cargando…</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'COMMON.LOADING' | translate }}</p>
   } @else if (previewError()) {
     <p class="py-4 font-mono text-[12px] text-red-400">{{ previewError() }}</p>
   } @else if (!previewData()) {
-    <p class="py-4 text-[13px] italic text-fg-muted">Sin datos en la respuesta.</p>
+    <p class="py-4 text-[13px] italic text-fg-muted">{{ 'STUDIO.IMAGE_GEN.NO_DATA' | translate }}</p>
   } @else {
     <pre
       class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
@@ -375,9 +377,12 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Cerrar"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="previewDialogVisible.set(false)"
       />
     </div>
   </ng-template>
 </p-dialog>
+
+<!-- Asset metadata popover (reference strip) -->
+<app-asset-info-popover #assetInfoPopover />

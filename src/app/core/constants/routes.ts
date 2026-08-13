@@ -9,6 +9,7 @@ export const PRIVATE_PATHS = {
   files: 'files',
   projects: 'projects',
   providers: 'providers',
+  skills: 'skills',
   admin: 'admin',
   director: 'director',
 };

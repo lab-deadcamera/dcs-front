@@ -4,18 +4,21 @@ import {
   EventEmitter,
   OnInit,
   Output,
+  ViewChild,
   computed,
   inject,
   input,
   output,
   signal,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { from, map, mergeMap } from 'rxjs';
+import { catchError, forkJoin, from, map, mergeMap, Observable, of, switchMap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 import { CharactersService } from '../../services';
 import {
@@ -32,6 +35,14 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { toCharacter } from '@shared/utils';
 import { FilesApiService } from '@app/services';
 import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
+import { FileEntity } from '@modules/files/files/interfaces';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
+
+/** Items revealed initially per tab before progressive render kicks in. */
+const INITIAL_RENDER_COUNT = 200;
+/** Items revealed per "Load 50 more" click. */
+const RENDER_STEP = 50;
 
 /**
  * Characters library — typed asset board.
@@ -48,15 +59,19 @@ import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 @Component({
   selector: 'app-index-characters',
   imports: [
+    FormsModule,
     TranslatePipe,
     ButtonModule,
     ConfirmDialogModule,
     ToastModule,
+    TooltipModule,
     CharacterFormDialogComponent,
     CharacterFilesDialogComponent,
     AssetCreateDialogComponent,
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
+    AssetInfoPopoverComponent,
+    AssetViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -69,10 +84,56 @@ export class IndexCharacters implements OnInit {
   protected readonly characters = inject(CharactersService);
   private readonly confirm = inject(ConfirmationService);
   private readonly toast = inject(MessageService);
+  private readonly translate = inject(TranslateService);
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
 
+  /** Asset metadata popover for a character's preview image. */
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** File shown in the full-screen viewer (same component as the Files module). */
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  /** Whether the full-screen viewer dialog is open. */
+  protected readonly viewerVisible = signal(false);
+
+  /** Open the full-screen viewer for one of a character's preview files. */
+  protected openAssetViewer(a: Character, fid: string): void {
+    if (!fid) return;
+    this.viewerFile.set({
+      id: fid,
+      filename: a.name,
+      mimeType:
+        a.metadata.fileKind === 'video'
+          ? 'video/mp4'
+          : a.metadata.fileKind === 'audio'
+            ? 'audio/mpeg'
+            : 'image/png',
+    });
+    this.viewerVisible.set(true);
+  }
+
+  /** Open the metadata popover for one of a character's preview files. */
+  protected openCharacterFileInfo(event: Event, a: Character, fid: string): void {
+    event.stopPropagation();
+    this.assetInfoPopover.open(event, {
+      id: fid,
+      name: a.name,
+      kind:
+        a.metadata.fileKind === 'video'
+          ? 'video'
+          : a.metadata.fileKind === 'audio'
+            ? 'audio'
+            : 'image',
+      type: a.metadata.assetType,
+    });
+  }
+
   showUseButton = input<boolean>(false);
+
+  /** Translate a key with optional interpolation params. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
 
   /**
    * Optional header overrides. Host contexts (e.g. the Scene Resources
@@ -84,6 +145,13 @@ export class IndexCharacters implements OnInit {
 
   /** Parent can listen to close itself when an asset is used. */
   readonly assetUsed = output<string>();
+
+  /**
+   * Emitted after the mass-upload pipeline finishes, with the ids of every
+   * asset created and the file kind they were created as — so a host in an
+   * episode context can auto-assign them.
+   */
+  readonly massCreated = output<{ ids: string[]; kind: 'image' | 'audio' }>();
 
   /** Which bucket is currently shown in the grid. */
   protected readonly activeType = signal<AssetType>('character');
@@ -117,11 +185,201 @@ export class IndexCharacters implements OnInit {
     { id: 'audio', labelKey: 'CHARACTERS.TABS.AUDIO', icon: 'pi pi-volume-up' },
   ];
 
-  protected readonly visibleAssets = computed<Character[]>(
-    () => this.characters.itemsByType()[this.activeType()] ?? [],
+  /** Assets of the active type, revealed progressively (200 → +50 per click). */
+  protected readonly visibleAssets = computed<Character[]>(() => {
+    const all = this.characters.itemsByType()[this.activeType()] ?? [];
+    const limit = this.renderLimits()[this.activeType()] ?? INITIAL_RENDER_COUNT;
+    return all.slice(0, limit);
+  });
+
+  /** True when more items can be revealed in the active tab: either the tab
+   *  still has loaded-but-unrevealed items, or the server has more to fetch. */
+  protected readonly hasMoreVisibleAssets = computed(() => {
+    const all = this.characters.itemsByType()[this.activeType()] ?? [];
+    return this.visibleAssets().length < all.length || this.characters.hasMore();
+  });
+
+  /** Loading flag for the "Load 50 more" fetch (keeps the grid visible). */
+  protected readonly loadMoreLoading = signal(false);
+
+  /** Reveal limit per asset type, so each tab scrolls independently. */
+  protected readonly renderLimits = signal<Partial<Record<AssetType, number>>>({});
+
+  /** Reveal the next 50 items of the active tab. When the tab's loaded bucket
+   *  is exhausted and the server has more, fetch the next chunk and append. */
+  protected loadMoreAssets(): void {
+    if (this.loadMoreLoading()) return;
+    const type = this.activeType();
+    this.renderLimits.update((limits) => ({
+      ...limits,
+      [type]: (limits[type] ?? INITIAL_RENDER_COUNT) + RENDER_STEP,
+    }));
+
+    const all = this.characters.itemsByType()[type] ?? [];
+    const limit = this.renderLimits()[type] ?? INITIAL_RENDER_COUNT;
+    if (limit >= all.length && this.characters.hasMore()) {
+      this.loadMoreLoading.set(true);
+      this.characters.loadMore().subscribe({
+        next: () => this.loadMoreLoading.set(false),
+        error: () => this.loadMoreLoading.set(false),
+      });
+    }
+  }
+
+  // ── Search ──────────────────────────────────────────────────────
+  protected readonly searchValue = signal('');
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected onSearchInput(value: string): void {
+    this.searchValue.set(value);
+    // Reset the reveal limits so the (re)loaded results render from 200.
+    this.renderLimits.set({});
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.characters.setSearchQuery(value);
+    }, 400);
+  }
+
+  // ── Mass upload ──────────────────────────────────────────────────
+  /** True while the mass-upload pipeline is running (spinner on the button). */
+  protected readonly massUploading = signal(false);
+
+  /** Human label for the active asset type — the type mass upload applies. */
+  protected readonly activeTypeLabel = computed(() => {
+    switch (this.activeType()) {
+      case 'location':
+        return 'Locations';
+      case 'prop':
+        return 'Props';
+      case 'audio':
+        return 'Audio';
+      default:
+        return 'Characters';
+    }
+  });
+
+  /** Singular form of the active type, for the mass-upload tooltip. */
+  protected readonly activeTypeSingular = computed(() => {
+    switch (this.activeType()) {
+      case 'location':
+        return 'location';
+      case 'prop':
+        return 'prop';
+      case 'audio':
+        return 'audio';
+      default:
+        return 'character';
+    }
+  });
+
+  /** File types the mass upload accepts — only audio when the Audio tab is active. */
+  protected readonly massAccept = computed(() =>
+    this.activeType() === 'audio' ? 'audio/*' : 'image/*',
   );
 
-  // Edit dialog (name / description) — reused for any type.
+  /** Tooltip for the mass-upload button, matching the active type's file kind. */
+  protected readonly massUploadTooltip = computed(() =>
+    this.activeType() === 'audio'
+      ? 'Upload multiple audio files — creates one audio per file, named after each file'
+      : `Upload multiple images — creates one ${this.activeTypeSingular()} per image, named after each file`,
+  );
+
+  /** Mass-create one asset per selected image: the resource name comes from
+   *  the filename, and the asset type is the one filtered at that moment. */
+  protected onMassFilesSelected(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const files = target?.files ? Array.from(target.files) : [];
+    if (target) target.value = ''; // allow re-selecting the same files
+    if (files.length === 0 || this.massUploading()) return;
+
+    const type = this.activeType();
+    this.massUploading.set(true);
+
+    forkJoin(files.map((file) => this.createAssetFromFile(file, type))).subscribe({
+      next: (ids) => {
+        this.massUploading.set(false);
+        const created = ids.filter((id): id is string => Boolean(id));
+        const total = files.length;
+        this.toast.add({
+          severity: created.length === total ? 'success' : created.length > 0 ? 'warn' : 'error',
+          summary: this.t('CHARACTERS.TOAST.MASS_UPLOAD'),
+          detail:
+            created.length === total
+              ? this.t('CHARACTERS.TOAST.ASSETS_CREATED', { count: created.length })
+              : this.t('CHARACTERS.TOAST.ASSETS_CREATED_PARTIAL', { count: created.length, total }),
+        });
+        if (created.length > 0) {
+          // Refresh the list from the server and fetch thumbnails only for the
+          // newcomers (same pattern as onAssetCreated).
+          this.characters.load().subscribe();
+          for (const id of created) this.fetchPreviewFor(id);
+          this.charactersChanged.emit();
+          // Let an episode host auto-assign the batch; the kind mirrors the
+          // fileKind stored on each created asset (see createAssetFromFile).
+          this.massCreated.emit({ ids: created, kind: type === 'audio' ? 'audio' : 'image' });
+        }
+      },
+      error: () => {
+        this.massUploading.set(false);
+        this.toast.add({
+          severity: 'error',
+          summary: this.t('CHARACTERS.TOAST.MASS_UPLOAD'),
+          detail: this.t('CHARACTERS.TOAST.UPLOAD_FAILED'),
+        });
+      },
+    });
+  }
+
+  /** Create one asset from a single file: POST /characters (name from the
+   *  filename, assetType from the active tab), upload the file, and link it.
+   *  The Audio tab accepts/uploads audio files; the rest accept images.
+   *  Resolves to the new asset id, or null on any failure. */
+  private createAssetFromFile(file: File, type: AssetType): Observable<string | null> {
+    const name = (file.name.replace(/\.[^.]+$/, '').trim() || this.t('CHARACTERS.TOAST.UNTITLED')).slice(0, 120);
+    const isAudio = type === 'audio';
+    return this.characters
+      .create({
+        name,
+        description: '',
+        metadata: { assetType: type, fileKind: isAudio ? 'audio' : 'image' },
+      })
+      .pipe(
+        switchMap((res) => {
+          if (res.error || !res.data) {
+            this.toast.add({
+              severity: 'warn',
+              summary: this.t('CHARACTERS.TOAST.CREATE_FAILED'),
+              detail: this.t('CHARACTERS.TOAST.NAME_MSG', { name, msg: res.msg }),
+            });
+            return of(null);
+          }
+          const newId = res.data.id;
+          return this.filesApi
+            .upload({ file, category: isAudio ? 'audio' : 'images', storage: 'persistent' })
+            .pipe(
+              switchMap((up) => {
+                if (up.error || !up.data) {
+                  this.toast.add({
+                    severity: 'warn',
+                    summary: this.t('CHARACTERS.TOAST.UPLOAD_FAILED'),
+                    detail: this.t('CHARACTERS.TOAST.NAME_MSG', { name, msg: up.msg }),
+                  });
+                  return of(null);
+                }
+                const fileId = (up.data as FileEntity).id;
+                return this.characters.assignFile(newId, fileId, 'reference').pipe(
+                  map((link) => (link.error ? null : newId)),
+                  catchError(() => of(null)),
+                );
+              }),
+              catchError(() => of(null)),
+            );
+        }),
+        catchError(() => of(null)),
+      );
+  }
+
+  // ── Edit / File / Create ────────────────────────────────────────
   protected readonly editDialogVisible = signal(false);
   protected readonly editDialogTarget = signal<Character | null>(null);
   protected readonly submitting = signal(false);
@@ -135,12 +393,16 @@ export class IndexCharacters implements OnInit {
   protected readonly createDialogType = signal<AssetType>('character');
 
   ngOnInit(): void {
+    this.characters.setSearchQuery('');
     this.loadAssets();
   }
 
   protected loadAssets(): void {
     this.characters.load().subscribe((res) => {
-      if (!res.error && res.data) this.loadPreviews(res.data.map((c) => toCharacter(c.character)));
+      if (!res.error && res.data) {
+        const chars = res.data.items.map((c: any) => toCharacter(c.character));
+        this.loadPreviews(chars);
+      }
     });
   }
 
@@ -265,22 +527,26 @@ export class IndexCharacters implements OnInit {
     if (!fileId) {
       this.toast.add({
         severity: 'warn',
-        summary: 'No file',
-        detail: `"${asset.name}" has no file uploaded yet — add one before referencing it.`,
+        summary: this.t('CHARACTERS.TOAST.NO_FILE'),
+        detail: this.t('CHARACTERS.TOAST.NO_FILE_DETAIL', { name: asset.name }),
       });
       return;
     }
     const kind = resolveKind(asset.metadata?.['fileKind']);
+    // Respect the [ImageN] slot inherited from the chapter assignment when the
+    // character is assigned to the current episode.
+    const assignedSlot = this.studio.chapterCharacterData().find((c) => c.id === asset.id)?.slot;
     this.studio.useAsset({
       fileId,
       characterId: asset.id,
       name: asset.name,
       filename: asset.name,
       kind,
+      slot: assignedSlot || undefined,
     });
     this.toast.add({
       severity: 'success',
-      summary: 'Reference added',
+      summary: this.t('CHARACTERS.TOAST.REFERENCE_ADDED'),
       detail: asset.name,
     });
     this.assetUsed.emit(asset.id);
@@ -324,10 +590,10 @@ export class IndexCharacters implements OnInit {
     this.characters.update(evt.id, evt.patch).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Updated' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.UPDATED') });
       this.editDialogVisible.set(false);
       this.charactersChanged.emit();
       this.fetchPreviewFor(evt.id);
@@ -345,10 +611,10 @@ export class IndexCharacters implements OnInit {
     this.characters.create(payload).subscribe((res) => {
       this.submitting.set(false);
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+        this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.toast.add({ severity: 'success', summary: 'OK', detail: 'Created' });
+      this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.CREATED') });
       this.editDialogVisible.set(false);
       this.charactersChanged.emit();
     });
@@ -356,18 +622,18 @@ export class IndexCharacters implements OnInit {
 
   protected confirmDelete(asset: Character): void {
     this.confirm.confirm({
-      header: 'Delete asset',
-      message: `Delete "${asset.name}"? This is a soft delete.`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      header: this.t('CHARACTERS.DELETE_DIALOG.TITLE'),
+      message: this.t('CHARACTERS.DELETE_DIALOG.MESSAGE', { name: asset.name }),
+      acceptLabel: this.t('COMMON.DELETE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () =>
         this.characters.delete(asset.id).subscribe((res) => {
           if (res.error) {
-            this.toast.add({ severity: 'error', summary: 'Error', detail: res.msg });
+            this.toast.add({ severity: 'error', summary: this.t('COMMON.ERROR'), detail: res.msg });
             return;
           }
-          this.toast.add({ severity: 'success', summary: 'OK', detail: 'Deleted' });
+          this.toast.add({ severity: 'success', summary: this.t('COMMON.OK'), detail: this.t('CHARACTERS.TOAST.DELETED') });
         }),
     });
   }

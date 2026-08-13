@@ -165,6 +165,15 @@ readonly myRequiredInput = input.required<string>();
 - Singleton services with `providedIn: 'root'`
 - Use `inject()` function
 - One responsibility per service
+- **Los componentes NUNCA deben inyectar `HttpClient` directamente. Toda petición HTTP debe estar encapsulada en un servicio.**
+  - Si un componente necesita hacer una petición HTTP, primero verifica si ya existe un servicio (API service o feature service) que la implemente.
+  - Si no existe, crea el método en el servicio correspondiente.
+
+## Shot Builder HTTP Rule
+
+- Los componentes del **Shot Builder** (`shot-builder-panel`, proncer, etc.) que necesiten peticiones HTTP al backend deben usar **exclusivamente `ShotBuilderService`** (inyectado desde `@app/services/shot-builder.service`).
+- `ShotBuilderService` es el único servicio autorizado para hacer peticiones al endpoint `/studio/text/claude/*` y a la creación de shots via `/projects/{id}/chapters/{id}/scenes/{id}/shots`.
+- No se debe inyectar `HttpClient` en estos componentes ni importar `environment` directamente. Si el método que necesitas no existe en `ShotBuilderService`, agrégalo allí en lugar de hacer la llamada desde el componente.
 
 ## Naming Conventions
 

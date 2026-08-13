@@ -1,0 +1,1318 @@
+@if (!isProduction) {
+  <div class="flex flex-col gap-4 h-full">
+    <p-toast position="top-right" />
+    <h2 class="text-base font-semibold text-fg">{{ 'STUDIO.SHOT_BUILDER.TITLE' | translate }}</h2>
+
+    <p-splitter class="shot-builder-splitter h-full" [panelSizes]="[55, 45]">
+      <!-- LEFT: Chat + Input -->
+      <ng-template pTemplate>
+        <section
+          class="editor-panel flex h-full flex-col gap-3 border-r border-ink-700 px-4 py-3"
+          [class.fullscreen]="leftFullscreen()"
+        >
+          <!-- Editor toolbar (full-screen toggle) -->
+          <div class="flex shrink-0 items-center justify-end">
+            <button
+              type="button"
+              class="flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold uppercase tracking-wide transition-colors hover:text-primary-400"
+              [class.text-primary-400]="leftFullscreen()"
+              [class.text-fg-muted]="!leftFullscreen()"
+              (click)="toggleLeftFullscreen()"
+              [pTooltip]="'STUDIO.SHOT_BUILDER.FULLSCREEN_EDITOR' | translate"
+              tooltipPosition="left"
+            >
+              <i
+                class="pi"
+                [class.pi-window-minimize]="leftFullscreen()"
+                [class.pi-window-maximize]="!leftFullscreen()"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </div>
+
+          <!-- Chat messages -->
+          <div class="flex-1 overflow-y-auto">
+            @if (chatMessages().length === 0) {
+              <p class="text-center text-[12px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.EMPTY_HINT' | translate }}
+              </p>
+            } @else {
+              @for (msg of chatMessages(); track msg.id) {
+                <div
+                  class="mb-3 rounded-lg px-3 py-2 text-[13px]"
+                  [class.bg-ink-800]="msg.role === 'assistant'"
+                  [class.bg-ink-700]="msg.role === 'user'"
+                >
+                  <span
+                    class="text-[11px] font-semibold uppercase tracking-wide"
+                    [class.text-primary-400]="msg.role === 'assistant'"
+                    [class.text-fg-muted]="msg.role === 'user'"
+                  >
+                    {{
+                      msg.role === 'assistant'
+                        ? ('STUDIO.SHOT_BUILDER.CLAUDE' | translate)
+                        : ('STUDIO.SHOT_BUILDER.YOU' | translate)
+                    }}
+                  </span>
+                  @if (msg.kind) {
+                    <span
+                      class="ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                      [class.bg-teal-900]="msg.kind === 'generate'"
+                      [class.text-teal-400]="msg.kind === 'generate'"
+                      [class.bg-amber-900]="msg.kind === 'refine'"
+                      [class.text-amber-400]="msg.kind === 'refine'"
+                    >
+                      @if (msg.kind === 'generate') {
+                        {{ 'STUDIO.SHOT_BUILDER.KIND_GENERATED' | translate }}
+                      } @else if (msg.role === 'assistant') {
+                        {{ 'STUDIO.SHOT_BUILDER.KIND_REFINED' | translate }}
+                      } @else {
+                        {{ 'STUDIO.SHOT_BUILDER.KIND_REFINE' | translate }}
+                      }
+                    </span>
+                  }
+                  <pre class="mt-1 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
+                </div>
+              }
+            }
+            @if (error()) {
+              <div class="mb-3 rounded-lg bg-red-900/30 px-3 py-2 text-[13px] text-red-400">
+                {{ error() }}
+              </div>
+            }
+          </div>
+
+          <!-- Prompt textarea -->
+          <textarea
+            class="h-24 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg focus:border-primary-400 focus:outline-none"
+            rows="1"
+            [placeholder]="'STUDIO.SHOT_BUILDER.PLACEHOLDER' | translate"
+            [disabled]="loading()"
+            [(ngModel)]="promptText"
+          ></textarea>
+
+          <!-- Episode assets preview (loaded from chapter assignments) -->
+          @if (assignmentsLoaded()) {
+            <div class="border-t border-ink-700 pt-2">
+              <button
+                type="button"
+                class="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg"
+                (click)="episodeAssetsExpanded.set(!episodeAssetsExpanded())"
+                [attr.aria-expanded]="episodeAssetsExpanded()"
+              >
+                <span>{{ 'STUDIO.SHOT_BUILDER.EPISODE_ASSETS' | translate }}</span>
+                <span
+                  aria-hidden="true"
+                  class="inline-block transition-transform duration-150"
+                  [class.rotate-180]="episodeAssetsExpanded()"
+                  >▾</span
+                >
+              </button>
+
+              @if (episodeAssetsExpanded()) {
+                <!-- Resource tabs: characters / locations / props / audio / free -->
+                <div class="mt-2 flex gap-1 overflow-x-auto border-b border-ink-600">
+                  @for (tab of assetTabs; track tab) {
+                    <button
+                      type="button"
+                      class="whitespace-nowrap border-b-2 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors"
+                      [class]="
+                        activeAssetTab() === tab
+                          ? 'border-primary-500 !text-fg-strong'
+                          : 'border-transparent text-fg-muted hover:text-fg-strong'
+                      "
+                      (click)="activeAssetTab.set(tab)"
+                    >
+                      {{ assetTabLabel[tab] | translate }}
+                      @if (assetTabCount(tab); as count) {
+                        <span class="ml-1 rounded bg-ink-700 px-1 py-0.5 text-[9px]">{{
+                          count
+                        }}</span>
+                      }
+                    </button>
+                  }
+                </div>
+
+                <!-- Typed resources (characters / locations / props / audio) -->
+                @if (activeAssetTab() !== 'free') {
+                  <div class="mt-2 flex h-20 flex-wrap gap-1 overflow-y-auto">
+                    @for (c of tabCharacters(); track c.id) {
+                      <button
+                        type="button"
+                        class="inline-flex cursor-pointer items-center gap-1 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[11px] text-secondary-500 transition-colors hover:bg-ink-700"
+                        [title]="c.slot || c.name"
+                        (click)="onCharacterInfo($event, c)"
+                      >
+                        <i
+                          class="pi text-[10px]"
+                          [class.pi-user]="c.kind === 'image'"
+                          [class.pi-video]="c.kind === 'video'"
+                          [class.pi-volume-up]="c.kind === 'audio'"
+                          aria-hidden="true"
+                        ></i>
+                        {{ c.name }}
+                      </button>
+                    }
+
+                    @if (tabCharacters().length === 0) {
+                      <p class="mt-2 text-[11px] italic text-fg-muted">
+                        {{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}
+                      </p>
+                    }
+                  </div>
+                }
+
+                <!-- Free assets (untagged episode uploads) -->
+                @if (activeAssetTab() === 'free') {
+                  <div class="mt-2">
+                    <div class="mt-1 flex flex-wrap gap-1.5">
+                      @for (a of sortedFreeAssets(); track a.id) {
+                        <button
+                          type="button"
+                          class="group relative h-12 w-12 cursor-pointer overflow-hidden rounded border border-ink-600 bg-ink-800 transition-colors hover:border-ink-400"
+                          [title]="chapterAssetSlotLabel(a.id, a.filename)"
+                          (click)="onAssetInfo($event, a)"
+                        >
+                          @if (a.kind === 'image' && !isThumbBroken(a.id)) {
+                            <img
+                              [src]="a.id | sourceAsset"
+                              [alt]="a.filename"
+                              class="h-full w-full object-contain"
+                              loading="lazy"
+                              (error)="onThumbError(a.id)"
+                            />
+                          } @else {
+                            <div
+                              class="flex h-full w-full items-center justify-center text-[11px] text-fg-muted"
+                            >
+                              <i
+                                class="pi"
+                                [class.pi-image]="a.kind === 'image'"
+                                [class.pi-video]="a.kind === 'video'"
+                                [class.pi-volume-up]="a.kind === 'audio'"
+                                aria-hidden="true"
+                              ></i>
+                            </div>
+                          }
+                          <span
+                            class="absolute bottom-0 left-0 right-0 truncate bg-ink-950/70 px-0.5 text-[8px] leading-tight text-white/85"
+                          >
+                            {{ a.filename }}
+                          </span>
+                        </button>
+                      }
+                    </div>
+
+                    @if (sortedFreeAssets().length === 0) {
+                      <p class="mt-2 text-[11px] italic text-fg-muted">
+                        {{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}
+                      </p>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          <!-- Refine breakdown (iterate on the last generate-shots response) -->
+          @if (hasPreviousResponse()) {
+            <div class="border-t border-ink-700 pt-2">
+              <button
+                type="button"
+                class="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg"
+                (click)="refineExpanded.set(!refineExpanded())"
+                [attr.aria-expanded]="refineExpanded()"
+              >
+                <span>{{ 'STUDIO.SHOT_BUILDER.REFINE_TITLE' | translate }}</span>
+                <span
+                  aria-hidden="true"
+                  class="inline-block transition-transform duration-150"
+                  [class.rotate-180]="refineExpanded()"
+                  >▾</span
+                >
+              </button>
+
+              @if (refineExpanded()) {
+                <div class="mt-2 flex flex-col gap-2">
+                  <textarea
+                    class="h-16 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[12px] text-fg focus:border-primary-400 focus:outline-none"
+                    rows="1"
+                    [placeholder]="'STUDIO.SHOT_BUILDER.REFINE_PLACEHOLDER' | translate"
+                    [disabled]="loading()"
+                    [(ngModel)]="refineText"
+                  ></textarea>
+                  <div class="flex justify-end">
+                    <p-button
+                      [label]="'STUDIO.SHOT_BUILDER.REFINE' | translate"
+                      severity="secondary"
+                      size="small"
+                      icon="pi pi-refresh"
+                      (onClick)="refine()"
+                      [disabled]="!canRefine()"
+                      [loading]="loading()"
+                      pTooltip="Regenerate the breakdown applying only the requested changes (anti-drift)"
+                      tooltipPosition="top"
+                    />
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Bottom bar: file list + actions -->
+          <div class="border-t border-ink-700 pt-2">
+            <!-- Uploaded file pills -->
+            @if (uploadedFiles().length > 0) {
+              <div class="mb-2 flex flex-wrap gap-1">
+                @for (item of uploadedFiles(); track item.name; let i = $index) {
+                  <span
+                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+                    [class.bg-green-900]="item.sent"
+                    [class.text-green-400]="item.sent"
+                    [class.bg-ink-700]="!item.sent"
+                    [class.text-fg-muted]="!item.sent"
+                  >
+                    <i
+                      class="pi"
+                      [class.pi-check]="item.sent"
+                      [class.pi-file]="!item.sent"
+                      aria-hidden="true"
+                    ></i>
+                    {{ item.name }}
+                    <button
+                      type="button"
+                      class="ml-1 text-[11px] text-red-400 underline hover:text-red-300"
+                      (click)="onRemoveFile(i)"
+                      [disabled]="loading()"
+                    >
+                      ×
+                    </button>
+                  </span>
+                }
+              </div>
+            }
+
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <!-- <div class="flex items-center gap-2">
+                <input
+                  #fileInput
+                  type="file"
+                  class="hidden"
+                  accept=".md,.txt,.json,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp"
+                  [multiple]="true"
+                  (change)="onSelectedFiles($event)"
+                />
+                <p-button
+                  icon="pi pi-paperclip"
+                  severity="secondary"
+                  [rounded]="true"
+                  [outlined]="true"
+                  (onClick)="fileInput.click()"
+                  [disabled]="loading()"
+                  pTooltip="Attach file"
+                  tooltipPosition="top"
+                />
+              </div> -->
+              <div class="flex items-center gap-2">
+                <input
+                  #fileInput
+                  type="file"
+                  class="hidden"
+                  accept=".md,.txt,.json,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                  [multiple]="true"
+                  (change)="onSelectedFiles($event)"
+                />
+                <p-button
+                  icon="pi pi-paperclip"
+                  severity="secondary"
+                  [outlined]="true"
+                  [rounded]="true"
+                  size="small"
+                  (onClick)="fileInput.click()"
+                  [disabled]="loading()"
+                  pTooltip="Attach file"
+                  tooltipPosition="top"
+                />
+                <input
+                  #freeAssetsInput
+                  type="file"
+                  class="hidden"
+                  accept="image/*,video/*,audio/*"
+                  [multiple]="true"
+                  (change)="onFreeAssetsSelected($event)"
+                />
+                <p-button
+                  icon="pi pi-image"
+                  severity="secondary"
+                  [outlined]="true"
+                  rounded]="true"
+                  size="small"
+                  (onClick)="freeAssetsInput.click()"
+                  [disabled]="loading() || uploadingAssets()"
+                  [loading]="uploadingAssets()"
+                  pTooltip="Upload free assets (image/video/audio) to the episode"
+                  tooltipPosition="top"
+                />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <!-- Settings gear -->
+                <button
+                  type="button"
+                  class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-ink-400"
+                  (click)="settingsDialogVisible.set(true)"
+                  pTooltip="{{ 'STUDIO.SHOT_BUILDER.SETTINGS_TOOLTIP' | translate }}"
+                  tooltipPosition="top"
+                >
+                  <i class="pi pi-cog text-fg-muted"></i>
+                  <span class="text-fg-muted">{{ selectedModelName() }}</span>
+                </button>
+
+                @if (isSuperAdmin()) {
+                  <p-button
+                    [label]="'STUDIO.SHOT_BUILDER.MOCK_SEQ' | translate"
+                    severity="info"
+                    [text]="true"
+                    size="small"
+                    (onClick)="loadSequenceMock()"
+                    [pTooltip]="'STUDIO.SHOT_BUILDER.MOCK_TOOLTIP' | translate"
+                    tooltipPosition="top"
+                  />
+                  <p-button
+                    [label]="'STUDIO.SHOT_BUILDER.PREVIEW' | translate"
+                    severity="warn"
+                    [text]="true"
+                    size="small"
+                    (onClick)="previewDialogVisible.set(true)"
+                    [pTooltip]="'STUDIO.SHOT_BUILDER.PREVIEW_TOOLTIP' | translate"
+                    tooltipPosition="top"
+                  />
+                }
+                <p-button
+                  [label]="'STUDIO.SHOT_BUILDER.CLEAR' | translate"
+                  severity="secondary"
+                  [text]="true"
+                  size="small"
+                  (onClick)="clearChat()"
+                  [disabled]="loading()"
+                />
+                <p-button
+                  [label]="
+                    (hasPreviousResponse()
+                      ? 'STUDIO.SHOT_BUILDER.REFINE_SHOTS'
+                      : 'STUDIO.SHOT_BUILDER.GENERATE_SHOTS'
+                    ) | translate
+                  "
+                  severity="primary"
+                  size="small"
+                  [icon]="hasPreviousResponse() ? 'pi pi-refresh' : 'pi pi-send'"
+                  (onClick)="send()"
+                  [disabled]="!canSend()"
+                  [loading]="loading()"
+                  [pTooltip]="
+                    hasPreviousResponse()
+                      ? 'Refine the current breakdown (keeps unchanged shots identical)'
+                      : 'Generate a shot list from the prompt'
+                  "
+                  tooltipPosition="top"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Skill & Model dialogs -->
+        <app-shot-builder-settings-dialog
+          [visible]="settingsDialogVisible()"
+          (visibleChange)="settingsDialogVisible.set($event)"
+          (modelChange)="onClaudeModelSelected($event)"
+          (generateChineseChange)="onGenerateChineseChange($event)"
+        />
+      </ng-template>
+
+      <!-- RIGHT: Preview panel with tabs -->
+      <ng-template pTemplate>
+        <aside
+          class="flex min-h-0 flex-1 flex-col preview-panel h-full"
+          [class.fullscreen]="fullscreen()"
+        >
+          <!-- Tab bar -->
+          <div class="flex shrink-0 items-center border-b border-ink-700 overflow-x-auto">
+            <button
+              type="button"
+              class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+              [class.text-primary-400]="isPreviewTab()"
+              [class.border-b-2]="isPreviewTab()"
+              [class.border-primary-400]="isPreviewTab()"
+              [class.text-fg-muted]="!isPreviewTab()"
+              (click)="showPreviewTab()"
+            >
+              <i class="pi pi-th-large" aria-hidden="true"></i>
+              Scenes
+              @if (hasShots()) {
+                <span class="ml-1 rounded-full bg-primary-500 px-1.5 text-[10px] text-white">
+                  {{ scenes().length }}
+                </span>
+                <span class="ml-0.5 text-[10px] text-fg-muted">/{{ totalShots() }}</span>
+              }
+            </button>
+            @for (file of uploadedFiles(); track file.name; let i = $index) {
+              <button
+                type="button"
+                class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+                [class.text-primary-400]="activeFileId() === file.name"
+                [class.border-b-2]="activeFileId() === file.name"
+                [class.border-primary-400]="activeFileId() === file.name"
+                [class.text-fg-muted]="activeFileId() !== file.name"
+                (click)="selectFile(i)"
+              >
+                @if (file.sent) {
+                  <i class="pi pi-check-circle text-green-400" aria-hidden="true"></i>
+                } @else {
+                  <i class="pi pi-file" aria-hidden="true"></i>
+                }
+                {{ file.name.length > 15 ? file.name.slice(0, 12) + '…' : file.name }}
+              </button>
+            }
+
+            <!-- Fullscreen toggle -->
+            <button
+              type="button"
+              class="ml-auto flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors hover:text-primary-400"
+              [class.text-primary-400]="fullscreen()"
+              [class.text-fg-muted]="!fullscreen()"
+              (click)="toggleFullscreen()"
+              pTooltip="Toggle full-screen preview"
+              tooltipPosition="left"
+            >
+              <i
+                class="pi"
+                [class.pi-window-minimize]="fullscreen()"
+                [class.pi-window-maximize]="!fullscreen()"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </div>
+
+          <!-- Tab content -->
+          <div
+            class="flex-1"
+            [class.overflow-hidden]="!fullscreen()"
+            [class.overflow-auto]="fullscreen()"
+          >
+            @if (loading()) {
+              <div class="flex h-full items-center justify-center text-[13px] text-fg-muted">
+                <div class="flex flex-col items-center gap-2">
+                  <i class="pi pi-spin pi-spinner text-2xl text-primary-400"></i>
+                  <span>Generating shot list…</span>
+                </div>
+              </div>
+            } @else if (isPreviewTab() && hasSequenceData()) {
+              <!-- Native Angular Sequence viewer -->
+              <div class="flex h-full flex-col">
+                <div class="flex-1 overflow-y-auto sequence-viewer-wrap">
+                  <app-shot-sequence-viewer
+                    class="h-full"
+                    [sequence]="sequenceData()!"
+                    [projectName]="projectName()"
+                    [chapterName]="chapterName()"
+                    [sceneName]="sceneName()"
+                    [projectId]="projectId() ?? studio.projectId() ?? ''"
+                    [chapterId]="chapterId() ?? studio.chapterId() ?? ''"
+                    [showChinese]="generateChinese()"
+                    [creating]="savingShots()"
+                    [isSuperAdmin]="isSuperAdmin()"
+                    [refineInfo]="lastRefineInfo()"
+                    (createPrePromptsClicked)="onCreatePrePrompts($event)"
+                  />
+                </div>
+              </div>
+            } @else if (isPreviewTab() && hasShots()) {
+              <!-- Episode info + Scene accordion -->
+              <div class="flex h-full flex-col">
+                <!-- Episode header -->
+                @if (episodeData(); as ep) {
+                  <div class="border-b border-ink-700 px-4 py-2">
+                    <h3 class="text-[13px] font-semibold text-fg">{{ ep.title || 'Episode' }}</h3>
+                    <div class="mt-1 flex flex-wrap gap-2 text-[11px] text-fg-muted">
+                      <span>⏱ {{ ep.totalDuration || '?' }}s</span>
+                      <span>🎬 {{ totalShots() }} shots</span>
+                      <span>📋 {{ scenes().length }} scenes</span>
+                      @if (ep.assetAssignments && ep.assetAssignments.length) {
+                        <span>📎 {{ ep.assetAssignments.length }} assets</span>
+                      }
+                    </div>
+                  </div>
+                  <!-- Time budget bar -->
+                  @if (timeBudgetBar().length > 0) {
+                    <div class="border-b border-ink-700 px-4 pb-3 pt-2">
+                      <div class="flex items-center justify-between text-[10px] text-fg-muted mb-1">
+                        <span>{{ 'STUDIO.SHOT_BUILDER.TIME_BUDGET' | translate }}</span>
+                        <span>{{ scenes().reduce((sum, s) => sum + s.duration, 0) }}s</span>
+                      </div>
+                      <div
+                        class="flex h-3 w-full overflow-hidden rounded-full bg-ink-800"
+                        role="img"
+                        [attr.aria-label]="
+                          'STUDIO.SHOT_BUILDER.TIME_BUDGET_ARIA'
+                            | translate
+                              : {
+                                  detail: timeBudgetBar()
+                                    .map((s) => s.scriptLocation + ' ' + s.duration + 's')
+                                    .join(', '),
+                                }
+                        "
+                      >
+                        @for (seg of timeBudgetBar(); track seg.scriptNumber) {
+                          <div
+                            class="relative h-full cursor-pointer transition-opacity hover:opacity-80"
+                            [style]="{ width: seg.pct + '%', backgroundColor: seg.color }"
+                            [title]="
+                              'STUDIO.SHOT_BUILDER.SCENE_TITLE'
+                                | translate
+                                  : {
+                                      number: seg.scriptNumber,
+                                      location: seg.scriptLocation,
+                                      duration: seg.duration,
+                                      shots: seg.shotCount,
+                                    }
+                            "
+                          ></div>
+                        }
+                      </div>
+                      <!-- Legend -->
+                      <div
+                        class="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-fg-muted"
+                      >
+                        @for (seg of timeBudgetBar(); track seg.scriptNumber) {
+                          <span class="inline-flex items-center gap-1">
+                            <span
+                              class="inline-block h-2 w-2 rounded-full"
+                              [style]="{ backgroundColor: seg.color }"
+                            ></span>
+                            #{{ seg.scriptNumber }}
+                            <span class="tabular-nums">{{ seg.duration }}s</span>
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+                <!-- Scenes accordion -->
+                <div class="flex-1 overflow-y-auto p-2">
+                  @for (scene of scenes(); track scene.scriptNumber; let si = $index) {
+                    <details
+                      class="mb-2 rounded-lg border border-ink-700 bg-ink-900/50"
+                      [class.border-amber-700/50]="scene.sceneType === 'flashback'"
+                      [open]="si === 0"
+                    >
+                      <summary
+                        class="flex cursor-pointer items-center justify-between px-3 py-2 text-[12px] hover:bg-ink-800/50 [&::-webkit-details-marker]:hidden"
+                      >
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="shrink-0 font-semibold text-fg"
+                            >#{{ scene.scriptNumber }}</span
+                          >
+                          <span class="truncate text-fg-muted">{{ scene.scriptLocation }}</span>
+                          @if (scene.sceneType !== 'present') {
+                            <span
+                              class="shrink-0 rounded bg-amber-900/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400"
+                              >{{ scene.sceneType }}</span
+                            >
+                          }
+                          <span class="shrink-0 text-[10px] text-fg-muted"
+                            >{{ scene.duration }}s</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <span class="text-[10px] text-fg-muted">{{
+                            'STUDIO.SHOT_BUILDER.SHOTS_COUNT' | translate: { n: scene.shots.length }
+                          }}</span>
+                          <span class="text-fg-muted text-[10px]">▾</span>
+                        </div>
+                      </summary>
+                      <!-- Continuity chips -->
+                      @if (si > 0) {
+                        @let cont = scene.continuity;
+                        @if (cont) {
+                          <div class="mx-3 flex flex-wrap gap-1 pb-1">
+                            @if (cont.locationChange) {
+                              <span
+                                class="rounded bg-cyan-900/30 px-1.5 py-0.5 text-[10px] text-cyan-400"
+                                [title]="'STUDIO.SHOT_BUILDER.TB_LOCATION_CHANGED' | translate"
+                                >{{ 'STUDIO.SHOT_BUILDER.CONT_LOCATION' | translate }}</span
+                              >
+                            }
+                            @if (isSignificant(cont.wardrobeCarryover)) {
+                              <span
+                                class="rounded bg-purple-900/30 px-1.5 py-0.5 text-[10px] text-purple-400"
+                                [title]="'STUDIO.SHOT_BUILDER.TB_WARDROBE' | translate"
+                                >{{ 'STUDIO.SHOT_BUILDER.CONT_WARDROBE' | translate }}</span
+                              >
+                            }
+                            @if (isSignificant(cont.physicalCarryover)) {
+                              <span
+                                class="rounded bg-red-900/30 px-1.5 py-0.5 text-[10px] text-red-400"
+                                [title]="'STUDIO.SHOT_BUILDER.TB_PHYSICAL' | translate"
+                                >{{ 'STUDIO.SHOT_BUILDER.CONT_PHYSICAL' | translate }}</span
+                              >
+                            }
+                            @if (isSignificant(cont.emotionalCarryover)) {
+                              <span
+                                class="rounded bg-yellow-900/30 px-1.5 py-0.5 text-[10px] text-yellow-400"
+                                [title]="'STUDIO.SHOT_BUILDER.TB_EMOTIONAL' | translate"
+                                >{{ 'STUDIO.SHOT_BUILDER.CONT_EMOTIONAL' | translate }}</span
+                              >
+                            }
+                          </div>
+                        }
+                      }
+                      <!-- Scene references -->
+                      @if (scene.references.length) {
+                        <div class="mx-3 mb-1 flex flex-wrap gap-1">
+                          @for (ref of scene.references; track ref.slot) {
+                            <button
+                              type="button"
+                              class="cursor-pointer rounded bg-ink-800 px-1.5 py-0.5 font-mono text-[10px] text-primary-400 transition-colors hover:bg-ink-700"
+                              (click)="openSceneRefInfo($event, ref)"
+                            >
+                              {{ ref.slot }}
+                            </button>
+                          }
+                        </div>
+                      }
+                      <!-- Shots table -->
+                      <div class="overflow-x-auto px-3 pb-2">
+                        <table class="w-full text-left text-[11px]">
+                          <thead>
+                            <tr
+                              class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted"
+                            >
+                              <th class="w-10 px-1 py-1">#</th>
+                              <th class="px-1 py-1">
+                                {{ 'STUDIO.SHOT_BUILDER.COL_NAME' | translate }}
+                              </th>
+                              <th class="px-1 py-1 hidden sm:table-cell">
+                                {{ 'STUDIO.SHOT_BUILDER.COL_DURATION' | translate }}
+                              </th>
+                              <th class="px-1 py-1 hidden md:table-cell">
+                                {{ 'STUDIO.SHOT_BUILDER.COL_CAMERA' | translate }}
+                              </th>
+                              <th class="w-20 px-1 py-1 text-right">
+                                {{ 'STUDIO.SHOT_BUILDER.COL_ACTION' | translate }}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (shot of scene.shots; track shot.number) {
+                              <tr
+                                class="border-t border-ink-800 transition-colors hover:bg-ink-800/40"
+                              >
+                                <td class="px-1 py-1 font-mono text-fg-muted">{{ shot.number }}</td>
+                                <td class="px-1 py-1 font-medium text-fg">{{ shot.name }}</td>
+                                <td class="px-1 py-1 hidden sm:table-cell text-fg-muted">
+                                  {{ shot.duration ? shot.duration + 's' : '—' }}
+                                </td>
+                                <td
+                                  class="px-1 py-1 hidden md:table-cell text-fg-muted max-w-[200px] truncate"
+                                  [title]="shot.description"
+                                >
+                                  {{ shot.description }}
+                                </td>
+                                <td class="px-1 py-1 text-right">
+                                  <button
+                                    type="button"
+                                    class="rounded bg-primary-600 px-2 py-0.5 text-[10px] font-semibold text-white transition-colors hover:bg-primary-500"
+                                    (click)="useShotAsPrePrompt(shot)"
+                                    pTooltip="Use this shot's description as pre-prompt"
+                                    tooltipPosition="left"
+                                  >
+                                    Use
+                                  </button>
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  }
+                </div>
+                <!-- Action bar -->
+                <div class="flex items-center justify-between border-t border-ink-700 px-4 py-2">
+                  <span class="text-[11px] text-fg-muted"
+                    >Total: {{ scenes().length }} scenes, {{ totalShots() }} shots</span
+                  >
+                  <div class="flex gap-2">
+                    <p-button
+                      [label]="'Save ' + totalShots() + ' Shots to ' + scenes().length + ' Scenes'"
+                      severity="primary"
+                      size="small"
+                      icon="pi pi-save"
+                      (onClick)="saveShotsToBackend()"
+                      [loading]="savingShots()"
+                      [disabled]="scenes().length === 0"
+                    />
+                    <p-button
+                      icon="pi pi-copy"
+                      severity="secondary"
+                      [text]="true"
+                      size="small"
+                      (onClick)="copyArtifact()"
+                      [pTooltip]="'STUDIO.SHOT_BUILDER.COPY_TOOLTIP' | translate"
+                      tooltipPosition="left"
+                    />
+                  </div>
+                </div>
+              </div>
+            } @else if (isPreviewTab() && rawResponse()) {
+              <!-- Markdown rendered as HTML artifact -->
+              <div class="flex h-full flex-col">
+                <div class="flex items-center justify-between border-b border-ink-700 px-4 py-2">
+                  <span class="text-[12px] font-semibold text-fg-muted">
+                    {{ 'STUDIO.SHOT_BUILDER.SHOT_LIST' | translate }}
+                  </span>
+                  <p-button
+                    icon="pi pi-copy"
+                    severity="secondary"
+                    [text]="true"
+                    size="small"
+                    (onClick)="copyArtifact()"
+                    [pTooltip]="'STUDIO.SHOT_BUILDER.COPY_TOOLTIP' | translate"
+                    tooltipPosition="left"
+                  />
+                </div>
+                <div class="flex-1 overflow-hidden p-2">
+                  <iframe
+                    class="h-full w-full rounded-lg border-0"
+                    sandbox="allow-scripts"
+                    [src]="safeArtifactUrl()"
+                    [title]="'STUDIO.SHOT_BUILDER.ARTIFACT_TITLE' | translate"
+                  ></iframe>
+                </div>
+              </div>
+            } @else if (activeFileId()) {
+              <!-- File preview -->
+              <div class="flex h-full flex-col">
+                <div class="border-b border-ink-700 px-4 py-2 text-[12px] text-fg-muted">
+                  {{ selectedFileName() }}
+                </div>
+                <div class="flex-1 overflow-hidden p-2">
+                  @if (isImagePreview()) {
+                    <img
+                      [src]="fileContent()"
+                      alt="{{ selectedFileName() }}"
+                      class="h-full w-full object-contain"
+                    />
+                  } @else if (isPdfPreview()) {
+                    @if (safePdfUrl(); as pdfUrl) {
+                      <iframe
+                        class="h-full w-full"
+                        [src]="pdfUrl"
+                        title="{{ selectedFileName() }}"
+                      ></iframe>
+                    }
+                  } @else if (isHtmlPreview()) {
+                    <iframe
+                      class="h-full w-full"
+                      sandbox="allow-scripts"
+                      [srcdoc]="fileContent()"
+                      title="{{ selectedFileName() }}"
+                    ></iframe>
+                  } @else if (isOfficePreview()) {
+                    <div class="flex h-full flex-col">
+                      <div
+                        class="flex items-center gap-2 border-b border-ink-700 px-4 py-1.5 text-[11px] text-fg-muted"
+                      >
+                        <i class="pi pi-file" aria-hidden="true"></i>
+                        <span>{{
+                          'STUDIO.SHOT_BUILDER.DOC_PARSED'
+                            | translate: { doc: isDocPreview() ? 'Word' : 'Excel' }
+                        }}</span>
+                      </div>
+                      <pre
+                        class="flex-1 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink-900 p-4 text-[13px] text-fg"
+                        >{{ officeText() }}</pre
+                      >
+                    </div>
+                  } @else {
+                    <pre
+                      class="h-full overflow-y-auto rounded-lg bg-ink-900 p-4 text-[13px] text-fg"
+                      >{{ fileContent() }}</pre
+                    >
+                  }
+                </div>
+              </div>
+            } @else {
+              <!-- Empty state -->
+              <div class="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                <i class="pi pi-camera text-3xl text-fg-muted opacity-30"></i>
+                <p class="text-[13px] text-fg-muted">
+                  @if (uploadedFiles().length > 0) {
+                    {{ 'STUDIO.SHOT_BUILDER.PREVIEW_EMPTY_HINT' | translate }}
+                  } @else {
+                    {{ 'STUDIO.SHOT_BUILDER.EMPTY_ALT_HINT' | translate }}
+                  }
+                </p>
+              </div>
+            }
+          </div>
+        </aside>
+      </ng-template>
+    </p-splitter>
+  </div>
+
+  <!-- Episode asset metadata popover (characters + free assets). The high
+       z-index keeps it above the full-screen editor/preview overlays (9999),
+       which would otherwise hide the popover behind the panel. -->
+  <p-popover #assetPopover [dismissable]="true" styleClass="asset-popover-z">
+    @if (assetInfo(); as info) {
+      <div class="w-80 p-2">
+        <p
+          class="mb-2 flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted"
+        >
+          <i
+            class="pi text-[10px]"
+            [class.pi-user]="info.kind === 'character'"
+            [class.pi-image]="info.kind === 'asset'"
+            aria-hidden="true"
+          ></i>
+          {{
+            info.kind === 'character'
+              ? ('STUDIO.SHOT_BUILDER.KIND_CHARACTER' | translate)
+              : ('STUDIO.SHOT_BUILDER.KIND_FREE_ASSET' | translate)
+          }}
+        </p>
+
+        <!-- Image preview (thumbnail for characters, full file for assets).
+             Click opens the full-screen AssetViewer (same as the Files module). -->
+        @if (info.fileId && info.fileKind === 'image') {
+          <button
+            type="button"
+            class="group relative mb-2 block w-full cursor-zoom-in overflow-hidden rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
+            [class.hidden]="isThumbBroken(info.fileId)"
+            (click)="openAssetViewer()"
+            [pTooltip]="'STUDIO.SHOT_BUILDER.OPEN_IMAGE_TOOLTIP' | translate"
+            tooltipPosition="top"
+          >
+            <img
+              [src]="
+                info.kind === 'character'
+                  ? (info.fileId | sourceThumbnailAsset)
+                  : (info.fileId | sourceAsset)
+              "
+              [alt]="info.kind === 'character' ? info.name : info.filename"
+              class="h-24 w-full object-contain"
+              loading="lazy"
+              (error)="onThumbError(info.fileId)"
+            />
+            <span
+              class="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded bg-ink-950/70 text-white/85 transition-colors group-hover:text-white"
+              aria-hidden="true"
+            >
+              <i class="pi pi-expand text-[10px]"></i>
+            </span>
+          </button>
+        } @else if (info.fileId) {
+          <!-- Video/audio placeholder → opens the viewer (which plays them). -->
+          <button
+            type="button"
+            class="mb-2 flex h-20 w-full cursor-pointer items-center justify-center rounded border border-ink-700 bg-ink-900 transition-colors hover:border-ink-400"
+            (click)="openAssetViewer()"
+            [pTooltip]="
+              info.fileKind === 'video'
+                ? ('STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP' | translate)
+                : ('STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP' | translate)
+            "
+            tooltipPosition="top"
+          >
+            <i
+              class="pi text-2xl text-fg-muted"
+              [class.pi-video]="info.fileKind === 'video'"
+              [class.pi-volume-up]="info.fileKind === 'audio'"
+              aria-hidden="true"
+            ></i>
+          </button>
+        }
+
+        @if (info.kind === 'character') {
+          <dl class="m-0 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">
+                {{ info.name }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] capitalize text-fg">{{ assetInfoType() }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILE' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_CHARACTER_ID' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+                {{ info.charId }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+                {{ info.fileId || '—' }}
+              </dd>
+            </div>
+          </dl>
+        } @else {
+          <dl class="m-0 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILENAME' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">
+                {{ info.filename }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] font-mono text-fg">{{ info.slot || '—' }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+                {{ info.fileId }}
+              </dd>
+            </div>
+          </dl>
+          <div class="mt-2 flex justify-end border-t border-ink-700 pt-2">
+            <p-button
+              [label]="'STUDIO.SHOT_BUILDER.REMOVE_EPISODE' | translate"
+              severity="danger"
+              [text]="true"
+              size="small"
+              icon="pi pi-trash"
+              (onClick)="onRemoveFreeAsset()"
+            />
+          </div>
+        }
+      </div>
+    }
+  </p-popover>
+
+  <!-- Scene reference info popover (metadata of the resolved asset) -->
+  <p-popover #refInfoPopover [dismissable]="true" styleClass="asset-popover-z">
+    @if (refInfoTarget(); as ref) {
+      <div class="w-80 p-2">
+        <p class="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted">
+          {{ ref.slot }} · {{ refTypeLabel(ref.type) }}
+        </p>
+
+        @if (refInfoOf(ref); as info) {
+          @if (info.fileKind === 'image' && info.fileId) {
+            <img
+              [src]="
+                info.kind === 'character'
+                  ? (info.fileId | sourceThumbnailAsset)
+                  : (info.fileId | sourceAsset)
+              "
+              [alt]="info.name"
+              class="mb-2 w-full rounded border border-ink-700 bg-ink-900 object-contain"
+              style="max-height: 160px"
+              loading="lazy"
+            />
+          }
+          <dl class="m-0 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_NAME' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[11px] font-medium text-fg">
+                {{ info.name }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILE' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] capitalize text-fg">{{ info.fileKind }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] font-mono text-fg">{{ ref.slot }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_FILE_ID' | translate }}
+              </dt>
+              <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+                {{ info.fileId }}
+              </dd>
+            </div>
+          </dl>
+        } @else {
+          <!-- assetId not matched against the episode → show the raw reference -->
+          <dl class="m-0 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_TYPE' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] capitalize text-fg">{{ refTypeLabel(ref.type) }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">
+                {{ 'STUDIO.SHOT_BUILDER.INFO_SLOT' | translate }}
+              </dt>
+              <dd class="m-0 text-[11px] font-mono text-fg">{{ ref.slot }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="shrink-0 text-[11px] text-fg-muted">AssetId</dt>
+              <dd class="m-0 truncate text-right text-[10px] font-mono text-fg-muted">
+                {{ ref.assetId }}
+              </dd>
+            </div>
+          </dl>
+        }
+      </div>
+    }
+  </p-popover>
+
+  <!-- Full-screen asset viewer (same component as the Files module) -->
+  <app-asset-viewer [(visible)]="viewerVisible" [file]="viewerFile()" />
+
+  <!-- Preview payload dialog (super admin only) -->
+  <p-dialog
+    [visible]="previewDialogVisible()"
+    (visibleChange)="previewDialogVisible.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '60rem', maxWidth: '95vw' }"
+    [header]="'STUDIO.SHOT_BUILDER.PREVIEW_HEADER' | translate"
+  >
+    @if (!previewDataPretty()) {
+      <p class="py-4 text-[13px] italic text-fg-muted">
+        {{ 'STUDIO.SHOT_BUILDER.PREVIEW_NO_DATA' | translate }}
+      </p>
+    } @else {
+      <pre
+        class="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[11px] leading-relaxed text-fg"
+        >{{ previewDataPretty() }}</pre
+      >
+    }
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          icon="pi pi-download"
+          severity="secondary"
+          [label]="'STUDIO.SHOT_BUILDER.DOWNLOAD_JSON' | translate"
+          (onClick)="downloadPreviewData()"
+          [disabled]="!hasPreviewData()"
+          [pTooltip]="'STUDIO.SHOT_BUILDER.DOWNLOAD_JSON_TOOLTIP' | translate"
+          tooltipPosition="top"
+        />
+        <p-button
+          severity="secondary"
+          [text]="true"
+          [label]="'COMMON.CLOSE' | translate"
+          (onClick)="previewDialogVisible.set(false)"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Confirmation dialog before saving scenes + shots -->
+  @if (confirmDialogVisible()) {
+    <p-dialog
+      [visible]="true"
+      [modal]="true"
+      [closable]="false"
+      [draggable]="false"
+      [style]="{ width: '36rem', maxWidth: '95vw' }"
+      [header]="'STUDIO.SHOT_BUILDER.CONFIRM_TITLE' | translate"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <p class="text-[13px] font-semibold text-fg">
+          {{
+            'STUDIO.SHOT_BUILDER.CONFIRM_BODY'
+              | translate: { scenes: confirmData().sceneCount, shots: confirmData().totalShots }
+          }}
+        </p>
+        <pre
+          class="overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-3 font-mono text-[12px] leading-relaxed text-fg"
+        >@for (line of confirmData().sceneLines; track line) {
+  {{ line }}
+  }</pre>
+        <p class="text-[12px] leading-relaxed text-fg-muted">
+          {{ 'STUDIO.SHOT_BUILDER.CONFIRM_HINT' | translate }}
+        </p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+          <p-button
+            severity="secondary"
+            [text]="true"
+            [label]="'COMMON.CANCEL' | translate"
+            (onClick)="confirmDialogVisible.set(false)"
+          />
+          <p-button
+            severity="primary"
+            [label]="'STUDIO.SHOT_BUILDER.CONFIRM' | translate"
+            (onClick)="onConfirmSave()"
+          />
+        </div>
+      </ng-template>
+    </p-dialog>
+  }
+
+  <!-- Creation summary modal after "Crear listado de pre-prompts" -->
+  @if (creationSummary(); as summary) {
+    <p-dialog
+      [visible]="creationSummaryVisible()"
+      (visibleChange)="creationSummaryVisible.set($event)"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [style]="{ width: '38rem', maxWidth: '95vw' }"
+      [header]="'STUDIO.SHOT_BUILDER.CREATED_TITLE' | translate"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <p class="text-[13px] font-semibold text-fg">
+          {{
+            'STUDIO.SHOT_BUILDER.CREATED_BODY'
+              | translate: { scenes: summary.scenes.length, shots: summary.shotsCreated }
+          }}
+        </p>
+        <ul class="flex flex-col gap-1.5">
+          @for (scene of summary.scenes; track scene.scriptNumber) {
+            <li class="rounded-lg border border-ink-700 bg-ink-900 px-3 py-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="min-w-0 text-[12px] font-medium text-fg">
+                  #{{ scene.scriptNumber }} — {{ scene.scriptLocation }}
+                </span>
+                <span class="flex shrink-0 items-center gap-1.5 text-[11px] text-fg-muted">
+                  <span>{{
+                    'STUDIO.SHOT_BUILDER.SHOTS_COUNT' | translate: { n: scene.shotNumbers.length }
+                  }}</span>
+                  @if (scene.created) {
+                    <span
+                      class="rounded bg-green-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-green-400"
+                      >{{ 'STUDIO.SHOT_BUILDER.CREATED_NEW' | translate }}</span
+                    >
+                  } @else {
+                    <span
+                      class="rounded bg-ink-700 px-1.5 py-0.5 text-[10px] font-semibold text-fg-muted"
+                      >{{ 'STUDIO.SHOT_BUILDER.CREATED_EXISTING' | translate }}</span
+                    >
+                  }
+                </span>
+              </div>
+              @if (scene.shotNumbers.length > 0) {
+                <div class="mt-1 font-mono text-[10px] text-fg-muted">
+                  {{
+                    'STUDIO.SHOT_BUILDER.CREATED_SHOTS'
+                      | translate: { list: scene.shotNumbers.join(', ') }
+                  }}
+                </div>
+              }
+            </li>
+          }
+        </ul>
+        @if (summary.errors.length > 0) {
+          <div class="rounded-lg bg-red-900/30 px-3 py-2 text-[12px] text-red-400">
+            {{ 'STUDIO.SHOT_BUILDER.CREATED_WARNINGS' | translate: { n: summary.errors.length } }}
+            <ul class="mt-1 list-disc pl-4">
+              @for (e of summary.errors; track e) {
+                <li>{{ e }}</li>
+              }
+            </ul>
+          </div>
+        }
+        @if (summary.shotsCreated > 0) {
+          <p class="text-[12px] leading-relaxed text-fg-muted">
+            {{ 'STUDIO.SHOT_BUILDER.CREATED_REDIRECT' | translate }}
+          </p>
+        }
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+          <p-button
+            severity="primary"
+            [label]="'STUDIO.SHOT_BUILDER.OPEN_FIRST' | translate"
+            [disabled]="summary.shotsCreated === 0"
+            (onClick)="onCreationSummaryConfirm()"
+          />
+        </div>
+      </ng-template>
+    </p-dialog>
+  }
+
+  @if (modelWarningVisible()) {
+    <p-dialog
+      [visible]="true"
+      [modal]="true"
+      [closable]="false"
+      [draggable]="false"
+      [style]="{ width: '28rem', maxWidth: '95vw' }"
+      [header]="'STUDIO.SHOT_BUILDER.MODEL_TITLE' | translate"
+    >
+      <div class="flex flex-col gap-4 py-2">
+        <p class="text-[13px] leading-relaxed text-fg">
+          {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_1' | translate }}
+          <code class="rounded bg-ink-800 px-1 py-0.5 font-mono text-[12px] text-amber-400"
+            >claude-shot-builder</code
+          >
+          {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_2' | translate }} <strong>text</strong>
+          {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_3' | translate }}
+        </p>
+        <p class="text-[13px] leading-relaxed text-fg-muted">
+          {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_4' | translate }} <strong>Providers</strong>
+          {{ 'STUDIO.SHOT_BUILDER.MODEL_BODY_5' | translate }}
+        </p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+          <p-button
+            severity="primary"
+            [label]="'STUDIO.SHOT_BUILDER.GO_TO_PROVIDERS' | translate"
+            (onClick)="onGoToProviders()"
+          />
+          <p-button
+            severity="secondary"
+            [text]="true"
+            [label]="'STUDIO.SHOT_BUILDER.DISMISS' | translate"
+            (onClick)="modelWarningVisible.set(false)"
+          />
+        </div>
+      </ng-template>
+    </p-dialog>
+  }
+}

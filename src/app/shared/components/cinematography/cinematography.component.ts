@@ -394,9 +394,9 @@ export class CinematographyComponent {
     this._variants.set('bank', this.pickVariants('bank', 4));
   }
 
-  /** Filter presets by scene assignment IDs from StudioStore. */
+  /** Filter presets by chapter assignment IDs from StudioStore. */
   private assignedPresets(all: Preset[]): Preset[] {
-    const ids = this.studio.scenePresetIds();
+    const ids = this.studio.chapterPresetIds();
     if (ids.size === 0) return all;
     return all.filter((p) => ids.has(p.id));
   }

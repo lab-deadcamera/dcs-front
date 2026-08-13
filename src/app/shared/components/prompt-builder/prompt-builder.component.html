@@ -17,9 +17,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of imageAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -46,14 +50,16 @@
                   </div>
                 }
                 <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
-                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <span>[{{ labelFor(a.kind) }}{{ assetNumbers().get(a.fileId) ?? i + 1 }}]</span>
                 <button
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -70,9 +76,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of videoAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -99,14 +109,16 @@
                   </div>
                 }
                 <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
-                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <span>[{{ labelFor(a.kind) }}{{ assetNumbers().get(a.fileId) ?? i + 1 }}]</span>
                 <button
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -123,9 +135,13 @@
           <div class="flex flex-wrap items-center gap-2">
             @for (a of audioAssets(); track a.fileId; let i = $index) {
               <span
-                class="group/chip relative inline-flex items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
+                role="button"
+                tabindex="0"
+                class="group/chip relative inline-flex cursor-pointer items-center gap-1.5 border border-ink-500 bg-ink-800 px-2 py-1 font-mono text-[11px] text-secondary-500"
                 [attr.data-testid]="'used-asset-' + a.fileId"
                 [title]="a.filename"
+                (click)="openAssetInfo($event, a, i)"
+                (keydown.enter)="openAssetInfo($event, a, i)"
               >
                 @if (a.kind === 'image' || a.kind === 'mixed') {
                   <div
@@ -152,14 +168,16 @@
                   </div>
                 }
                 <i class="pi" [class]="iconForKind(a.kind)" aria-hidden="true"></i>
-                <span>[{{ labelFor(a.kind) }}{{ i + 1 }}]</span>
+                <span>[{{ labelFor(a.kind) }}{{ assetNumbers().get(a.fileId) ?? i + 1 }}]</span>
                 <button
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="studio.unuseAsset(a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -170,6 +188,84 @@
   }
 
   <div class="mt-4">
+    <div class="mb-2 flex items-center justify-end gap-2">
+      <p-selectbutton
+        [options]="translationLangOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="translateLang"
+        (onChange)="onLanguageSelected()"
+        styleClass="text-[10px]"
+      />
+      <button
+        #translateBtn
+        type="button"
+        [disabled]="!studio.rawDescription()"
+        (click)="hasCachedTranslation() ? showTranslatePopover($event) : onLanguageSelected()"
+        class="inline-flex items-center gap-1.5 rounded border border-ink-500 bg-transparent px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <i class="pi pi-language" aria-hidden="true"></i>
+        @if (translating()) {
+          <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+        }
+      </button>
+
+      <p-popover #translatePop [dismissable]="true" styleClass="w-popover">
+        <ng-template #content>
+          <div class="flex flex-col gap-3" style="min-width: 580px; max-width: 740px">
+            <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+              {{ 'STUDIO.PROMPT.TRANSLATE_TO' | translate }} {{ translateLang() | uppercase }}
+            </span>
+
+            @if (translating()) {
+              <div class="flex items-center justify-center gap-2 py-4">
+                <i class="pi pi-spinner pi-spin text-primary-500" aria-hidden="true"></i>
+                <span class="font-mono text-xs text-fg-muted">{{
+                  'STUDIO.PROMPT.TRANSLATING' | translate
+                }}</span>
+              </div>
+            } @else if (translatedText()) {
+              <div class="max-h-60 overflow-y-auto rounded border border-ink-600 bg-ink-900 p-3">
+                <p
+                  class="m-0 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-fg-default"
+                >
+                  @if (languageNotSupported()) {
+                    <p class="font-extrabold text-red-500">{{ translatedText() }}</p>
+                    <p-select
+                      [options]="translationLangOptions"
+                      [(ngModel)]="sourceLang"
+                      (onChange)="onLanguageSelected()"
+                      [placeholder]="'STUDIO.PROMPT.SELECT_LANGUAGE' | translate"
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body"
+                    />
+                  } @else {
+                    {{ translatedText() }}
+                  }
+                </p>
+              </div>
+              <div class="mt-1 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  class="rounded border border-ink-500 bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-muted transition-colors hover:border-primary-500 hover:text-primary-500"
+                  (click)="translatePop.hide()"
+                >
+                  {{ 'COMMON.CLOSE' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="rounded bg-primary-500 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-fg-strong transition-opacity hover:opacity-90"
+                  (click)="applyTranslation(translatePop)"
+                >
+                  {{ 'STUDIO.PROMPT.REPLACE' | translate }}
+                </button>
+              </div>
+            }
+          </div>
+        </ng-template>
+      </p-popover>
+    </div>
     <p-editor
       #editor
       [(ngModel)]="editorContent"
@@ -224,4 +320,90 @@
       </button>
     }
   </div>
+
+  <!-- Asset metadata popover (reference chips) -->
+  <app-asset-info-popover #assetInfoPopover />
+
+  <!-- Chip action menu: delete or replace (keeps the slot), then picker -->
+  <p-popover #replacePopover [dismissable]="true" styleClass="asset-popover-z">
+    @if (replaceTarget(); as target) {
+      @if (replaceView() === 'menu') {
+        <div class="chip-menu">
+          <button
+            type="button"
+            class="chip-menu-item chip-menu-delete"
+            (click)="onDeleteFromMenu()"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+            {{ 'COMMON.DELETE' | translate }}
+          </button>
+          <button type="button" class="chip-menu-item" (click)="onGoReplace()">
+            <i class="pi pi-refresh" aria-hidden="true"></i>
+            {{ 'STUDIO.PROMPT.REPLACE' | translate }}
+          </button>
+        </div>
+      } @else {
+        <div class="replace-picker">
+          <p class="replace-title">
+            Reemplazar el slot
+            <b>[{{ labelFor(target.kind) }}{{ assetNumbers().get(target.fileId) ?? '?' }}]</b>
+          </p>
+          <input
+            type="text"
+            class="replace-search"
+            placeholder="Buscar por nombre…"
+            [value]="replaceSearch()"
+            (input)="onReplaceSearch($event)"
+            [attr.aria-label]="'Buscar recurso por nombre'"
+          />
+          <div class="replace-tabs">
+            @for (t of replaceTabs; track t.id) {
+              <button
+                type="button"
+                class="replace-tab"
+                [class.on]="replaceLibType() === t.id"
+                (click)="replaceLibType.set(t.id)"
+                [attr.aria-pressed]="replaceLibType() === t.id"
+              >
+                {{ t.labelKey | translate }}
+                <span class="replace-count">{{ replaceByType()[t.id].length }}</span>
+              </button>
+            }
+          </div>
+          <div class="replace-grid">
+            @for (opt of replaceByType()[replaceLibType()]; track opt.fileId) {
+              <button
+                type="button"
+                class="replace-tile"
+                (click)="pickReplacement(opt)"
+                [title]="opt.name"
+              >
+                @if (opt.kind === 'image' || opt.kind === 'mixed') {
+                  <img
+                    [src]="opt.fileId | sourceThumbnailAsset"
+                    [alt]="opt.name"
+                    class="replace-img"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="replace-placeholder">
+                    <i
+                      class="pi"
+                      [class.pi-video]="opt.kind === 'video'"
+                      [class.pi-volume-up]="opt.kind === 'audio'"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                }
+                <span class="replace-name">{{ opt.name }}</span>
+              </button>
+            }
+          </div>
+          @if (replaceByType()[replaceLibType()].length === 0) {
+            <p class="replace-empty">Sin recursos de este tipo</p>
+          }
+        </div>
+      }
+    }
+  </p-popover>
 </section>

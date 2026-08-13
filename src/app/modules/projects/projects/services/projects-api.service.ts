@@ -6,12 +6,14 @@ import { httpErrorHandler } from '@shared/utils';
 import { ResponseBase } from '@app/core/interfaces';
 import {
   Chapter,
+  ChapterWithScenes,
   CreateChapterRequest,
   CreateProjectRequest,
   CreateSceneRequest,
   CreateShotRequest,
   CreateTakeRequest,
   Project,
+  ProjectWithChapters,
   Scene,
   Shot,
   Take,
@@ -67,6 +69,16 @@ export class ProjectsApiService {
     );
   }
 
+  /** Get a single project with its full chapter/scene/shot hierarchy. */
+  getProjectHierarchy(
+    id: string,
+  ): Observable<{ error: boolean; msg: string; data?: ProjectWithChapters }> {
+    return this.http.get<ResponseBase<ProjectWithChapters>>(`${this.apiUrl}/projects/${id}`).pipe(
+      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+      catchError(httpErrorHandler<ProjectWithChapters>),
+    );
+  }
+
   /** Admin endpoint: lists all projects including inactive ones. */
   listProjectsAdmin(): Observable<{ error: boolean; msg: string; data?: Project[] }> {
     return this.http.get<ResponseBase<Project[]>>(`${this.apiUrl}/projects/list-all`).pipe(
@@ -87,10 +99,12 @@ export class ProjectsApiService {
   // ---------------------------------------------------------------------------
 
   listChapters(projectId: string): Observable<{ error: boolean; msg: string; data?: Chapter[] }> {
-    return this.http.get<ResponseBase<Chapter[]>>(`${this.apiUrl}/projects/${projectId}/chapters`).pipe(
-      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-      catchError(httpErrorHandler<Chapter[]>),
-    );
+    return this.http
+      .get<ResponseBase<Chapter[]>>(`${this.apiUrl}/projects/${projectId}/chapters`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<Chapter[]>),
+      );
   }
 
   createChapter(
@@ -111,7 +125,9 @@ export class ProjectsApiService {
     payload: UpdateChapterRequest,
   ): Observable<{ error: boolean; msg: string; data?: Chapter }> {
     return this.http
-      .patch<ResponseBase<Chapter>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}`, payload)
+      .patch<
+        ResponseBase<Chapter>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Chapter>),
@@ -136,7 +152,9 @@ export class ProjectsApiService {
     chapterId: string,
   ): Observable<{ error: boolean; msg: string; data?: Scene[] }> {
     return this.http
-      .get<ResponseBase<Scene[]>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`)
+      .get<
+        ResponseBase<Scene[]>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene[]>),
@@ -149,7 +167,9 @@ export class ProjectsApiService {
     payload: CreateSceneRequest,
   ): Observable<{ error: boolean; msg: string; data?: Scene }> {
     return this.http
-      .post<ResponseBase<Scene>>(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`, payload)
+      .post<
+        ResponseBase<Scene>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene>),
@@ -163,10 +183,9 @@ export class ProjectsApiService {
     payload: UpdateSceneRequest,
   ): Observable<{ error: boolean; msg: string; data?: Scene }> {
     return this.http
-      .patch<ResponseBase<Scene>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`,
-        payload,
-      )
+      .patch<
+        ResponseBase<Scene>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Scene>),
@@ -179,9 +198,9 @@ export class ProjectsApiService {
     sceneId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
@@ -198,9 +217,9 @@ export class ProjectsApiService {
     sceneId: string,
   ): Observable<{ error: boolean; msg: string; data?: Shot[] }> {
     return this.http
-      .get<ResponseBase<Shot[]>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-      )
+      .get<
+        ResponseBase<Shot[]>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot[]>),
@@ -214,13 +233,28 @@ export class ProjectsApiService {
     payload: CreateShotRequest,
   ): Observable<{ error: boolean; msg: string; data?: Shot }> {
     return this.http
-      .post<ResponseBase<Shot>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`,
-        payload,
-      )
+      .post<
+        ResponseBase<Shot>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot>),
+      );
+  }
+
+  getShot(
+    projectId: string,
+    chapterId: string,
+    sceneId: string,
+    shotId: string,
+  ): Observable<{ error: boolean; msg: string; data?: { shot: Shot; takes: Take[] } }> {
+    return this.http
+      .get<
+        ResponseBase<{ shot: Shot; takes: Take[] }>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`)
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ shot: Shot; takes: Take[] }>),
       );
   }
 
@@ -232,10 +266,9 @@ export class ProjectsApiService {
     payload: UpdateShotRequest,
   ): Observable<{ error: boolean; msg: string; data?: Shot }> {
     return this.http
-      .patch<ResponseBase<Shot>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`,
-        payload,
-      )
+      .patch<
+        ResponseBase<Shot>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`, payload)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Shot>),
@@ -249,9 +282,9 @@ export class ProjectsApiService {
     shotId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
@@ -269,9 +302,9 @@ export class ProjectsApiService {
     shotId: string,
   ): Observable<{ error: boolean; msg: string; data?: Take[] }> {
     return this.http
-      .get<Take[]>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes`,
-      )
+      .get<
+        Take[]
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes`)
       .pipe(
         map((r: any) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<Take[]>),
@@ -340,9 +373,9 @@ export class ProjectsApiService {
     takeId: string,
   ): Observable<{ error: boolean; msg: string }> {
     return this.http
-      .delete<ResponseBase<unknown>>(
-        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${takeId}`,
-      )
+      .delete<
+        ResponseBase<unknown>
+      >(`${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/takes/${takeId}`)
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message })),
         catchError((err) => httpErrorHandler<void>(err)),
@@ -368,6 +401,90 @@ export class ProjectsApiService {
       .pipe(
         map((r: any) => ({ error: !r.success, msg: r.message, data: r.data })),
         catchError(httpErrorHandler<SaveGenerationResponse>),
+      );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Chapter Assignments
+  // ---------------------------------------------------------------------------
+
+  getChapterAssignments(
+    projectId: string,
+    chapterId: string,
+  ): Observable<{ error: boolean; msg: string; data?: any }> {
+    return this.http
+      .get<ResponseBase<any>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<any>),
+      );
+  }
+
+  assignCharacterToChapter(
+    projectId: string,
+    chapterId: string,
+    characterId: string,
+    slot?: string,
+  ): Observable<{ error: boolean; msg: string; data?: { id: string } }> {
+    return this.http
+      .post<ResponseBase<{ id: string }>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/characters`,
+        { character_id: characterId, ...(slot ? { slot } : {}) },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ id: string }>),
+      );
+  }
+
+  assignAssetToChapter(
+    projectId: string,
+    chapterId: string,
+    fileId: string,
+    slot?: string,
+  ): Observable<{ error: boolean; msg: string; data?: { id: string } }> {
+    return this.http
+      .post<ResponseBase<{ id: string }>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/assets`,
+        { file_id: fileId, ...(slot ? { slot } : {}) },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<{ id: string }>),
+      );
+  }
+
+  /** Unassign an asset from a chapter by its chapter_assets row id. */
+  removeAssetFromChapter(
+    projectId: string,
+    chapterId: string,
+    assignmentId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.http
+      .delete<ResponseBase<void>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/assets/${assignmentId}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError(httpErrorHandler<void>),
+      );
+  }
+
+  /** Unassign a character from a chapter by its chapter_characters row id. */
+  removeCharacterFromChapter(
+    projectId: string,
+    chapterId: string,
+    assignmentId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.http
+      .delete<ResponseBase<void>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/characters/${assignmentId}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError(httpErrorHandler<void>),
       );
   }
 }

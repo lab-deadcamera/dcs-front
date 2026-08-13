@@ -9,7 +9,12 @@ import { StudioStore } from '@app/core/stores/studio.store';
 import { ModelSelectDialogComponent } from '@shared/components/model-select-dialog/model-select-dialog.component';
 import { LEVEL_ROL, PRIVATE_PATHS } from '@app/core/constants';
 
-const ROUTES = [
+const ROUTES: Array<{
+  label: string;
+  link: string;
+  level: number;
+  children?: Array<{ label: string; link: string }>;
+}> = [
   {
     label: 'NAV.STUDIO',
     link: `/${PRIVATE_PATHS.studio}`,
@@ -29,6 +34,12 @@ const ROUTES = [
     label: 'NAV.PROVIDERS',
     link: `/${PRIVATE_PATHS.providers}`,
     level: LEVEL_ROL.ADMIN,
+    children: [
+      {
+        label: 'Skills',
+        link: `/${PRIVATE_PATHS.providers}/${PRIVATE_PATHS.skills}`,
+      },
+    ],
   },
   {
     label: 'NAV.ADMIN',
@@ -54,10 +65,11 @@ const ROUTES = [
     ModelSelectDialogComponent,
   ],
   // Sticky header — pins the brand strip + primary nav to the top of the
-  // viewport as the user scrolls. `bg-ink-950` matches the layout shell so
-  // content underneath doesn't bleed through; `z-50` keeps it above the
-  // studio's sticky right-rail and any dialog backdrops below modal-level.
-  host: { class: 'sticky top-0 z-50 bg-ink-950' },
+  // viewport as the user scrolls. Matches the layout shell (slate-50 in
+  // light, true-black ink-950 in dark) so content underneath doesn't bleed
+  // through; `z-50` keeps it above the studio's sticky right-rail and any
+  // dialog backdrops below modal-level.
+  host: { class: 'sticky top-0 z-50 bg-surface-50 dark:bg-ink-950' },
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

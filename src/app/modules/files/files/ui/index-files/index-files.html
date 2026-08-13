@@ -9,7 +9,7 @@
       </p>
     </div>
     <p-button
-      label="Create Character"
+      [label]="'FILES.CREATE_CHARACTER' | translate"
       icon="pi pi-user-plus"
       severity="secondary"
       (onClick)="characterDialogVisible.set(true)"
@@ -68,6 +68,21 @@
     </div>
   }
 
+  <!-- Search bar (hidden in trash) -->
+  @if (!isTrash()) {
+    <div class="mb-4 flex items-center gap-3">
+      <span class="pi pi-search text-sm" style="color: var(--text-muted)"></span>
+      <input
+        type="text"
+        class="w-full max-w-xs rounded border bg-transparent px-3 py-1.5 font-mono text-[12px] outline-none transition-colors focus:border-primary-500"
+        style="border-color: var(--border-color); color: var(--text-primary)"
+        [placeholder]="'FILES.SEARCH_PLACEHOLDER' | translate"
+        [ngModel]="searchValue()"
+        (ngModelChange)="onSearchInput($event)"
+      />
+    </div>
+  }
+
   <!-- Files grid -->
   @if (files.loading()) {
     <p class="py-8 text-center italic" style="color: var(--text-muted)">
@@ -105,6 +120,16 @@
                   (error)="onMediaError($event)"
                 ></audio>
               </div>
+              <span
+                role="button"
+                tabindex="0"
+                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded text-[11px] leading-none transition-colors"
+                style="background: rgba(0, 0, 0, 0.55); color: var(--text-muted)"
+                (click)="openFileInfo($event, f)"
+                (keydown.enter)="openFileInfo($event, f)"
+                [attr.aria-label]="'Ver metadata del asset'"
+                >ⓘ</span
+              >
             </div>
           } @else {
             <div
@@ -116,6 +141,16 @@
               tabindex="0"
               (keydown.enter)="openPreview(f)"
             >
+              <span
+                role="button"
+                tabindex="0"
+                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded text-[11px] leading-none transition-colors"
+                style="background: rgba(0, 0, 0, 0.55); color: var(--text-muted)"
+                (click)="openFileInfo($event, f)"
+                (keydown.enter)="openFileInfo($event, f)"
+                [attr.aria-label]="'Ver metadata del asset'"
+                >ⓘ</span
+              >
               @if (isImage(f)) {
                 @if (active() === 'temp') {
                   <img
@@ -237,6 +272,43 @@
     </ul>
   }
 
+  <!-- Pagination -->
+  @if (pages().length > 0) {
+    <div class="mt-4 flex items-center justify-center gap-2">
+      <p-button
+        icon="pi pi-chevron-left"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        [disabled]="prevDisabled()"
+        (onClick)="onPrevPage()"
+        [attr.aria-label]="'Previous page'"
+      />
+      @for (p of pages(); track p) {
+        <button
+          type="button"
+          class="min-w-[32px] rounded px-2 py-1 font-mono text-[12px] transition-colors"
+          [class.bg-primary-500]="files.page() === p"
+          [class.text-white]="files.page() === p"
+          [class.text-fg-muted]="files.page() !== p"
+          [class.hover:bg-primary-500/20]="files.page() !== p"
+          (click)="onGoToPage(p)"
+        >
+          {{ p }}
+        </button>
+      }
+      <p-button
+        icon="pi pi-chevron-right"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        [disabled]="nextDisabled()"
+        (onClick)="onNextPage()"
+        [attr.aria-label]="'Next page'"
+      />
+    </div>
+  }
+
   <app-file-link-dialog
     [visible]="linkDialogVisible()"
     [file]="linkDialogTarget()"
@@ -254,13 +326,19 @@
 />
 
 <p-toast position="bottom-right" />
-<p-dialog
-  [(visible)]="characterDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '90vw', maxWidth: '1200px' }"
-  header="Characters"
->
-  <app-index-characters />
-</p-dialog>
+
+@if (characterDialogVisible()) {
+  <p-dialog
+    [(visible)]="characterDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    [header]="'CHARACTERS.TABS.CHARACTER' | translate"
+  >
+    <app-index-characters />
+  </p-dialog>
+}
+
+<!-- Asset metadata popover (file thumbnails) -->
+<app-asset-info-popover #assetInfoPopover />

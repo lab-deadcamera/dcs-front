@@ -5,8 +5,9 @@ import {
   inject,
   output,
   signal,
+  ViewChild,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
@@ -24,6 +25,7 @@ import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { SourceAssetPipe } from '@app/core/pipes';
 import { FileCategory } from '@app/core/interfaces';
 import { Toast } from 'primeng/toast';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 interface LibraryItem {
   id: string;
@@ -57,6 +59,7 @@ interface LibraryItem {
     DialogModule,
     IndexCharacters,
     Toast,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './character-assets.html',
@@ -67,6 +70,56 @@ export class CharacterAssetsComponent {
   private readonly toast = inject(MessageService);
   protected readonly studio = inject(StudioStore);
   protected readonly chars = inject(CharactersService);
+  private readonly i18n = inject(TranslateService);
+
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** Library item whose popover's Use button is currently open. */
+  protected readonly libraryInfoTarget = signal<LibraryItem | null>(null);
+  /** "Use" label for the popover — set when opened from the library so its
+   *  Use button adds the asset to the prompt builder; empty elsewhere. */
+  protected readonly popoverUseLabel = signal('');
+
+  /** Open the asset metadata popover for a free-asset tile, without selecting it. */
+  protected openAssetInfo(event: Event, a: ReferenceAsset): void {
+    event.stopPropagation();
+    this.popoverUseLabel.set('');
+    this.libraryInfoTarget.set(null);
+    this.assetInfoPopover.open(event, {
+      id: a.id,
+      name: a.filename,
+      kind: a.kind,
+      slot: this.studio.chapterAssetSlots().get(a.id) || undefined,
+    });
+  }
+
+  /** Open the asset metadata popover for a library item, with a Use button
+   *  that adds the asset to the prompt builder (or removes it when already
+   *  in use — the label reflects the action). */
+  protected openLibraryInfo(event: Event, a: LibraryItem): void {
+    this.libraryInfoTarget.set(a);
+    this.popoverUseLabel.set(
+      this.i18n.instant(this.isUsed(a.id) ? 'STUDIO.ASSETS.UNUSE' : 'STUDIO.ASSETS.USE'),
+    );
+    this.assetInfoPopover.open(event, {
+      // Preview the first asset's file, not the library/character id.
+      id: a.firstFile?.fileId || a.id,
+      name: a.name,
+      kind: a.fileKind,
+      type: this.activeLibraryType(),
+    });
+  }
+
+  /** Use the library item currently shown in the popover (adds it to the
+   *  prompt builder) and close the popover. */
+  protected onUseFromPopover(): void {
+    const a = this.libraryInfoTarget();
+    if (!a) return;
+    this.assetInfoPopover.close();
+    this.popoverUseLabel.set('');
+    this.libraryInfoTarget.set(null);
+    this.onPickLibraryAsset(a);
+  }
 
   /**
    * Emitted once per file successfully added to the prompt's used-asset
@@ -118,15 +171,15 @@ export class CharacterAssetsComponent {
     { id: 'audio', labelKey: 'FILES.TABS.AUDIO', icon: 'pi-volume-up' },
   ];
 
-  /** True when scene assignments have been loaded and the set is empty. */
+  /** True when chapter assignments have been loaded and the set is empty. */
   protected readonly libraryEmpty = computed(
-    () => this.studio.assignmentsLoaded() && this.studio.sceneCharacterIds().size === 0,
+    () => this.studio.assignmentsLoaded() && this.studio.chapterCharacterIds().size === 0,
   );
 
   protected readonly libraryByType = computed<Record<AssetType, LibraryItem[]>>(() => {
-    const assignedIds = this.studio.sceneCharacterIds();
+    const assignedIds = this.studio.chapterCharacterIds();
 
-    // If assignments have been loaded and the set is empty, the scene has
+    // If assignments have been loaded and the set is empty, the chapter has
     // no related characters — show nothing rather than dumping the whole
     // library.
     if (this.libraryEmpty()) {
@@ -309,26 +362,35 @@ export class CharacterAssetsComponent {
    */
   protected onPickLibraryAsset(a: LibraryItem): void {
     if (this.isUsed(a.id)) {
-      this.studio.unuseAsset(a.id);
+      // Unbinding from "Mi biblioteca" keeps the [ImageN] slot in the prompt
+      // text — the user can still point it at another resource later.
+      this.studio.unuseAsset(a.id, { keepSlot: true });
       return;
     }
 
     if (a.files.length === 0) {
       this.toast.add({
         severity: 'warn',
-        summary: 'No file',
-        detail: `"${a.name}" has no file uploaded yet — open the library to add one.`,
+        summary: this.i18n.instant('STUDIO.ASSETS.TOAST_NO_FILE'),
+        detail: this.i18n.instant('STUDIO.ASSETS.TOAST_NO_FILE_DETAIL', { name: a.name }),
       });
       return;
     }
     for (const f of a.files) {
       const before = this.studio.usedAssets().length;
+      // Respect the [ImageN] slot inherited from the chapter assignment:
+      // characters keep it in chapterCharacterData, assets in chapterAssetSlots.
+      const charSlot = this.studio
+        .chapterCharacterData()
+        .find((c) => c.id === a.id)?.slot;
+      const assetSlot = this.studio.chapterAssetSlots().get(f.fileId);
       this.studio.useAsset({
         fileId: f.fileId,
         characterId: a.id,
         name: a.name,
         filename: f.filename,
         kind: a.fileKind,
+        slot: charSlot || assetSlot || undefined,
       });
       // useAsset dedupes by fileId — only emit when an entry actually
       // appeared, so the prompt-builder doesn't insert a stale token.
@@ -338,8 +400,11 @@ export class CharacterAssetsComponent {
     }
     this.toast.add({
       severity: 'success',
-      summary: 'Reference added',
-      detail: `${a.name} (${a.files.length} file${a.files.length !== 1 ? 's' : ''})`,
+      summary: this.i18n.instant('STUDIO.ASSETS.TOAST_REFERENCE_ADDED'),
+      detail: this.i18n.instant('STUDIO.ASSETS.TOAST_REFERENCE_ADDED_DETAIL', {
+        name: a.name,
+        n: a.files.length,
+      }),
     });
   }
 
@@ -348,7 +413,11 @@ export class CharacterAssetsComponent {
     if (!f) return;
     this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
       if (up.error || !up.data) {
-        this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
         return;
       }
       const asset: ReferenceAsset = {
@@ -369,7 +438,11 @@ export class CharacterAssetsComponent {
     if (!f) return;
     this.filesApi.upload({ file: f, category: 'images', storage: 'temp' }).subscribe((up) => {
       if (up.error || !up.data) {
-        this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
         return;
       }
       const asset: ReferenceAsset = {
@@ -397,18 +470,22 @@ export class CharacterAssetsComponent {
       } else {
         this.toast.add({
           severity: 'warn',
-          summary: 'Unsupported file type',
-          detail: 'Please upload an image, audio or video',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED'),
+          detail: this.i18n.instant('STUDIO.ASSETS.TOAST_UNSUPPORTED_DETAIL'),
         });
         continue;
       }
 
       this.filesApi.upload({ file: f, category, storage: 'temp' }).subscribe((up) => {
         if (up.error || !up.data) {
-          this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
-          return;
-        }
-        this.studio.addFreeAsset({
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_UPLOAD_ERROR'),
+          detail: up.msg,
+        });
+        return;
+      }
+      this.studio.addFreeAsset({
           id: up.data.id,
           kind: inferKind(f),
           filename: up.data.filename,
@@ -418,8 +495,10 @@ export class CharacterAssetsComponent {
         });
         this.toast.add({
           severity: 'success',
-          summary: 'Asset added',
-          detail: `${f.name} added to library`,
+          summary: this.i18n.instant('STUDIO.ASSETS.TOAST_ASSET_ADDED'),
+          detail: this.i18n.instant('STUDIO.ASSETS.TOAST_ASSET_ADDED_DETAIL', {
+            name: f.name,
+          }),
         });
       });
     }
@@ -446,6 +525,7 @@ export class CharacterAssetsComponent {
       name: a.filename,
       filename: a.filename,
       kind: a.kind,
+      slot: this.studio.chapterAssetSlots().get(a.id) || undefined,
     });
     this.assetPicked.emit(a.kind);
   }

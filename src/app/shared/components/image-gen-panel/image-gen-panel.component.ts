@@ -15,6 +15,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { Popover } from 'primeng/popover';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '@environment/environment';
 import { ModelService, ImageGeneratorService, FilesApiService } from '@app/services';
 import {
@@ -27,6 +28,7 @@ import {
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
+import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 
 @Component({
   selector: 'app-image-gen-panel',
@@ -37,6 +39,8 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
     SelectModule,
     Popover,
     SourceThumbnailAssetPipe,
+    TranslatePipe,
+    AssetInfoPopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './image-gen-panel.component.html',
@@ -48,6 +52,7 @@ export class ImageGenPanelComponent implements OnInit {
   private readonly filesApi = inject(FilesApiService);
   private readonly studio = inject(StudioStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly i18n = inject(TranslateService);
 
   protected readonly imageModels = signal<ModelData[]>([]);
   protected readonly loading = signal(true);
@@ -253,14 +258,14 @@ export class ImageGenPanelComponent implements OnInit {
       .subscribe((res) => {
         this.generating.set(false);
         if (res.error || !res.data) {
-          this.error.set(res.msg || 'Generation failed');
+          this.error.set(res.msg || this.i18n.instant('STUDIO.IMAGE_GEN.GENERATION_FAILED'));
           return;
         }
         const result = res.data;
         if (result.status === 'succeeded' && result.outputs?.length > 0) {
           this.generatedImage.set({ url: this.resolveUrl(result.outputs[0].url) });
         } else if (result.status === 'failed') {
-          this.error.set(result.error || 'Generation failed');
+          this.error.set(result.error || this.i18n.instant('STUDIO.IMAGE_GEN.GENERATION_FAILED'));
         } else {
           this.pollTask(result.taskId);
         }
@@ -292,7 +297,7 @@ export class ImageGenPanelComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((res) => {
           if (res.error || !res.data) {
-            this.error.set(res.msg || 'Status check failed');
+            this.error.set(res.msg || this.i18n.instant('STUDIO.IMAGE_GEN.STATUS_FAILED'));
             this.generating.set(false);
             clearInterval(poll);
             return;
@@ -305,7 +310,9 @@ export class ImageGenPanelComponent implements OnInit {
             this.generating.set(false);
             clearInterval(poll);
           } else if (result.status === 'failed') {
-            this.error.set(result.error || 'Generation failed');
+            this.error.set(
+              result.error || this.i18n.instant('STUDIO.IMAGE_GEN.GENERATION_FAILED'),
+            );
             this.generating.set(false);
             clearInterval(poll);
           }
@@ -336,7 +343,11 @@ export class ImageGenPanelComponent implements OnInit {
           .subscribe((res) => {
             this.saving.set(false);
             if (res.error || !res.data) {
-              this.error.set('Failed to save asset: ' + (res.msg || 'Unknown error'));
+              this.error.set(
+                this.i18n.instant('STUDIO.IMAGE_GEN.SAVE_FAILED', {
+                  msg: res.msg || 'Unknown error',
+                }),
+              );
               return;
             }
             this.newFile = res.data;
@@ -345,7 +356,9 @@ export class ImageGenPanelComponent implements OnInit {
       })
       .catch((err) => {
         this.saving.set(false);
-        this.error.set('Failed to fetch image: ' + err.message);
+        this.error.set(
+          this.i18n.instant('STUDIO.IMAGE_GEN.FETCH_FAILED', { msg: err.message }),
+        );
       });
   }
 

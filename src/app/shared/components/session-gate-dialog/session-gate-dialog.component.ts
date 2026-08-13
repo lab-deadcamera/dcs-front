@@ -1,6 +1,4 @@
 import { DecimalPipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@environment/environment';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -81,10 +79,10 @@ import { Project, Scene } from '@modules/projects/projects/interfaces';
             for="session-gate-project"
             class="text-[12px] font-bold uppercase tracking-[0.12em]"
           >
-            Project
+            {{ 'STUDIO.SESSION_GATE.PROJECT' | translate }}
           </label>
           @if (loadingProjects()) {
-            <p class="text-[12px] italic text-fg-muted">Loading projects…</p>
+            <p class="text-[12px] italic text-fg-muted">{{ 'STUDIO.SESSION_GATE.LOADING_PROJECTS' | translate }}</p>
           } @else {
             <p-select
               inputId="session-gate-project"
@@ -93,24 +91,27 @@ import { Project, Scene } from '@modules/projects/projects/interfaces';
               appendTo="body"
               optionLabel="name"
               optionValue="id"
-              [placeholder]="'Select a project'"
+              [placeholder]="'STUDIO.SESSION_GATE.SELECT_PROJECT_PLACEHOLDER' | translate"
               [showClear]="true"
               styleClass="w-full"
               data-testid="session-gate-project"
               (onChange)="onProjectChange($event.value)"
             />
           }
-          <validator-errors [control]="form.get('projectId')" [label]="'Project'" />
+          <validator-errors
+            [control]="form.get('projectId')"
+            [label]="'STUDIO.SESSION_GATE.PROJECT' | translate"
+          />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="session-gate-episode" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Episode
+            {{ 'STUDIO.SESSION_GATE.EPISODE' | translate }}
           </label>
           @if (!form.get('projectId')?.value) {
-            <p class="text-[12px] italic text-fg-muted">Select a project first.</p>
+            <p class="text-[12px] italic text-fg-muted">{{ 'STUDIO.SESSION_GATE.SELECT_PROJECT_FIRST' | translate }}</p>
           } @else if (loadingChapters()) {
-            <p class="text-[12px] italic text-fg-muted">Loading episodes…</p>
+            <p class="text-[12px] italic text-fg-muted">{{ 'STUDIO.SESSION_GATE.LOADING_EPISODES' | translate }}</p>
           } @else {
             <p-select
               inputId="session-gate-episode"
@@ -119,24 +120,27 @@ import { Project, Scene } from '@modules/projects/projects/interfaces';
               [options]="chapters()"
               optionLabel="label"
               optionValue="id"
-              [placeholder]="'Select an episode'"
+              [placeholder]="'STUDIO.SESSION_GATE.SELECT_EPISODE_PLACEHOLDER' | translate"
               [showClear]="true"
               styleClass="w-full"
               data-testid="session-gate-episode"
               (onChange)="onChapterChange($event.value)"
             />
           }
-          <validator-errors [control]="form.get('chapterId')" [label]="'Episode'" />
+          <validator-errors
+            [control]="form.get('chapterId')"
+            [label]="'STUDIO.SESSION_GATE.EPISODE' | translate"
+          />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="session-gate-scene" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Scene
+            {{ 'STUDIO.SESSION_GATE.SCENE' | translate }}
           </label>
           @if (!form.get('chapterId')?.value) {
-            <p class="text-[12px] italic text-fg-muted">Select an episode first.</p>
+            <p class="text-[12px] italic text-fg-muted">{{ 'STUDIO.SESSION_GATE.SELECT_EPISODE_FIRST' | translate }}</p>
           } @else if (loadingScenes()) {
-            <p class="text-[12px] italic text-fg-muted">Loading scenes…</p>
+            <p class="text-[12px] italic text-fg-muted">{{ 'STUDIO.SESSION_GATE.LOADING_SCENES' | translate }}</p>
           } @else {
             <p-select
               inputId="session-gate-scene"
@@ -145,38 +149,43 @@ import { Project, Scene } from '@modules/projects/projects/interfaces';
               [options]="scenes()"
               optionLabel="label"
               optionValue="id"
-              [placeholder]="'Select a scene'"
+              [placeholder]="'STUDIO.SESSION_GATE.SELECT_SCENE_PLACEHOLDER' | translate"
               [showClear]="true"
               styleClass="w-full"
               data-testid="session-gate-scene"
               (onChange)="onSceneChange($event.value)"
             />
           }
-          <validator-errors [control]="form.get('sceneId')" [label]="'Scene'" />
+          <validator-errors
+            [control]="form.get('sceneId')"
+            [label]="'STUDIO.SESSION_GATE.SCENE' | translate"
+          />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="session-gate-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">
-            Shot name
+            {{ 'STUDIO.SESSION_GATE.SHOT_NAME' | translate }}
           </label>
           <input
             id="session-gate-shot-name"
             pInputText
             formControlName="shotName"
-            placeholder="e.g. Master wide, Close-up, …
-"
+            [placeholder]="'STUDIO.SESSION_GATE.SHOT_NAME_PLACEHOLDER' | translate"
             class="w-full"
             data-testid="session-gate-shot-name"
           />
           <p class="text-[10px] italic text-fg-muted">
-            Give your shot a descriptive name. A new shot will be created for this scene.
+            {{ 'STUDIO.SESSION_GATE.SHOT_NAME_HINT' | translate }}
           </p>
-          <validator-errors [control]="form.get('shotName')" [label]="'Shot name'" />
+          <validator-errors
+            [control]="form.get('shotName')"
+            [label]="'STUDIO.SESSION_GATE.SHOT_NAME' | translate"
+          />
         </div>
 
         @if (selectedScene()) {
           <div class="rounded border p-3 text-[12px]" style="border-color: var(--border-color);">
-            <span class="font-semibold">Scene:</span>
+            <span class="font-semibold">{{ 'STUDIO.SESSION_GATE.SCENE_LABEL' | translate }}</span>
             SC{{ selectedScene()!.number | number: '2.0' }} — {{ selectedScene()!.name }}
           </div>
         }
@@ -185,7 +194,12 @@ import { Project, Scene } from '@modules/projects/projects/interfaces';
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
           @if (adminClosable()) {
-            <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="close()" />
+            <p-button
+              severity="secondary"
+              [text]="true"
+              [label]="'COMMON.CANCEL' | translate"
+              (onClick)="close()"
+            />
           }
           <p-button
             [icon]="'pi pi-play'"
@@ -206,9 +220,8 @@ export class SessionGateDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly sessionStore = inject(SessionStore);
   private readonly studio = inject(StudioStore);
-  private readonly http = inject(HttpClient);
-  private readonly environment = environment;
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly i18n = inject(TranslateService);
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
@@ -391,8 +404,8 @@ export class SessionGateDialogComponent {
         if (shotRes.error || !shotRes.data) {
           this.toast?.add({
             severity: 'error',
-            summary: 'Error',
-            detail: shotRes.msg || 'Failed to create shot',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: shotRes.msg || this.i18n.instant('STUDIO.SESSION_GATE.CREATE_SHOT_FAILED'),
           });
           this.submitting.set(false);
           return;
@@ -421,19 +434,15 @@ export class SessionGateDialogComponent {
           handle,
         });
 
-        // 4. Load scene assignments
-        this.http
-          .get<{ data: any }>(
-            `${this.environment.API_URL}/projects/${raw.projectId}/chapters/${raw.chapterId}/scenes/${raw.sceneId}/assignments`,
-          )
-          .subscribe({
-            next: (res) => {
-              if (res.data) this.studio.setSceneAssignments(res.data);
-            },
-            error: () => {
-              /* assignments not critical */
-            },
-          });
+        // 4. Load chapter assignments
+        this.projectsApi.getChapterAssignments(raw.projectId, raw.chapterId).subscribe({
+          next: (res) => {
+            if (res.data) this.studio.setChapterAssignments(res.data);
+          },
+          error: () => {
+            /* assignments not critical */
+          },
+        });
 
         this.submitting.set(false);
         this.visibleChange.emit(false);

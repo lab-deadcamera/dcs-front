@@ -71,3 +71,17 @@ export interface CharacterFileLinkWire {
   role: CharacterFileRole;
   created_at: string;
 }
+
+export interface PaginatedFiles {
+  items: FileEntity[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface PaginatedFilesResponse {
+  success: boolean;
+  data?: PaginatedFiles;
+  message?: string;
+}

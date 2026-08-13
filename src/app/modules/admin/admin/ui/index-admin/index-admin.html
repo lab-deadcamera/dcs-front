@@ -1,8 +1,8 @@
 <section class="px-6 py-6">
   <div class="mb-6">
-    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Generation Logs</h1>
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.TITLE' | translate }}</h1>
     <p class="mt-1 text-[12px] text-fg-muted">
-      All generation requests submitted to models — filterable and paginated.
+      {{ 'ADMIN.INDEX.SUBTITLE' | translate }}
     </p>
   </div>
 
@@ -10,18 +10,18 @@
   <div class="mb-4 flex flex-col gap-2">
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Resource Type</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_RESOURCE_TYPE' | translate }}</label>
         <p-select
           [options]="resourceTypeOptions"
           [ngModel]="filters().resourceType"
           (ngModelChange)="filters.set({ ...filters(), resourceType: $event ?? null })"
-          placeholder="Any"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY' | translate"
           [showClear]="true"
           styleClass="w-32"
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Model</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_MODEL' | translate }}</label>
         <p-select
           [options]="modelOptions()"
           [ngModel]="filters().modelName"
@@ -30,24 +30,24 @@
           filterBy="label"
           optionLabel="label"
           optionValue="value"
-          placeholder="Any model"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY_MODEL' | translate"
           [showClear]="true"
           styleClass="w-48"
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Status</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_STATUS' | translate }}</label>
         <p-select
           [options]="statusOptions"
           [ngModel]="filters().status"
           (ngModelChange)="filters.set({ ...filters(), status: $event ?? null })"
-          placeholder="Any"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY' | translate"
           [showClear]="true"
           styleClass="w-32"
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">User</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_USER' | translate }}</label>
         <p-select
           [options]="userOptions()"
           [ngModel]="filters().userId"
@@ -56,7 +56,7 @@
           filterBy="label"
           optionLabel="label"
           optionValue="value"
-          placeholder="Any user"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY_USER' | translate"
           [showClear]="true"
           styleClass="w-48"
         />
@@ -64,7 +64,7 @@
     </div>
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Project</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_PROJECT' | translate }}</label>
         <p-select
           [options]="projectOptions()"
           [ngModel]="filters().projectId"
@@ -73,13 +73,13 @@
           filterBy="label"
           optionLabel="label"
           optionValue="value"
-          placeholder="Any project"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY_PROJECT' | translate"
           [showClear]="true"
           styleClass="w-48"
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Scene</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_SCENE' | translate }}</label>
         <p-select
           [options]="sceneOptions()"
           [ngModel]="filters().sceneId"
@@ -88,14 +88,14 @@
           filterBy="label"
           optionLabel="label"
           optionValue="value"
-          placeholder="Any scene"
+          [placeholder]="'ADMIN.INDEX.FILTER_ANY_SCENE' | translate"
           [showClear]="true"
           styleClass="w-48"
           [disabled]="!filters().projectId"
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">From</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_FROM' | translate }}</label>
         <input
           pInputText
           type="date"
@@ -105,7 +105,7 @@
         />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">To</label>
+        <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.INDEX.FILTER_TO' | translate }}</label>
         <input
           pInputText
           type="date"
@@ -114,14 +114,14 @@
           class="w-36"
         />
       </div>
-      <p-button label="Search" icon="pi pi-search" (onClick)="search()" />
-      <p-button label="Clear" severity="secondary" [text]="true" (onClick)="clearFilters()" />
+      <p-button [label]="'ADMIN.INDEX.SEARCH' | translate" icon="pi pi-search" (onClick)="search()" />
+      <p-button [label]="'ADMIN.INDEX.CLEAR' | translate" severity="secondary" [text]="true" (onClick)="clearFilters()" />
 
       <!-- Cost summary -->
       <div class="flex items-center gap-2 text-[13px] ml-auto">
-        <span class="font-bold uppercase tracking-[0.08em] text-fg-muted">Total Cost:</span>
+        <span class="font-bold uppercase tracking-[0.08em] text-fg-muted">{{ 'ADMIN.INDEX.TOTAL_COST' | translate }}</span>
         @if (costLoading()) {
-          <span class="italic text-fg-muted">calculating...</span>
+          <span class="italic text-fg-muted">{{ 'ADMIN.INDEX.CALCULATING' | translate }}</span>
         } @else {
           <span class="font-mono font-bold text-green-400">{{ totalCost() | currency }}</span>
         }
@@ -131,7 +131,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.INDEX.LOADING' | translate }}</p>
   }
 
   <!-- Table -->
@@ -140,17 +140,17 @@
       <table class="w-full text-[12px]">
         <thead>
           <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-            <th class="px-3 py-2 font-medium">Task ID</th>
-            <th class="px-3 py-2 font-medium">Type</th>
-            <th class="px-3 py-2 font-medium">Model</th>
-            <th class="px-3 py-2 font-medium">User</th>
-            <th class="px-3 py-2 font-medium">Project</th>
-            <th class="px-3 py-2 font-medium">Scene</th>
-            <th class="px-3 py-2 font-medium">Take</th>
-            <th class="px-3 py-2 font-medium">Status</th>
-            <th class="px-3 py-2 font-medium">Cost</th>
-            <th class="px-3 py-2 font-medium">Date</th>
-            <th class="w-36 px-3 py-2 font-medium">Actions</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_TASK_ID' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_TYPE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_MODEL' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_USER' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_PROJECT' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_SCENE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_TAKE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_STATUS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_COST' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_DATE' | translate }}</th>
+            <th class="w-36 px-3 py-2 font-medium">{{ 'ADMIN.INDEX.COL_ACTIONS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -228,7 +228,7 @@
                     severity="secondary"
                     [text]="true"
                     [rounded]="true"
-                    pTooltip="Refresh task status"
+                    [pTooltip]="'ADMIN.INDEX.REFRESH_TASK' | translate"
                     [loading]="refreshingId() === log.task_id"
                     (onClick)="refreshTask(log)"
                   />
@@ -237,7 +237,7 @@
                     severity="secondary"
                     [text]="true"
                     [rounded]="true"
-                    [pTooltip]="'View generated ' + (log.resource_type || 'output')"
+                    [pTooltip]="'ADMIN.INDEX.VIEW_OUTPUT' | translate: { type: log.resource_type || 'output' }"
                     (onClick)="showOutput(log)"
                   />
                   <p-button
@@ -245,7 +245,7 @@
                     severity="secondary"
                     [text]="true"
                     [rounded]="true"
-                    pTooltip="View full details"
+                    [pTooltip]="'ADMIN.INDEX.VIEW_DETAILS' | translate"
                     (onClick)="showDetails(log)"
                   />
                 </div>
@@ -268,7 +268,7 @@
 
   @if (!loading() && logs().length === 0) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">
-      No generation logs match the current filters.
+      {{ 'ADMIN.INDEX.EMPTY' | translate }}
     </p>
   }
 </section>
@@ -281,33 +281,33 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '40rem' }"
-  header="Request Payload"
+  [header]="'ADMIN.INDEX.PAYLOAD_TITLE' | translate"
 >
   <div class="flex flex-col gap-3 text-[12px]">
-    <div><span class="font-bold uppercase">Model:</span> {{ selectedPayload()?.model }}</div>
-    <div><span class="font-bold uppercase">Ratio:</span> {{ selectedPayload()?.ratio }}</div>
-    <div><span class="font-bold uppercase">Duration:</span> {{ selectedPayload()?.duration }}s</div>
+    <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.MODEL' | translate }}</span> {{ selectedPayload()?.model }}</div>
+    <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.RATIO' | translate }}</span> {{ selectedPayload()?.ratio }}</div>
+    <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.DURATION' | translate }}</span> {{ selectedPayload()?.duration }}s</div>
     <div>
-      <span class="font-bold uppercase">Resolution:</span> {{ selectedPayload()?.resolution }}
+      <span class="font-bold uppercase">{{ 'ADMIN.INDEX.RESOLUTION' | translate }}</span> {{ selectedPayload()?.resolution }}
     </div>
-    <div><span class="font-bold uppercase">Quality:</span> {{ selectedPayload()?.quality }}</div>
+    <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.QUALITY' | translate }}</span> {{ selectedPayload()?.quality }}</div>
     <div>
-      <span class="font-bold uppercase">Seed:</span> {{ selectedPayload()?.seed || 'random' }}
+      <span class="font-bold uppercase">{{ 'ADMIN.INDEX.SEED' | translate }}</span> {{ selectedPayload()?.seed || ('ADMIN.INDEX.RANDOM' | translate) }}
     </div>
     <div>
-      <span class="font-bold uppercase">Audio:</span>
-      {{ selectedPayload()?.generate_audio ? 'Yes' : 'No' }}
+      <span class="font-bold uppercase">{{ 'ADMIN.INDEX.AUDIO' | translate }}</span>
+      {{ selectedPayload()?.generate_audio ? ('ADMIN.INDEX.YES' | translate) : ('ADMIN.INDEX.NO' | translate) }}
     </div>
     @if (selectedPayload()?.project_id) {
       <div>
-        <span class="font-bold uppercase">Project:</span> {{ selectedPayload()?.project_id }}
+        <span class="font-bold uppercase">{{ 'ADMIN.INDEX.PROJECT' | translate }}</span> {{ selectedPayload()?.project_id }}
       </div>
-      <div><span class="font-bold uppercase">Scene:</span> {{ selectedPayload()?.scene_code }}</div>
-      <div><span class="font-bold uppercase">Take:</span> {{ selectedPayload()?.take_number }}</div>
+      <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.SCENE' | translate }}</span> {{ selectedPayload()?.scene_code }}</div>
+      <div><span class="font-bold uppercase">{{ 'ADMIN.INDEX.TAKE' | translate }}</span> {{ selectedPayload()?.take_number }}</div>
     }
     @if (selectedPayloadContent().length > 0) {
       <div class="mt-2">
-        <span class="font-bold uppercase">Content:</span>
+        <span class="font-bold uppercase">{{ 'ADMIN.INDEX.CONTENT' | translate }}</span>
         <ul class="mt-1 list-inside list-disc">
           @for (item of selectedPayloadContent(); track $index) {
             <li class="truncate text-fg-muted" [title]="item.text">
@@ -330,10 +330,10 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '44rem' }"
-  [header]="'Generated ' + (selectedOutputType() || 'Outputs')"
+  [header]="'ADMIN.INDEX.GENERATED_TITLE' | translate: { type: selectedOutputType() || ('ADMIN.INDEX.OUTPUTS' | translate) }"
 >
   @if (selectedOutputs().length === 0) {
-    <p class="py-4 text-center text-[13px] italic text-fg-muted">No outputs available.</p>
+    <p class="py-4 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.INDEX.NO_OUTPUTS' | translate }}</p>
   }
   <div class="flex flex-col gap-4">
     @for (out of selectedOutputs(); track $index) {
@@ -346,19 +346,19 @@
             preload="metadata"
             playsinline
           >
-            Your browser does not support the video tag x.
+            {{ 'ADMIN.INDEX.VIDEO_UNSUPPORTED' | translate }}
           </video>
         } @else if (out.type === 'audio') {
           <div class="flex items-center justify-center bg-ink-900 p-8">
             <audio [src]="out.url | resolveUrl" controls class="w-full max-w-md">
-              Your browser does not support the audio tag.
+              {{ 'ADMIN.INDEX.AUDIO_UNSUPPORTED' | translate }}
             </audio>
           </div>
         } @else {
           <img
             [src]="out.url | resolveUrl"
             class="w-full max-h-100 object-contain"
-            alt="Generated output"
+            alt="{{ 'ADMIN.INDEX.GENERATED_OUTPUT' | translate }}"
           />
         }
         <div class="flex items-center justify-between px-3 py-2 text-[11px] text-fg-muted">
@@ -368,7 +368,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-primary-500 underline hover:text-primary-400"
-            >Open in new tab</a
+            >{{ 'ADMIN.INDEX.OPEN_NEW_TAB' | translate }}</a
           >
         </div>
       </div>
@@ -384,7 +384,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '70rem', maxWidth: '95vw' }"
-  header="Generation Details"
+  [header]="'ADMIN.INDEX.DETAILS_TITLE' | translate"
 >
   @if (detailsLoading()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
@@ -395,15 +395,15 @@
       <!-- Summary -->
       <div class="grid grid-cols-3 gap-3">
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Task ID</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_TASK_ID' | translate }}</span>
           <span class="font-mono">{{ d.task_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Model</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_MODEL' | translate }}</span>
           <span>{{ d.model_name }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Status</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_STATUS' | translate }}</span>
           <span
             [class.text-green-400]="d.status === 'succeeded'"
             [class.text-red-400]="d.status === 'failed'"
@@ -412,15 +412,15 @@
           </span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Resource Type</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.FILTER_RESOURCE_TYPE' | translate }}</span>
           <span>{{ d.resource_type || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Content Types</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.CONTENT_TYPES' | translate }}</span>
           <span>{{ d.content_types || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Est. Cost</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.EST_COST' | translate }}</span>
           <span>
             @if (d.estimated_cost != null && d.estimated_cost > 0) {
               ${{ d.estimated_cost.toFixed(6) }}
@@ -433,34 +433,34 @@
           </span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">User</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_USER' | translate }}</span>
           <span>{{ d.user_display_name || d.user_name || d.user_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Project</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_PROJECT' | translate }}</span>
           <span>{{ d.project_name || d.project_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Scene</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_SCENE' | translate }}</span>
           <span>{{ sceneLabel(d) || d.scene_code || d.scene_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Take</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.COL_TAKE' | translate }}</span>
           <span>{{ d.take_number ?? '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Created</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.CREATED' | translate }}</span>
           <span>{{ d.created_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Updated</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.UPDATED' | translate }}</span>
           <span>{{ d.updated_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
         </div>
       </div>
 
       @if (d.error_message) {
         <div>
-          <span class="block font-bold uppercase text-red-400">Error</span>
+          <span class="block font-bold uppercase text-red-400">{{ 'ADMIN.INDEX.ERROR' | translate }}</span>
           <pre
             class="mt-1 whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] text-red-400"
             >{{ d.error_message }}</pre
@@ -470,7 +470,7 @@
 
       <!-- Request payload -->
       <div>
-        <span class="block font-bold uppercase text-fg-muted">Request Payload</span>
+        <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.PAYLOAD_TITLE' | translate }}</span>
         <pre
           class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg"
           >{{ formatJson(d.request) }}</pre
@@ -480,7 +480,7 @@
       <!-- Outputs -->
       @if (d.outputs.length > 0) {
         <div>
-          <span class="block font-bold uppercase text-fg-muted">Outputs</span>
+          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.INDEX.OUTPUTS' | translate }}</span>
           <div class="mt-1 flex flex-wrap gap-3">
             @for (out of d.outputs; track $index) {
               <div class="overflow-hidden rounded border" style="border-color: var(--border-color)">
@@ -492,19 +492,19 @@
                     preload="metadata"
                     playsinline
                   >
-                    Your browser does not support the video tag.
+                    {{ 'ADMIN.INDEX.VIDEO_UNSUPPORTED' | translate }}
                   </video>
                 } @else if (out.type === 'audio') {
                   <div class="flex h-36 w-60 items-center justify-center bg-ink-900 p-4">
                     <audio [src]="out.localUrl || out.url | resolveUrl" controls class="w-full">
-                      Your browser does not support the audio tag.
+                      {{ 'ADMIN.INDEX.AUDIO_UNSUPPORTED' | translate }}
                     </audio>
                   </div>
                 } @else {
                   <img
                     [src]="out.localUrl || out.url | resolveUrl"
                     class="w-60 h-36 object-contain bg-ink-900"
-                    alt="Output"
+                    alt="{{ 'ADMIN.INDEX.OUTPUT_ALT' | translate }}"
                   />
                 }
                 <div class="px-2 py-1 text-[10px] text-fg-muted">
@@ -512,7 +512,7 @@
                     [href]="out.localUrl || out.url | resolveUrl"
                     target="_blank"
                     class="text-primary-500 underline"
-                    >Open</a
+                    >{{ 'ADMIN.INDEX.OPEN' | translate }}</a
                   >
                 </div>
               </div>
@@ -526,7 +526,7 @@
     <p-button
       severity="secondary"
       [text]="true"
-      label="Close"
+      [label]="'COMMON.CLOSE' | translate"
       (onClick)="detailsDialogVisible.set(false)"
     />
   </ng-template>

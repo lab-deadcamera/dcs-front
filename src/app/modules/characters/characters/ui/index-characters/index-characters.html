@@ -39,6 +39,30 @@
         data-testid="assets-new-audio"
         (onClick)="openCreate('audio')"
       />
+
+      <!-- Mass upload: one asset per selected file (image, or audio when the
+           Audio tab is active), named after the file, with the asset type
+           filtered at that moment (active tab). -->
+      <input
+        #massUploadInput
+        type="file"
+        class="hidden"
+        [accept]="massAccept()"
+        [multiple]="true"
+        data-testid="assets-mass-upload-input"
+        (change)="onMassFilesSelected($event)"
+      />
+      <p-button
+        icon="pi pi-images"
+        [label]="'Mass upload: ' + activeTypeLabel()"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="massUploading()"
+        data-testid="assets-mass-upload"
+        (onClick)="massUploadInput.click()"
+        [pTooltip]="massUploadTooltip()"
+        tooltipPosition="top"
+      />
     </div>
   </header>
 
@@ -69,16 +93,30 @@
     }
   </div>
 
-  <!-- Assets grid for the active type -->
-  @if (characters.loading()) {
-    <p class="py-8 text-center italic" style="color: var(--text-muted)">
-      {{ 'COMMON.LOADING' | translate }}
-    </p>
-  } @else if (visibleAssets().length === 0) {
+  <!-- Search bar -->
+  <div class="mb-4 flex items-center gap-3">
+    <span class="pi pi-search text-sm" style="color: var(--text-muted)"></span>
+    <input
+      type="text"
+      class="w-full max-w-xs rounded border bg-transparent px-3 py-1.5 font-mono text-[12px] outline-none transition-colors focus:border-primary-500"
+      style="border-color: var(--border-color); color: var(--text-primary)"
+      [placeholder]="'CHARACTERS.SEARCH_PLACEHOLDER' | translate"
+      [ngModel]="searchValue()"
+      (ngModelChange)="onSearchInput($event)"
+    />
+  </div>
+
+  <!-- Assets grid for the active type (progressive render + infinite scroll) -->
+  @if (visibleAssets().length === 0) {
     <p class="py-12 text-center italic" style="color: var(--text-muted)">
-      {{ 'CHARACTERS.ASSETS.EMPTY' | translate }}
+      @if (characters.loading()) {
+        {{ 'COMMON.LOADING' | translate }}
+      } @else {
+        {{ 'CHARACTERS.ASSETS.EMPTY' | translate }}
+      }
     </p>
   } @else {
+    <div class="max-h-[60vh] overflow-y-auto pr-1">
     <ul
       class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"
       data-testid="assets-grid"
@@ -119,6 +157,19 @@
               }
             </span>
 
+            <!-- Metadata popover trigger (the image itself opens the full viewer) -->
+            @if (preview && preview.fileIds.length > 0) {
+              <button
+                type="button"
+                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-white/80 transition-colors hover:text-white"
+                (click)="openCharacterFileInfo($event, a, preview.fileIds[0])"
+                [attr.aria-label]="'CHARACTERS.ACTIONS.METADATA' | translate"
+                [title]="'CHARACTERS.ACTIONS.METADATA' | translate"
+              >
+                <i class="pi pi-info text-[10px]"></i>
+              </button>
+            }
+
             @if (preview && shouldRenderImage(a) && preview.fileIds.length > 0) {
               <div class="absolute inset-0 grid gap-px" [class]="gridClass(preview.fileIds.length)">
                 @for (fid of preview.fileIds; track fid; let i = $index, last = $last) {
@@ -127,15 +178,16 @@
                       <img
                         [src]="fid | sourceThumbnailAsset"
                         [alt]="a.name"
-                        class="h-full w-full object-cover"
+                        class="h-full w-full cursor-pointer object-cover"
                         loading="lazy"
+                        (click)="openAssetViewer(a, fid)"
                         (error)="onPreviewError(a.id, fid)"
                       />
                     }
                     @if (last && preview.count > preview.fileIds.length) {
                       <span
                         aria-hidden="true"
-                        class="absolute inset-0 flex items-center justify-center bg-ink-950/60 font-mono text-[11px] text-fg-strong"
+                        class="absolute inset-0 flex items-center justify-center bg-ink-950/60 font-mono text-[11px] text-white"
                       >
                         +{{ preview.count - preview.fileIds.length }}
                       </span>
@@ -213,6 +265,23 @@
         </li>
       }
     </ul>
+
+    @if (loadMoreLoading()) {
+      <div class="flex items-center justify-center gap-2 py-4">
+        <i class="pi pi-spin pi-spinner" style="color: var(--text-muted)"></i>
+        <span class="text-[11px] italic" style="color: var(--text-muted)">Loading more…</span>
+      </div>
+    } @else if (hasMoreVisibleAssets()) {
+      <button
+        type="button"
+        class="mt-2 w-full rounded border py-2 text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:text-primary-500"
+        style="border-color: var(--border-color); color: var(--text-primary)"
+        (click)="loadMoreAssets()"
+      >
+        Load 50 more
+      </button>
+    }
+    </div>
   }
 
   <!-- Create wizard — drag & drop multi-file upload + auto-link -->
@@ -243,4 +312,14 @@
 
   <p-confirmDialog />
   <p-toast position="bottom-right" />
+
+  <!-- Asset metadata popover (character preview images) -->
+  <app-asset-info-popover #assetInfoPopover />
+
+  <!-- Full-screen asset viewer (same component as the Files module / shot builder) -->
+  <app-asset-viewer
+    [(visible)]="viewerVisible"
+    [file]="viewerFile()"
+    (visibleChange)="viewerFile.set(null)"
+  />
 </section>

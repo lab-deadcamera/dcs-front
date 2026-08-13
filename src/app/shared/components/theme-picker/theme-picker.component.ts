@@ -12,6 +12,13 @@ import { AUTH_PATHS } from '@app/core/constants';
   imports: [Popover, ButtonModule, TranslatePipe, LanguagePicker],
   templateUrl: './theme-picker.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+      ::ng-deep .pi-check {
+        top: 3px !important;
+      }
+    `,
+  ],
 })
 export class ThemePicker {
   private readonly router = inject(Router);

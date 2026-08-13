@@ -1,0 +1,77 @@
+::ng-deep .p-fileupload-advanced {
+  border: 0 !important;
+}
+
+::ng-deep .p-fileupload-header {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+::ng-deep .p-fileupload-content {
+  display: none !important;
+}
+
+/* Viewport for the sequence viewer — scrollable area */
+.sequence-viewer-wrap {
+  overflow-y: auto;
+  background: radial-gradient(120% 80% at 80% -10%, rgba(224,169,92,.07), transparent 55%),
+    radial-gradient(120% 90% at -10% 110%, rgba(79,176,181,.06), transparent 55%),
+    var(--bg, #0c1315);
+  color: var(--ink, #ece6d8);
+  height: 100%;
+}
+
+/* Full-screen preview panel: overlays the viewport */
+.preview-panel.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg, #0c1315);
+  overflow: hidden;
+}
+
+/* Full-screen editor panel: overlays the viewport */
+.editor-panel.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg, #0c1315);
+  overflow: hidden;
+}
+
+.preview-panel.fullscreen .sequence-viewer-wrap {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Line clamp for pre-prompt description */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for the chat area */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--ink-700, #3730a3);
+  border-radius: 2px;
+}
+
+/* Tab bar scrollable */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 2px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--ink-700, #3730a3);
+  border-radius: 1px;
+}

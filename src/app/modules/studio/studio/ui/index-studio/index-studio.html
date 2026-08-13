@@ -1,4 +1,4 @@
-<div class="flex flex-col bg-ink-950 text-fg">
+<div class="flex flex-col bg-surface-50 dark:bg-ink-950 text-fg h-[calc(100dvh_-_150px)]">
   <app-hero />
 
   <app-studio-breadcrumb
@@ -11,6 +11,8 @@
     [loadingScenes]="navLoadingScenes()"
     [loadingShots]="navLoadingShots()"
     [selectedSceneObj]="navSelectedScene()"
+    [showAssignmentButton]="isDirectorOrAdmin()"
+    [canManage]="true"
     [(selectedProjectId)]="navSelectedProjectId"
     [(selectedChapterId)]="navSelectedChapterId"
     [(selectedSceneId)]="navSelectedSceneId"
@@ -20,6 +22,12 @@
     (sceneChange)="onNavSceneChange($event)"
     (shotChange)="onNavShotChange($event)"
     (createShot)="onBreadcrumbCreateShot($event)"
+    (createChapter)="onBreadcrumbCreateChapter($event)"
+    (assignmentsChanged)="onChapterAssignmentsChanged()"
+    (editScene)="onBreadcrumbEditScene($event)"
+    (editShot)="onBreadcrumbEditShot($event)"
+    (deleteScene)="onBreadcrumbDeleteScene($event)"
+    (deleteShot)="onBreadcrumbDeleteShot($event)"
   />
 
   @if (studio.isReady()) {
@@ -65,9 +73,22 @@
       >
         <ng-template pTemplate>
           <section class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
-            <app-proncer />
-            <app-output-format />
+            @if (navSelectedChapterId() && !navSelectedShotId()) {
+              <app-shot-builder-panel
+                class="flex-1"
+                [projectId]="navSelectedProjectId()"
+                [chapterId]="navSelectedChapterId()"
+                [sceneId]="navSelectedSceneId()"
+                [projectName]="navSelectedProjectName()"
+                [chapterName]="navSelectedChapterName()"
+                [sceneName]="navSelectedSceneName()"
+                (shotsSaved)="onShotsSaved($event)"
+              />
+            } @else {
+              <app-character-assets (assetPicked)="onAssetPickedFromCharacters($event)" />
+              <app-proncer />
+              <app-output-format />
+            }
           </section>
         </ng-template>
         <ng-template pTemplate>
@@ -95,6 +116,7 @@
               [takes]="studio.activeTakes()"
               [discardedTakes]="studio.discardedTakes()"
               [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+              [ratings]="studio.takeRatings()"
               (selectTake)="onSelectTake($event)"
               (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
             />
@@ -132,6 +154,7 @@
             [takes]="studio.activeTakes()"
             [discardedTakes]="studio.discardedTakes()"
             [selectedTakeIndex]="studio.currentTake()?.index ?? 1"
+            [ratings]="studio.takeRatings()"
             (selectTake)="onSelectTake($event)"
             (toggleActive)="onToggleTakeActive($event.takeId, $event.takeIndex)"
           />
@@ -141,14 +164,30 @@
 
     <app-footer />
   } @else {
-    <div class="flex flex-1 flex-col items-center justify-center gap-4 py-24">
-      <i class="pi pi-camera text-5xl text-fg-muted opacity-30"></i>
-      <p class="text-[14px] font-medium text-fg-muted">Select or create a shot to start working</p>
-      <p class="max-w-md text-center text-[11px] text-fg-muted">
-        Choose a project, episode, and scene from the breadcrumb above, then pick an existing shot
-        or create a new one.
-      </p>
-    </div>
+    @if (!studio.isReady() && navSelectedChapterId()) {
+      <app-shot-builder-panel
+        class="flex-1 mb-4 h-100"
+        style="min-height: 400px"
+        [projectId]="navSelectedProjectId()"
+        [chapterId]="navSelectedChapterId()"
+        [sceneId]="navSelectedSceneId()"
+        [projectName]="navSelectedProjectName()"
+        [chapterName]="navSelectedChapterName()"
+        [sceneName]="navSelectedSceneName()"
+        (shotsSaved)="onShotsSaved($event)"
+      />
+    } @else {
+      <div class="flex flex-1 flex-col items-center justify-center gap-4 py-24">
+        <i class="pi pi-camera text-5xl text-fg-muted opacity-30"></i>
+        <p class="text-[14px] font-medium text-fg-muted">
+          Select or create a shot to start working
+        </p>
+        <p class="max-w-md text-center text-[11px] text-fg-muted">
+          Choose a project, episode, and scene from the breadcrumb above, then pick an existing shot
+          or create a new one.
+        </p>
+      </div>
+    }
   }
 </div>
 
@@ -180,7 +219,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '42rem' }"
-  header="Sync Queue"
+  [header]="'STUDIO.INDEX.SYNC_QUEUE' | translate"
 >
   @if (syncLoading()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading…</p>
@@ -193,16 +232,22 @@
       <table class="w-full text-[12px]">
         <thead>
           <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-            <th class="px-3 py-2 font-medium">File</th>
-            <th class="px-3 py-2 font-medium">Status</th>
-            <th class="px-3 py-2 font-medium">Sync date</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_FILE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_STATUS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_SYNC_DATE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'STUDIO.INDEX.COL_ACTIONS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (a of syncedAssets(); track a.id) {
             <tr class="border-t" style="border-color: var(--border-color)">
-              <td class="max-w-[200px] truncate px-3 py-2 font-mono text-[13px]">
-                {{ a.file_id }}
+              <td class="max-w-50 truncate px-3 py-2 font-mono text-[13px]">
+                <img
+                  [src]="a.file_id | sourceThumbnailAsset"
+                  alt="{{ a.file_id }}"
+                  class="h-10 w-10 rounded object-cover"
+                  loading="lazy"
+                />
               </td>
               <td class="px-3 py-2">
                 <span
@@ -217,11 +262,42 @@
                   {{ a.status }}
                 </span>
                 @if (a.error_message) {
-                  <p class="mt-0.5 text-[10px] text-red-400">{{ a.error_message }}</p>
+                  <p
+                    class="mt-0.5 max-w-44 truncate text-[10px] text-red-400"
+                    [tooltipPosition]="'top'"
+                    [pTooltip]="a.error_message || ''"
+                  >
+                    {{ a.error_message }}
+                  </p>
                 }
               </td>
               <td class="px-3 py-2 font-mono text-fg-muted">
                 {{ a.created_at | date: 'dd/MM/yy HH:mm' }}
+              </td>
+              <td class="px-3 py-2">
+                <div class="flex items-center gap-1">
+                  @if (a.status === 'failed' || a.status === 'syncing') {
+                    <p-button
+                      icon="pi pi-refresh"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      [pTooltip]="'ADMIN.GALLERIES.RETRY' | translate"
+                      [loading]="fixingId() === a.id"
+                      (onClick)="retrySyncAsset(a)"
+                    />
+                  }
+                  @if (a.status === 'failed') {
+                    <p-button
+                      icon="pi pi-sparkles"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      [pTooltip]="'ADMIN.GALLERIES.REGENERATE_AI' | translate"
+                      (onClick)="openAiDialog(a)"
+                    />
+                  }
+                </div>
               </td>
             </tr>
           }
@@ -234,10 +310,118 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Close"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="syncDialogVisible.set(false)"
       />
-      <p-button icon="pi pi-refresh" label="Refresh" (onClick)="openSyncDialog()" />
+      <p-button
+        icon="pi pi-refresh"
+        [label]="'STUDIO.INDEX.REFRESH' | translate"
+        (onClick)="openSyncDialog()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Regenerate with AI dialog (Sync Queue) -->
+<p-dialog
+  [visible]="aiDialogVisible()"
+  (visibleChange)="aiDialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '26rem' }"
+  [header]="'ADMIN.GALLERIES.REGENERATE_AI' | translate"
+>
+  @if (aiTarget(); as target) {
+    <div class="flex flex-col gap-3">
+      <p class="text-[12px] leading-relaxed text-fg-muted">
+        {{ 'ADMIN.GALLERIES.REGENERATE_BODY' | translate: { name: target.file_id } }}
+      </p>
+      <div class="flex flex-col gap-1">
+        <label for="ai-model" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'ADMIN.GALLERIES.IMAGE_MODEL' | translate
+        }}</label>
+        @if (aiLoadingModels()) {
+          <p class="text-[11px] italic text-fg-muted">
+            {{ 'ADMIN.GALLERIES.LOADING_MODELS' | translate }}
+          </p>
+        } @else if (aiImageModels().length > 0) {
+          <p-select
+            id="ai-model"
+            [options]="aiImageModels()"
+            optionLabel="name"
+            optionValue="id"
+            [ngModel]="aiModelId()"
+            (ngModelChange)="onAiModelChange($event)"
+            class="w-full"
+            appendTo="body"
+          />
+        } @else {
+          <p class="text-[11px] text-fg-muted">
+            {{ 'ADMIN.GALLERIES.NO_IMAGE_MODELS' | translate }}
+          </p>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="ai-ratio" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'ADMIN.GALLERIES.ASPECT_RATIO' | translate
+        }}</label>
+        <p-select
+          id="ai-ratio"
+          [options]="aiRatioOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="aiRatio()"
+          (ngModelChange)="aiRatio.set($event)"
+          class="w-full"
+          appendTo="body"
+        >
+          <ng-template pTemplate="item" let-item>
+            <div class="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                class="inline-block rounded-[2px] border border-primary-400/70 bg-primary-400/25"
+                [style.width.px]="item.w"
+                [style.height.px]="item.h"
+              ></span>
+              <span>{{ item.label }}</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="selectedItem" let-item>
+            <div class="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                class="inline-block rounded-[2px] border border-primary-400/70 bg-primary-400/25"
+                [style.width.px]="item.w"
+                [style.height.px]="item.h"
+              ></span>
+              <span>{{ item.label }}</span>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+      @if (fixingId() === target.id) {
+        <p class="flex items-center gap-2 text-[12px] italic text-fg-muted">
+          <i class="pi pi-spin pi-spinner"></i> {{ 'ADMIN.GALLERIES.GENERATING' | translate }}
+        </p>
+      }
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'COMMON.CANCEL' | translate"
+        [disabled]="fixingId() !== null"
+        (onClick)="aiDialogVisible.set(false)"
+      />
+      <p-button
+        icon="pi pi-sparkles"
+        [label]="'ADMIN.GALLERIES.GENERATE_SYNC' | translate"
+        [loading]="fixingId() === aiTarget()?.id"
+        (onClick)="regenerateSyncWithAI()"
+      />
     </div>
   </ng-template>
 </p-dialog>
@@ -250,7 +434,7 @@
   [closable]="true"
   [draggable]="false"
   [style]="{ width: '60rem', maxWidth: '95vw' }"
-  header="Vista previa del payload"
+  [header]="'STUDIO.IMAGE_GEN.PREVIEW_PAYLOAD' | translate"
 >
   @if (previewLoading()) {
     <p class="py-8 text-center text-[13px] italic text-fg-muted">Cargando…</p>
@@ -269,7 +453,7 @@
       <p-button
         severity="secondary"
         [text]="true"
-        label="Cerrar"
+        [label]="'COMMON.CLOSE' | translate"
         (onClick)="previewDialogVisible.set(false)"
       />
     </div>

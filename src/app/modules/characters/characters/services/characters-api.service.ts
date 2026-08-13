@@ -10,6 +10,7 @@ import {
   CharacterWire,
   CharacterWithFiles,
   CreateCharacterRequest,
+  PaginatedCharacters,
   UpdateCharacterRequest,
 } from '../interfaces';
 import { ResponseBase } from '@app/core/interfaces';
@@ -18,6 +19,37 @@ import { ResponseBase } from '@app/core/interfaces';
 export class CharactersApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.API_URL + '/characters';
+
+  listPage(params: {
+    page: number;
+    pageSize: number;
+    q?: string;
+  }): Observable<{ error: boolean; msg: string; data?: PaginatedCharacters }> {
+    const qs = new URLSearchParams();
+    qs.set('page', String(params.page));
+    qs.set('pageSize', String(params.pageSize));
+    if (params.q) qs.set('q', params.q);
+
+    const res = {
+      error: true,
+      msg: 'Error undefined',
+      data: undefined as PaginatedCharacters | undefined,
+    };
+
+    return this.http
+      .get<{ success: boolean; data?: PaginatedCharacters; message?: string }>(
+        `${this.apiUrl}/page?${qs.toString()}`,
+      )
+      .pipe(
+        map((r) => {
+          res.error = !r.success;
+          res.msg = r.message || '';
+          res.data = r.data;
+          return res;
+        }),
+        catchError(httpErrorHandler<PaginatedCharacters>),
+      );
+  }
 
   list(): Observable<{ error: boolean; msg: string; data?: CharacterWithFiles[] }> {
     return this.http.get<ResponseBase<CharacterWithFiles[]>>(this.apiUrl).pipe(

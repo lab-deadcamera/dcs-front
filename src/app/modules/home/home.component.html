@@ -1,0 +1,125 @@
+<div class="dashboard-container">
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <i class="pi pi-spin pi-spinner text-2xl op-50"></i>
+    </div>
+  }
+
+  @if (!loading()) {
+    <!-- Project selector -->
+    <div class="selector-bar">
+      <label>{{ 'HOME.PROJECT' | translate }}</label>
+      <p-select
+        [options]="projectOptions()"
+        [(ngModel)]="selectedProjectId"
+        optionValue="value"
+        optionLabel="label"
+        [placeholder]="'HOME.SELECT_PROJECT' | translate"
+        class="w-72"
+      />
+    </div>
+
+    @if (selectedProjectId()) {
+      <!-- Stats cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="pi pi-book stat-icon" style="color: #818cf8"></i>
+          <span class="stat-value">{{ stats().chapters }}</span>
+          <span class="stat-label">{{ 'HOME.CHAPTERS' | translate }}</span>
+        </div>
+        <div class="stat-card">
+          <i class="pi pi-video stat-icon" style="color: #34d399"></i>
+          <span class="stat-value">{{ stats().scenes }}</span>
+          <span class="stat-label">{{ 'HOME.SCENES' | translate }}</span>
+        </div>
+        <div class="stat-card">
+          <i class="pi pi-camera stat-icon" style="color: #fbbf24"></i>
+          <span class="stat-value">{{ stats().shots }}</span>
+          <span class="stat-label">{{ 'HOME.SHOTS' | translate }}</span>
+        </div>
+        <div class="stat-card">
+          <i class="pi pi-play stat-icon" style="color: #f472b6"></i>
+          <span class="stat-value">{{ stats().takes }}</span>
+          <span class="stat-label">{{ 'HOME.TAKES' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'HOME.CHART_SCENES_SHOTS' | translate }}</div>
+          <div class="chart-canvas-wrapper">
+            <canvas #barCanvas></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">{{ 'HOME.CHART_SHOT_PROGRESS' | translate }}</div>
+          <div class="chart-canvas-wrapper">
+            <canvas #doughnutCanvas></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakdown table -->
+      <div class="breakdown-section">
+        <div class="breakdown-title">{{ 'HOME.CHAPTER_BREAKDOWN' | translate }}</div>
+        @if (chapterRows().length === 0) {
+          <p class="op-50 py-4 text-center text-sm italic">{{ 'HOME.NO_CHAPTERS' | translate }}</p>
+        } @else {
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th>{{ 'HOME.CHAPTER' | translate }}</th>
+                <th class="text-center">{{ 'HOME.SCENES' | translate }}</th>
+                <th class="text-center">{{ 'HOME.SHOTS' | translate }}</th>
+                <th class="text-center">{{ 'HOME.TAKES' | translate }}</th>
+                <th class="text-center">{{ 'HOME.PROGRESS' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of chapterRows(); track row.id) {
+                <tr>
+                  <td>
+                    <span class="font-mono text-xs op-50">{{ row.number }}</span>
+                    <span class="ml-2">{{ row.name }}</span>
+                  </td>
+                  <td class="text-center font-mono">{{ row.scenes }}</td>
+                  <td class="text-center font-mono">{{ row.shots }}</td>
+                  <td class="text-center font-mono">{{ row.takes }}</td>
+                  <td class="text-center">
+                    @if (row.shots > 0) {
+                      <div class="flex items-center justify-center gap-1">
+                        <div
+                          class="h-1.5 w-16 overflow-hidden rounded-full bg-[var(--surface-border,#333)]"
+                        >
+                          <div
+                            class="h-full rounded-full transition-all"
+                            [style]="{
+                              width: (row.shotsWithTakes / row.shots * 100) + '%',
+                              background: row.shotsWithTakes > 0 ? '#34d399' : '#555',
+                            }"
+                          ></div>
+                        </div>
+                        <span class="font-mono text-xs">
+                          {{ (row.shotsWithTakes / row.shots * 100) | number:'1.0-0' }}%
+                        </span>
+                      </div>
+                    } @else {
+                      <span class="op-50 text-xs">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    } @else {
+      <!-- No project selected -->
+      <div class="flex flex-1 items-center justify-center py-16">
+        <p class="op-50 italic">{{ 'HOME.NO_PROJECT' | translate }}</p>
+      </div>
+    }
+  }
+</div>

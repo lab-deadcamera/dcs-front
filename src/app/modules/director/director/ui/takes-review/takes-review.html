@@ -1,80 +1,92 @@
 <section class="p-6">
   <div class="mb-6">
-    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Takes Review</h1>
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
+      {{ 'DIRECT.TAKES.TITLE' | translate }}
+    </h1>
     <p class="mt-1 text-[12px] text-fg-muted">
-      Review generated takes by scene and select the final take
+      {{ 'DIRECT.TAKES.SUBTITLE' | translate }}
     </p>
   </div>
 
   <div class="mb-4 flex flex-wrap items-end gap-3">
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Project</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.PROJECT' | translate
+      }}</label>
       <p-select
         [options]="projects()"
         optionLabel="label"
         optionValue="id"
         [ngModel]="selectedProjectId()"
         (ngModelChange)="onProjectChange($event)"
-        placeholder="Select project"
+        [placeholder]="'DIRECT.TAKES.SELECT_PROJECT' | translate"
         [showClear]="true"
         styleClass="w-56"
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Chapter</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.CHAPTER' | translate
+      }}</label>
       <p-select
         [options]="chapters()"
         optionLabel="label"
         optionValue="id"
         [ngModel]="selectedChapterId()"
         (ngModelChange)="onChapterChange($event)"
-        placeholder="Select chapter"
+        [placeholder]="'DIRECT.TAKES.SELECT_CHAPTER' | translate"
         [showClear]="true"
         styleClass="w-56"
         [disabled]="!selectedProjectId() || loadingChapters()"
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Scene</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.SCENE' | translate
+      }}</label>
       <p-select
         [options]="scenes()"
         optionLabel="label"
         optionValue="id"
         [ngModel]="selectedSceneId()"
         (ngModelChange)="onSceneChange($event)"
-        placeholder="Select scene"
+        [placeholder]="'DIRECT.TAKES.SELECT_SCENE' | translate"
         [showClear]="true"
         styleClass="w-56"
         [disabled]="!selectedChapterId() || loadingScenes()"
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">Shot</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'DIRECT.TAKES.SHOT' | translate
+      }}</label>
       <p-select
         [options]="shots()"
         optionLabel="label"
         optionValue="id"
         [ngModel]="selectedShotId()"
         (ngModelChange)="onShotChange($event)"
-        placeholder="Select shot"
+        [placeholder]="'DIRECT.TAKES.SELECT_SHOT' | translate"
         [showClear]="true"
         styleClass="w-56"
         [disabled]="!selectedSceneId() || loadingShots()"
       />
     </div>
     <p-button
-      label="Refresh"
+      [label]="'DIRECT.TAKES.REFRESH' | translate"
       icon="pi pi-refresh"
       severity="secondary"
       (onClick)="loadTakes()"
       [disabled]="!selectedShotId()"
-      pTooltip="Reload takes for the selected shot"
+      [pTooltip]="'DIRECT.TAKES.REFRESH_TOOLTIP' | translate"
       tooltipPosition="top"
     />
   </div>
 
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">Loading...</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'DIRECT.TAKES.LOADING' | translate }}
+    </p>
   }
 
   @if (!loading() && takes().length > 0) {
@@ -82,19 +94,22 @@
       <table class="w-full text-[12px]">
         <thead>
           <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-            <th class="px-3 py-2 font-medium">Take</th>
-            <th class="px-3 py-2 font-medium">Preview</th>
-            <th class="px-3 py-2 font-medium">Status</th>
-            <th class="px-3 py-2 font-medium">Active</th>
-            <th class="px-3 py-2 font-medium">Final</th>
-            <th class="px-3 py-2 font-medium">Date</th>
-            <th class="w-40 px-3 py-2 font-medium">Actions</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_TAKE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_PREVIEW' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_STATUS' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_ACTIVE' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_FINAL' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_RATING' | translate }}</th>
+            <th class="px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_DATE' | translate }}</th>
+            <th class="w-40 px-3 py-2 font-medium">{{ 'DIRECT.TAKES.COL_ACTIONS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (t of takes(); track t.id) {
-            <tr class="border-t border-ink-700" [class.bg-green-900/10]="t.final">
-              <td class="px-3 py-2 font-mono font-bold">Take {{ t.number }}</td>
+            <tr class="border-t border-ink-700" [class.bg-green-900]="t.final">
+              <td class="px-3 py-2 font-mono font-bold text-fg-muted">
+                {{ 'DIRECT.TAKES.TAKE_NUMBER' | translate: { n: t.number } }}
+              </td>
               <td class="px-3 py-2">
                 @if (t.video_local_url || t.video_url) {
                   <video
@@ -105,7 +120,7 @@
                     muted
                   ></video>
                 } @else {
-                  <span class="text-fg-muted">No video</span>
+                  <span class="text-fg-muted">{{ 'DIRECT.TAKES.NO_VIDEO' | translate }}</span>
                 }
               </td>
               <td class="px-3 py-2">
@@ -122,7 +137,7 @@
               </td>
               <td class="px-3 py-2">
                 @if (t.active) {
-                  <span class="text-green-400">● Active</span>
+                  <span class="text-green-400">● {{ 'DIRECT.TAKES.ACTIVE' | translate }}</span>
                 } @else {
                   <span class="text-fg-muted">○</span>
                 }
@@ -131,8 +146,23 @@
                 @if (t.final) {
                   <span
                     class="inline-flex items-center rounded-full bg-yellow-900/40 px-2 py-0.5 text-[10px] font-bold uppercase text-yellow-400"
-                    >★ Final</span
+                    >★ {{ 'DIRECT.TAKES.FINAL' | translate }}</span
                   >
+                }
+              </td>
+              <td class="px-3 py-2">
+                @if (t.rating && t.rating > 0) {
+                  <span class="text-accent-500">
+                    @if (isChecksRating()) {
+                      {{ ratingSymbols(t.rating) }}
+                    } @else {
+                      @for (s of [1, 2, 3, 4, 5]; track s) {
+                        {{ s <= t.rating ? '★' : '☆' }}
+                      }
+                    }
+                  </span>
+                } @else {
+                  <span class="text-fg-muted">—</span>
                 }
               </td>
               <td class="whitespace-nowrap px-3 py-2 font-mono text-fg-muted">
@@ -142,7 +172,7 @@
                 <div class="flex gap-1">
                   @if (!t.final && t.video_local_url) {
                     <p-button
-                      pTooltip="Select this take as the best take for this scene."
+                      [pTooltip]="'DIRECT.TAKES.SET_FINAL_TOOLTIP' | translate"
                       tooltipPosition="top"
                       icon="pi pi-star"
                       severity="contrast"
@@ -153,7 +183,7 @@
                   }
                   @if (t.video_url && !t.video_local_url) {
                     <p-button
-                      pTooltip="Save this take on server."
+                      [pTooltip]="'DIRECT.TAKES.SAVE_TOOLTIP' | translate"
                       tooltipPosition="top"
                       icon="pi pi-cloud-upload"
                       severity="info"
@@ -164,7 +194,7 @@
                   }
                   @if (t.request_payload) {
                     <p-button
-                      pTooltip="View generation payload."
+                      [pTooltip]="'DIRECT.TAKES.PAYLOAD_TOOLTIP' | translate"
                       tooltipPosition="top"
                       icon="pi pi-info-circle"
                       severity="help"
@@ -174,7 +204,7 @@
                   }
                   @if (t.video_local_url) {
                     <p-button
-                      pTooltip="View this take in a full-screen video player."
+                      [pTooltip]="'DIRECT.TAKES.PREVIEW_TOOLTIP' | translate"
                       tooltipPosition="top"
                       icon="pi pi-eye"
                       severity="contrast"
@@ -182,7 +212,7 @@
                       (onClick)="openPreview(t)"
                     />
                     <p-button
-                      pTooltip="Download this take to your local machine for offline editing."
+                      [pTooltip]="'DIRECT.TAKES.DOWNLOAD_TOOLTIP' | translate"
                       tooltipPosition="top"
                       icon="pi pi-download"
                       severity="info"
@@ -201,7 +231,9 @@
   }
 
   @if (!loading() && takes().length === 0 && selectedShotId()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">No takes found for this shot.</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'DIRECT.TAKES.EMPTY' | translate }}
+    </p>
   }
 
   <p-dialog
@@ -214,7 +246,7 @@
   >
     <ng-template pTemplate="header">
       <span class="text-sm font-bold uppercase tracking-wider">
-        Take {{ previewTake()?.number }}
+        {{ 'DIRECT.TAKES.TAKE_NUMBER' | translate: { n: previewTake()?.number } }}
       </span>
     </ng-template>
     @if (previewTake(); as take) {
@@ -238,7 +270,7 @@
   >
     <ng-template pTemplate="header">
       <span class="text-sm font-bold uppercase tracking-wider">
-        Payload — Take {{ payloadTake()?.number }}
+        {{ 'DIRECT.TAKES.PAYLOAD_TITLE' | translate: { n: payloadTake()?.number } }}
       </span>
     </ng-template>
     @if (payloadTake(); as take) {

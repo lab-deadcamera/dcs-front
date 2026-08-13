@@ -40,10 +40,22 @@
               }
               <!-- Take number badge -->
               <span
-                class="pointer-events-none absolute bottom-1 left-1 rounded bg-ink-950/70 px-1.5 font-mono text-[10px] text-fg-strong"
+                class="pointer-events-none absolute bottom-1 left-1 rounded bg-ink-950/70 px-1.5 font-mono text-[10px] text-white"
               >
                 T{{ take.number | number: '2.0' }}
               </span>
+              <!-- Rating badge -->
+              @if (ratings()[take.index]; as r) {
+                <span
+                  class="pointer-events-none absolute bottom-1 right-1 rounded bg-ink-950/70 px-1 font-mono text-[9px] text-accent-500"
+                >
+                  @if (isChecksRating()) {
+                    {{ ratingSymbols(r) }}
+                  } @else {
+                    ★{{ r }}
+                  }
+                </span>
+              }
               <!-- Active indicator -->
               <span
                 class="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full"

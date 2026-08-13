@@ -1,0 +1,470 @@
+{
+  "episode": {
+    "title": "EPISODE 16: EXPERTISE",
+    "totalDuration": 50,
+    "totalShots": 6,
+    "assetAssignments": [
+      {
+        "slot": "[Image1]",
+        "assetId": "wyatt_adult",
+        "type": "character"
+      },
+      {
+        "slot": "[Image2]",
+        "assetId": "dixie_adult",
+        "type": "character"
+      },
+      {
+        "slot": "[Image3]",
+        "assetId": "dixie_15",
+        "type": "character"
+      },
+      {
+        "slot": "[Image4]",
+        "assetId": "destiny_15",
+        "type": "character"
+      },
+      {
+        "slot": "[Image5]",
+        "assetId": "wyatt_kitchen_plate",
+        "type": "location"
+      },
+      {
+        "slot": "[Image6]",
+        "assetId": "convenience_store_plate",
+        "type": "location"
+      },
+      {
+        "slot": "[Image7]",
+        "assetId": "gas_station_parking_lot_plate",
+        "type": "location"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scriptNumber": 56,
+      "scriptLocation": "INT. WYATT'S KITCHEN — DAY",
+      "title": "Wyatt Pressures Dixie",
+      "description": "Wyatt paces frantically, demanding answers about a dangerous plan. Dixie remains silent and unmoved by his desperation.",
+      "duration": 12,
+      "start": 0,
+      "end": 12,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S KITCHEN — DAY",
+        "locationChange": false,
+        "timeContinuity": "DAY — episode opening, present day",
+        "charactersPresent": ["Wyatt (adult)", "Dixie (adult)"],
+        "emotionalCarryover": "N/A — scene opens episode",
+        "physicalCarryover": "N/A — scene opens episode",
+        "wardrobeCarryover": "N/A — scene opens episode",
+        "notes": ["Cold open. Wyatt mid-panic. Dixie's silence is the power in this exchange."]
+      },
+      "references": [
+        {
+          "slot": "[Image1]",
+          "assetId": "wyatt_adult",
+          "type": "character"
+        },
+        {
+          "slot": "[Image2]",
+          "assetId": "dixie_adult",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "wyatt_kitchen_plate",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "name": "Wyatt's pacing panic",
+          "description": "Wide shot of Wyatt pacing back and forth across the kitchen while delivering his threat warning. Camera handheld, subtle dolly following his arc.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "wyatt_adult",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "wyatt_kitchen_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image5]\n\nScene and Mood: Wyatt strides back and forth across the small kitchen in rigid, jerking motions, hands gesticulating sharply, jaw clenched. His objective is to corner Dixie into confession—to provoke. The air is suffocating and pitched toward crisis.\n\nComposition: Wyatt dominates the center and left two-thirds of frame, moving laterally. The kitchen counter and cabinets anchor the background. His body language reads coiled tension—shoulders hunched up, jaw working, eyes darting.\n\nSpace and Mélange: Cramped residential kitchen, teal-amber color grade, fine 35mm grain. Daylight floods through a window off-screen left, casting sharp shadows across the linoleum and stainless steel surfaces. Wyatt's shirt is partially untucked. The space feels airless—no escape route.\n\nCross-Shot Rule: Wyatt alone in this shot; Dixie appears only in the reverse (shot 56B).\n\nAction: 0s—Wyatt turns sharply from screen right, begins pacing stage left with deliberate strides. At 2s, his hands rise and tighten into fists while speaking (dialogue begins). At 4s, he pivots hard at the counter edge and reverses direction, jaw clenched tight, nostrils subtly flaring (micro-fidget: one-frame nostril flare at 3.8s). His gaze remains fixed ahead, refusing to meet Dixie. At 5.5s, he slows to a stop, shoulders still elevated.\n\nDialogue: \"If it were that simple, why haven't you done it before? We're talking about going to jail, or even dying if things go south!!!\" Spoken with rising urgency, voice cracking slightly at the final exclamation.\n\nEnding Shot: Wyatt frozen mid-stride, hands clenched at his sides, staring into the middle distance.\n\nEnvironmental Base: Compact residential kitchen, midday natural light, teal-amber grade, shadows sharp and defined, linoleum and aged cabinetry visible. Temperature reads cold despite daylight.\n\nSound Layer: Footsteps on linoleum, subtle creak of floorboards under weight, shallow rapid breathing audible.\n\nCapture as handheld operator-breath naturalism—subtle frame jitter as if the camera is a witness in the room. Vintage 2x anamorphic, 55mm equivalent, 24fps, 180-degree shutter, color-negative stock with fine grain. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6
+        },
+        {
+          "number": 2,
+          "name": "Wyatt stops and turns to Dixie",
+          "description": "Wyatt halts mid-stride and rotates to face Dixie. Single shot on Wyatt's face as he delivers his final desperate plea.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "wyatt_adult",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "wyatt_kitchen_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image5]\n\nScene and Mood: Wyatt plants his feet and turns to face the camera. His face reads desperation—pleading, testing Dixie for any sign of certainty. His objective is to extract from her what she knows that makes this plan survivable.\n\nComposition: Close-up on Wyatt's face, centered. Kitchen counter visible as soft blur in background. Daylight sculpts half his face; the other half sits in shadow—visual metaphor for his uncertainty.\n\nSpace and Mélange: Same kitchen. Wyatt's body is now stationary, rigid, weight shifted onto his back foot. His hands hang at his sides, fingernails digging into his palms. Eyes locked forward, searching. Face slightly flushed, forehead tension visible.\n\nCross-Shot Rule: Single on Wyatt; reverse will be Dixie in 56C.\n\nAction: 0s—Wyatt's shoulders square forward, torso rotates to face camera. At 1s, his mouth opens slightly (micro-fidget: asymmetrical lip corner tension—right side curls barely perceptibly, reads as doubt mixed with pleading). At 2s, his brows lift incrementally, forehead lines deepen. Eyes remain fixed, pupils slightly dilated. At 3s, he draws a sharp breath through his nose—nostril flare, held for 0.5s. His jaw trembles fractionally—barely perceptible muscular exhaustion from holding composure.\n\nDialogue: \"What do you know that I don't?\" Delivered as a whisper-shout, voice breaking at the final syllable.\n\nEnding Shot: Wyatt's face locked in pleading intensity, eyes glistening, mouth slightly open, waiting for her response.\n\nEnvironmental Base: Same kitchen, midday light, teal-amber grade. Shadows define half his face.\n\nSound Layer: His intake of breath, lips parting with faint moisture click, subtle background hum of refrigerator.\n\nClose handheld locked-off on face, operator breath just barely visible in micro-jitter. Vintage 2x anamorphic, 75mm equivalent, 24fps, 180-degree shutter, color-negative. Runtime 4 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 4
+        },
+        {
+          "number": 3,
+          "name": "Dixie's silent stare",
+          "description": "Reverse shot: Dixie, completely unmoved, stares back at Wyatt with flat indifference. She doesn't blink.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "dixie_adult",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "wyatt_kitchen_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5]\n\nScene and Mood: Dixie sits or leans, entirely composed, returning Wyatt's gaze with absolute flatness. She is not dismissive—she is holding the line, refusing to flinch. Her power in this moment is inertness.\n\nComposition: Dixie centered in frame, background slightly soft-focused kitchen. Her face fills the upper third of frame, eyes locked at the camera (eyeline matches Wyatt's in reverse).\n\nSpace and Mélange: Same kitchen. Dixie's posture is loose, shoulders relaxed. Her jaw is relaxed. Her eyes are wide-open, unblinking, pupils at normal dilation. No tension in her facial musculature—she is deliberately not reacting.\n\nCross-Shot Rule: Match Wyatt's eyeline precisely. Dixie's gaze stays constant, unbroken, for the full duration.\n\nAction: 0s—Dixie's head is already turned toward Wyatt (implicit from previous shot). She does not shift position. At 0.5s, her eyes track infinitesimally—a 2-frame micro-dart to the left (to the side of her own vision), then immediately back to Wyatt's position. At 1.2s, she blinks once—slow, measured, one eyelid descending a millisecond before the other (uneven biological blink). No dialogue. Silence is her language.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie's face, unblinking, still staring directly at Wyatt. Absolute flatness. No expression. No surrender.\n\nEnvironmental Base: Kitchen, same midday light, teal-amber. Dixie's face sculpted by window light.\n\nSound Layer: Refrigerator hum, Wyatt's breathing (off-camera), faint ambient room tone.\n\nLocked handheld, tight on Dixie's face. Vintage 2x anamorphic, 75mm equivalent, 24fps, 180-degree shutter, color-negative. The power of her inaction is the entire shot. Runtime 2 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "scriptNumber": 57,
+      "scriptLocation": "INT. CONVENIENCE STORE - NIGHT (FLASHBACK - HALLOWEEN 2015 / DIXIE IS 15)",
+      "title": "The Robbery Setup",
+      "description": "Dixie (15) and Destiny (15) wait in the convenience store, masked and ready. Two armed robbers burst in and hold the clerk at gunpoint while the girls move to the counter.",
+      "duration": 24,
+      "start": 12,
+      "end": 36,
+      "sceneType": "flashback",
+      "mode": "M3",
+      "continuity": {
+        "location": "INT. CONVENIENCE STORE - NIGHT",
+        "locationChange": true,
+        "timeContinuity": "SMASH CUT to FLASHBACK — Halloween 2015, eight years prior. Same day/same robbery, no temporal gap within the flashback.",
+        "charactersPresent": [
+          "Dixie (15)",
+          "Destiny (15)",
+          "Young Clerk (20s)",
+          "Two Monster-Masked Robbers"
+        ],
+        "emotionalCarryover": "N/A — flashback break. But note: this scene explains Dixie's cold confidence in present day.",
+        "physicalCarryover": "N/A — different timeline, younger bodies.",
+        "wardrobeCarryover": "Halloween cat masks, casual teenage clothing.",
+        "notes": [
+          "Flashback must read as OLDER, GRAINIER, DESATURATED, SHAKY. M3 mode—action/combat energy.",
+          "This is NOT a cute Halloween moment—it is a professional operation executed by teenagers with zero hesitation.",
+          "The moment the gun is drawn, Dixie and Destiny move. NO HESITATION. That timing is the entire subtext."
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image3]",
+          "assetId": "dixie_15",
+          "type": "character"
+        },
+        {
+          "slot": "[Image4]",
+          "assetId": "destiny_15",
+          "type": "character"
+        },
+        {
+          "slot": "[Image6]",
+          "assetId": "convenience_store_plate",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "name": "Dixie and Destiny waiting, masked",
+          "description": "Wide shot of the convenience store interior. Dixie and Destiny stand in separate aisles wearing plastic cat masks, waiting for the signal. The clerk is distracted with a magazine behind the counter.",
+          "references": [
+            {
+              "slot": "[Image3]",
+              "assetId": "dixie_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image4]",
+              "assetId": "destiny_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "convenience_store_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image3] [Image4] [Image6]\n\nScene and Mood: Two teenagers in plastic cat masks stand motionless in a convenience store aisles, surrounded by cheap plastic Halloween pumpkins and eerie orange neon lights. They are waiting for the signal to move. The store feels trapped, claustrophobic, hyperreal.\n\nComposition: Dixie stands in the left-center aisle, Destiny in the right-center aisle, both roughly equidistant from the counter visible in the background. The store's orange neon casts unnatural color across their bodies. Shelves frame them vertically. The clerk sits behind the counter, visible but not the primary focus.\n\nSpace and Mélange: Convenience store interior—fluorescent overhead lights mixed with orange neon strip lighting creating sickly pallor. Plastic pumpkins clutter shelves and floor surfaces. The floor is linoleum, slightly worn. Air reads stale, trapped. Visual palette: desaturated, cool-toned, grainier than present day—older stock, heavier 35mm grain, slight haze. Dixie and Destiny wear casual teenage clothing under their masks—hoodies, jeans. Their physical posture is frozen, waiting. Eyes visible through mask eyeholes.\n\nCross-Shot Rule: Two subjects in one shot. Dixie on left, Destiny on right. Both facing toward the counter (toward the clerk and off-screen entrance). Eyelines converge on an off-screen signal point.\n\nAction: 0s—Camera locks in a handheld wide shot, steady for 1.5s (establishing the geometry). At 1.5s, Dixie's head turns a fraction—less than 5 degrees—toward Destiny (micro-fidget: micro-dart eye movement through mask eyeholes, barely perceptible). At 2s, Destiny's chin lifts almost imperceptibly, nodding acknowledgment. At 3s, both return gaze to off-screen (toward the entrance/counter). At 4s, the camera begins a slow, tense push-forward—glacial dolly into the space, increasing spatial tension. Both girls' bodies remain motionless. At 5.5s, camera locks.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Wide view of both girls in aisles, masks on, frozen, waiting. Camera closer than opening.\n\nEnvironmental Base: Convenience store, nighttime, orange neon lighting mixed with sickly fluorescent overhead. Plastic Halloween decoration clutter. Linoleum floor. Cool-desaturated color palette, heavier grain than present-day scenes.\n\nSound Layer: Fluorescent hum, faint distant traffic outside, the rustle of magazine pages (off-camera clerk), faint ambient night-store ambience.\n\nHandheld M3 mode—shaky, desaturated, aged stock appearance. Vintage 2x anamorphic, 40mm equivalent, 24fps, 180-degree shutter, color-negative with heavier grain and dust haze typical of 2015 memory footage. Camera jitter reads as surveillance-camera naturalism. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6
+        },
+        {
+          "number": 2,
+          "name": "Door bursts open—robbers enter",
+          "description": "The store door flies open. Two figures in terrifying monster masks burst inside. One draws a handgun and points it at the clerk.",
+          "references": [
+            {
+              "slot": "[Image6]",
+              "assetId": "convenience_store_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image6]\n\nScene and Mood: The convenience store door slams open violently. Two masked figures in terrifying monster costumes burst through the frame. One immediately draws a handgun and levels it at the clerk. The air explodes into crisis and controlled chaos.\n\nComposition: Door frame dominates screen left. The two robbers fill the center and right of frame as they enter. The clerk sits behind the counter in background, suddenly frozen in shock. Orange neon and fluorescent light create stark contrast and shadow play.\n\nSpace and Mélange: Same convenience store. The door opens to black night beyond. As the robbers enter, their bodies move fast, purposeful, coordinated. The masked figure on the left reaches for the gun. Orange neon casts gruesome light across the monster masks, distorting their faces into grotesque shapes. Pumpkins and shelving blur as background noise.\n\nCross-Shot Rule: N/A—no character continuity into this shot. Objective focus is on the robbers' entrance and the gun being drawn.\n\nAction: 0s—Door frame is empty. At 0.3s, door explodes inward (off-screen push). At 0.4s, first masked figure crosses screen left to center, body moving laterally at high speed. At 0.6s, second figure follows, also moving fast. At 1.2s, the first figure (screen left robber) reaches across his body and draws the handgun from waistband. At 1.5s, gun is fully visible, arm extended toward the clerk. At 2s, the robber's mouth opens (behind mask, muffled scream begins—dialogue). At 2.2s, both figures are planted in the center of the store, gun trained on the clerk. At 3.5s, bodies hold position, gun steady.\n\nDialogue: \"Don't fucking move! Hands where I can see them!\" (Screamed, muffled through monster mask, creating chaotic distraction.)\n\nEnding Shot: Both robbers centered in frame, gun aimed at clerk, moment of high tension.\n\nEnvironmental Base: Convenience store interior, nighttime, orange neon + fluorescent, Halloween pumpkins visible but secondary to the violence.\n\nSound Layer: Door slam, footsteps on linoleum (two sets, rapid), gun being drawn (metallic slide sound, sharp), muffled scream behind mask, clerk's shocked gasp.\n\nShaky handheld M3 mode—pit-photographer energy, fast cuts implied though this is one shot. Vintage 2x anamorphic, 40mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain, slight haze. The jitter reads as action-camera realism. Runtime 4 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 4
+        },
+        {
+          "number": 3,
+          "name": "Dixie and Destiny move to counter",
+          "description": "The moment the gun is drawn, Dixie and Destiny react instantly, moving behind the counter with synchronized, lightning-fast movements to begin the heist.",
+          "references": [
+            {
+              "slot": "[Image3]",
+              "assetId": "dixie_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image4]",
+              "assetId": "destiny_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "convenience_store_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image3] [Image4] [Image6]\n\nScene and Mood: The moment the gun is drawn, Dixie and Destiny explode into motion. No hesitation, no pause. They move toward the counter with mechanical precision—this is a choreographed operation executed a hundred times in rehearsal. The objective is to move fast, grab, bag, exit. Zero deviation.\n\nComposition: Wide shot from a new angle showing both Dixie and Destiny in motion. Dixie moves toward the cash register (frame left side of counter), Destiny moves toward the bagging area (frame right side of counter). Both move laterally across frame in synchronized strides. The robbers remain background-right, keeping the clerk pinned.\n\nSpace and Mélange: Convenience store counter in focus. The counter surface is visible—register, items, bagging area. Dixie reaches the register on the left; Destiny reaches the bagging area on the right. Both bodies move low and fast, minimizing profile. Their teenage frames contrast with the adult robbers in background. Orange neon casts long shadows across the counter surface.\n\nCross-Shot Rule: Two subjects moving in parallel. Both cross frame in same temporal rhythm, perfectly synchronized. Their movements MUST feel rehearsed and identical—no improvisation.\n\nAction: 0s—Both girls explode forward from their waiting positions. At 0.5s, Dixie reaches the register (frame left), hands already extended. At 0.7s, Destiny reaches the bagging area (frame right), also hands-ready. At 1s, Dixie's hands plunge into the register drawer (camera can show her hand motion or register opening). At 1.2s, Destiny begins pulling bills from register into a bag (she is receiving from Dixie or independently extracting). At 2s, both are in full extraction mode—hands moving fast, mechanical, zero wasted motion. At 3.5s, Dixie's hands begin to pull money out of the register in fistfuls. At 4s, Destiny's hands are already stuffing bills into a small backpack or duffel. At 5.5s, both pause fractionally (the money is loaded), ready to move to exit.\n\nDialogue: None—Silent shot. (Only the muffled robber dialogue and clerk screams from previous shot carry as ambient.)\n\nEnding Shot: Dixie at register with last fistful of cash, Destiny with bag, both bodies coiled and ready to sprint.\n\nEnvironmental Base: Convenience store, counter surface in sharp focus. Orange neon + fluorescent lighting. Pumpkins and shelving blur in background. The space reads tight, time-compressed, high-stakes.\n\nSound Layer: Rapid footsteps on linoleum, register drawer slam, bills rustling and crumpling into bag, faint screams from robbers (muffled, background), clerk's sounds in distant background.\n\nShaky handheld M3 mode—fast, energy-driven pit-photographer framing. Camera follows the motion with slight lag, creating visceral realism. Vintage 2x anamorphic, 40mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain. The pace reads real-time, no slow-motion. Runtime 6 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 6
+        },
+        {
+          "number": 4,
+          "name": "The robbery is complete—they exit",
+          "description": "Dixie and Destiny finish loading the money and begin moving toward the exit. The robbers are still controlling the clerk.",
+          "references": [
+            {
+              "slot": "[Image3]",
+              "assetId": "dixie_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image4]",
+              "assetId": "destiny_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "convenience_store_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image3] [Image4] [Image6]\n\nScene and Mood: The extraction is complete. Dixie and Destiny begin to move toward the exit. Their bodies are no longer tense—they are executing the final phase of a successful operation. The moment stretches.\n\nComposition: Both girls visible in frame, beginning to move left and backward (toward the door, off-screen). The counter and cash register visible in the background showing the now-empty extraction point. Robbers remain background-right, still pinning the clerk.\n\nSpace and Mélange: Same convenience store. Dixie and Destiny's bodies transition from extraction crouch to forward motion. Bags or hands holding cash are visible. The store's orange neon casts final light across their teenage frames.\n\nCross-Shot Rule: Both girls exit frame in parallel, maintaining their synchronized rhythm.\n\nAction: 0s—Dixie and Destiny straighten slightly from the counter crouch. At 0.5s, both turn toward the door (screen left) and begin moving laterally across frame. At 1s, their bodies are fully in exit motion, faces forward, focused. At 1.5s, they reach the frame edge (about to exit). Their movements read controlled, not panicked—they are not sprinting yet; they are walking fast and purposefully.\n\nDialogue: None—Silent shot.\n\nEnding Shot: Dixie and Destiny at the edge of frame, about to exit the store door, bags/cash visible in their hands or possession.\n\nEnvironmental Base: Convenience store interior, orange neon, nighttime, pumpkins and shelving visible. The door appears on screen left as they approach.\n\nSound Layer: Rapid footsteps on linoleum, faint rustling of bags/money, muffled robber screams in distant background (still controlling clerk).\n\nContinuous handheld M3 mode—camera pans/tilts smoothly to follow the girls toward the exit. Vintage 2x anamorphic, 40mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain. The movement is smooth but purposeful, never rushed. Runtime 2 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "scriptNumber": 58,
+      "scriptLocation": "EXT. GAS STATION - PARKING LOT — NIGHT (CONTINUOUS)",
+      "title": "The Escape and Arrest",
+      "description": "Dixie sprints through the parking lot with the money. Police sirens cut through the night. Destiny trips and is arrested while Dixie abandons her and escapes into darkness.",
+      "duration": 8,
+      "start": 30,
+      "end": 38,
+      "sceneType": "flashback",
+      "mode": "M3",
+      "continuity": {
+        "location": "EXT. GAS STATION - PARKING LOT — NIGHT",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — immediate exterior continuation from store robbery. Same night.",
+        "charactersPresent": [
+          "Dixie (15)",
+          "Destiny (15)",
+          "Police Officer",
+          "Two Monster-Masked Robbers (background)"
+        ],
+        "emotionalCarryover": "From previous shot: success and forward momentum. NOW SHATTERED by Destiny's arrest. This is the emotional fulcrum of the entire episode.",
+        "physicalCarryover": "Dixie and Destiny exit the store holding money, now sprinting. Both breathing hard, legs pumping.",
+        "wardrobeCarryover": "Same cat masks visible or discarded. Casual teenage clothing. Dixie is holding the cash bag.",
+        "notes": [
+          "This scene is the KEY to understanding present-day Dixie's ruthlessness.",
+          "Destiny's scream—pure terror—must contrast sharply with Dixie's cold decision to keep running.",
+          "The moment Dixie looks back, hesitates, then abandons Destiny is the entire subtext of the episode."
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image3]",
+          "assetId": "dixie_15",
+          "type": "character"
+        },
+        {
+          "slot": "[Image4]",
+          "assetId": "destiny_15",
+          "type": "character"
+        },
+        {
+          "slot": "[Image7]",
+          "assetId": "gas_station_parking_lot_plate",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "name": "Dixie sprinting with money",
+          "description": "Dixie runs hard through the dark parking lot, clutching the money bag. Police sirens wail in the distance. Blue and red lights begin to strobe against the surfaces.",
+          "references": [
+            {
+              "slot": "[Image3]",
+              "assetId": "dixie_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image7]",
+              "assetId": "gas_station_parking_lot_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image3] [Image7]\n\nScene and Mood: Dixie sprints through a dark parking lot. Her lungs are burning. The money bag is clutched tight to her body. In the distance, police sirens cut the night. Blue and red lights begin strobing across the asphalt, gas pumps, parked cars—a kaleidoscope of threat.\n\nComposition: Dixie moves screen left to right, body in full sprint. Her frame is center to left of screen. The parking lot—asphalt, gas pumps, parked cars—recedes behind her as she gains ground. Strobing police lights cast her in alternating blue and red shadow.\n\nSpace and Mélange: Exterior gas station parking lot at night. Asphalt wet from earlier rain. Gas pumps visible in mid-ground, parked cars, distant streetlights. The sky is pitch-black. Police light from off-screen right sweeps across surfaces, creating moving shadows and contrast. Color palette: desaturated, cool blues and reds from emergency lights, heavy 35mm grain, slight haze. Air reads cold and thin.\n\nCross-Shot Rule: Dixie alone in this shot; Destiny enters and becomes focal point in shot 58B.\n\nAction: 0s—Dixie's legs pump hard, arms driving, body leaning forward in full-sprint posture. At 0.8s, her head turns fractionally—a single glance over her shoulder (micro-fidget: 2-frame eye-dart backward). At 1.2s, she refocuses forward. At 1.5s, the first police siren wail cuts into audio (muted until now). At 1.8s, blue and red emergency lights begin strobing across the parking lot surfaces. Dixie's body tenses fractionally but continues the sprint without deviation. At 2.5s, her breathing is audible—rapid, controlled, athletic.\n\nDialogue: None—Silent shot (sirens begin as ambient).\n\nEnding Shot: Dixie mid-sprint, bag clutched, body in full forward motion. Police lights strobing across her and the pavement.\n\nEnvironmental Base: Gas station parking lot at night. Wet asphalt. Gas pumps visible. Police emergency lights strobing. Pitch-black sky. Desaturated, cool, heavy grain.\n\nSound Layer: Dixie's rapid footsteps on wet asphalt, her hard breathing (athletic), distant police sirens (approaching), police radio static/chatter (faint).\n\nShaky handheld M3 mode—camera handheld, slight jitter as if following the sprint. Vintage 2x anamorphic, 55mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain. The strobing lights are diegetic police light sources, NOT effects. Runtime 3 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 3
+        },
+        {
+          "number": 2,
+          "name": "Destiny trips and is arrested",
+          "description": "Destiny's foot catches the curb. She slams hard onto the wet asphalt. A police officer steps over her and handcuffs her as she thrashes in terror.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "destiny_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image7]",
+              "assetId": "gas_station_parking_lot_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image4] [Image7]\n\nScene and Mood: Destiny's foot catches the edge of a curb. Her body goes airborne for a fraction of a second, then slams hard onto wet asphalt. Impact is violent and audible. A shadow—a police officer—looms over her. She is about to be arrested. The moment is one of pure, helpless transition from escape to capture.\n\nComposition: Destiny's body dominates the frame. Her torso and limbs are sprawled across the wet asphalt. The police officer's shadow falls across her from frame right, legs visible. Gas station environment visible but secondary—asphalt texture in sharp focus.\n\nSpace and Mélange: Exterior parking lot, wet asphalt. Destiny's body is horizontal on the ground. The police officer stands over her, feet planted. Blue and red strobing lights continue to sweep across both figures. Asphalt texture is gritty and wet. Destiny's teenage frame is small and vulnerable against the adult officer's silhouette.\n\nCross-Shot Rule: N/A—two subjects, but the power imbalance is the entire composition. Officer looms; Destiny is pinned.\n\nAction: 0s—Destiny's foot clips the curb (impact off-screen). At 0.2s, her body is mid-fall, airborne. At 0.4s, she hits the asphalt hard (impact audible—body slam, breath knocked out). At 0.5s, she begins to recover, arms pushing against the ground. At 0.8s, the police officer's legs enter frame from screen right. At 1s, his shadow covers her. At 1.2s, his hands (gloved, visible) reach down and grab her wrists. At 1.5s, he spins her onto her stomach, pinning her with one knee on her back. At 1.8s, he begins applying handcuffs (metal click audible). At 2.2s, Destiny thrashes against the asphalt—back arching, legs kicking, arms fighting. Her eyes are wide with fear, pupils dilated, mouth open (about to scream). At 2.6s, she is pinned, cuffed, gasping.\n\nDialogue: None—Silent shot (her scream begins in next shot).\n\nEnding Shot: Destiny pinned on asphalt, handcuffed, thrashing, with police officer's body pressing her down. Her face shows terror—eyes reddened, mouth open.\n\nEnvironmental Base: Parking lot asphalt, wet, gritty. Police strobing lights. Night. Cold blue-red color palette.\n\nSound Layer: Destiny's impact (body slam, breath knocked out), asphalt scrape, police officer's heavy footsteps, handcuff metal clicks and chain rattle, Destiny's strained gasps (not yet screaming).\n\nShaky handheld M3 mode—camera tightens on Destiny's position after the fall, handheld jitter mimics urgency. Vintage 2x anamorphic, 55mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain, strobing police lights provide diegetic color shift. Runtime 3 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 3
+        },
+        {
+          "number": 3,
+          "name": "Destiny screams for Dixie",
+          "description": "Close on Destiny's face as she screams in pure terror, looking up at the sky/camera, calling for Dixie to help.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "destiny_15",
+              "type": "character"
+            },
+            {
+              "slot": "[Image7]",
+              "assetId": "gas_station_parking_lot_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image4] [Image7]\n\nScene and Mood: Destiny's face, close. Her eyes are reddened and swollen, pupils fully dilated, mouth open wide in a scream. Tears are streaming down her cheeks. Her brows are arched upward at the center. She is experiencing pure, animal terror—abandoned and pinned. Her scream pierces the night.\n\nComposition: Extreme close-up on Destiny's face. Her head is tilted back slightly, looking up at the camera/sky. The police officer's silhouette is visible but soft-focused in the background. Wet asphalt visible beneath her. Blue and red strobing lights sculpt her face.\n\nSpace and Mélange: Destiny's face in sharp focus, ground and officer in soft background blur. Her skin is wet, glistening with sweat and asphalt moisture. Her eyes are wide, sclera visible above and below iris. Her nostrils are flared. Her mouth is open in an oval scream shape. Blue and red emergency lights strobe across her face, creating moving shadows.\n\nCross-Shot Rule: N/A—single subject, no eyeline match required for this moment.\n\nAction: 0s—Destiny's mouth is already opening as shot begins. At 0.3s, her scream reaches full volume (dialogue begins). At 0.5s, her body continues to thrash beneath the officer (visible as motion blur/struggle in frame). At 0.8s, her eyes dart briefly—2-frame micro-dart to screen left (looking for Dixie in the darkness). At 1s, she refocuses upward, mouth still open, scream continuing. At 1.5s, the scream sustains, her face locked in terror. At 1.8s, her voice cracks and breaks, desperation reaching its peak.\n\nDialogue: \"DIXIE! HELP ME! DIXIE!\" Screamed in pure terror, voice unbroken, animal desperation.\n\nEnding Shot: Destiny's face, mouth open, eyes reddened and wet with tears, locked in absolute terror, mid-scream.\n\nEnvironmental Base: Exterior parking lot at night. Asphalt visible beneath her. Police strobing lights creating color-shift across her face. Pitch-black sky above.\n\nSound Layer: Destiny's scream (sustained), her thrashing against the asphalt and officer, police officer's labored breathing, handcuff chains, distant sirens, police radio static.\n\nClose handheld M3 mode—locked tight on Destiny's face, handheld jitter subtle, focusing on her expression and scream. Vintage 2x anamorphic, 75mm equivalent, 24fps, 180-degree shutter, color-negative, heavier grain. Police lights provide diegetic color source. Runtime 2 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "scriptNumber": 59,
+      "scriptLocation": "INT. WYATT'S KITCHEN — DAY",
+      "title": "Dixie's Cold Response",
+      "description": "SMASH CUT back to present day. Dixie slowly raises her beer to her lips and delivers her final, chilling line about experience.",
+      "duration": 4,
+      "start": 38,
+      "end": 42,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S KITCHEN — DAY",
+        "locationChange": false,
+        "timeContinuity": "SMASH CUT back to PRESENT DAY — hard cut from flashback (night) to kitchen (day). Jarring temporal/visual transition.",
+        "charactersPresent": ["Wyatt (adult)", "Dixie (adult)"],
+        "emotionalCarryover": "The entire weight of the flashback lands here. Dixie is about to explain (through her actions) why she will abandon anyone, do anything, to survive.",
+        "physicalCarryover": "Dixie is now seated or standing in the same position as before, but her body language has shifted. She is raising a beer bottle to her lips—a gesture of absolute finality and control.",
+        "wardrobeCarryover": "Same as opening scene. Beer bottle visible (may be same one or fresh one—doesn't matter, visual continuity with opening).",
+        "notes": [
+          "The SMASH CUT itself is the primary visual direction—sudden, jarring, color palette shift from desaturated blue-red (flashback) back to teal-amber (present).",
+          "Dixie's line 'You could say I have some experience' must land with complete flatness—no irony, no pride, no emotion. It is a statement of fact.",
+          "The final 'SMASH CUT TO BLACK' signals the episode's end and the gravity of her confession."
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image2]",
+          "assetId": "dixie_adult",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "wyatt_kitchen_plate",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "name": "Dixie takes a sip",
+          "description": "Medium shot of Dixie as she slowly raises a beer bottle to her lips and takes a deliberate sip. Her face is calm, composed, utterly unbothered.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "dixie_adult",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "wyatt_kitchen_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5]\n\nScene and Mood: Dixie's hand moves slowly, deliberately, to her mouth. She raises a beer bottle and takes a measured sip. Her face is flat, composed, completely unbothered by Wyatt's panic. This gesture is her answer—a deliberate, contemptuous calmness in the face of his desperation.\n\nComposition: Medium shot of Dixie, centered in frame. She is seated or leaning against the kitchen counter (position consistent with earlier in scene). The beer bottle rises from screen-bottom to her mouth. Her face is visible above the bottle—eyes steady, jaw relaxed, expression neutral.\n\nSpace and Mélange: Same kitchen as opening. Midday light, teal-amber color grade, fine 35mm grain. Dixie's body is completely loose and relaxed. Her jaw is not clenched; her brows are neutral; her gaze is fixed and forward. No tension anywhere in her frame.\n\nCross-Shot Rule: Single subject. Wyatt is off-camera (or visible as soft blur in background). Dixie's gaze does not track to him—she remains fixed forward.\n\nAction: 0s—Dixie's arm is already in motion (implicit from previous framing). At 0.3s, the beer bottle reaches her mouth. At 0.5s, she takes a deliberate sip—her throat works slightly, visible muscular contraction. At 0.7s, she lowers the bottle fractionally. At 0.9s, the bottle descends to her lap/hand. At 1.2s, her lips part slightly after the sip (micro-fidget: asymmetrical lip curl on one corner—right side, reading as cold satisfaction). At 1.5s, her body remains completely still. No micro-expressions beyond the single lip-curl. Her eyes blink once—slow, measured, uneven eyelid descent (right first, then left).\n\nDialogue: None—Silent shot (her line comes in 59B).\n\nEnding Shot: Dixie's face, post-sip, bottle lowered, expression returning to complete flatness.\n\nEnvironmental Base: Kitchen, midday light, teal-amber grade, shadows defined. Dixie in foreground, kitchen surfaces in soft background.\n\nSound Layer: Faint ambient kitchen hum, Dixie's breath (inaudible), subtle swallow audible after sip, beer bottle contact with her lips (faint wet sound).\n\nLocked handheld M1 mode—subtle operator breath, no camera movement. Vintage 2x anamorphic, 75mm equivalent, 24fps, 180-degree shutter, color-negative, fine grain. The simplicity of the gesture is the entire power—one deliberate action, zero affectation. Runtime 2 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 2
+        },
+        {
+          "number": 2,
+          "name": "Dixie's final line",
+          "description": "Close-up on Dixie's face as she delivers her final, chilling response: 'You could say I have some experience.' Her deadpan delivery lands with absolute finality.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "dixie_adult",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "wyatt_kitchen_plate",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5]\n\nScene and Mood: Dixie's mouth opens. She delivers her final line with absolute deadpan flatness—'You could say I have some experience.' There is no irony, no pride, no inflection. It is a statement of fact, delivered by someone who has already made peace with what she did, what she will do. The line lands like a closed door.\n\nComposition: Close-up on Dixie's face, centered. Her mouth visible, eyes steady. The kitchen counter or wall visible as soft blur behind her.\n\nSpace and Mélange: Same kitchen. Midday light, teal-amber, fine grain. Dixie's face is sculpted by window light—one side slightly brighter, the other in softer shadow. Her skin has no highlights—matte, lived-in, real texture visible. Her jaw is relaxed. Her eyes are steady, pupils at normal dilation. No tension.\n\nCross-Shot Rule: Single subject, close. No eyeline match required. She is speaking to Wyatt off-camera, but her gaze remains fixed forward—not addressing him, stating a fact into the void.\n\nAction: 0s—Dixie's mouth is closed. At 0.2s, her lips part slowly. At 0.4s, her mouth opens for speech (dialogue begins). At 0.6s, she begins her line, lips and jaw moving with natural speech cadence. At 0.8s, mid-line ('You could say...'), her eyes blink once—slow, uneven descent (left first, then right, opposite of previous). At 1.2s, she completes her line ('...I have some experience'). At 1.4s, her mouth closes fractionally but remains slightly parted. At 1.7s, her gaze remains fixed forward, completely unbroken. No micro-fidgeting this time—her stillness IS the performance.\n\nDialogue: \"You could say I have some experience.\" Delivered with complete deadpan flatness, no inflection, no irony, no warmth. The sentence lands like a door closing. Budget ~2 words/sec.\n\nEnding Shot: Dixie's face, mouth slightly parted after the final word, eyes still forward, expression completely neutral. Absolute finality.\n\nEnvironmental Base: Kitchen, midday, teal-amber, fine grain. Dixie's face in sharp focus.\n\nSound Layer: Dixie's voice (flat, no reverb, intimate), subtle background kitchen hum, her breath between phrases (barely audible).\n\nLocked handheld M1 mode—tight on her face, no camera movement, just operator breath subtlety. Vintage 2x anamorphic, 75mm equivalent, 24fps, 180-degree shutter, color-negative, fine grain. Matte skin texture, no highlights, spatial depth maintained. The performance is the absence of performance. Runtime 2 seconds. Severe shaking, time flickering, and identity drift were avoided.",
+          "duration": 2
+        },
+        {
+          "number": 3,
+          "name": "SMASH CUT TO BLACK",
+          "description": "The final shot: Black frame. Episode closes on Dixie's revelation.",
+          "references": [],
+          "prompt_en": "Black frame. SMASH CUT TO BLACK. Episode ends.",
+          "duration": 0
+        }
+      ]
+    }
+  ],
+  "rawLength": 50282
+}

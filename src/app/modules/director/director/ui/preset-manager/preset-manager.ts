@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -31,7 +32,7 @@ interface PresetItem {
   selector: 'app-preset-manager',
   standalone: true,
   imports: [
-    ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule,
+    TranslatePipe, ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule,
     DialogModule, TooltipModule, SelectModule, ToastModule,
   ],
   providers: [MessageService],
@@ -40,17 +41,17 @@ interface PresetItem {
     <section class="p-6">
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">Preset Manager</h1>
-          <p class="mt-1 text-[12px] text-fg-muted">Create, edit and deactivate preset groups and presets</p>
+          <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'DIRECT.PRESETS.TITLE' | translate }}</h1>
+          <p class="mt-1 text-[12px] text-fg-muted">{{ 'DIRECT.PRESETS.SUBTITLE' | translate }}</p>
         </div>
         <div class="flex gap-2">
-          <p-button label="New Group" icon="pi pi-plus" severity="secondary" (onClick)="openCreateGroup()" />
-          <p-button label="New Preset" icon="pi pi-plus" (onClick)="openCreatePreset()" />
+          <p-button [label]="'DIRECT.PRESETS.NEW_GROUP' | translate" icon="pi pi-plus" severity="secondary" (onClick)="openCreateGroup()" />
+          <p-button [label]="'DIRECT.PRESETS.NEW_PRESET' | translate" icon="pi pi-plus" (onClick)="openCreatePreset()" />
         </div>
       </div>
 
       <div class="mb-8">
-        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Groups</h2>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">{{ 'DIRECT.PRESETS.GROUPS' | translate }}</h2>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2">
           @for (g of groups(); track g.id) {
             <div
@@ -62,8 +63,8 @@ interface PresetItem {
             >
               <span class="min-w-0 flex-1 truncate" [title]="g.name">{{ g.name }}</span>
               <span class="shrink-0 whitespace-nowrap text-[10px] text-fg-muted">({{ g.slug }})</span>
-              @if (!g.active) { <span class="shrink-0 whitespace-nowrap text-[10px] text-red-400">inactive</span> }
-              <button type="button" class="ml-1 shrink-0 text-fg-muted hover:text-primary-400" (click)="editGroup($event, g)" pTooltip="Edit group">✎</button>
+              @if (!g.active) { <span class="shrink-0 whitespace-nowrap text-[10px] text-red-400">{{ 'DIRECT.PRESETS.INACTIVE' | translate }}</span> }
+              <button type="button" class="ml-1 shrink-0 text-fg-muted hover:text-primary-400" (click)="editGroup($event, g)" [pTooltip]="'DIRECT.PRESETS.EDIT_GROUP' | translate">✎</button>
             </div>
           }
         </div>
@@ -71,7 +72,7 @@ interface PresetItem {
 
       @if (selectedGroupId()) {
         <div>
-          <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">Presets — {{ selectedGroupName() }}</h2>
+          <h2 class="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-fg-muted">{{ 'DIRECT.PRESETS.PRESETS_TITLE' | translate: { name: selectedGroupName() } }}</h2>
           <div class="overflow-x-auto rounded border border-ink-700">
             <table class="w-full table-fixed text-[12px]">
               <colgroup>
@@ -83,11 +84,11 @@ interface PresetItem {
               </colgroup>
               <thead>
                 <tr class="text-left text-[10px] uppercase tracking-[0.12em] text-fg-muted">
-                  <th class="px-3 py-2 font-medium">Code</th>
-                  <th class="px-3 py-2 font-medium">Label</th>
-                  <th class="px-3 py-2 font-medium">Prompt</th>
-                  <th class="px-3 py-2 font-medium">Status</th>
-                  <th class="px-3 py-2 font-medium">Actions</th>
+                  <th class="px-3 py-2 font-medium">{{ 'DIRECT.PRESETS.COL_CODE' | translate }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'DIRECT.PRESETS.COL_LABEL' | translate }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'DIRECT.PRESETS.COL_PROMPT' | translate }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'DIRECT.PRESETS.COL_STATUS' | translate }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'DIRECT.PRESETS.COL_ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,14 +103,14 @@ interface PresetItem {
                       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                         [class.bg-green-900]="p.active" [class.text-green-400]="p.active"
                         [class.bg-red-900]="!p.active" [class.text-red-400]="!p.active"
-                      >{{ p.active ? 'Active' : 'Inactive' }}</span>
+                      >{{ p.active ? ('DIRECT.PRESETS.ACTIVE' | translate) : ('DIRECT.PRESETS.INACTIVE' | translate) }}</span>
                     </td>
                     <td class="px-3 py-2">
                       <div class="flex gap-1">
-                        <p-button icon="pi pi-pencil" severity="secondary" [text]="true" [rounded]="true" pTooltip="Edit" (onClick)="openEditPreset(p)" />
+                        <p-button icon="pi pi-pencil" severity="secondary" [text]="true" [rounded]="true" [pTooltip]="'COMMON.EDIT' | translate" (onClick)="openEditPreset(p)" />
                         <p-button [icon]="p.active ? 'pi pi-pause-circle' : 'pi pi-play-circle'"
                           severity="secondary" [text]="true" [rounded]="true"
-                          pTooltip="{{ p.active ? 'Deactivate' : 'Activate' }}"
+                          [pTooltip]="p.active ? ('DIRECT.PRESETS.DEACTIVATE' | translate) : ('DIRECT.PRESETS.ACTIVATE' | translate)"
                           (onClick)="togglePresetActive(p)"
                         />
                       </div>
@@ -119,56 +120,52 @@ interface PresetItem {
               </tbody>
             </table>
             @if (filteredPresets().length === 0) {
-              <p class="py-6 text-center text-[12px] text-fg-muted">No presets in this group.</p>
+              <p class="py-6 text-center text-[12px] text-fg-muted">{{ 'DIRECT.PRESETS.NO_PRESETS' | translate }}</p>
             }
           </div>
         </div>
       }
-    </section>
-
-    <p-dialog [(visible)]="groupDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '32rem' }" header="{{ editingGroup() ? 'Edit Group' : 'New Group' }}">
+    </section>      <p-dialog [(visible)]="groupDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '32rem' }" [header]="editingGroup() ? ('DIRECT.PRESETS.EDIT_GROUP' | translate) : ('DIRECT.PRESETS.NEW_GROUP' | translate)">
       <form [formGroup]="groupForm" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Name</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.NAME' | translate }}</label>
           <input pInputText formControlName="name" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Slug</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.SLUG' | translate }}</label>
           <input pInputText formControlName="slug" [disabled]="!!editingGroup()" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Description</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.DESCRIPTION' | translate }}</label>
           <input pInputText formControlName="description" />
         </div>
       </form>
       <ng-template pTemplate="footer">
-        <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="groupDialogVisible.set(false)" />
-        <p-button label="Save" (onClick)="saveGroup()" [disabled]="groupForm.invalid" />
+        <p-button severity="secondary" [text]="true" [label]="'COMMON.CANCEL' | translate" (onClick)="groupDialogVisible.set(false)" />
+        <p-button [label]="'COMMON.SAVE' | translate" (onClick)="saveGroup()" [disabled]="groupForm.invalid" />
       </ng-template>
-    </p-dialog>
-
-    <p-dialog [(visible)]="presetDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '36rem' }" header="{{ editingPreset() ? 'Edit Preset' : 'New Preset' }}">
+    </p-dialog>      <p-dialog [(visible)]="presetDialogVisible" [modal]="true" [closable]="true" [draggable]="false" [style]="{ width: '36rem' }" [header]="editingPreset() ? ('DIRECT.PRESETS.EDIT_PRESET' | translate) : ('DIRECT.PRESETS.NEW_PRESET' | translate)">
       <form [formGroup]="presetForm" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Group</label>
-          <p-select [options]="groupOptions()" formControlName="group_id" optionLabel="name" optionValue="id" placeholder="Select group" />
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.GROUP' | translate }}</label>
+          <p-select [options]="groupOptions()" formControlName="group_id" optionLabel="name" optionValue="id" [placeholder]="'DIRECT.PRESETS.SELECT_GROUP' | translate" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Code</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.COL_CODE' | translate }}</label>
           <input pInputText formControlName="code" [disabled]="!!editingPreset()" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Label</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.COL_LABEL' | translate }}</label>
           <input pInputText formControlName="label" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[11px] font-bold uppercase">Prompt</label>
+          <label class="text-[11px] font-bold uppercase">{{ 'DIRECT.PRESETS.COL_PROMPT' | translate }}</label>
           <textarea pTextarea rows="4" formControlName="prompt"></textarea>
         </div>
       </form>
       <ng-template pTemplate="footer">
-        <p-button severity="secondary" [text]="true" label="Cancel" (onClick)="presetDialogVisible.set(false)" />
-        <p-button label="Save" (onClick)="savePreset()" [disabled]="presetForm.invalid" />
+        <p-button severity="secondary" [text]="true" [label]="'COMMON.CANCEL' | translate" (onClick)="presetDialogVisible.set(false)" />
+        <p-button [label]="'COMMON.SAVE' | translate" (onClick)="savePreset()" [disabled]="presetForm.invalid" />
       </ng-template>
     </p-dialog>
 
@@ -180,6 +177,7 @@ export class PresetManagerComponent implements OnInit {
   private readonly api = inject(PresetApiService);
   private readonly presetsSvc = inject(PresetsService);
   private readonly toast = inject(MessageService);
+  private readonly i18n = inject(TranslateService);
 
   protected readonly groups = signal<PresetGroup[]>([]);
   protected readonly presets = signal<PresetItem[]>([]);
@@ -225,7 +223,12 @@ export class PresetManagerComponent implements OnInit {
         }
         this.updateDerived();
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Failed to load groups', life: 3000 }),
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.PRESETS.TOAST_LOAD_GROUPS_FAILED'),
+          life: 3000,
+        }),
     });
 
     this.api.getPresets().subscribe({
@@ -233,7 +236,12 @@ export class PresetManagerComponent implements OnInit {
         this.presets.set(ps);
         this.updateDerived();
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Failed to load presets', life: 3000 }),
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.PRESETS.TOAST_LOAD_PRESETS_FAILED'),
+          life: 3000,
+        }),
     });
   }
 
@@ -274,12 +282,23 @@ export class PresetManagerComponent implements OnInit {
 
     obs.subscribe({
       next: () => {
-        this.toast.add({ severity: 'success', summary: target ? 'Group updated' : 'Group created', life: 2000 });
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant(
+            target ? 'DIRECT.PRESETS.TOAST_GROUP_UPDATED' : 'DIRECT.PRESETS.TOAST_GROUP_CREATED',
+          ),
+          life: 2000,
+        });
         this.groupDialogVisible.set(false);
         this.loadAll();
         this.reloadPresetsStore();
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Operation failed', life: 3000 }),
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.PRESETS.TOAST_OPERATION_FAILED'),
+          life: 3000,
+        }),
     });
   }
 
@@ -306,12 +325,21 @@ export class PresetManagerComponent implements OnInit {
         prompt: raw.prompt || undefined,
       }).subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Preset updated', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.PRESETS.TOAST_PRESET_UPDATED'),
+            life: 2000,
+          });
           this.presetDialogVisible.set(false);
           this.loadAll();
           this.reloadPresetsStore();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.PRESETS.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
     } else {
       this.api.createPreset({
@@ -321,12 +349,21 @@ export class PresetManagerComponent implements OnInit {
         prompt: raw.prompt || '',
       }).subscribe({
         next: () => {
-          this.toast.add({ severity: 'success', summary: 'Preset created', life: 2000 });
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('DIRECT.PRESETS.TOAST_PRESET_CREATED'),
+            life: 2000,
+          });
           this.presetDialogVisible.set(false);
           this.loadAll();
           this.reloadPresetsStore();
         },
-        error: () => this.toast.add({ severity: 'error', summary: 'Failed', life: 3000 }),
+        error: () =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('DIRECT.PRESETS.TOAST_FAILED'),
+            life: 3000,
+          }),
       });
     }
   }
@@ -334,7 +371,13 @@ export class PresetManagerComponent implements OnInit {
   protected togglePresetActive(p: PresetItem): void {
     this.api.updatePreset(p.id, { active: !p.active }).subscribe({
       next: () => {
-        this.toast.add({ severity: 'success', summary: p.active ? 'Deactivated' : 'Activated', life: 2000 });
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant(
+            p.active ? 'DIRECT.PRESETS.TOAST_DEACTIVATED' : 'DIRECT.PRESETS.TOAST_ACTIVATED',
+          ),
+          life: 2000,
+        });
         this.loadAll();
         this.reloadPresetsStore();
       },

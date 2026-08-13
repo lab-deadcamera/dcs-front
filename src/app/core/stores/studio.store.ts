@@ -1,6 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { catchError, of } from 'rxjs';
+import { SkillBrief } from '@app/core/interfaces/studio.models';
 import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
+import { ProjectsApiService } from '@modules/projects/projects/services';
 import {
   CinematographyConfig,
   GeneratedClip,
@@ -10,8 +13,10 @@ import {
   PROMPT_TEMPLATE,
   ReferenceAsset,
   UsedAsset,
+  UsedAssetKind,
 } from '../interfaces/studio.models';
 import { ModelData } from '../interfaces';
+import { collectSlotTokensInOrder } from '../utils/slot-reindex';
 
 function clamp(n: number, min: number, max: number): number {
   if (Number.isNaN(n)) return min;
@@ -44,6 +49,7 @@ const MAX_TAKES = 99;
 @Injectable({ providedIn: 'root' })
 export class StudioStore {
   private readonly presets = inject(PresetsService);
+  private readonly projectsApi = inject(ProjectsApiService);
 
   // ── Core session/project state ───────────────────────────────────
   private readonly _projectId = signal<string | null>(null);
@@ -71,22 +77,119 @@ export class StudioStore {
 
   // ── Takes ────────────────────────────────────────────────────────
 
-  // Scene assignment filters
-  private readonly _scenePresetIds = signal<Set<string>>(new Set());
-  private readonly _sceneCharacterIds = signal<Set<string>>(new Set());
-  private readonly _sceneAssetIds = signal<Set<string>>(new Set());
-  private readonly _sceneCharacterData = signal<Array<{ id: string; name: string }>>([]);
+  // Chapter (episode) assignment filters
+  private readonly _chapterPresetIds = signal<Set<string>>(new Set());
+  private readonly _chapterCharacterIds = signal<Set<string>>(new Set());
+  private readonly _chapterAssetIds = signal<Set<string>>(new Set());
+  private readonly _chapterCharacterData = signal<
+    Array<{ id: string; name: string; slot: string; fileId: string; kind: string }>
+  >([]);
+  /** fileId → [ImageN] slot inherited from the chapter assignment for assets
+   *  (locations/props/audio). Characters keep their slot in chapterCharacterData. */
+  private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
+  /** fileId → chapter_assets row id, required to unassign an episode asset. */
+  private readonly _chapterAssetAssignmentIds = signal<Map<string, string>>(new Map());
+  /** character_id → chapter_characters row id, required to unassign (reassign a
+   *  slot's occupant) an episode character. */
+  private readonly _chapterCharacterAssignmentIds = signal<Map<string, string>>(new Map());
 
-  readonly scenePresetIds = this._scenePresetIds.asReadonly();
-  readonly sceneCharacterIds = this._sceneCharacterIds.asReadonly();
-  readonly sceneAssetIds = this._sceneAssetIds.asReadonly();
-  readonly sceneCharacterData = this._sceneCharacterData.asReadonly();
+  readonly chapterPresetIds = this._chapterPresetIds.asReadonly();
+  readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
+  readonly chapterAssetIds = this._chapterAssetIds.asReadonly();
+  readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
+  readonly chapterAssetSlots = this._chapterAssetSlots.asReadonly();
+  readonly chapterAssetAssignmentIds = this._chapterAssetAssignmentIds.asReadonly();
+  readonly chapterCharacterAssignmentIds = this._chapterCharacterAssignmentIds.asReadonly();
 
-  /** True after setSceneAssignments has been called at least once (even if
+  /** True after setChapterAssignments has been called at least once (even if
    *  the response contained null/empty arrays). Used by child components
    *  to distinguish "no assignments loaded yet" from "loaded but empty". */
   private readonly _assignmentsLoaded = signal(false);
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
+
+  /** When true, the prompt-builder should NOT prune stale [ImageN]/[VideoN]/
+   *  [AudioN] tokens on the next usedAssets shrink — used when a resource is
+   *  unbound from "Mi biblioteca" but its slot placeholder must stay in the
+   *  prompt text. Consumed (cleared) by the prompt-builder's prune effect. */
+  private readonly _skipNextTokenPrune = signal(false);
+  readonly skipNextTokenPrune = this._skipNextTokenPrune.asReadonly();
+
+  /** Clear the one-shot "keep the slot in the prompt" flag. */
+  clearSkipTokenPrune(): void {
+    this._skipNextTokenPrune.set(false);
+  }
+
+  /**
+   * Scan the shot's pre-prompt description for [Image{N}], [Video{N}], [Audio{N}]
+   * tokens and auto-register the matching chapter resources (characters first,
+   * then chapter assets) as used assets.
+   *
+   * Tokens are processed in ORDER OF FIRST APPEARANCE in the prompt — that
+   * order drives the positional slot reindex, so it must match the order in
+   * which the reference items get attached to the payload.
+   */
+  registerUsedAssetsFromDescription(description: string): void {
+    if (!description) return;
+
+    const tokens = collectSlotTokensInOrder(description);
+    if (tokens.length === 0) return;
+
+    // REPLACE, not accumulate: this is the authoritative registration of the
+    // assets referenced by THIS description. Even if called twice (both async
+    // load paths) or with a stale original, the last call wins and the final
+    // set is exactly the referenced assets.
+    this._usedAssets.set([]);
+
+    // Lookup slot → character (chapter assignments carry slot + fileId).
+    const slotToChar = new Map<
+      string,
+      { id: string; name: string; slot: string; fileId: string }
+    >();
+    for (const c of this._chapterCharacterData()) {
+      if (c.slot) slotToChar.set(c.slot.toLowerCase(), c);
+    }
+
+    // Lookup slot → chapter asset (free asset that inherited an [ImageN] slot).
+    const slotToAsset = new Map<
+      string,
+      { fileId: string; filename: string; kind: 'image' | 'video' | 'audio' }
+    >();
+    for (const a of this._freeAssets()) {
+      const slot = this._chapterAssetSlots().get(a.id);
+      if (slot) slotToAsset.set(slot.toLowerCase(), { fileId: a.id, filename: a.filename, kind: a.kind });
+    }
+
+    for (const token of tokens) {
+      const m = token.match(/^\[(image|video|audio)(\d+)\]$/);
+      if (!m) continue;
+      const kind = m[1] === 'video' ? 'video' : m[1] === 'audio' ? 'audio' : 'image';
+
+      const char = slotToChar.get(token);
+      if (char && char.fileId) {
+        this.useAsset({
+          fileId: char.fileId,
+          characterId: char.id,
+          name: char.name,
+          filename: char.name,
+          kind,
+          slot: char.slot || token,
+        });
+        continue;
+      }
+
+      const asset = slotToAsset.get(token);
+      if (asset && asset.kind === kind) {
+        this.useAsset({
+          fileId: asset.fileId,
+          characterId: '',
+          name: asset.filename,
+          filename: asset.filename,
+          kind,
+          slot: token,
+        });
+      }
+    }
+  }
 
   private readonly _takes = signal<Take[]>([]);
   private readonly _currentTakeIndex = signal<number>(0);
@@ -120,12 +223,40 @@ export class StudioStore {
   private readonly _modelCode = signal<ModelData | null>(null);
   readonly modelCode = this._modelCode.asReadonly();
 
+  // ── Skill ────────────────────────────────────────────────────────
+
+  private readonly _selectedSkill = signal<SkillBrief | null>(null);
+  readonly selectedSkill = this._selectedSkill.asReadonly();
+
+  setSelectedSkill(skill: SkillBrief | null): void {
+    this._selectedSkill.set(skill);
+  }
+
   // ── Prompt ───────────────────────────────────────────────────────
 
   private readonly _rawDescription = signal<string>(PROMPT_TEMPLATE);
   readonly rawDescription = this._rawDescription.asReadonly();
   readonly rawLength = computed(() => (this._rawDescription() ?? '').length);
   readonly canGenerate = computed(() => (this._rawDescription() ?? '').trim().length > 0);
+
+  /**
+   * The shot's pre-prompt exactly as it came from the backend. Set ONLY by
+   * `setShotDescription`, so it never changes due to slot reindexing or user
+   * edits. Used as the source of truth for registering used assets and for the
+   * idempotency guard of the slot reindex.
+   */
+  private readonly _originalDescription = signal<string>('');
+  readonly originalDescription = this._originalDescription.asReadonly();
+
+  /**
+   * Load a shot's pre-prompt from the backend: records the RAW text as the
+   * original description and makes it the editor content. The reindex later
+   * rewrites `rawDescription` only while it still equals the original.
+   */
+  setShotDescription(text: string): void {
+    this._originalDescription.set(text);
+    this._rawDescription.set(text);
+  }
 
   // ── Cinematography ───────────────────────────────────────────────
 
@@ -241,6 +372,7 @@ export class StudioStore {
       active: boolean;
       task_id?: string;
       request_payload?: string;
+      rating?: number;
     }>;
   }): void {
     this._isReady.set(true);
@@ -269,6 +401,7 @@ export class StudioStore {
           active: backend?.active ?? true,
           number: backend?.number ?? 0,
           request_payload: backend?.request_payload,
+          rating: backend?.rating,
         };
       });
       this._takes.set(merged);
@@ -279,11 +412,24 @@ export class StudioStore {
     this._currentTakeIndex.set(0);
   }
 
+  /** Update the session's scene code (e.g. after renaming a scene). */
+  setSceneCode(code: string): void {
+    this._sceneCode.set(code);
+  }
+
+  /** Update the session's scene name (e.g. after renaming a scene). */
+  setSceneName(name: string): void {
+    this._sceneName.set(name);
+  }
+
+  /** Update the session's shot name (e.g. after renaming a shot). */
+  setShotName(name: string): void {
+    this._shotName.set(name);
+  }
+
   toggleTake(takeIndex: number): void {
     const list = this._takes();
     const target = list.find((t) => t.index === takeIndex);
-    console.log({ list, target, takeIndex });
-
     if (!target) return;
     const willBeDone = target.status === 'pending';
 
@@ -342,6 +488,7 @@ export class StudioStore {
     this._takes.set([]);
     this._currentTakeIndex.set(0);
     this._rawDescription.set(PROMPT_TEMPLATE);
+    this._originalDescription.set('');
     this._cinematography.set({
       lens: null,
       cameraBody: null,
@@ -359,11 +506,16 @@ export class StudioStore {
     // Intentionally NOT clearing the selected model: it's a user-level
     // preference (defaults to Dreamina-Seedance-2-0-Gallery) that should
     // persist across scene/shot navigation until the user changes it.
-    this._scenePresetIds.set(new Set());
-    this._sceneCharacterIds.set(new Set());
-    this._sceneCharacterData.set([]);
-    this._sceneAssetIds.set(new Set());
+    this._chapterPresetIds.set(new Set());
+    this._chapterCharacterIds.set(new Set());
+    this._chapterCharacterData.set([]);
+    this._chapterAssetIds.set(new Set());
+    this._chapterAssetSlots.set(new Map());
+    this._chapterAssetAssignmentIds.set(new Map());
+    this._chapterCharacterAssignmentIds.set(new Map());
+    this._skipNextTokenPrune.set(false);
     this._assignmentsLoaded.set(false);
+    // shot resources removed — using chapter assignments only
   }
 
   filenameForClip(clip: Pick<GeneratedClip, 'id' | 'takeIndex'>): string {
@@ -453,17 +605,64 @@ export class StudioStore {
     this._activeClipId.set(id);
   }
 
-  setClipRating(id: string, rating: number) {
-    const clamped = Math.max(0, Math.min(5, Math.round(rating)));
-    this._sessionClips.update((list) =>
-      list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
-    );
+  setClipRating(id: string, rating: number): void {
+    const clip = this._sessionClips().find((c) => c.id === id);
+    if (!clip) return;
+    if (clip.takeIndex === undefined) {
+      // Clip not tied to a session take — just update the clip in-memory.
+      const clamped = Math.max(0, Math.min(5, Math.round(rating)));
+      this._sessionClips.update((list) =>
+        list.map((c) => (c.id === id ? { ...c, rating: clamped } : c)),
+      );
+      return;
+    }
+    this.setTakeRating(clip.takeIndex, rating);
   }
+
+  /** Sets a session take's rating (1-based index), keeping any matching clips
+   *  in sync and persisting to the backend when the take has a DB id. */
+  setTakeRating(index: number, rating: number): void {
+    const clamped = Math.max(0, Math.min(5, Math.round(rating)));
+
+    this._takes.update((list) =>
+      list.map((t) => (t.index === index ? { ...t, rating: clamped } : t)),
+    );
+
+    this._sessionClips.update((list) =>
+      list.map((c) => (c.takeIndex === index ? { ...c, rating: clamped } : c)),
+    );
+
+    const take = this._takes().find((t) => t.index === index);
+    const pid = this._projectId();
+    const cid = this._chapterId();
+    const sid = this._sceneId();
+    const shid = this._shotId();
+    if (take?.id && pid && cid && sid && shid) {
+      this.projectsApi
+        .updateTake(pid, cid, sid, shid, take.id, { rating: clamped })
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+    }
+  }
+
+  /** Ratings map: takeIndex → rating, for the takes-reel component. */
+  readonly takeRatings = computed<Record<number, number>>(() => {
+    const ratings: Record<number, number> = {};
+    for (const take of this._takes()) {
+      if (take.rating && take.rating > 0) {
+        ratings[take.index] = take.rating;
+      }
+    }
+    return ratings;
+  });
 
   // ── Used assets (character library) ──────────────────────────────
 
   clearUsedAssets() {
     this._usedAssets.set([]);
+    // Per-shot reset: the previous shot's raw description must not leak into
+    // the next shot's slot hydration (which would register the wrong assets).
+    this._originalDescription.set('');
   }
 
   useAsset(asset: UsedAsset) {
@@ -474,26 +673,46 @@ export class StudioStore {
 
     // Also register the character as assigned so it appears in "My Library".
     // This lets the "Use" button in IndexCharacters populate the library
-    // panel without requiring a backend scene-assignment call.
+    // panel without requiring a backend chapter-assignment call.
     if (asset.characterId) {
-      this._sceneCharacterIds.update((set) => {
+      this._chapterCharacterIds.update((set) => {
         if (set.has(asset.characterId)) return set;
         const next = new Set(set);
         next.add(asset.characterId);
         return next;
       });
-      this._sceneCharacterData.update((list) => {
+      this._chapterCharacterData.update((list) => {
         if (list.some((c) => c.id === asset.characterId)) return list;
-        return [...list, { id: asset.characterId, name: asset.name }];
+        return [
+          ...list,
+          { id: asset.characterId, name: asset.name, slot: '', fileId: '', kind: 'character' },
+        ];
       });
       this._assignmentsLoaded.set(true);
     }
   }
 
-  unuseAsset(idOrFileId: string) {
+  unuseAsset(idOrFileId: string, opts: { keepSlot?: boolean } = {}) {
+    // When the caller unbinds a resource but wants to keep the [ImageN] slot
+    // placeholder in the prompt (e.g. removing from "Mi biblioteca"), signal
+    // the prompt-builder to skip its token prune for this change.
+    if (opts.keepSlot) this._skipNextTokenPrune.set(true);
     this._usedAssets.update((list) =>
       list.filter((a) => a.fileId !== idOrFileId && a.characterId !== idOrFileId),
     );
+  }
+
+  /** Swap the resource bound to a used-asset entry without changing its position
+   *  in the list, so the [ImageN]/[VideoN]/[AudioN] slot number stays valid.
+   *  Used by the prompt-builder's "replace" action. */
+  replaceUsedAsset(oldFileId: string, asset: UsedAsset): void {
+    this._usedAssets.update((list) => {
+      const idx = list.findIndex((a) => a.fileId === oldFileId);
+      if (idx < 0) return list;
+      const next = [...list];
+      next[idx] = { ...asset };
+      return next;
+    });
   }
 
   // ── Reference assets (drop-zone) ─────────────────────────────────
@@ -524,6 +743,37 @@ export class StudioStore {
     });
   }
 
+  /** Register the chapter_assets row id for a file after assigning it, so the
+   *  asset can be unassigned later without waiting for a reload. */
+  registerChapterAssetAssignment(fileId: string, assignmentId: string) {
+    this._chapterAssetAssignmentIds.update((m) => {
+      const next = new Map(m);
+      next.set(fileId, assignmentId);
+      return next;
+    });
+  }
+
+  /** Remove a file from the episode assets entirely (store side; the caller
+   *  performs the API call that unassigns it from the chapter). */
+  removeChapterAsset(fileId: string) {
+    this.removeFreeAsset(fileId);
+    this._chapterAssetSlots.update((m) => {
+      const next = new Map(m);
+      next.delete(fileId);
+      return next;
+    });
+    this._chapterAssetIds.update((s) => {
+      const next = new Set(s);
+      next.delete(fileId);
+      return next;
+    });
+    this._chapterAssetAssignmentIds.update((m) => {
+      const next = new Map(m);
+      next.delete(fileId);
+      return next;
+    });
+  }
+
   replaceFreeAssets(next: ReferenceAsset[]) {
     this._freeAssets().forEach((a) => this.revoke(a));
     this._freeAssets.set(next);
@@ -544,20 +794,52 @@ export class StudioStore {
     }
   }
 
-  setSceneAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
-    this._scenePresetIds.set(
+  setChapterAssignments(assignments: { presets: any[]; characters: any[]; assets: any[] }): void {
+    this._chapterPresetIds.set(
       new Set([...(assignments.presets ?? [])].map((a: any) => a.preset_id).filter(Boolean)),
     );
     const chars = assignments.characters ?? [];
-    this._sceneCharacterIds.set(new Set(chars.map((a: any) => a.character_id).filter(Boolean)));
-    this._sceneCharacterData.set(
+    this._chapterCharacterIds.set(new Set(chars.map((a: any) => a.character_id).filter(Boolean)));
+    this._chapterCharacterData.set(
       chars
         .filter((a: any) => a.character_id && a.name)
-        .map((a: any) => ({ id: a.character_id, name: a.name })),
+        .map((a: any) => {
+          const slot = a.slot ?? '';
+          const kind = slot.startsWith('@video')
+            ? 'video'
+            : slot.startsWith('@audio')
+              ? 'audio'
+              : 'image';
+          return {
+            id: a.character_id,
+            name: a.name,
+            slot,
+            fileId: a.file_id ?? '',
+            kind,
+          };
+        }),
     );
-    this._sceneAssetIds.set(
+    // character_id → chapter_characters row id (needed to remove a slot's
+    // occupant when the user reassigns it).
+    const characterAssignmentIds = new Map<string, string>();
+    for (const a of chars) {
+      if (a.character_id && a.id) characterAssignmentIds.set(a.character_id, a.id);
+    }
+    this._chapterCharacterAssignmentIds.set(characterAssignmentIds);
+
+    this._chapterAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
     );
+    // Preserve each asset's [ImageN] slot so the Prompt Builder respects it.
+    const assetSlots = new Map<string, string>();
+    // fileId → chapter_assets row id (needed to unassign from the episode).
+    const assignmentIds = new Map<string, string>();
+    for (const a of assignments.assets ?? []) {
+      if (a.file_id && a.slot) assetSlots.set(a.file_id, a.slot);
+      if (a.file_id && a.id) assignmentIds.set(a.file_id, a.id);
+    }
+    this._chapterAssetSlots.set(assetSlots);
+    this._chapterAssetAssignmentIds.set(assignmentIds);
 
     const freeAssets: ReferenceAsset[] = (assignments.assets ?? [])
       .filter((a: any) => a.file_id)

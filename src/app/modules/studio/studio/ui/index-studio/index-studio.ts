@@ -10,11 +10,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@environment/environment';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
 import { ViewerComponent } from '@shared/components/viewer/viewer.component';
 import { PromptBuilderComponent } from '@shared/components/prompt-builder/prompt-builder.component';
@@ -27,12 +26,15 @@ import { FooterComponent } from '@shared/components/footer/footer.component';
 import {
   BreadcrumbOption,
   StudioBreadcrumbComponent,
-} from '../../components/studio-breadcrumb/studio-breadcrumb.component';
+} from '../components/studio-breadcrumb/studio-breadcrumb.component';
 import { SessionStore } from '@app/core/stores/session.store';
-import { ModelAssetSync } from '@core/interfaces/seedance.interface';
+import { FixAssetResult, ModelAssetSync } from '@core/interfaces/seedance.interface';
+import { buildSlotReferences, reindexSlotTokens } from '@core/utils/slot-reindex';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
 import { MAX_BATCH_COUNT, UsedAssetKind } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
@@ -48,6 +50,9 @@ import {
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { Splitter } from 'primeng/splitter';
+import { LEVEL_ROL } from '@app/core/constants';
+import { ShotBuilderPanelComponent } from '../components/shot-builder-panel/shot-builder-panel.component';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 
 /** localStorage key for breadcrumb selection persistence. */
 const LS_KEY = 'studio-breadcrumb-selection';
@@ -96,8 +101,13 @@ function normalizeModelName(name: string): string {
     ButtonModule,
     DialogModule,
     TooltipModule,
+    SelectModule,
+    FormsModule,
     DatePipe,
+    SourceThumbnailAssetPipe,
     Splitter,
+    ShotBuilderPanelComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './index-studio.html',
@@ -113,8 +123,7 @@ export class IndexStudio implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(MessageService);
   private readonly projectsApi = inject(ProjectsApiService);
-  private readonly http = inject(HttpClient);
-  protected readonly environment = environment;
+  private readonly i18n = inject(TranslateService);
 
   // ── Responsive layout (splitter on lg+, stacked on mobile) ──────────
 
@@ -161,6 +170,138 @@ export class IndexStudio implements OnInit {
   protected readonly syncDialogVisible = signal(false);
   protected readonly syncedAssets = signal<ModelAssetSync[]>([]);
   protected readonly syncLoading = signal(false);
+
+  // ── Sync Queue — retry / AI-regenerate ────────────────────────────
+
+  /** Id of the asset currently being fixed (row spinner). */
+  protected readonly fixingId = signal<string | null>(null);
+
+  /** AI-regenerate dialog for a failed sync. */
+  protected readonly aiDialogVisible = signal(false);
+  protected readonly aiTarget = signal<ModelAssetSync | null>(null);
+  protected readonly aiRatio = signal('1:1');
+  protected readonly aiImageModels = signal<any[]>([]);
+  protected readonly aiLoadingModels = signal(false);
+  protected readonly aiModelId = signal('');
+
+  protected readonly aiRatioOptions: { label: string; value: string; w: number; h: number }[] = [
+    { label: '1:1 (Square)', value: '1:1', w: 16, h: 16 },
+    { label: '4:3', value: '4:3', w: 16, h: 12 },
+    { label: '3:4', value: '3:4', w: 12, h: 16 },
+    { label: '3:2', value: '3:2', w: 18, h: 12 },
+    { label: '2:3', value: '2:3', w: 12, h: 18 },
+    { label: '4:5', value: '4:5', w: 16, h: 20 },
+    { label: '5:4', value: '5:4', w: 20, h: 16 },
+  ];
+
+  /** Retry the sync; the backend auto-normalizes geometry (or falls back to
+   *  AI regeneration in "auto" mode when configured). */
+  protected retrySyncAsset(a: ModelAssetSync): void {
+    this.runSyncFix(a, 'auto');
+  }
+
+  /** Shared runner for the sync-queue retry / AI-regenerate flows. */
+  private runSyncFix(a: ModelAssetSync, mode: 'auto' | 'normalize' | 'ai', model?: string): void {
+    this.fixingId.set(a.id);
+    this.aiDialogVisible.set(false);
+    this.genLogs
+      .fixAsset(
+        a.model_id,
+        a.file_id,
+        mode,
+        mode === 'ai' ? this.aiRatio() : undefined,
+        mode === 'ai' ? model : undefined,
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.fixingId.set(null);
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('ADMIN.GALLERIES.FIX_FAILED'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.FIX_SYNC_FAILED'),
+            life: 4000,
+          });
+          return;
+        }
+        this.toastSyncFixResult(res.data);
+        this.reloadSyncedAssets();
+      });
+  }
+
+  private toastSyncFixResult(r: FixAssetResult): void {
+    const fixedLabel =
+      r.used_fix === 'ai'
+        ? this.i18n.instant('ADMIN.GALLERIES.REGENERATED_AI')
+        : r.used_fix === 'normalize'
+          ? this.i18n.instant('ADMIN.GALLERIES.NORMALIZED')
+          : '';
+    const detail =
+      r.status === 'failed'
+        ? this.i18n.instant('ADMIN.GALLERIES.FIX_RESULT_FAILED', {
+            msg: r.error_message ? ': ' + r.error_message : '',
+          })
+        : `${fixedLabel ? fixedLabel + ' · ' : ''}${r.status}`;
+    this.toast.add({
+      severity: r.status === 'failed' ? 'error' : 'success',
+      summary: this.i18n.instant('ADMIN.GALLERIES.SYNC_FIXED'),
+      detail,
+      life: 5000,
+    });
+  }
+
+  /** Open the AI-regenerate dialog for a failed sync. */
+  protected openAiDialog(a: ModelAssetSync): void {
+    this.aiTarget.set(a);
+    this.aiRatio.set('1:1');
+    this.aiDialogVisible.set(true);
+    this.loadSyncAiModels();
+  }
+
+  /** Load the image generator models for the AI dialog. */
+  private loadSyncAiModels(): void {
+    if (this.aiImageModels().length > 0 || this.aiLoadingModels()) return;
+    this.aiLoadingModels.set(true);
+    this.modelService
+      .getAllModels('image')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.aiLoadingModels.set(false);
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'warn',
+            summary: this.i18n.instant('ADMIN.GALLERIES.NO_IMAGE_MODELS'),
+            detail: res.msg || this.i18n.instant('ADMIN.GALLERIES.LOAD_IMAGE_MODELS_FAILED'),
+            life: 3000,
+          });
+          return;
+        }
+        this.aiImageModels.set(res.data);
+        if (res.data.length > 0) this.aiModelId.set(res.data[0].id);
+      });
+  }
+
+  protected onAiModelChange(id: string): void {
+    this.aiModelId.set(id);
+  }
+
+  /** Regenerate the failed sync with the image generator at the chosen ratio. */
+  protected regenerateSyncWithAI(): void {
+    const a = this.aiTarget();
+    if (!a) return;
+    const model = this.aiImageModels().find((m) => m.id === this.aiModelId());
+    this.runSyncFix(a, 'ai', model?.name);
+  }
+
+  /** Re-fetch the synced-assets list after a fix so the row reflects its new
+   *  status without reopening the dialog. */
+  private reloadSyncedAssets(): void {
+    const model = this.studio.modelCode();
+    if (!model?.id) return;
+    this.genLogs.getSyncedAssets(model.id).subscribe((res) => {
+      if (!res.error && res.data) this.syncedAssets.set(res.data);
+    });
+  }
 
   protected readonly syncBtnPos = signal({ x: 16, y: 200 });
   private dragging = false;
@@ -209,8 +350,8 @@ export class IndexStudio implements OnInit {
     if (!model?.id) {
       this.toast.add({
         severity: 'warn',
-        summary: 'Sync',
-        detail: 'Select a model first',
+        summary: this.i18n.instant('STUDIO.INDEX.SYNC'),
+        detail: this.i18n.instant('STUDIO.INDEX.SYNC_SELECT_MODEL'),
         life: 3000,
       });
       return;
@@ -222,7 +363,12 @@ export class IndexStudio implements OnInit {
       if (!res.error && res.data) {
         this.syncedAssets.set(res.data);
       } else {
-        this.toast.add({ severity: 'error', summary: 'Sync', detail: res.msg, life: 3000 });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('STUDIO.INDEX.SYNC'),
+          detail: res.msg,
+          life: 3000,
+        });
       }
     });
   }
@@ -235,6 +381,11 @@ export class IndexStudio implements OnInit {
 
   /** Solo SUPER_ADMIN (level 0) ve el botón de Vista previa del payload. */
   protected readonly isSuperAdmin = computed(() => this.sessionStore.roleLevel() === 0);
+
+  /** True when user is director or admin (level ≤ 2). */
+  protected readonly isDirectorOrAdmin = computed(
+    () => this.sessionStore.roleLevel() <= LEVEL_ROL.DIRECTOR,
+  );
 
   // ── Breadcrumb state (data managed here, displayed by breadcrumb component) ──
 
@@ -260,6 +411,17 @@ export class IndexStudio implements OnInit {
   /** Selected scene object for display in the new-shot dialog. */
   protected readonly navSelectedScene = signal<{ id: string; number: number; name: string } | null>(
     null,
+  );
+
+  /** Resolved names from the selected IDs for the shot-builder-panel header. */
+  protected readonly navSelectedProjectName = computed(
+    () => this.navProjects().find((p) => p.id === this.navSelectedProjectId())?.name ?? '',
+  );
+  protected readonly navSelectedChapterName = computed(
+    () => this.navChapters().find((c) => c.id === this.navSelectedChapterId())?.name ?? '',
+  );
+  protected readonly navSelectedSceneName = computed(
+    () => this.navScenes().find((s) => s.id === this.navSelectedSceneId())?.name ?? '',
   );
 
   /** True while restoring a previous selection from localStorage. */
@@ -348,6 +510,12 @@ export class IndexStudio implements OnInit {
     const projectId = this.navSelectedProjectId();
     if (projectId) {
       this.loadScenes(projectId, chapterId);
+
+      // Load the chapter's resources (characters, presets, assets) immediately
+      // so the shot builder has the episode's assignments available even when
+      // no scene is selected (multi-scene chapters never call handleSceneSelected,
+      // which is where these used to be loaded).
+      this.reloadChapterAssignments();
     }
   }
 
@@ -355,6 +523,23 @@ export class IndexStudio implements OnInit {
     if (chapterId) {
       this.handleChapterSelected(chapterId);
     }
+  }
+
+  /** Reload the current chapter's resource assignments into the studio store
+   *  (used after resetStudio() clears them, e.g. when the selected scene is
+   *  removed but the shot builder still shows at chapter level). */
+  private reloadChapterAssignments(): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
+      next: (res) => {
+        if (res.data) this.studio.setChapterAssignments(res.data);
+      },
+      error: () => {
+        /* assignments not critical */
+      },
+    });
   }
 
   /** Load scenes for a chapter and auto-select if appropriate. */
@@ -370,6 +555,7 @@ export class IndexStudio implements OnInit {
             number: s.number,
             name: s.name,
             label: `SC${String(s.number).padStart(2, '0')} \u2014 ${s.name}`,
+            takeCount: s.take_count,
           }));
         this.navScenes.set(items);
         this.autoSelectScene(items);
@@ -388,7 +574,9 @@ export class IndexStudio implements OnInit {
         return;
       }
     }
-    if (!this.restoring() && items.length === 1) {
+    // Never clobber a scene the user (or the shots-saved flow) just selected —
+    // e.g. when scenes reload after the shot builder created new ones.
+    if (!this.restoring() && items.length === 1 && !this.navSelectedSceneId()) {
       this.navSelectedSceneId.set(items[0].id);
       this.handleSceneSelected(items[0].id);
     }
@@ -408,6 +596,10 @@ export class IndexStudio implements OnInit {
     const chapterId = this.navSelectedChapterId();
     if (projectId && chapterId) {
       this.loadShots(projectId, chapterId, sceneId);
+
+      // Load chapter assignments so the shot builder has access to the
+      // episode's characters, presets and free assets before generating
+      this.reloadChapterAssignments();
     }
   }
 
@@ -420,6 +612,10 @@ export class IndexStudio implements OnInit {
       this.navSelectedShotId.set(null);
       this.navSelectedScene.set(null);
       this.persistNav();
+      // resetStudio() cleared the episode assignments — reload them so the
+      // shot builder (shown at chapter level, no scene) still has the
+      // episode's characters and assets without needing a page reload.
+      this.reloadChapterAssignments();
     }
   }
 
@@ -429,14 +625,14 @@ export class IndexStudio implements OnInit {
     this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((res) => {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
-        const items = res.data
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((sh) => ({
-            id: sh.id,
-            number: sh.number,
-            name: sh.name,
-            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
-          }));
+        const items = res.data.map((sh) => ({
+          id: sh.id,
+          number: sh.number,
+          name: sh.name,
+          label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+          description: sh.description,
+          takeCount: sh.take_count,
+        }));
         this.navShots.set(items);
         this.autoSelectShot(items);
       }
@@ -454,7 +650,9 @@ export class IndexStudio implements OnInit {
         return;
       }
     }
-    if (!this.restoring() && items.length === 1) {
+    // Never clobber a shot the shots-saved flow already selected (the shots
+    // list reloading after creation would otherwise re-select a single shot).
+    if (!this.restoring() && items.length === 1 && !this.navSelectedShotId()) {
       this.navSelectedShotId.set(items[0].id);
       this.onNavShotChange(items[0].id);
     }
@@ -485,14 +683,14 @@ export class IndexStudio implements OnInit {
       this.navLoadingShots.set(false);
       if (!res.error && res.data) {
         this.navShots.set(
-          res.data
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((sh) => ({
-              id: sh.id,
-              number: sh.number,
-              name: sh.name,
-              label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
-            })),
+          res.data.map((sh) => ({
+            id: sh.id,
+            number: sh.number,
+            name: sh.name,
+            label: `SH${String(sh.number).padStart(2, '0')} \u2014 ${sh.name}`,
+            description: sh.description,
+            takeCount: sh.take_count,
+          })),
         );
         // Auto-select if the previously selected shot is now in the list
         const saved = this.savedNav;
@@ -562,8 +760,12 @@ export class IndexStudio implements OnInit {
     this.loadChapters(saved.projectId);
   }
 
-  /** Initialize session for a given shot. */
-  private startSessionWithShot(shot: { id: string; number: number; name: string }): void {
+  /** Initialize session for a given shot. When `description` is provided (e.g.
+   *  a cloned shot), it is loaded as the pre-prompt in the PromptBuilder. */
+  private startSessionWithShot(
+    shot: { id: string; number: number; name: string },
+    description?: string,
+  ): void {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     const sceneId = this.navSelectedSceneId();
@@ -576,6 +778,16 @@ export class IndexStudio implements OnInit {
     const project = this.navProjects().find((p) => p.id === projectId);
     const chapter = this.navChapters().find((c) => c.id === chapterId);
     const sceneCode = `SC${String(scene.number).padStart(2, '0')}`;
+
+    // Clear previous used assets + original before loading a new shot. Must run
+    // BEFORE setShotDescription below, otherwise it would wipe the new original.
+    this.studio.clearUsedAssets();
+
+    // Load the pre-prompt for cloned shots (normal navigation does not pass it).
+    // Records it as the ORIGINAL so slot hydration/reindex sees the raw text.
+    if (description) {
+      this.studio.setShotDescription(description);
+    }
 
     this.projectsApi.listTakes(projectId, chapterId, sceneId, shot.id).subscribe((takesRes) => {
       const backendTakes = takesRes.error || !takesRes.data ? [] : takesRes.data;
@@ -604,20 +816,52 @@ export class IndexStudio implements OnInit {
         handle,
       });
 
-      this.http
-        .get<{
-          data: any;
-        }>(
-          `${this.environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/assignments`,
-        )
-        .subscribe({
-          next: (res) => {
-            if (res.data) this.studio.setSceneAssignments(res.data);
-          },
-          error: () => {
-            /* assignments not critical */
-          },
-        });
+      // Load the shot's description (pre-prompt) and restore it.
+      // Whichever async call finishes last triggers the slot-based
+      // asset registration so both the description and scene assignments
+      // are guaranteed to be available.
+      this.projectsApi.getShot(projectId, chapterId, sceneId, shot.id).subscribe({
+        next: (res) => {
+          if (!res.error && res.data?.shot.description) {
+            this.studio.setShotDescription(res.data.shot.description);
+          }
+
+          // Restore output format from the shot's persisted values
+          if (!res.error && res.data?.shot) {
+            const backendShot = res.data.shot;
+            const patch: Record<string, unknown> = {};
+            if (backendShot.aspect_ratio) {
+              patch['aspectRatio'] = backendShot.aspect_ratio;
+            }
+            if (backendShot.duration_seconds && backendShot.duration_seconds > 0) {
+              patch['durationSeconds'] = backendShot.duration_seconds;
+            }
+            if (Object.keys(patch).length > 0) {
+              this.studio.patchOutput(patch as any);
+            }
+          }
+
+          // If assignments arrived first, hydrate now (getShot already set the
+          // original description). Whichever of getShot / getChapterAssignments
+          // resolves last triggers the hydration, which is idempotent.
+          if (this.studio.assignmentsLoaded()) {
+            this.hydrateShotPrompt();
+          }
+        },
+      });
+
+      this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
+        next: (res) => {
+          if (res.data) {
+            this.studio.setChapterAssignments(res.data);
+            // If description arrived first, hydrate now
+            this.hydrateShotPrompt();
+          }
+        },
+        error: () => {
+          /* assignments not critical */
+        },
+      });
     });
   }
 
@@ -625,31 +869,29 @@ export class IndexStudio implements OnInit {
 
   private readonly breadcrumbComponent = viewChild(StudioBreadcrumbComponent);
 
-  protected onBreadcrumbCreateShot(shotName: string): void {
+  protected onBreadcrumbCreateShot(payload: {
+    name: string;
+    sourceShot: BreadcrumbOption | null;
+  }): void {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     const sceneId = this.navSelectedSceneId();
     const scene = this.navSelectedScene();
     if (!projectId || !chapterId || !sceneId || !scene) return;
 
-    // Load existing shots to determine the next shot number
-    this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((shotsRes) => {
-      const existingShots = shotsRes.error || !shotsRes.data ? [] : shotsRes.data;
-      const nextShotNumber =
-        existingShots.length > 0 ? Math.max(...existingShots.map((s) => s.number)) + 1 : 1;
-
-      // Create the new shot
+    const create = (number: number, description?: string): void => {
       this.projectsApi
         .createShot(projectId, chapterId, sceneId, {
-          number: nextShotNumber,
-          name: shotName,
+          number,
+          name: payload.name,
+          ...(description ? { description } : {}),
         })
         .subscribe((shotRes) => {
           if (shotRes.error || !shotRes.data) {
             this.toast.add({
               severity: 'error',
-              summary: 'Error',
-              detail: shotRes.msg || 'Failed to create shot',
+              summary: this.i18n.instant('COMMON.ERROR'),
+              detail: shotRes.msg || this.i18n.instant('STUDIO.INDEX.CREATE_SHOT_FAILED'),
             });
             return;
           }
@@ -665,14 +907,247 @@ export class IndexStudio implements OnInit {
           // Reset the breadcrumb dialog
           this.breadcrumbComponent()?.resetNewShotDialog();
 
-          // Start session with the newly created shot
-          this.startSessionWithShot({
-            id: newShot.id,
-            number: newShot.number,
-            name: newShot.name,
-          });
+          // Start session with the newly created shot — pass the inherited
+          // pre-prompt when cloning so the PromptBuilder shows it.
+          this.startSessionWithShot(
+            {
+              id: newShot.id,
+              number: newShot.number,
+              name: newShot.name,
+            },
+            description,
+          );
         });
+    };
+
+    if (payload.sourceShot) {
+      // Clone an existing shot: keep its number and pre-prompt (description).
+      create(payload.sourceShot.number, payload.sourceShot.description);
+    } else {
+      // Brand new shot: next available number, no pre-prompt.
+      this.projectsApi.listShots(projectId, chapterId, sceneId).subscribe((shotsRes) => {
+        const existingShots = shotsRes.error || !shotsRes.data ? [] : shotsRes.data;
+        const nextShotNumber =
+          existingShots.length > 0 ? Math.max(...existingShots.map((s) => s.number)) + 1 : 1;
+        create(nextShotNumber);
+      });
+    }
+  }
+
+  /** Reload chapter assignments after the assignment dialog changes them. */
+  protected onChapterAssignmentsChanged(): void {
+    this.reloadChapterAssignments();
+  }
+
+  /** Create a new episode (chapter) for the selected project and refresh the
+   *  breadcrumb's chapter list so it shows up in the dropdown. */
+  protected onBreadcrumbCreateChapter(payload: { number: number; name: string }): void {
+    const projectId = this.navSelectedProjectId();
+    if (!projectId) return;
+    this.projectsApi
+      .createChapter(projectId, { number: payload.number, name: payload.name })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.CREATE_EPISODE_FAILED'),
+          });
+          this.breadcrumbComponent()?.resetNewEpisodeDialog();
+          return;
+        }
+        const created = res.data;
+        this.loadChapters(projectId);
+        this.breadcrumbComponent()?.resetNewEpisodeDialog();
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('STUDIO.INDEX.EPISODE_CREATED'),
+          detail: `EP${String(created.number).padStart(2, '0')} — ${created.name}`,
+        });
+      });
+  }
+
+  /** Edit the selected scene (number/name) and refresh the breadcrumb + session. */
+  protected onBreadcrumbEditScene(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi
+      .updateScene(projectId, chapterId, payload.id, {
+        number: payload.number,
+        name: payload.name,
+      })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.UPDATE_SCENE_FAILED'),
+          });
+          this.breadcrumbComponent()?.resetEditDialog();
+          return;
+        }
+        const updated = res.data;
+        const label = `SC${String(updated.number).padStart(2, '0')} — ${updated.name}`;
+        // Keep the edited scene selected with fresh data (the reload below refreshes
+        // the dropdown labels asynchronously).
+        this.navSelectedScene.set({ id: updated.id, number: updated.number, name: updated.name });
+        if (this.navSelectedSceneId() === updated.id) {
+          this.studio.setSceneCode(`SC${String(updated.number).padStart(2, '0')}`);
+          this.studio.setSceneName(updated.name);
+        }
+        this.loadScenes(projectId, chapterId);
+        this.breadcrumbComponent()?.resetEditDialog();
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('STUDIO.INDEX.SCENE_UPDATED'),
+          detail: label,
+        });
+      });
+  }
+
+  /** Edit the selected shot (number/name) and refresh the breadcrumb + session. */
+  protected onBreadcrumbEditShot(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+    this.projectsApi
+      .updateShot(projectId, chapterId, sceneId, payload.id, {
+        number: payload.number,
+        name: payload.name,
+      })
+      .subscribe((res) => {
+        if (res.error || !res.data) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('COMMON.ERROR'),
+            detail: res.msg || this.i18n.instant('STUDIO.INDEX.UPDATE_SHOT_FAILED'),
+          });
+          this.breadcrumbComponent()?.resetEditDialog();
+          return;
+        }
+        const updated = res.data;
+        if (this.navSelectedShotId() === updated.id) {
+          this.studio.setShotName(updated.name);
+        }
+        this.reloadShots();
+        this.breadcrumbComponent()?.resetEditDialog();
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('STUDIO.INDEX.SHOT_UPDATED'),
+          detail: `SH${String(updated.number).padStart(2, '0')} — ${updated.name}`,
+        });
+      });
+  }
+
+  /** Delete the selected scene; falls back to chapter level if it was active. */
+  protected onBreadcrumbDeleteScene(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    if (!projectId || !chapterId) return;
+    this.projectsApi.deleteScene(projectId, chapterId, payload.id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('COMMON.ERROR'),
+          detail: res.msg || this.i18n.instant('STUDIO.INDEX.DELETE_SCENE_FAILED'),
+        });
+        this.breadcrumbComponent()?.resetDeleteDialog();
+        return;
+      }
+      this.breadcrumbComponent()?.resetDeleteDialog();
+      if (this.navSelectedSceneId() === payload.id) {
+        // The active scene is gone — fall back to chapter level (shot builder).
+        this.studio.resetStudio();
+        this.navSelectedSceneId.set(null);
+        this.navSelectedScene.set(null);
+        this.navShots.set([]);
+        this.navSelectedShotId.set(null);
+        this.persistNav();
+        this.reloadChapterAssignments();
+      }
+      this.loadScenes(projectId, chapterId);
+      this.toast.add({
+        severity: 'success',
+        summary: this.i18n.instant('STUDIO.INDEX.SCENE_DELETED'),
+        detail: payload.label,
+      });
     });
+  }
+
+  /** Delete the selected shot; clears the session if it was the active shot. */
+  protected onBreadcrumbDeleteShot(payload: BreadcrumbOption): void {
+    const projectId = this.navSelectedProjectId();
+    const chapterId = this.navSelectedChapterId();
+    const sceneId = this.navSelectedSceneId();
+    if (!projectId || !chapterId || !sceneId) return;
+    this.projectsApi.deleteShot(projectId, chapterId, sceneId, payload.id).subscribe((res) => {
+      if (res.error) {
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('COMMON.ERROR'),
+          detail: res.msg || this.i18n.instant('STUDIO.INDEX.DELETE_SHOT_FAILED'),
+        });
+        this.breadcrumbComponent()?.resetDeleteDialog();
+        return;
+      }
+      this.breadcrumbComponent()?.resetDeleteDialog();
+      if (this.navSelectedShotId() === payload.id) {
+        this.studio.resetStudio();
+        this.navSelectedShotId.set(null);
+        this.persistNav();
+      }
+      this.reloadShots();
+      this.toast.add({
+        severity: 'success',
+        summary: this.i18n.instant('STUDIO.INDEX.SHOT_DELETED'),
+        detail: payload.label,
+      });
+    });
+  }
+
+  /** Handle the shots saved event from the shot builder panel: select the
+   *  first scene + first shot and start the studio session with its pre-prompt.
+   *  Works from the episode level (no scene selected), so the scene is set
+   *  explicitly here rather than looked up in the breadcrumb list (the newly
+   *  created scene may not be in it yet). */
+  protected onShotsSaved(event: {
+    projectId: string;
+    chapterId: string;
+    sceneId: string;
+    firstSceneNumber: number;
+    firstSceneName: string;
+    firstShotId: string;
+    firstShotNumber: number;
+    firstShotName: string;
+    firstShotDescription: string;
+  }): void {
+    // Select the first scene + first shot in the breadcrumb model.
+    this.navSelectedSceneId.set(event.sceneId);
+    this.navSelectedScene.set({
+      id: event.sceneId,
+      number: event.firstSceneNumber,
+      name: event.firstSceneName,
+    });
+    this.navSelectedShotId.set(event.firstShotId);
+    this.persistNav();
+
+    // Reload the scene + shot lists so the breadcrumb shows the new resources.
+    // autoSelectScene/autoSelectShot won't clobber the selection just set.
+    this.loadScenes(event.projectId, event.chapterId);
+    this.reloadShots();
+
+    // Start the studio session with the newly created first shot — this also
+    // restores its pre-prompt as the studio's raw description.
+    this.startSessionWithShot(
+      {
+        id: event.firstShotId,
+        number: event.firstShotNumber,
+        name: event.firstShotName,
+      },
+      event.firstShotDescription,
+    );
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────
@@ -721,6 +1196,7 @@ export class IndexStudio implements OnInit {
         durationSeconds: 5,
         resolution: '480p',
         takeIndex,
+        rating: take.rating,
       });
     }
   }
@@ -750,8 +1226,8 @@ export class IndexStudio implements OnInit {
   protected onGenerate(): void {
     if (!this.studio.projectId() || !this.studio.sceneId()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un proyecto y una escena antes de generar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_SESSION_GENERATE'),
         severity: 'error',
         life: 3000,
       });
@@ -761,8 +1237,8 @@ export class IndexStudio implements OnInit {
     const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes escribir un prompt antes de generar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_PROMPT_GENERATE'),
         severity: 'error',
         life: 3000,
       });
@@ -781,8 +1257,8 @@ export class IndexStudio implements OnInit {
     if (!this.isSuperAdmin()) return;
     if (!this.studio.projectId() || !this.studio.sceneId()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un proyecto y una escena antes de previsualizar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_SESSION_PREVIEW'),
         severity: 'error',
         life: 3000,
       });
@@ -791,8 +1267,8 @@ export class IndexStudio implements OnInit {
     const text = this.studio.rawDescription().trim();
     if (!text) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes escribir un prompt antes de previsualizar',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_PROMPT_PREVIEW'),
         severity: 'error',
         life: 3000,
       });
@@ -828,8 +1304,8 @@ export class IndexStudio implements OnInit {
 
     if (!this.studio.modelCode()) {
       this.toast.add({
-        summary: 'Error',
-        detail: 'Debes seleccionar un modelo',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_MODEL'),
         severity: 'error',
         life: 3000,
       });
@@ -843,7 +1319,7 @@ export class IndexStudio implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
         this.toast.add({
-          summary: 'Respuesta del servidor',
+          summary: this.i18n.instant('STUDIO.INDEX.SERVER_RESPONSE'),
           detail: res.msg,
           severity: res.error ? 'error' : 'success',
           life: 7000,
@@ -901,7 +1377,7 @@ export class IndexStudio implements OnInit {
         if (res.error || !res.data) {
           this.studio.failGeneration(localId);
           this.toast.add({
-            summary: 'Error de generación',
+            summary: this.i18n.instant('STUDIO.INDEX.GENERATION_ERROR'),
             detail: res.msg || 'Error al consultar el estado de la tarea',
             severity: 'error',
             life: 5000,
@@ -921,8 +1397,8 @@ export class IndexStudio implements OnInit {
         } else if (task.status === 'failed') {
           this.studio.failGeneration(localId);
           this.toast.add({
-            summary: 'Generación fallida',
-            detail: 'La tarea no pudo completarse',
+            summary: this.i18n.instant('STUDIO.INDEX.GENERATION_FAILED'),
+            detail: this.i18n.instant('STUDIO.INDEX.TASK_INCOMPLETE'),
             severity: 'error',
             life: 5000,
           });
@@ -942,8 +1418,8 @@ export class IndexStudio implements OnInit {
     if (!out?.url) {
       this.studio.failGeneration(localId);
       this.toast.add({
-        summary: 'Error',
-        detail: 'No se recibió un video del servidor',
+        summary: this.i18n.instant('COMMON.ERROR'),
+        detail: this.i18n.instant('STUDIO.INDEX.NO_VIDEO'),
         severity: 'error',
         life: 5000,
       });
@@ -966,8 +1442,8 @@ export class IndexStudio implements OnInit {
     this.playNotificationSound();
 
     this.toast.add({
-      summary: 'Generación completada',
-      detail: 'El video se ha generado correctamente',
+      summary: this.i18n.instant('STUDIO.INDEX.GENERATION_COMPLETE'),
+      detail: this.i18n.instant('STUDIO.INDEX.VIDEO_GENERATED'),
       severity: 'success',
       life: 5000,
     });
@@ -1041,12 +1517,16 @@ export class IndexStudio implements OnInit {
     const output = this.studio.output();
     const refs = this.collectReferenceAssets();
     const hints = this.buildFrameHints();
-    const finalText = hints ? `${hints} ${text}` : text;
+    // Reindex [ImageN]/[VideoN]/[AudioN] tokens to positional numbers matching the
+    // order the reference items are attached below. Every occurrence in the text
+    // is rewritten, so the model resolves each token against the correct ref.
+    const reindexedText = reindexSlotTokens(text, refs);
+    const finalText = hints ? `${hints} ${reindexedText}` : reindexedText;
 
     const content: VideoGenerateContentItem[] = [{ type: 'text', text: finalText }];
     for (const ref of refs) {
       content.push({
-        type: ref.type,
+        type: ref.kind,
         id: ref.fileId,
         name: ref.filename,
         text: ref.tag,
@@ -1092,41 +1572,72 @@ export class IndexStudio implements OnInit {
   }
 
   /**
-   * Flatten every reference source into a single deduped list.
+   * Flatten every reference source into a single deduped list in the exact
+   * order the items are attached to the payload (first frame, last frame,
+   * then used assets). `kind`/`slot` are shared with the slot reindexing so
+   * the payload text and the reference items always agree on numbering.
    */
   private collectReferenceAssets(): Array<{
     fileId: string;
     filename: string;
-    type: 'image' | 'video' | 'audio';
+    kind: 'image' | 'video' | 'audio';
     tag: string;
+    slot?: string;
   }> {
-    const out: Array<{
-      fileId: string;
-      filename: string;
-      type: 'image' | 'video' | 'audio';
-      tag: string;
-    }> = [];
-    const seen = new Set<string>();
-    const push = (
-      fileId: string,
-      filename: string,
-      type: 'image' | 'video' | 'audio',
-      tag: string,
-    ): void => {
-      if (seen.has(fileId)) return;
-      seen.add(fileId);
-      out.push({ fileId, filename, type, tag });
-    };
-
+    const src = new Map<string, { filename: string; tag: string }>();
     const first = this.studio.firstFrame();
-    if (first) push(first.id, first.filename, first.kind, first.tag || 'First Frame');
+    if (first) src.set(first.id, { filename: first.filename, tag: first.tag || 'First Frame' });
     const last = this.studio.lastFrame();
-    if (last) push(last.id, last.filename, last.kind, last.tag || 'Last Frame');
+    if (last) src.set(last.id, { filename: last.filename, tag: last.tag || 'Last Frame' });
     for (const used of this.studio.usedAssets()) {
-      const type: 'image' | 'video' | 'audio' = used.kind === 'mixed' ? 'image' : used.kind;
-      push(used.fileId, used.filename, type, used.name);
+      src.set(used.fileId, { filename: used.filename, tag: used.slot || used.name });
     }
-    return out;
+
+    const refs = buildSlotReferences(first, last, this.studio.usedAssets());
+    return refs.map((r) => ({
+      fileId: r.fileId,
+      kind: r.kind,
+      filename: src.get(r.fileId)?.filename ?? '',
+      tag: src.get(r.fileId)?.tag ?? r.kind,
+      slot: r.slot,
+    }));
+  }
+
+  /**
+   * Register the shot's referenced chapter resources as used assets and reindex
+   * the prompt's [ImageN]/[VideoN]/[AudioN] tokens to positional numbers. Runs once
+   * the raw description AND the chapter assignments are both available; order of
+   * arrival does not matter because registration always reads the ORIGINAL
+   * description (never an already-reindexed or user-edited text).
+   */
+  private hydrateShotPrompt(): void {
+    const original = this.studio.originalDescription();
+    if (!original) return; // no raw description yet (getShot hasn't resolved)
+    this.studio.registerUsedAssetsFromDescription(original);
+    this.reindexPromptFromDescription();
+  }
+
+  /**
+   * Rewrite the loaded shot pre-prompt so its [ImageN]/[VideoN]/[AudioN] tokens
+   * become positional (matching the order the references are attached), so the
+   * editor shows the same numbers the payload will send. Guarded so it only
+   * applies while the editor still holds the raw backend description — once
+   * reindexed or edited by the user it is a no-op (prevents double reindex and
+   * corrupting the slot→asset mapping).
+   */
+  private reindexPromptFromDescription(): void {
+    const desc = this.studio.rawDescription();
+    if (!desc) return;
+    if (desc !== this.studio.originalDescription()) return;
+    const refs = buildSlotReferences(
+      this.studio.firstFrame(),
+      this.studio.lastFrame(),
+      this.studio.usedAssets(),
+    );
+    const reindexed = reindexSlotTokens(desc, refs);
+    if (reindexed !== desc) {
+      this.studio.setRawDescription(reindexed);
+    }
   }
 
   /** Snapshot of the editor inputs at submit time. */
