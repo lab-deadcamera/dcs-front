@@ -107,6 +107,18 @@ export class StudioStore {
   private readonly _assignmentsLoaded = signal(false);
   readonly assignmentsLoaded = this._assignmentsLoaded.asReadonly();
 
+  /** When true, the prompt-builder should NOT prune stale [ImageN]/[VideoN]/
+   *  [AudioN] tokens on the next usedAssets shrink — used when a resource is
+   *  unbound from "Mi biblioteca" but its slot placeholder must stay in the
+   *  prompt text. Consumed (cleared) by the prompt-builder's prune effect. */
+  private readonly _skipNextTokenPrune = signal(false);
+  readonly skipNextTokenPrune = this._skipNextTokenPrune.asReadonly();
+
+  /** Clear the one-shot "keep the slot in the prompt" flag. */
+  clearSkipTokenPrune(): void {
+    this._skipNextTokenPrune.set(false);
+  }
+
   /**
    * Scan the shot's pre-prompt description for [Image{N}], [Video{N}], [Audio{N}]
    * tokens and auto-register the matching chapter resources (characters first,
@@ -501,6 +513,7 @@ export class StudioStore {
     this._chapterAssetSlots.set(new Map());
     this._chapterAssetAssignmentIds.set(new Map());
     this._chapterCharacterAssignmentIds.set(new Map());
+    this._skipNextTokenPrune.set(false);
     this._assignmentsLoaded.set(false);
     // shot resources removed — using chapter assignments only
   }
@@ -679,10 +692,27 @@ export class StudioStore {
     }
   }
 
-  unuseAsset(idOrFileId: string) {
+  unuseAsset(idOrFileId: string, opts: { keepSlot?: boolean } = {}) {
+    // When the caller unbinds a resource but wants to keep the [ImageN] slot
+    // placeholder in the prompt (e.g. removing from "Mi biblioteca"), signal
+    // the prompt-builder to skip its token prune for this change.
+    if (opts.keepSlot) this._skipNextTokenPrune.set(true);
     this._usedAssets.update((list) =>
       list.filter((a) => a.fileId !== idOrFileId && a.characterId !== idOrFileId),
     );
+  }
+
+  /** Swap the resource bound to a used-asset entry without changing its position
+   *  in the list, so the [ImageN]/[VideoN]/[AudioN] slot number stays valid.
+   *  Used by the prompt-builder's "replace" action. */
+  replaceUsedAsset(oldFileId: string, asset: UsedAsset): void {
+    this._usedAssets.update((list) => {
+      const idx = list.findIndex((a) => a.fileId === oldFileId);
+      if (idx < 0) return list;
+      const next = [...list];
+      next[idx] = { ...asset };
+      return next;
+    });
   }
 
   // ── Reference assets (drop-zone) ─────────────────────────────────

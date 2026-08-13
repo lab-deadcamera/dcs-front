@@ -362,7 +362,9 @@ export class CharacterAssetsComponent {
    */
   protected onPickLibraryAsset(a: LibraryItem): void {
     if (this.isUsed(a.id)) {
-      this.studio.unuseAsset(a.id);
+      // Unbinding from "Mi biblioteca" keeps the [ImageN] slot in the prompt
+      // text — the user can still point it at another resource later.
+      this.studio.unuseAsset(a.id, { keepSlot: true });
       return;
     }
 

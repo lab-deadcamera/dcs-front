@@ -202,6 +202,7 @@
       "SAVE_EDIT": "Save",
       "CANCEL_EDIT": "Cancel",
       "REPLACE": "Replace",
+      "CHIP_ACTIONS": "Delete or replace",
       "SELECT_LANGUAGE": "Select language",
       "TRANSLATE_TO": "Translate to",
       "TRANSLATING": "Translating…",

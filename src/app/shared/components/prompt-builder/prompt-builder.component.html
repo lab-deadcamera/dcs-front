@@ -55,9 +55,11 @@
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="removeAsset($event, a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -112,9 +114,11 @@
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="removeAsset($event, a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -169,9 +173,11 @@
                   type="button"
                   class="ml-1 text-fg-muted transition-colors hover:text-primary-500"
                   [attr.aria-label]="'COMMON.DELETE' | translate"
-                  (click)="removeAsset($event, a.fileId)"
+                  [pTooltip]="'STUDIO.PROMPT.CHIP_ACTIONS' | translate"
+                  tooltipPosition="top"
+                  (click)="openChipMenu($event, a)"
                 >
-                  ×
+                  X
                 </button>
               </span>
             }
@@ -317,4 +323,87 @@
 
   <!-- Asset metadata popover (reference chips) -->
   <app-asset-info-popover #assetInfoPopover />
+
+  <!-- Chip action menu: delete or replace (keeps the slot), then picker -->
+  <p-popover #replacePopover [dismissable]="true" styleClass="asset-popover-z">
+    @if (replaceTarget(); as target) {
+      @if (replaceView() === 'menu') {
+        <div class="chip-menu">
+          <button
+            type="button"
+            class="chip-menu-item chip-menu-delete"
+            (click)="onDeleteFromMenu()"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+            {{ 'COMMON.DELETE' | translate }}
+          </button>
+          <button type="button" class="chip-menu-item" (click)="onGoReplace()">
+            <i class="pi pi-refresh" aria-hidden="true"></i>
+            {{ 'STUDIO.PROMPT.REPLACE' | translate }}
+          </button>
+        </div>
+      } @else {
+        <div class="replace-picker">
+          <p class="replace-title">
+            Reemplazar el slot
+            <b>[{{ labelFor(target.kind) }}{{ assetNumbers().get(target.fileId) ?? '?' }}]</b>
+          </p>
+          <input
+            type="text"
+            class="replace-search"
+            placeholder="Buscar por nombre…"
+            [value]="replaceSearch()"
+            (input)="onReplaceSearch($event)"
+            [attr.aria-label]="'Buscar recurso por nombre'"
+          />
+          <div class="replace-tabs">
+            @for (t of replaceTabs; track t.id) {
+              <button
+                type="button"
+                class="replace-tab"
+                [class.on]="replaceLibType() === t.id"
+                (click)="replaceLibType.set(t.id)"
+                [attr.aria-pressed]="replaceLibType() === t.id"
+              >
+                {{ t.labelKey | translate }}
+                <span class="replace-count">{{ replaceByType()[t.id].length }}</span>
+              </button>
+            }
+          </div>
+          <div class="replace-grid">
+            @for (opt of replaceByType()[replaceLibType()]; track opt.fileId) {
+              <button
+                type="button"
+                class="replace-tile"
+                (click)="pickReplacement(opt)"
+                [title]="opt.name"
+              >
+                @if (opt.kind === 'image' || opt.kind === 'mixed') {
+                  <img
+                    [src]="opt.fileId | sourceThumbnailAsset"
+                    [alt]="opt.name"
+                    class="replace-img"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="replace-placeholder">
+                    <i
+                      class="pi"
+                      [class.pi-video]="opt.kind === 'video'"
+                      [class.pi-volume-up]="opt.kind === 'audio'"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                }
+                <span class="replace-name">{{ opt.name }}</span>
+              </button>
+            }
+          </div>
+          @if (replaceByType()[replaceLibType()].length === 0) {
+            <p class="replace-empty">Sin recursos de este tipo</p>
+          }
+        </div>
+      }
+    }
+  </p-popover>
 </section>

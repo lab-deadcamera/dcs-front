@@ -18,12 +18,15 @@ import { Editor, EditorModule } from 'primeng/editor';
 import { Popover } from 'primeng/popover';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes/source-thumbnail-asset.pipe';
 import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { TranslatorApiService } from '@app/services/translator-api.service';
 import { UsedAsset, UsedAssetKind } from '@core/interfaces/studio.models';
 import { buildSlotReferences } from '@core/utils/slot-reindex';
+import { CharactersService } from '@app/modules/characters/characters/services';
+import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 import { Tooltip } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SelectModule } from 'primeng/select';
@@ -44,6 +47,7 @@ import { SelectModule } from 'primeng/select';
   imports: [
     SectionHeaderComponent,
     SourceAssetPipe,
+    SourceThumbnailAssetPipe,
     TranslatePipe,
     UpperCasePipe,
     EditorModule,
@@ -67,6 +71,159 @@ import { SelectModule } from 'primeng/select';
         line-height: 1.625;
         background: transparent;
       }
+
+      /* Chip action menu (Borrar / Reemplazar) */
+      .chip-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 150px;
+        padding: 8px;
+        background: var(--panel, #121f21);
+      }
+      .chip-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink, #ece6d8);
+        background: transparent;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .chip-menu-item:hover {
+        border-color: var(--teal, #4fb0b5);
+        background: rgba(79, 176, 181, 0.08);
+      }
+      .chip-menu-delete:hover {
+        border-color: #e0653c;
+        color: #e0653c;
+        background: rgba(224, 101, 60, 0.08);
+      }
+
+      /* Replace picker */
+      .replace-picker {
+        width: 325px;
+        padding: 14px;
+        background: var(--panel, #121f21);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .replace-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--ink-dim, #9aa6a3);
+        margin: 0;
+      }
+      .replace-title b {
+        color: var(--amber, #e0a95c);
+        font-weight: 700;
+      }
+      .replace-search {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--ink, #ece6d8);
+        background: var(--bg2, #0f1a1c);
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        padding: 4px 8px;
+        outline: none;
+      }
+      .replace-search:focus {
+        border-color: var(--teal, #4fb0b5);
+      }
+      .replace-tabs {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .replace-tab {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-dim, #9aa6a3);
+        background: transparent;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        padding: 3px 7px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .replace-tab:hover {
+        color: var(--ink, #ece6d8);
+      }
+      .replace-tab.on {
+        color: var(--ink, #ece6d8);
+        border-color: var(--teal, #4fb0b5);
+      }
+      .replace-count {
+        color: var(--amber, #e0a95c);
+        font-size: 9px;
+      }
+      .replace-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+        gap: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+      .replace-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 4px;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: var(--bg2, #0f1a1c);
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+      .replace-tile:hover {
+        border-color: var(--teal, #4fb0b5);
+      }
+      .replace-img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 2px;
+      }
+      .replace-placeholder {
+        width: 100%;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink-faint, #6a7977);
+        font-size: 14px;
+      }
+      .replace-name {
+        width: 100%;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 8.5px;
+        color: var(--ink-dim, #9aa6a3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+      }
+      .replace-empty {
+        font-size: 12px;
+        color: var(--ink-faint, #6a7977);
+        font-style: italic;
+        margin: 0;
+      }
     `,
   ],
 })
@@ -79,6 +236,7 @@ export class PromptBuilderComponent implements OnInit {
   protected readonly session = inject(SessionStore);
   private readonly translator = inject(TranslatorApiService);
   private readonly i18n = inject(TranslateService);
+  private readonly chars = inject(CharactersService);
   protected readonly translating = signal(false);
   protected readonly translatedText = signal<string | null>(null);
 
@@ -221,6 +379,10 @@ export class PromptBuilderComponent implements OnInit {
     effect(() => {
       const nums = this.assetNumbers();
       const used = this.studio.usedAssets();
+      // A one-shot flag set when a resource is unbound from "Mi biblioteca":
+      // the slot token must stay in the prompt, so skip the prune for this
+      // shrink and clear the flag.
+      const skipPrune = this.studio.skipNextTokenPrune();
       const allowed = (kind: UsedAssetKind): Set<number> => {
         const s = new Set<number>();
         for (const a of used) {
@@ -245,6 +407,10 @@ export class PromptBuilderComponent implements OnInit {
         video: next.video.size,
         audio: next.audio.size,
       };
+      if (skipPrune) {
+        this.studio.clearSkipTokenPrune();
+        return;
+      }
       if (!shrunk.image && !shrunk.video && !shrunk.audio) return;
       queueMicrotask(() => {
         if (shrunk.image) this.pruneStaleTokens('image', next.image);
@@ -510,16 +676,114 @@ export class PromptBuilderComponent implements OnInit {
       id: a.fileId,
       name: a.name || a.filename,
       kind: a.kind,
-      slot:
-        a.slot ||
-        `[${this.labelFor(a.kind)}${this.assetNumbers().get(a.fileId) ?? index + 1}]`,
+      slot: a.slot || `[${this.labelFor(a.kind)}${this.assetNumbers().get(a.fileId) ?? index + 1}]`,
     });
   }
 
-  /** Remove a reference without triggering the chip's metadata popover. */
-  protected removeAsset(event: Event, fileId: string): void {
+  // ── Replace a used resource (swap in another, keeping the slot) ─────────
+
+  /** Used asset being replaced + the kind the replacement must stay compatible
+   *  with (mixed chips replace with image/mixed resources). */
+  protected readonly replaceTarget = signal<{ fileId: string; kind: UsedAssetKind } | null>(null);
+  protected readonly replaceSearch = signal('');
+  /** Which step of the chip popover is shown: the delete/replace menu or the
+   *  resource picker (after choosing "Reemplazar"). */
+  protected readonly replaceView = signal<'menu' | 'picker'>('menu');
+
+  /** Asset-type tab active in the replace picker. */
+  protected readonly replaceLibType = signal<AssetType>('character');
+
+  protected readonly replaceTabs: { id: AssetType; labelKey: string }[] = [
+    { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER' },
+    { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION' },
+    { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP' },
+    { id: 'audio', labelKey: 'FILES.TABS.AUDIO' },
+  ];
+
+  @ViewChild('replacePopover') protected readonly replacePopover!: Popover;
+
+  /** Library resources of the target kind (compatible with the chip's slot),
+   *  with a linked file and not already used — grouped by asset type so the
+   *  picker can browse character/location/prop/audio separately. Filtered by
+   *  the replace search box. */
+  protected readonly replaceByType = computed<Record<AssetType, ReplaceOption[]>>(() => {
+    const target = this.replaceTarget();
+    const buckets: Record<AssetType, ReplaceOption[]> = {
+      character: [],
+      location: [],
+      prop: [],
+      audio: [],
+    };
+    if (!target) return buckets;
+    const query = this.replaceSearch().trim().toLowerCase();
+    const usedFileIds = new Set(this.studio.usedAssets().map((a) => a.fileId));
+    for (const item of this.chars.items()) {
+      const c = item.character;
+      if (!c?.id) continue;
+      const metadata = parsePromptMetadata(c.metadata);
+      const kind: UsedAssetKind = metadata.fileKind ?? 'image';
+      if (kind !== target.kind && !(target.kind === 'image' && kind === 'mixed')) continue;
+      if (query && !c.name.toLowerCase().includes(query)) continue;
+      const file = item.files?.[0];
+      if (!file || usedFileIds.has(file.file_id)) continue;
+      const assetType: AssetType = metadata.assetType ?? 'character';
+      (buckets[assetType] ?? buckets.character).push({
+        id: c.id,
+        name: c.name,
+        fileId: file.file_id,
+        kind,
+      });
+    }
+    return buckets;
+  });
+
+  protected onReplaceSearch(event: Event): void {
+    this.replaceSearch.set((event.target as HTMLInputElement).value);
+  }
+
+  /** Open the chip action menu (Borrar / Reemplazar) anchored at the chip. */
+  protected openChipMenu(event: Event, a: UsedAsset): void {
     event.stopPropagation();
-    this.studio.unuseAsset(fileId);
+    this.replaceTarget.set({ fileId: a.fileId, kind: a.kind === 'mixed' ? 'image' : a.kind });
+    this.replaceView.set('menu');
+    this.replaceLibType.set('character');
+    this.replaceSearch.set('');
+    if (this.chars.items().length === 0 && !this.chars.loading()) {
+      this.chars.load().subscribe();
+    }
+    this.replacePopover.toggle(event);
+  }
+
+  /** "Borrar": remove the resource and its slot token from the prompt. */
+  protected onDeleteFromMenu(): void {
+    const target = this.replaceTarget();
+    if (!target) return;
+    this.studio.unuseAsset(target.fileId);
+    this.replaceTarget.set(null);
+    this.replacePopover.hide();
+  }
+
+  /** "Reemplazar": switch the popover to the resource picker. */
+  protected onGoReplace(): void {
+    this.replaceView.set('picker');
+  }
+
+  /** Swap the chip's resource for the picked one — same position, so the
+   *  [ImageN]/[VideoN]/[AudioN] slot number in the prompt stays valid. */
+  protected pickReplacement(opt: ReplaceOption): void {
+    const target = this.replaceTarget();
+    if (!target) return;
+    const old = this.studio.usedAssets().find((a) => a.fileId === target.fileId);
+    this.studio.replaceUsedAsset(target.fileId, {
+      fileId: opt.fileId,
+      characterId: opt.id,
+      name: opt.name,
+      filename: opt.name,
+      kind: opt.kind,
+      slot: old?.slot,
+    });
+    this.replaceTarget.set(null);
+    this.replacePopover.hide();
   }
 
   /** Capitalize a kind label for the canonical token form ("image" → "Image"). */
@@ -588,4 +852,26 @@ export class PromptBuilderComponent implements OnInit {
     this.skipStoreSync = true;
     this.studio.setRawDescription(quill.getText().replace(/\n+$/, ''));
   }
+}
+
+/** One replaceable library resource in the prompt-builder's replace picker. */
+interface ReplaceOption {
+  id: string;
+  name: string;
+  fileId: string;
+  kind: UsedAssetKind;
+}
+
+/** Character metadata arrives from the wire as a JSON string; some surfaces
+ *  store it already parsed. Handle both. */
+function parsePromptMetadata(raw: string | null | undefined): CharacterMetadata {
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw) as CharacterMetadata;
+    } catch {
+      return {};
+    }
+  }
+  return raw as CharacterMetadata;
 }
