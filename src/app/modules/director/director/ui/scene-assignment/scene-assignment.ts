@@ -186,14 +186,12 @@ export class SceneAssignmentComponent implements OnInit {
   readonly assignmentsChanged = output<void>();
 
   /** Resolved project/scene IDs: prefer inputs, fall back to route params. */
-  private readonly routeProjectId = toSignal(
-    this.route.params.pipe(map((p) => p['projectId'])),
-    { initialValue: '' },
-  );
-  private readonly routeSceneId = toSignal(
-    this.route.params.pipe(map((p) => p['sceneId'])),
-    { initialValue: '' },
-  );
+  private readonly routeProjectId = toSignal(this.route.params.pipe(map((p) => p['projectId'])), {
+    initialValue: '',
+  });
+  private readonly routeSceneId = toSignal(this.route.params.pipe(map((p) => p['sceneId'])), {
+    initialValue: '',
+  });
   protected readonly projectId = computed(() => this.projectIdInput() || this.routeProjectId());
   protected readonly sceneId = computed(() => this.sceneIdInput() || this.routeSceneId());
   protected readonly chapterId = computed(() => this.chapterIdInput());
@@ -531,24 +529,22 @@ export class SceneAssignmentComponent implements OnInit {
   removePreset(assignmentId: string): void {
     const base = this.assignmentBase();
     if (!base) return;
-    this.http
-      .delete(`${base}/presets/${assignmentId}`)
-      .subscribe({
-        next: () => {
-          this.toast.add({
-            severity: 'success',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVED'),
-            life: 2000,
-          });
-          this.reload();
-        },
-        error: () =>
-          this.toast.add({
-            severity: 'error',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVE_FAILED'),
-            life: 3000,
-          }),
-      });
+    this.http.delete(`${base}/presets/${assignmentId}`).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVED'),
+          life: 2000,
+        });
+        this.reload();
+      },
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_PRESET_REMOVE_FAILED'),
+          life: 3000,
+        }),
+    });
   }
 
   private prefixForKind(kind: string): string {
@@ -597,24 +593,22 @@ export class SceneAssignmentComponent implements OnInit {
   removeCharacter(assignmentId: string): void {
     const base = this.assignmentBase();
     if (!base) return;
-    this.http
-      .delete(`${base}/characters/${assignmentId}`)
-      .subscribe({
-        next: () => {
-          this.toast.add({
-            severity: 'success',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_CHARACTER_REMOVED'),
-            life: 2000,
-          });
-          this.reload();
-        },
-        error: () =>
-          this.toast.add({
-            severity: 'error',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
-            life: 3000,
-          }),
-      });
+    this.http.delete(`${base}/characters/${assignmentId}`).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_CHARACTER_REMOVED'),
+          life: 2000,
+        });
+        this.reload();
+      },
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+          life: 3000,
+        }),
+    });
   }
 
   /**
@@ -646,7 +640,9 @@ export class SceneAssignmentComponent implements OnInit {
     // after this request completes).
     const prefix = this.prefixForKind(evt.kind);
     const usedSlots = new Set(
-      this.assignedCharacters().map((a) => a.slot).filter(Boolean) as string[],
+      this.assignedCharacters()
+        .map((a) => a.slot)
+        .filter(Boolean) as string[],
     );
     const nextFreeSlot = (): string => {
       let n = 1;
@@ -684,47 +680,43 @@ export class SceneAssignmentComponent implements OnInit {
   assignAsset(fileId: string): void {
     const base = this.assignmentBase();
     if (!base) return;
-    this.http
-      .post(`${base}/assets`, { file_id: fileId })
-      .subscribe({
-        next: () => {
-          this.toast.add({
-            severity: 'success',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_ASSIGNED'),
-            life: 2000,
-          });
-          this.reload();
-        },
-        error: () =>
-          this.toast.add({
-            severity: 'error',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
-            life: 3000,
-          }),
-      });
+    this.http.post(`${base}/assets`, { file_id: fileId }).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_ASSIGNED'),
+          life: 2000,
+        });
+        this.reload();
+      },
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+          life: 3000,
+        }),
+    });
   }
 
   removeAsset(assignmentId: string): void {
     const base = this.assignmentBase();
     if (!base) return;
-    this.http
-      .delete(`${base}/assets/${assignmentId}`)
-      .subscribe({
-        next: () => {
-          this.toast.add({
-            severity: 'success',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_REMOVED'),
-            life: 2000,
-          });
-          this.reload();
-        },
-        error: () =>
-          this.toast.add({
-            severity: 'error',
-            summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
-            life: 3000,
-          }),
-      });
+    this.http.delete(`${base}/assets/${assignmentId}`).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_ASSET_REMOVED'),
+          life: 2000,
+        });
+        this.reload();
+      },
+      error: () =>
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('DIRECT.RESOURCES.TOAST_FAILED'),
+          life: 3000,
+        }),
+    });
   }
 
   protected openPreview(file: FileLike): void {
@@ -759,7 +751,11 @@ export class SceneAssignmentComponent implements OnInit {
   private onDeleteCharater(id: string) {
     this.charSvc.delete(id).subscribe((res) => {
       if (res.error) {
-        this.toast.add({ severity: 'error', summary: this.i18n.instant('COMMON.ERROR'), detail: res.msg });
+        this.toast.add({
+          severity: 'error',
+          summary: this.i18n.instant('COMMON.ERROR'),
+          detail: res.msg,
+        });
         return;
       }
       this.toast.add({

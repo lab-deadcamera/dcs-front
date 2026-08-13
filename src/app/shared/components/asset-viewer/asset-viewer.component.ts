@@ -28,7 +28,6 @@ interface FileLike {
   selector: 'app-asset-viewer',
   imports: [TranslatePipe, ButtonModule, TooltipModule, DialogModule, ConfirmDialogModule],
   providers: [ConfirmationService],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './asset-viewer.html',
   styleUrl: './asset-viewer.css',
 })
