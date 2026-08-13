@@ -68,6 +68,7 @@ import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
+import { environment } from '@environment/environment';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -237,6 +238,8 @@ export class ShotBuilderPanelComponent {
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
+
+  readonly isProduction = environment.production;
 
   /** True while free assets are being uploaded (persisted to the episode). */
   readonly uploadingAssets = signal(false);
