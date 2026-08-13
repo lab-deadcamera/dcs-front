@@ -6,6 +6,7 @@ import { describe, beforeEach, beforeAll, it, expect, vi } from 'vitest';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 import { FilesApiService } from '@app/services/files-api.service';
+import { CharactersService } from '@app/modules/characters/characters/services';
 import { MessageService } from 'primeng/api';
 import { Reference } from '@app/core/interfaces';
 import type { ShotReferenceResolverComponent } from './shot-reference-resolver.component';
@@ -20,6 +21,7 @@ class StudioStoreStub {
   readonly freeAssets = vi.fn().mockReturnValue([]);
   readonly chapterAssetSlots = vi.fn().mockReturnValue(new Map());
   readonly chapterAssetAssignmentIds = vi.fn().mockReturnValue(new Map());
+  readonly chapterCharacterAssignmentIds = vi.fn().mockReturnValue(new Map());
   readonly addFreeAsset = vi.fn();
   readonly registerChapterAssetAssignment = vi.fn();
   readonly setChapterAssignments = vi.fn();
@@ -36,6 +38,15 @@ class ProjectsApiServiceStub {
 class FilesApiServiceStub {
   readonly upload = vi.fn();
   readonly serveUrl = vi.fn((id: string) => `/api/v1/files/${id}/serve`);
+}
+
+@Injectable()
+class CharactersServiceStub {
+  readonly items = vi.fn().mockReturnValue([]);
+  readonly loading = vi.fn().mockReturnValue(false);
+  readonly searchQuery = vi.fn().mockReturnValue('');
+  readonly setSearchQuery = vi.fn();
+  readonly load = vi.fn().mockReturnValue(of({ error: false, msg: '', data: {} }));
 }
 
 function makeRef(partial: Partial<Reference> = {}): Reference {
@@ -64,6 +75,7 @@ describe('ShotReferenceResolverComponent', () => {
         { provide: StudioStore, useClass: StudioStoreStub },
         { provide: ProjectsApiService, useClass: ProjectsApiServiceStub },
         { provide: FilesApiService, useClass: FilesApiServiceStub },
+        { provide: CharactersService, useClass: CharactersServiceStub },
         { provide: MessageService, useValue: { add: vi.fn() } },
       ],
     })

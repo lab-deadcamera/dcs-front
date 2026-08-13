@@ -8,6 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { Observable, forkJoin, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Popover } from 'primeng/popover';
@@ -20,8 +21,15 @@ import { ProjectsApiService } from '@app/modules/projects/projects/services/proj
 import { FileCategory } from '@app/core/interfaces';
 import { Reference, ReferenceType } from '@app/core/interfaces';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
+import {
+  ResolvedRefInfo,
+  inferKind,
+  resolveReferenceInfo,
+  resolveReferenceInfoBySlot,
+} from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
+import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
+import { CharactersService } from '@app/modules/characters/characters/services';
 
 /**
  * Embebido en el shot-sequence-viewer dentro de la sección "Referencias [Image]".
@@ -43,7 +51,6 @@ import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-view
     SourceThumbnailAssetPipe,
     AssetViewerComponent,
   ],
-  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ref-resolver">
@@ -102,7 +109,65 @@ import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-view
               Asignar asset al slot <b>{{ target.slot }}</b>
             </p>
 
+            <!-- Library resources (Characters library) — pick a character,
+                 location, prop or audio and assign it to this slot. -->
+            <div class="ref-lib">
+              <div class="ref-lib-head">
+                <span class="ref-lib-label">Biblioteca</span>
+                <div class="ref-lib-tabs">
+                  @for (t of libTabs; track t.id) {
+                    <button
+                      type="button"
+                      class="ref-lib-tab"
+                      [class.on]="activeLibType() === t.id"
+                      (click)="activeLibType.set(t.id)"
+                      [attr.aria-pressed]="activeLibType() === t.id"
+                    >
+                      {{ t.labelKey | translate }}
+                      <span class="ref-lib-count">{{ libraryByType()[t.id].length }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="ref-lib-grid">
+                @for (r of libraryByType()[activeLibType()]; track r.id) {
+                  <button
+                    type="button"
+                    class="ref-lib-tile"
+                    (click)="assignLibraryResource(r, target.slot)"
+                    [title]="r.name"
+                  >
+                    @if (r.kind === 'image' && r.fileId && !isThumbBroken(r.fileId)) {
+                      <img
+                        [src]="r.fileId | sourceThumbnailAsset"
+                        [alt]="r.name"
+                        class="ref-lib-img"
+                        loading="lazy"
+                        (error)="onThumbError(r.fileId)"
+                      />
+                    } @else {
+                      <div class="ref-asset-placeholder">
+                        <i
+                          class="pi"
+                          [class.pi-image]="r.kind === 'image'"
+                          [class.pi-video]="r.kind === 'video'"
+                          [class.pi-volume-up]="r.kind === 'audio'"
+                          aria-hidden="true"
+                        ></i>
+                      </div>
+                    }
+                    <span class="ref-lib-name">{{ r.name }}</span>
+                  </button>
+                }
+              </div>
+              @if (libraryByType()[activeLibType()].length === 0) {
+                <p class="ref-popover-empty">Sin recursos de este tipo</p>
+              }
+            </div>
+
             <!-- Episode free assets -->
+            <span class="ref-episode-label">Del episodio</span>
             @if (sortedFreeAssets().length > 0) {
               <div class="ref-asset-grid">
                 @for (a of sortedFreeAssets(); track a.id) {
@@ -172,7 +237,7 @@ import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-view
           <div class="ref-info-popover">
             <p class="ref-popover-title">Referencia <b>{{ ref.slot }}</b></p>
 
-            @if (refInfoFor(ref); as info) {
+            @if (resolvedInfoFor(ref); as info) {
               @if (info.fileKind === 'image' && info.fileId && !isThumbBroken(info.fileId)) {
                 <button
                   type="button"
@@ -438,7 +503,7 @@ import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-view
 
       /* Popover content */
       .ref-assign-popover {
-        width: 320px;
+        width: 400px;
         padding: 14px;
         background: var(--panel, #121f21);
         display: flex;
@@ -514,6 +579,99 @@ import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-view
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      /* Library resources picker */
+      .ref-lib {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .ref-lib-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .ref-lib-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint, #6a7977);
+      }
+      .ref-lib-tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .ref-lib-tab {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-dim, #9aa6a3);
+        background: transparent;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        padding: 3px 7px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .ref-lib-tab:hover {
+        color: var(--ink, #ece6d8);
+      }
+      .ref-lib-tab.on {
+        color: var(--ink, #ece6d8);
+        border-color: var(--teal, #4fb0b5);
+      }
+      .ref-lib-count {
+        color: var(--amber, #e0a95c);
+        font-size: 9px;
+      }
+      .ref-lib-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+        gap: 6px;
+        max-height: 170px;
+        overflow-y: auto;
+      }
+      .ref-lib-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 4px;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: var(--bg2, #0f1a1c);
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+      .ref-lib-tile:hover {
+        border-color: var(--teal, #4fb0b5);
+      }
+      .ref-lib-img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 2px;
+      }
+      .ref-lib-name {
+        width: 100%;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 8.5px;
+        color: var(--ink-dim, #9aa6a3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+      }
+      .ref-episode-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint, #6a7977);
+      }
       .ref-popover-empty {
         font-size: 12px;
         color: var(--ink-faint, #6a7977);
@@ -544,12 +702,51 @@ export class ShotReferenceResolverComponent {
   private readonly projectsApi = inject(ProjectsApiService);
   private readonly filesApi = inject(FilesApiService);
   private readonly toast = inject(MessageService);
+  private readonly chars = inject(CharactersService);
 
   @ViewChild('assignPopover') protected readonly assignPopover!: Popover;
 
   /** Reference currently being assigned (the popover target). */
   protected readonly assignTarget = signal<Reference | null>(null);
   protected readonly uploading = signal(false);
+
+  // ── Library resources picker (Characters library) ────────────────────────
+
+  protected readonly activeLibType = signal<AssetType>('character');
+
+  protected readonly libTabs: { id: AssetType; labelKey: string }[] = [
+    { id: 'character', labelKey: 'CHARACTERS.TABS.CHARACTER' },
+    { id: 'location', labelKey: 'CHARACTERS.TABS.LOCATION' },
+    { id: 'prop', labelKey: 'CHARACTERS.TABS.PROP' },
+    { id: 'audio', labelKey: 'FILES.TABS.AUDIO' },
+  ];
+
+  /** Library resources (characters/locations/props/audio) NOT yet assigned to
+   *  the chapter, grouped by asset type. Assigning one to a ref slot creates a
+   *  chapter-character assignment so the reference resolves by name/id. */
+  protected readonly libraryByType = computed<Record<AssetType, LibResource[]>>(() => {
+    const assignedIds = this.studio.chapterCharacterIds();
+    const buckets: Record<AssetType, LibResource[]> = {
+      character: [],
+      location: [],
+      prop: [],
+      audio: [],
+    };
+    for (const item of this.chars.items()) {
+      const c = item.character;
+      if (!c?.id || assignedIds.has(c.id)) continue;
+      const metadata = parseCharacterMetadata(c.metadata);
+      const assetType: AssetType = metadata.assetType ?? 'character';
+      (buckets[assetType] ?? buckets.character).push({
+        id: c.id,
+        name: c.name,
+        fileId: item.files?.[0]?.file_id || '',
+        kind: metadata.fileKind ?? 'image',
+        assetType,
+      });
+    }
+    return buckets;
+  });
 
   /** Slots the user has assigned a free asset to — a reference whose assetId
    *  still doesn't match is considered resolved once its slot is in here. */
@@ -649,9 +846,101 @@ export class ShotReferenceResolverComponent {
     });
   }
 
-  protected openAssignPopover(event: Event, ref: Reference): void {
+  /** Open the assign popover anchored at the given element, targeting the ref's
+   *  slot. Public so the viewer can open it from a shot-card ref too. */
+  openAssignPopover(event: Event, ref: Reference): void {
     this.assignTarget.set(ref);
     this.assignPopover.toggle(event);
+    // Refresh chapter assignments so the library excludes resources already
+    // assigned to this chapter — otherwise re-assigning one would fail with a
+    // unique-constraint 400 (which, before, was silent because the resolver's
+    // own MessageService had no <p-toast> subscribed).
+    const projectId = this.projectId() || this.studio.projectId() || '';
+    const chapterId = this.chapterId() || this.studio.chapterId() || '';
+    if (projectId && chapterId) this.refreshAssignments(projectId, chapterId);
+    // Make sure the Characters library is available for the picker. If a
+    // search query is active (from another surface) it would narrow the list —
+    // clear it to offer the full library.
+    if (this.chars.searchQuery()) {
+      this.chars.setSearchQuery('');
+    } else if (this.chars.items().length === 0 && !this.chars.loading()) {
+      this.chars.load().subscribe();
+    }
+  }
+
+  /** Assign a library resource (character/location/prop/audio) to a reference
+   *  slot by creating a chapter-character assignment for it. */
+  protected assignLibraryResource(res: LibResource, slot: string): void {
+    const projectId = this.projectId() || this.studio.projectId() || '';
+    const chapterId = this.chapterId() || this.studio.chapterId() || '';
+    if (!projectId || !chapterId || !res.id) return;
+
+    // Replace any existing occupant of the slot (a chapter_character or
+    // chapter_asset with that [ImageN] slot), then assign the picked resource.
+    this.clearSlot(projectId, chapterId, slot).subscribe({
+      next: () => {
+        this.projectsApi.assignCharacterToChapter(projectId, chapterId, res.id, slot).subscribe({
+          next: (r) => {
+            if (r.error) {
+              this.toast.add({
+                severity: 'error',
+                summary: 'Asignación fallida',
+                detail: r.msg || `No se pudo asignar ${res.name} al slot ${slot}.`,
+              });
+              return;
+            }
+            this.markAssigned(slot);
+            this.refreshAssignments(projectId, chapterId);
+            this.assignPopover.hide();
+            this.toast.add({
+              severity: 'success',
+              summary: 'Recurso asignado',
+              detail: `${res.name} → ${slot}`,
+            });
+          },
+          error: () => {
+            this.toast.add({
+              severity: 'error',
+              summary: 'Asignación fallida',
+              detail: `No se pudo asignar ${res.name} al slot ${slot}.`,
+            });
+          },
+        });
+      },
+      error: () => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Asignación fallida',
+          detail: `No se pudo liberar el slot ${slot}.`,
+        });
+      },
+    });
+  }
+
+  /** Remove any chapter asset/character that currently occupies the given
+   *  [ImageN] slot, so the slot can be reassigned. Completes immediately when
+   *  the slot is already free. */
+  private clearSlot(projectId: string, chapterId: string, slot: string): Observable<unknown> {
+    const removals: Observable<unknown>[] = [];
+    for (const [fileId, s] of this.studio.chapterAssetSlots()) {
+      if (s === slot) {
+        const assignmentId = this.studio.chapterAssetAssignmentIds().get(fileId);
+        if (assignmentId) {
+          removals.push(this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId));
+        }
+      }
+    }
+    for (const c of this.studio.chapterCharacterData()) {
+      if (c.slot === slot) {
+        const assignmentId = this.studio.chapterCharacterAssignmentIds().get(c.id);
+        if (assignmentId) {
+          removals.push(
+            this.projectsApi.removeCharacterFromChapter(projectId, chapterId, assignmentId),
+          );
+        }
+      }
+    }
+    return removals.length > 0 ? forkJoin(removals) : of(undefined);
   }
 
   // ── Reference info popover (metadata of the resolved asset) ────────────
@@ -665,6 +954,23 @@ export class ShotReferenceResolverComponent {
       this.studio.freeAssets(),
       this.studio.chapterAssetSlots(),
     );
+  }
+
+  /** Reference metadata: by assetId first; falling back to the slot's occupant
+   *  when the user explicitly assigned a resource to that slot (the backend
+   *  assetId may still not match, so the ref would otherwise look unresolved). */
+  protected resolvedInfoFor(ref: Reference): ResolvedRefInfo | null {
+    const byAsset = this.refInfoFor(ref);
+    if (byAsset) return byAsset;
+    if (this.assignedSlots().has(ref.slot)) {
+      return resolveReferenceInfoBySlot(
+        ref,
+        this.studio.chapterCharacterData(),
+        this.studio.freeAssets(),
+        this.studio.chapterAssetSlots(),
+      );
+    }
+    return null;
   }
 
   /** Reference shown in the asset-metadata info popover. */
@@ -750,14 +1056,27 @@ export class ShotReferenceResolverComponent {
         });
     };
 
-    if (assignmentId && currentSlot) {
-      this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId).subscribe({
-        next: () => assign(),
-        error: () => assign(),
-      });
-    } else {
-      assign();
-    }
+    // Clear any OTHER occupant of the target slot first, then move the picked
+    // asset (removing its own old assignment when it has a different slot).
+    this.clearSlot(projectId, chapterId, slot).subscribe({
+      next: () => {
+        if (assignmentId && currentSlot) {
+          this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId).subscribe({
+            next: () => assign(),
+            error: () => assign(),
+          });
+        } else {
+          assign();
+        }
+      },
+      error: () => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Asignación fallida',
+          detail: `No se pudo liberar el slot ${slot}.`,
+        });
+      },
+    });
   }
 
   /** Upload new free assets and assign each to the reference slot. */
@@ -866,4 +1185,30 @@ function slotNum(slot: string | undefined): number {
   if (!slot) return 0;
   const m = slot.match(/(\d+)$/);
   return m ? parseInt(m[1], 10) : 0;
+}
+
+/** One library resource offered in the assign popover — a character, location,
+ *  prop or audio asset from the Characters library. */
+interface LibResource {
+  /** Character id (what gets assigned to the chapter). */
+  id: string;
+  name: string;
+  /** Primary linked file id (thumbnail preview / the assigned file). */
+  fileId: string;
+  kind: string;
+  assetType: AssetType;
+}
+
+/** Character metadata arrives from the wire as a JSON string; some surfaces
+ *  store it already parsed. Handle both. */
+function parseCharacterMetadata(raw: string | null | undefined): CharacterMetadata {
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw) as CharacterMetadata;
+    } catch {
+      return {};
+    }
+  }
+  return raw as CharacterMetadata;
 }

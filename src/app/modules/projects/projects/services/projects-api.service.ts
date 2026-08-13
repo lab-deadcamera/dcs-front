@@ -471,4 +471,20 @@ export class ProjectsApiService {
         catchError(httpErrorHandler<void>),
       );
   }
+
+  /** Unassign a character from a chapter by its chapter_characters row id. */
+  removeCharacterFromChapter(
+    projectId: string,
+    chapterId: string,
+    assignmentId: string,
+  ): Observable<{ error: boolean; msg: string }> {
+    return this.http
+      .delete<ResponseBase<void>>(
+        `${this.apiUrl}/projects/${projectId}/chapters/${chapterId}/assignments/characters/${assignmentId}`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message })),
+        catchError(httpErrorHandler<void>),
+      );
+  }
 }

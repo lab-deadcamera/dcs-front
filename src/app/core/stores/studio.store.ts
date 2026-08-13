@@ -89,6 +89,9 @@ export class StudioStore {
   private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
   /** fileId → chapter_assets row id, required to unassign an episode asset. */
   private readonly _chapterAssetAssignmentIds = signal<Map<string, string>>(new Map());
+  /** character_id → chapter_characters row id, required to unassign (reassign a
+   *  slot's occupant) an episode character. */
+  private readonly _chapterCharacterAssignmentIds = signal<Map<string, string>>(new Map());
 
   readonly chapterPresetIds = this._chapterPresetIds.asReadonly();
   readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
@@ -96,6 +99,7 @@ export class StudioStore {
   readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
   readonly chapterAssetSlots = this._chapterAssetSlots.asReadonly();
   readonly chapterAssetAssignmentIds = this._chapterAssetAssignmentIds.asReadonly();
+  readonly chapterCharacterAssignmentIds = this._chapterCharacterAssignmentIds.asReadonly();
 
   /** True after setChapterAssignments has been called at least once (even if
    *  the response contained null/empty arrays). Used by child components
@@ -496,6 +500,7 @@ export class StudioStore {
     this._chapterAssetIds.set(new Set());
     this._chapterAssetSlots.set(new Map());
     this._chapterAssetAssignmentIds.set(new Map());
+    this._chapterCharacterAssignmentIds.set(new Map());
     this._assignmentsLoaded.set(false);
     // shot resources removed — using chapter assignments only
   }
@@ -784,6 +789,14 @@ export class StudioStore {
           };
         }),
     );
+    // character_id → chapter_characters row id (needed to remove a slot's
+    // occupant when the user reassigns it).
+    const characterAssignmentIds = new Map<string, string>();
+    for (const a of chars) {
+      if (a.character_id && a.id) characterAssignmentIds.set(a.character_id, a.id);
+    }
+    this._chapterCharacterAssignmentIds.set(characterAssignmentIds);
+
     this._chapterAssetIds.set(
       new Set([...(assignments.assets ?? [])].map((a: any) => a.file_id).filter(Boolean)),
     );

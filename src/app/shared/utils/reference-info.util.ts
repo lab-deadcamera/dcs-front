@@ -68,3 +68,37 @@ export function resolveReferenceInfo(
   }
   return null;
 }
+
+/** Resolve a reference by its [ImageN] slot instead of its assetId: returns the
+ *  occupant currently holding that slot (a chapter character or free asset).
+ *  Used when the user explicitly assigned a resource to the slot but the
+ *  backend's assetId still doesn't match it. */
+export function resolveReferenceInfoBySlot(
+  ref: Reference,
+  characters: CharacterLike[],
+  freeAssets: FreeAssetLike[],
+  assetSlots: Map<string, string>,
+): ResolvedRefInfo | null {
+  const char = characters.find((c) => c.slot === ref.slot);
+  if (char && char.fileId) {
+    return {
+      kind: 'character',
+      name: char.name,
+      charId: char.id,
+      fileId: char.fileId,
+      slot: char.slot,
+      fileKind: char.kind,
+    };
+  }
+  const asset = freeAssets.find((a) => assetSlots.get(a.id) === ref.slot);
+  if (asset) {
+    return {
+      kind: 'asset',
+      name: asset.filename,
+      fileId: asset.id,
+      slot: assetSlots.get(asset.id) || '',
+      fileKind: asset.kind,
+    };
+  }
+  return null;
+}

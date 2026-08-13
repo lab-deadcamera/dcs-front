@@ -17,7 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Reference, Shot } from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { ResolvedRefInfo, resolveReferenceInfo } from '@app/shared/utils';
+import { ResolvedRefInfo, resolveReferenceInfo, resolveReferenceInfoBySlot } from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 export interface BeatInfo {
@@ -174,13 +174,28 @@ export function beatInfoFromSegments(
             <span class="v">
               <div class="cuts">
                 @for (ref of shot().references; track ref.slot) {
-                  <button
-                    type="button"
-                    class="cut ref-chip-button"
-                    (click)="openRefInfo($event, ref)"
-                    [title]="'Ver metadata del asset'"
-                    ><em>{{ ref.slot }}</em> {{ ref.type }}</button
-                  >
+                  @let refInfo = resolvedInfoFor(ref);
+                  <span class="ref-chip-wrap">
+                    <button
+                      type="button"
+                      class="cut ref-chip-button"
+                      (click)="openRefInfo($event, ref)"
+                      [title]="'Ver metadata del asset'"
+                      ><em>{{ ref.slot }}</em> {{ ref.type }}</button
+                    >
+                    @if (!refInfo) {
+                      <button
+                        type="button"
+                        class="ref-chip-assign"
+                        (click)="onRefAssign($event, ref)"
+                        [pTooltip]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
+                        tooltipPosition="top"
+                        [attr.aria-label]="'STUDIO.SHOT_BUILDER.ASSIGN_FREE_ASSET' | translate"
+                      >
+                        <i class="pi pi-plus" aria-hidden="true"></i>
+                      </button>
+                    }
+                  </span>
                 }
               </div>
             </span>
@@ -290,7 +305,7 @@ export function beatInfoFromSegments(
           <div class="ref-info">
             <p class="ref-info-title">{{ ref.slot }} · {{ refTypeLabel(ref.type) }}</p>
 
-            @if (refInfoFor(ref); as info) {
+            @if (resolvedInfoFor(ref); as info) {
               @if (info.fileKind === 'image' && info.fileId) {
                 <button
                   type="button"
@@ -580,6 +595,30 @@ export function beatInfoFromSegments(
       .ref-chip-button:hover {
         border-color: var(--teal, #4fb0b5);
       }
+      .ref-chip-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .ref-chip-assign {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border: 1px solid rgba(224, 101, 60, 0.6);
+        border-radius: 50%;
+        background: transparent;
+        color: #e0653c;
+        cursor: pointer;
+        font-size: 9px;
+        padding: 0;
+        transition: all 0.15s ease;
+      }
+      .ref-chip-assign:hover {
+        background: #e0653c;
+        color: #0c1315;
+      }
 
       /* Ref info popover */
       .ref-info {
@@ -835,6 +874,10 @@ export class ShotCardPreviewComponent {
   readonly beat = input.required<BeatInfo>();
   /** When true, show the Chinese (中文) language toggle. */
   readonly showChinese = input(true);
+  /** [ImageN] slots the user has explicitly assigned a resource to (via the
+   *  reference resolver) — refs with these slots count as resolved even when
+   *  their backend assetId doesn't match the assigned resource. */
+  readonly assignedSlots = input<Set<string>>(new Set());
 
   /** Two-way model for approval status. */
   readonly approved = model(false);
@@ -843,6 +886,9 @@ export class ShotCardPreviewComponent {
   readonly promptChange = output<{ lang: 'en' | 'zh'; value: string }>();
   /** Output emitted when the language toggle changes. */
   readonly langChange = output<'en' | 'zh'>();
+  /** Emitted when the user clicks "+" on an unresolved ref to assign a resource
+   *  to its slot — the viewer forwards it to the shared resolver popover. */
+  readonly refAssign = output<{ event: Event; ref: Reference }>();
 
   private readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
@@ -899,9 +945,32 @@ export class ShotCardPreviewComponent {
     );
   }
 
+  /** Reference metadata: by assetId first; falling back to the slot's occupant
+   *  when the user explicitly assigned a resource to that slot. */
+  protected resolvedInfoFor(ref: Reference): ResolvedRefInfo | null {
+    const byAsset = this.refInfoFor(ref);
+    if (byAsset) return byAsset;
+    if (this.assignedSlots().has(ref.slot)) {
+      return resolveReferenceInfoBySlot(
+        ref,
+        this.studio.chapterCharacterData(),
+        this.studio.freeAssets(),
+        this.studio.chapterAssetSlots(),
+      );
+    }
+    return null;
+  }
+
   protected openRefInfo(event: Event, ref: Reference): void {
     this.refInfoTarget.set(ref);
     this.refInfoPopover.toggle(event);
+  }
+
+  /** Request an assignment for an unresolved ref slot (forwards to the viewer,
+   *  which opens the shared resolver's assign popover). */
+  protected onRefAssign(event: Event, ref: Reference): void {
+    event.stopPropagation();
+    this.refAssign.emit({ event, ref });
   }
 
   readonly lang = signal<'en' | 'zh'>('en');

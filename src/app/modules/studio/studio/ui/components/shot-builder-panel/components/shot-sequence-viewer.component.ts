@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ViewChild,
   computed,
   effect,
   inject,
@@ -183,8 +184,10 @@ interface PreviewScene {
                     [approved]="approvedMap[shot.id]"
                     (approvedChange)="onApprovedChange(shot.id, $event)"
                     [showChinese]="showChinese()"
+                    [assignedSlots]="assignedRefSlots()"
                     (promptChange)="onPromptChange(shot.id, $event)"
                     (langChange)="onLangChange(shot.id, $event)"
+                    (refAssign)="onRefAssign($event)"
                   />
                 }
               </div>
@@ -201,8 +204,10 @@ interface PreviewScene {
               [approved]="approvedMap[shot.id]"
               (approvedChange)="onApprovedChange(shot.id, $event)"
               [showChinese]="showChinese()"
+              [assignedSlots]="assignedRefSlots()"
               (promptChange)="onPromptChange(shot.id, $event)"
               (langChange)="onLangChange(shot.id, $event)"
+              (refAssign)="onRefAssign($event)"
             />
           }
         </div>
@@ -1060,6 +1065,16 @@ export class ShotSequenceViewerComponent {
 
   protected onAssignedSlotsChange(slots: Set<string>): void {
     this.assignedRefSlots.set(slots);
+  }
+
+  /** The reference resolver — its assign popover also serves the shot cards. */
+  @ViewChild(ShotReferenceResolverComponent)
+  protected readonly refResolver!: ShotReferenceResolverComponent;
+
+  /** A shot-card ref requested to assign a resource to its slot — open the
+   *  shared resolver's assign popover anchored at the card's "+" button. */
+  protected onRefAssign(payload: { event: Event; ref: Reference }): void {
+    this.refResolver?.openAssignPopover(payload.event, payload.ref);
   }
 
   /** UNIQUE source of truth for unresolved references: every reference of the
