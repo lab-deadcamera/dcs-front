@@ -670,7 +670,8 @@
       "EDIT": "Editar",
       "DELETE": "Eliminar",
       "FILES": "Gestionar archivos",
-      "USE": "Usar"
+      "USE": "Usar",
+      "METADATA": "Ver metadata"
     },
     "FILES": {
       "DIALOG_TITLE": "Archivos",

@@ -13,10 +13,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Popover } from 'primeng/popover';
+import { TooltipModule } from 'primeng/tooltip';
 import { Reference, Shot } from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { ResolvedRefInfo, resolveReferenceInfo } from '@app/shared/utils';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 export interface BeatInfo {
   label: string;
@@ -58,8 +60,10 @@ export function beatInfoFromSegments(
     FormsModule,
     TranslatePipe,
     Popover,
+    TooltipModule,
     SourceAssetPipe,
     SourceThumbnailAssetPipe,
+    AssetViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -288,16 +292,28 @@ export function beatInfoFromSegments(
 
             @if (refInfoFor(ref); as info) {
               @if (info.fileKind === 'image' && info.fileId) {
-                <img
-                  [src]="
-                    info.kind === 'character'
-                      ? (info.fileId | sourceThumbnailAsset)
-                      : (info.fileId | sourceAsset)
-                  "
-                  [alt]="info.name"
-                  class="ref-info-img"
-                  loading="lazy"
-                />
+                <button
+                  type="button"
+                  class="ref-info-img-btn"
+                  (click)="openRefViewer(info)"
+                  [pTooltip]="'STUDIO.SHOT_BUILDER.OPEN_IMAGE_TOOLTIP' | translate"
+                  tooltipPosition="top"
+                  [attr.aria-label]="'STUDIO.SHOT_BUILDER.OPEN_IMAGE_TOOLTIP' | translate"
+                >
+                  <img
+                    [src]="
+                      info.kind === 'character'
+                        ? (info.fileId | sourceThumbnailAsset)
+                        : (info.fileId | sourceAsset)
+                    "
+                    [alt]="info.name"
+                    class="ref-info-img"
+                    loading="lazy"
+                  />
+                  <span class="ref-info-expand" aria-hidden="true">
+                    <i class="pi pi-expand"></i>
+                  </span>
+                </button>
               }
               <dl class="ref-info-dl">
                 <div>
@@ -343,6 +359,13 @@ export function beatInfoFromSegments(
           </div>
         }
       </p-popover>
+
+      <!-- Full-screen asset viewer (same component as the Files module / shot builder) -->
+      <app-asset-viewer
+        [(visible)]="viewerVisible"
+        [file]="viewerFile()"
+        (visibleChange)="viewerFile.set(null)"
+      />
     </article>
   `,
   styles: [
@@ -573,13 +596,39 @@ export function beatInfoFromSegments(
         color: var(--ink-dim, #9aa6a3);
         margin: 0;
       }
-      .ref-info-img {
+      .ref-info-img-btn {
+        position: relative;
+        display: block;
         width: 100%;
-        max-height: 160px;
-        object-fit: cover;
+        padding: 0;
         border: 1px solid var(--line, #1e3133);
         border-radius: 3px;
         background: var(--bg2, #0f1a1c);
+        overflow: hidden;
+        cursor: zoom-in;
+        transition: border-color 0.15s ease;
+      }
+      .ref-info-img-btn:hover {
+        border-color: var(--amber, #e0a95c);
+      }
+      .ref-info-img {
+        display: block;
+        width: 100%;
+        max-height: 160px;
+        object-fit: cover;
+      }
+      .ref-info-expand {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.55);
+        color: rgba(255, 255, 255, 0.85);
       }
       .ref-info-dl {
         margin: 0;
@@ -803,6 +852,27 @@ export class ShotCardPreviewComponent {
   /** Reference shown in the ref info popover. */
   protected readonly refInfoTarget = signal<Reference | null>(null);
   @ViewChild('refInfoPopover') protected readonly refInfoPopover!: Popover;
+
+  /** File shown in the full-screen viewer (same component as Files / shot builder). */
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  /** Whether the full-screen viewer dialog is open. */
+  protected readonly viewerVisible = signal(false);
+
+  /** Open the full-screen viewer for the resolved reference asset. */
+  protected openRefViewer(info: ResolvedRefInfo): void {
+    if (!info.fileId) return;
+    this.viewerFile.set({
+      id: info.fileId,
+      filename: info.name,
+      mimeType:
+        info.fileKind === 'video'
+          ? 'video/mp4'
+          : info.fileKind === 'audio'
+            ? 'audio/mpeg'
+            : 'image/png',
+    });
+    this.viewerVisible.set(true);
+  }
 
   /** Human label for a reference's semantic type. */
   protected refTypeLabel(type: string): string {

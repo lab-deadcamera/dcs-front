@@ -37,6 +37,7 @@ import { FilesApiService } from '@app/services';
 import { SourceThumbnailAssetPipe, SourceAssetPipe } from '@app/core/pipes';
 import { FileEntity } from '@modules/files/files/interfaces';
 import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
+import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 /** Items revealed initially per tab before progressive render kicks in. */
 const INITIAL_RENDER_COUNT = 200;
@@ -70,6 +71,7 @@ const RENDER_STEP = 50;
     SourceThumbnailAssetPipe,
     SourceAssetPipe,
     AssetInfoPopoverComponent,
+    AssetViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -88,6 +90,27 @@ export class IndexCharacters implements OnInit {
 
   /** Asset metadata popover for a character's preview image. */
   @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+  /** File shown in the full-screen viewer (same component as the Files module). */
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  /** Whether the full-screen viewer dialog is open. */
+  protected readonly viewerVisible = signal(false);
+
+  /** Open the full-screen viewer for one of a character's preview files. */
+  protected openAssetViewer(a: Character, fid: string): void {
+    if (!fid) return;
+    this.viewerFile.set({
+      id: fid,
+      filename: a.name,
+      mimeType:
+        a.metadata.fileKind === 'video'
+          ? 'video/mp4'
+          : a.metadata.fileKind === 'audio'
+            ? 'audio/mpeg'
+            : 'image/png',
+    });
+    this.viewerVisible.set(true);
+  }
 
   /** Open the metadata popover for one of a character's preview files. */
   protected openCharacterFileInfo(event: Event, a: Character, fid: string): void {

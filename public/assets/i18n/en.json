@@ -676,7 +676,8 @@
       "EDIT": "Edit",
       "DELETE": "Delete",
       "FILES": "Manage files",
-      "USE": "Use"
+      "USE": "Use",
+      "METADATA": "View metadata"
     },
     "FILES": {
       "DIALOG_TITLE": "Files",
