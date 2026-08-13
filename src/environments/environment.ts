@@ -9,5 +9,5 @@ export const environment = {
    *  - 'checks' → 1 check = 3 estrellas, doble check = 5.
    *                Al mostrar, 4→5, 2→3, 1→0.
    */
-  RATING_MODE: 'stars',
+  RATING_MODE: 'checks',
 };
