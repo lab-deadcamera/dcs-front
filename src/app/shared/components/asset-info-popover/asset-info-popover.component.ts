@@ -81,8 +81,18 @@ export interface AssetInfo {
               type="button"
               class="asset-info-media-btn"
               (click)="openViewer()"
-              [attr.aria-label]="(a.kind === 'video' ? 'STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP' : 'STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP') | translate"
-              [pTooltip]="(a.kind === 'video' ? 'STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP' : 'STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP') | translate"
+              [attr.aria-label]="
+                (a.kind === 'video'
+                  ? 'STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP'
+                  : 'STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP'
+                ) | translate
+              "
+              [pTooltip]="
+                (a.kind === 'video'
+                  ? 'STUDIO.SHOT_BUILDER.OPEN_VIDEO_TOOLTIP'
+                  : 'STUDIO.SHOT_BUILDER.OPEN_AUDIO_TOOLTIP'
+                ) | translate
+              "
               tooltipPosition="top"
             >
               <i
@@ -131,7 +141,9 @@ export interface AssetInfo {
     </p-popover>
 
     <!-- Full-screen asset viewer (same component as the Files module / shot builder) -->
-    <app-asset-viewer [(visible)]="viewerVisible" [file]="viewerFile()" />
+    @if (viewerVisible()) {
+      <app-asset-viewer [(visible)]="viewerVisible" [file]="viewerFile()" />
+    }
   `,
   styles: [
     `
@@ -274,7 +286,9 @@ export class AssetInfoPopoverComponent {
   protected readonly asset = signal<AssetInfo | null>(null);
 
   /** File shown in the full-screen viewer (same component as the Files module). */
-  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(
+    null,
+  );
   /** Whether the full-screen viewer dialog is open. */
   protected readonly viewerVisible = signal(false);
 
@@ -300,14 +314,10 @@ export class AssetInfoPopoverComponent {
     this.viewerFile.set({
       id: a.id,
       filename: a.name,
-      mimeType:
-        a.kind === 'video'
-          ? 'video/mp4'
-          : a.kind === 'audio'
-            ? 'audio/mpeg'
-            : 'image/png',
+      mimeType: a.kind === 'video' ? 'video/mp4' : a.kind === 'audio' ? 'audio/mpeg' : 'image/png',
     });
     this.viewerVisible.set(true);
+    this.close();
   }
 
   /** Hide the popover (e.g. after the Use action completes). */

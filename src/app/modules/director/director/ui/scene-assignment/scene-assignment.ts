@@ -93,6 +93,13 @@ interface SceneAssignmentItem {
   providers: [ConfirmationService, MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scene-assignment.html',
+  styles: [
+    `
+      ::ng-deep .asset-popover-z {
+        z-index: 10002 !important;
+      }
+    `,
+  ],
 })
 export class SceneAssignmentComponent implements OnInit {
   private readonly http = inject(HttpClient);
