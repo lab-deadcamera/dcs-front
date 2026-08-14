@@ -127,6 +127,7 @@ export class ShotBuilderService {
    */
   generate(request: {
     projectId: string;
+    projectName?: string;
     sceneId: string;
     prompt: string;
     systemPrompt?: string;
@@ -156,6 +157,7 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
+      project_name: request.projectName || '',
       model: 'claude-shot-builder',
       api_model: request.model || 'claude-sonnet-4-6',
       prompt: request.prompt,
@@ -205,6 +207,7 @@ export class ShotBuilderService {
    */
   refineShots(request: {
     projectId: string;
+    projectName?: string;
     sceneId: string;
     previousResponse: string;
     changeRequest: string;
@@ -240,6 +243,7 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
+      project_name: request.projectName || '',
       model: 'claude-shot-builder',
       api_model: request.model || 'claude-sonnet-4-6',
       previous_response: request.previousResponse,

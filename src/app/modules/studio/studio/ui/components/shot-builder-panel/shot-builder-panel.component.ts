@@ -1189,6 +1189,7 @@ export class ShotBuilderPanelComponent {
     this.shotBuilderService
       .generate({
         projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
         // The shot builder generates at episode level — no scene is required.
         // The backend still validates scene_id (binding:required) but never
         // uses it, so fall back to the chapter id when no scene is selected.
@@ -1311,6 +1312,7 @@ export class ShotBuilderPanelComponent {
     this.shotBuilderService
       .refineShots({
         projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
         // Same scene fallback as send(): the backend validates scene_id but
         // the breakdown is generated at episode level.
         sceneId:
