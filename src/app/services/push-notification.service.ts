@@ -137,6 +137,7 @@ export class PushNotificationService {
       return await this.registerOnServer(json);
     } catch (error) {
       CONSOLE.warn('[PushNotificationService] Error al suscribir:', error);
+      this.logSwDiagnostics();
       return false;
     } finally {
       this.isBusy.set(false);
@@ -162,6 +163,27 @@ export class PushNotificationService {
     } catch {
       return 'error';
     }
+  }
+
+  /**
+   * Vuelca el estado del service worker al consola para diagnosticar un
+   * subscribe colgado: si el page está controlado y en qué estado está el
+   * registro (active / waiting / installing).
+   */
+  private logSwDiagnostics(): void {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    const sw = navigator.serviceWorker;
+    CONSOLE.log('[PushNotificationService] SW controller:', sw.controller?.state ?? 'null');
+    sw.getRegistration()
+      .then((reg) => {
+        CONSOLE.log('[PushNotificationService] SW registration:', {
+          scope: reg?.scope ?? 'none',
+          active: reg?.active?.state ?? null,
+          waiting: reg?.waiting?.state ?? null,
+          installing: reg?.installing?.state ?? null,
+        });
+      })
+      .catch((err) => CONSOLE.warn('[PushNotificationService] getRegistration failed:', err));
   }
 
   /** Desuscribe el dispositivo y lo elimina del backend. */
