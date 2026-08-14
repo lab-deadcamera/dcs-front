@@ -10,6 +10,8 @@ export const environment = {
    *                Al mostrar, 4→5, 2→3, 1→0.
    */
   RATING_MODE: 'checks',
+  PUSH_ENABLED: false,
+  PUSH_VAPID_PUBLIC_KEY: '',
 };
 
 // export const environment = {
