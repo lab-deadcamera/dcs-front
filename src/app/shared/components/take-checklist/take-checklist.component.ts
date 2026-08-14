@@ -35,9 +35,10 @@ const DOUBLE_CLICK_DELAY = 300;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="relative flex flex-col items-center gap-1.5 px-2 py-6"
+      class="relative flex flex-col items-center gap-1.5 overflow-y-auto px-2 py-6"
       role="group"
       [attr.aria-label]="ariaGroupLabel()"
+      [style.max-height.px]="maxHeight() || undefined"
     >
       <p class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted">
         {{ scenePrefix() || '–––' }}
@@ -140,6 +141,10 @@ export class TakeChecklistComponent implements OnDestroy {
   readonly scenePrefix = input<string>('');
   /** When true, the checklist is locked — shows a tooltip instead of toggles. */
   readonly locked = input(false);
+  /** Máx. altura (px) del contenedor; la columna hace scroll vertical cuando la
+   *  supera. Se pasa la altura del visor de video para que el checklist nunca
+   *  sea más alto que él. */
+  readonly maxHeight = input<number>(0);
 
   /** Emits the 1-based take number that the user clicked. */
   readonly toggle = output<number>();

@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -287,7 +288,7 @@ import { MessageService } from 'primeng/api';
     `,
   ],
 })
-export class ViewerComponent implements OnDestroy {
+export class ViewerComponent implements AfterViewInit, OnDestroy {
   protected readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
   private readonly toast = inject(MessageService);
@@ -295,6 +296,11 @@ export class ViewerComponent implements OnDestroy {
   protected readonly hdPending = signal(false);
   private hdTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
+
+  /** Current pixel height of the video box — lets the takes-checklist cap its
+   *  own height to the video area and scroll when it overflows. */
+  readonly boxHeight = signal(0);
+  private boxResizeObserver: ResizeObserver | null = null;
 
   /** Returns the full URL, prepending the API base for relative paths. */
   protected clipUrl(path: string | undefined): string {
@@ -409,8 +415,20 @@ export class ViewerComponent implements OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    const boxEl = this.box()?.nativeElement;
+    if (!boxEl) return;
+    this.boxHeight.set(boxEl.offsetHeight);
+    this.boxResizeObserver = new ResizeObserver(() => {
+      this.boxHeight.set(boxEl.offsetHeight);
+    });
+    this.boxResizeObserver.observe(boxEl);
+  }
+
   ngOnDestroy(): void {
     if (this.hdTimer) clearTimeout(this.hdTimer);
+    this.boxResizeObserver?.disconnect();
+    this.boxResizeObserver = null;
   }
 }
 
