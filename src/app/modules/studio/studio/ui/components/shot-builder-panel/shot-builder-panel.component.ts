@@ -239,7 +239,7 @@ export class ShotBuilderPanelComponent {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  readonly isProduction = true; // TODO: remove this
+  readonly isProduction = false; // TODO: remove this
 
   /** True while free assets are being uploaded (persisted to the episode). */
   readonly uploadingAssets = signal(false);

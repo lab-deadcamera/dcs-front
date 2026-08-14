@@ -279,7 +279,7 @@
       }
     },
     "PRONCER": {
-      "TITLE": "Proncer",
+      "TITLE": "Prompt Enhancer",
       "HINT": "AI assistant to refine your prompt",
       "BODY": "Soon you'll be able to ask Claude for help improving your prompt right from this panel. Stay tuned for the next beta.",
       "STATUS_SOON": "Coming soon"
