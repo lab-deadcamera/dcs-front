@@ -10,8 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { interval } from 'rxjs';
-import { switchMap, takeWhile } from 'rxjs/operators';
+import { forkJoin, interval, of } from 'rxjs';
+import { catchError, map, switchMap, takeWhile } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HeroComponent } from '@shared/components/hero/hero.component';
@@ -81,6 +81,54 @@ const DEFAULT_MODEL_NAME = 'Dreamina-Seedance-2-0-Gallery';
 /** Tolerant model-name match — ignores case, spaces, dots and dashes. */
 function normalizeModelName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/** Estructura de asignaciones (presets/personajes/activos) de un capítulo. */
+interface ChapterAssignments {
+  presets: any[];
+  characters: any[];
+  assets: any[];
+}
+
+/** Assignments shape for a chapter with no resources. */
+const EMPTY_ASSIGNMENTS: ChapterAssignments = { presets: [], characters: [], assets: [] };
+
+/**
+ * Fusiona las asignaciones legacy de varias escenas en una sola estructura de
+ * capítulo. Deduplica por preset/character/file y descarta el `id` de fila de
+ * escena: los endpoints de capítulo no pueden operar sobre filas de escena, así
+ * la UI no ofrece desasignar datos legacy con un id inválido.
+ */
+function mergeSceneAssignments(results: Array<ChapterAssignments | null>): ChapterAssignments {
+  const presets = new Map<string, any>();
+  const characters = new Map<string, any>();
+  const assets = new Map<string, any>();
+  for (const r of results) {
+    if (!r) continue;
+    for (const p of r.presets ?? []) {
+      if (p?.preset_id && !presets.has(p.preset_id)) {
+        const { id, ...rest } = p;
+        presets.set(p.preset_id, rest);
+      }
+    }
+    for (const c of r.characters ?? []) {
+      if (c?.character_id && !characters.has(c.character_id)) {
+        const { id, ...rest } = c;
+        characters.set(c.character_id, rest);
+      }
+    }
+    for (const a of r.assets ?? []) {
+      if (a?.file_id && !assets.has(a.file_id)) {
+        const { id, ...rest } = a;
+        assets.set(a.file_id, rest);
+      }
+    }
+  }
+  return {
+    presets: [...presets.values()],
+    characters: [...characters.values()],
+    assets: [...assets.values()],
+  };
 }
 
 @Component({
@@ -536,14 +584,57 @@ export class IndexStudio implements OnInit {
     const projectId = this.navSelectedProjectId();
     const chapterId = this.navSelectedChapterId();
     if (!projectId || !chapterId) return;
-    this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
-      next: (res) => {
-        if (res.data) this.studio.setChapterAssignments(res.data);
-      },
-      error: () => {
-        /* assignments not critical */
-      },
-    });
+    this.loadAssignmentsForChapter(projectId, chapterId);
+  }
+
+  /**
+   * Carga las asignaciones del capítulo en el store. Si el capítulo no tiene
+   * asignaciones propias (los recursos aún están a nivel escena, antes de la
+   * migración escena→capítulo), agrega las asignaciones legacy de sus escenas
+   * como fallback. `onReady` se invoca cuando las asignaciones quedan
+   * disponibles (normalmente para hidratar el prompt).
+   */
+  private loadAssignmentsForChapter(
+    projectId: string,
+    chapterId: string,
+    onReady?: () => void,
+  ): void {
+    this.projectsApi
+      .getChapterAssignments(projectId, chapterId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((res) => {
+          const own = res?.data;
+          const hasOwn =
+            !!own &&
+            (own.presets?.length ?? 0) + (own.characters?.length ?? 0) + (own.assets?.length ?? 0) >
+              0;
+          if (hasOwn) return of(own);
+          // Sin asignaciones propias → agregar las de sus escenas (legacy).
+          return this.projectsApi.listScenes(projectId, chapterId).pipe(
+            switchMap((scenesRes) => {
+              const scenes = scenesRes?.data ?? [];
+              if (scenes.length === 0) return of(EMPTY_ASSIGNMENTS);
+              const requests = scenes.map((s) =>
+                this.projectsApi
+                  .getSceneAssignments(projectId, s.id)
+                  .pipe(catchError(() => of(null))),
+              );
+              return forkJoin(requests).pipe(
+                map((results) =>
+                  mergeSceneAssignments(results.map((r) => (r ? (r.data ?? null) : null))),
+                ),
+              );
+            }),
+            catchError(() => of(EMPTY_ASSIGNMENTS)),
+          );
+        }),
+        catchError(() => of(EMPTY_ASSIGNMENTS)),
+      )
+      .subscribe((assignments) => {
+        this.studio.setChapterAssignments(assignments);
+        onReady?.();
+      });
   }
 
   /** Load scenes for a chapter and auto-select if appropriate. */
@@ -854,18 +945,10 @@ export class IndexStudio implements OnInit {
         },
       });
 
-      this.projectsApi.getChapterAssignments(projectId, chapterId).subscribe({
-        next: (res) => {
-          if (res.data) {
-            this.studio.setChapterAssignments(res.data);
-            // If description arrived first, hydrate now
-            this.hydrateShotPrompt();
-          }
-        },
-        error: () => {
-          /* assignments not critical */
-        },
-      });
+      // Load the chapter's assignments (falling back to the scenes' legacy
+      // assignments) and hydrate the prompt once both description and
+      // assignments are available.
+      this.loadAssignmentsForChapter(projectId, chapterId, () => this.hydrateShotPrompt());
     });
   }
 

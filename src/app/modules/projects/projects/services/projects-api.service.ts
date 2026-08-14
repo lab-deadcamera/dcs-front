@@ -422,6 +422,22 @@ export class ProjectsApiService {
       );
   }
 
+  /** Legacy scene-level assignments — used as a fallback while episode data
+   *  has not been migrated from scene to chapter yet. */
+  getSceneAssignments(
+    projectId: string,
+    sceneId: string,
+  ): Observable<{ error: boolean; msg: string; data?: any }> {
+    return this.http
+      .get<ResponseBase<any>>(
+        `${this.apiUrl}/projects/${projectId}/scenes/${sceneId}/assignments`,
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<any>),
+      );
+  }
+
   assignCharacterToChapter(
     projectId: string,
     chapterId: string,
