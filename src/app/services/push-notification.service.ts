@@ -46,6 +46,7 @@ export class PushNotificationService {
   private readonly swPush = inject(SwPush);
 
   private readonly apiUrl = `${environment.API_URL}/push/subscriptions`;
+  private readonly testUrl = `${environment.API_URL}/push/test`;
 
   readonly isSupported = signal(this.detectSupport());
   readonly permission = signal<NotificationPermission | 'unsupported'>(
@@ -132,6 +133,27 @@ export class PushNotificationService {
       return false;
     } finally {
       this.isBusy.set(false);
+    }
+  }
+
+  /**
+   * Envía una notificación de prueba a través del backend (`POST /push/test`),
+   * validando toda la cadena: VAPID → push service → service worker. `message`
+   * personaliza el body (opcional). Devuelve un estado corto para feedback de UI.
+   */
+  async sendTest(message?: string): Promise<'sent' | 'no-subscription' | 'error'> {
+    if (!this.isSubscribed()) return 'no-subscription';
+
+    try {
+      const res = await firstValueFrom(
+        this.http
+          .post<ResponseBase<{ sent_to?: number } | null>>(this.testUrl, { message: message ?? '' })
+          .pipe(catchError(() => of({ success: false, message: 'error', data: null }))),
+      );
+      if (!res.success) return 'error';
+      return res.data?.sent_to ? 'sent' : 'no-subscription';
+    } catch {
+      return 'error';
     }
   }
 

@@ -17,5 +17,5 @@ export const environment = {
    * Vacía = push deshabilitado.
    */
   PUSH_VAPID_PUBLIC_KEY:
-    'vntt_HR8izumEH9cFqg-lT7cXO82_iHyeTjmCFeznGgVoJxdkDgkp0_ygat4rNI9c8oWd8YXkcsOCMT-g4t3vg',
+    'BL57bfx0fIs7phB_XBaoPpU-3FzvNv4h8nk45ghXs5xoFaCcXZA4JKdP8oGreKzSPXPKFnfGF5HLDgjE_oOLd74',
 };

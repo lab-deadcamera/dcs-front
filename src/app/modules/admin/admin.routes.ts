@@ -44,6 +44,11 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.ExternalGalleriesComponent,
           ),
       },
+      {
+        path: 'monitor',
+        loadComponent: () =>
+          import('./admin/ui/monitor/monitor.component').then((m) => m.MonitorComponent),
+      },
     ],
   },
 ];

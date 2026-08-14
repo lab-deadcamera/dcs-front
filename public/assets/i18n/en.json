@@ -659,10 +659,6 @@
     "APPLY": "Apply",
     "DONE": "Done"
   },
-  "PUSH": {
-    "ENABLE": "Enable notifications",
-    "DISABLE": "Disable notifications"
-  },
   "VALIDATION": {
     "REQUIRED": "{{label}} is required.",
     "EMAIL": "{{label}} must be a valid email.",
@@ -1145,6 +1141,27 @@
       "LOAD_ROLES_FAILED": "Failed to load roles: {{msg}}",
       "NO_ROLES": "No roles returned from server",
       "ROLE_LEVEL": "{{name}} (level {{level}})"
+    },
+    "MONITOR": {
+      "TITLE": "Monitor",
+      "SUBTITLE": "Integration, service and API status.",
+      "PUSH_TITLE": "Push notifications",
+      "SUPPORTED": "Supported",
+      "PERMISSION": "Permission",
+      "VAPID": "VAPID configured",
+      "ENDPOINT": "Endpoint",
+      "SUBSCRIBED": "Subscribed",
+      "NOT_SUBSCRIBED": "Not subscribed",
+      "SUBSCRIBE": "Subscribe",
+      "UNSUBSCRIBE": "Unsubscribe",
+      "TEST_PLACEHOLDER": "Test message…",
+      "SEND_TEST": "Send test",
+      "TEST_SENT": "Test sent ✓",
+      "TEST_NO_SUB": "No subscription — subscribe first",
+      "TEST_ERROR": "Could not send the test",
+      "YES": "Yes",
+      "NO": "No",
+      "PUSH_HINT": "Test notifications validate the full chain: VAPID → push service → service worker. Re-subscribe after rotating VAPID keys."
     },
     "PROJECTS": {
       "SUBTITLE": "All projects including inactive ones — manage from here.",

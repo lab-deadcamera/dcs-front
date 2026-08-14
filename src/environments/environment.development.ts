@@ -16,5 +16,5 @@ export const environment = {
    * Web Push funciona en localhost (secure context) sin HTTPS.
    */
   PUSH_VAPID_PUBLIC_KEY:
-    'B5v-rmtDI31jjFDulqjwT53_uaThdyQsyDwxoQrxW6A0_9pOOCT_DGB8P5jgFFowqs8MABnBrbb3PFZkrsX34Q',
+    'p9UUmqrWY4B4mta4PgJVXJmKrka1ZI89g6iRzQsFZV_v-dvOYdwFYT0ZMedbKloEvi9W00YJPHmUGRVgl8i4Bw',
 };

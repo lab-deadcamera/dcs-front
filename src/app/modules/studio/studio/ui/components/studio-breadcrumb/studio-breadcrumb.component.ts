@@ -28,7 +28,6 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { TooltipModule } from 'primeng/tooltip';
 import { Popover } from 'primeng/popover';
 import { SceneAssignmentComponent } from '@modules/director/director/ui/scene-assignment/scene-assignment';
-import { PushNotificationToggleComponent } from '@shared/components/push-notification-toggle/push-notification-toggle.component';
 import { TruncateLenPipe } from '@app/core/pipes';
 
 export interface BreadcrumbOption {
@@ -94,7 +93,6 @@ function sortOptions<T extends { name: string; number: number }>(
     TruncateLenPipe,
     FloatLabelModule,
     SceneAssignmentComponent,
-    PushNotificationToggleComponent,
     TooltipModule,
     Popover,
     TranslatePipe,
