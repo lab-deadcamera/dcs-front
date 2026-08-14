@@ -167,23 +167,30 @@ export class PushNotificationService {
 
   /**
    * Vuelca el estado del service worker al consola para diagnosticar un
-   * subscribe colgado: si el page está controlado y en qué estado está el
-   * registro (active / waiting / installing).
+   * subscribe colgado: URL actual, si el page está controlado y TODOS los
+   * registros con su estado (active / waiting / installing).
    */
   private logSwDiagnostics(): void {
-    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      CONSOLE.log('[PushNotificationService] serviceWorker API: not available');
+      return;
+    }
     const sw = navigator.serviceWorker;
+    CONSOLE.log('[PushNotificationService] location:', window.location.href);
     CONSOLE.log('[PushNotificationService] SW controller:', sw.controller?.state ?? 'null');
-    sw.getRegistration()
-      .then((reg) => {
-        CONSOLE.log('[PushNotificationService] SW registration:', {
-          scope: reg?.scope ?? 'none',
-          active: reg?.active?.state ?? null,
-          waiting: reg?.waiting?.state ?? null,
-          installing: reg?.installing?.state ?? null,
-        });
+    sw.getRegistrations()
+      .then((regs) => {
+        const list = regs.map((reg) => ({
+          scope: reg.scope,
+          active: reg.active?.state ?? null,
+          waiting: reg.waiting?.state ?? null,
+          installing: reg.installing?.state ?? null,
+        }));
+        CONSOLE.log(
+          `[PushNotificationService] SW registrations (${regs.length}): ${JSON.stringify(list)}`,
+        );
       })
-      .catch((err) => CONSOLE.warn('[PushNotificationService] getRegistration failed:', err));
+      .catch((err) => CONSOLE.warn('[PushNotificationService] getRegistrations failed:', err));
   }
 
   /** Desuscribe el dispositivo y lo elimina del backend. */
