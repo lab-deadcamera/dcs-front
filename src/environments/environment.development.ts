@@ -10,6 +10,11 @@ export const environment = {
    *                Al mostrar, 4→5, 2→3, 1→0.
    */
   RATING_MODE: 'checks',
-  PUSH_ENABLED: false,
-  PUSH_VAPID_PUBLIC_KEY: '',
+  PUSH_ENABLED: true,
+  /**
+   * VAPID public key — debe coincidir con la private key del backend.
+   * Web Push funciona en localhost (secure context) sin HTTPS.
+   */
+  PUSH_VAPID_PUBLIC_KEY:
+    'B5v-rmtDI31jjFDulqjwT53_uaThdyQsyDwxoQrxW6A0_9pOOCT_DGB8P5jgFFowqs8MABnBrbb3PFZkrsX34Q',
 };

@@ -16,5 +16,6 @@ export const environment = {
    * Debe coincidir con la private key que usa el backend para enviar.
    * Vacía = push deshabilitado.
    */
-  PUSH_VAPID_PUBLIC_KEY: '',
+  PUSH_VAPID_PUBLIC_KEY:
+    'vntt_HR8izumEH9cFqg-lT7cXO82_iHyeTjmCFeznGgVoJxdkDgkp0_ygat4rNI9c8oWd8YXkcsOCMT-g4t3vg',
 };

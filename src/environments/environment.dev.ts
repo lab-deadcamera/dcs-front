@@ -10,8 +10,13 @@ export const environment = {
    *                Al mostrar, 4→5, 2→3, 1→0.
    */
   RATING_MODE: 'checks',
-  PUSH_ENABLED: false,
-  PUSH_VAPID_PUBLIC_KEY: '',
+  PUSH_ENABLED: true,
+  /**
+   * VAPID public key — debe coincidir con la private key del backend.
+   * HTTPS: back-dev.road2theoscars.tech ya es secure context.
+   */
+  PUSH_VAPID_PUBLIC_KEY:
+    'p9UUmqrWY4B4mta4PgJVXJmKrka1ZI89g6iRzQsFZV_v-dvOYdwFYT0ZMedbKloEvi9W00YJPHmUGRVgl8i4Bw',
 };
 
 // export const environment = {
