@@ -17,6 +17,7 @@ import { FilesService } from '../../services';
 import { FileCategory, FileEntity, UploadParams } from '../../interfaces';
 import { FileLinkDialogComponent } from '../components/file-link-dialog/file-link-dialog.component';
 import { IndexCharacters } from '@modules/characters/characters/ui/index-characters/index-characters';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { DialogModule } from 'primeng/dialog';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
@@ -49,6 +50,7 @@ type ViewTab = FileCategory | 'trash';
     ToastModule,
     FileLinkDialogComponent,
     IndexCharacters,
+    PaginatorModule,
     DialogModule,
     AssetViewerComponent,
     AssetInfoPopoverComponent,
@@ -102,25 +104,16 @@ export class IndexFiles implements OnInit {
     }, 400);
   }
 
-  // ── Pagination ──────────────────────────────────────────────────
-  protected readonly pages = computed(() => {
-    const total = this.files.totalPages();
-    return total <= 1 ? [] : Array.from({ length: total }, (_, i) => i + 1);
-  });
-
-  protected readonly prevDisabled = computed(() => this.files.page() <= 1);
-  protected readonly nextDisabled = computed(() => this.files.page() >= this.files.totalPages());
-
-  protected onPrevPage(): void {
-    this.files.goToPage(this.files.page() - 1);
-  }
-
-  protected onNextPage(): void {
-    this.files.goToPage(this.files.page() + 1);
-  }
-
-  protected onGoToPage(page: number): void {
-    this.files.goToPage(page);
+  // ── Pagination (PrimeNG p-paginator) ────────────────────────────
+  /** `p-paginator` page change — handles both page navigation and rows-per-page. */
+  protected onPageChange(ev: PaginatorState): void {
+    const rows = ev.rows ?? this.files.pageSize();
+    const page = ev.page ?? this.files.page() - 1;
+    if (rows !== this.files.pageSize()) {
+      this.files.setPageSize(rows);
+      return;
+    }
+    this.files.goToPage(page + 1);
   }
 
   ngOnInit(): void {

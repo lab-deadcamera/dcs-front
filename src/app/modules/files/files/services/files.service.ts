@@ -54,6 +54,14 @@ export class FilesService {
     this.load().subscribe();
   }
 
+  /** Change rows per page and reload from page 1. */
+  setPageSize(size: number): void {
+    if (size === this._pageSize()) return;
+    this._pageSize.set(size);
+    this._page.set(1);
+    this.load().subscribe();
+  }
+
   load(): Observable<{ error: boolean; msg: string; data?: any }> {
     const cat = this._category();
     const page = this._page();
