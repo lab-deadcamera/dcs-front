@@ -131,6 +131,10 @@ export class IndexStudio implements OnInit {
 
   private readonly promptBuilder = viewChild(PromptBuilderComponent);
 
+  /** Viewer instance — exposes the video-box height so the takes-checklist can
+   *  cap its own height to the video area. */
+  protected readonly viewer = viewChild(ViewerComponent);
+
   constructor() {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(min-width: 64rem)');
