@@ -653,6 +653,10 @@
     "APPLY": "Aplicar",
     "DONE": "Hecho"
   },
+  "PUSH": {
+    "ENABLE": "Activar notificaciones",
+    "DISABLE": "Desactivar notificaciones"
+  },
   "VALIDATION": {
     "REQUIRED": "{{label}} es obligatorio.",
     "EMAIL": "{{label}} debe ser un email válido.",

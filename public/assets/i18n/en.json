@@ -659,6 +659,10 @@
     "APPLY": "Apply",
     "DONE": "Done"
   },
+  "PUSH": {
+    "ENABLE": "Enable notifications",
+    "DISABLE": "Disable notifications"
+  },
   "VALIDATION": {
     "REQUIRED": "{{label}} is required.",
     "EMAIL": "{{label}} must be a valid email.",
