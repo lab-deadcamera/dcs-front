@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Preset, PresetCategory, SpecOption } from '../interfaces/studio.models';
 import { PresetApiService } from '@app/services/preset-api.service';
+import { CONSOLE } from '@app/shared/utils';
 
 const LABEL_KEYS: Record<string, string> = {};
 
@@ -47,7 +48,7 @@ export class PresetsService {
       next: (groups) => {
         this._groups.set(groups.map((g: any) => ({ id: g.id, slug: g.slug })));
       },
-      error: (err) => console.warn('[presets] failed to load groups:', err),
+      error: (err) => CONSOLE.warn('[presets] failed to load groups:', err),
     });
 
     this.api.getPresets().subscribe({
@@ -63,7 +64,7 @@ export class PresetsService {
           })),
         );
       },
-      error: (err) => console.warn('[presets] failed to load presets:', err),
+      error: (err) => CONSOLE.warn('[presets] failed to load presets:', err),
     });
   }
 
@@ -103,26 +104,26 @@ export class PresetsService {
       })
       .subscribe({
         next: () => this.load(),
-        error: (err) => console.warn('[presets] create failed:', err),
+        error: (err) => CONSOLE.warn('[presets] create failed:', err),
       });
   }
 
-  updatePreset(category: PresetCategory, id: string, patch: { label?: string; prompt?: string }): void {
-    this.api
-      .updatePreset(id, patch)
-      .subscribe({
-        next: () => this.load(),
-        error: (err) => console.warn('[presets] update failed:', err),
-      });
+  updatePreset(
+    category: PresetCategory,
+    id: string,
+    patch: { label?: string; prompt?: string },
+  ): void {
+    this.api.updatePreset(id, patch).subscribe({
+      next: () => this.load(),
+      error: (err) => CONSOLE.warn('[presets] update failed:', err),
+    });
   }
 
   removePreset(category: PresetCategory, id: string): void {
-    this.api
-      .deletePreset(id)
-      .subscribe({
-        next: () => this.load(),
-        error: (err) => console.warn('[presets] delete failed:', err),
-      });
+    this.api.deletePreset(id).subscribe({
+      next: () => this.load(),
+      error: (err) => CONSOLE.warn('[presets] delete failed:', err),
+    });
   }
 
   removeCustomPreset(category: PresetCategory, id: string): void {

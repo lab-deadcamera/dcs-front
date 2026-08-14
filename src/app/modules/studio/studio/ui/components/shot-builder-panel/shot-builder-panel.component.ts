@@ -65,7 +65,7 @@ import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 import { FilesApiService } from '@app/services/files-api.service';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
+import { CONSOLE, ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 import { environment } from '@environment/environment';
@@ -787,7 +787,7 @@ export class ShotBuilderPanelComponent {
     if (!raw) return null;
 
     const data = parseArtifactData(raw);
-    console.log(
+    CONSOLE.log(
       '[artifact] raw preview:',
       raw.slice(0, 200),
       'parsed:',
@@ -863,7 +863,7 @@ export class ShotBuilderPanelComponent {
           try {
             sendContent = await this.extractPdfText(reader.result);
           } catch (err) {
-            console.error('[pdf] failed to extract text from', file.name, err);
+            CONSOLE.error('[pdf] failed to extract text from', file.name, err);
             sendContent = `[Unable to parse ${file.name}. The PDF could not be read as text.]`;
           }
         }
@@ -1156,7 +1156,7 @@ export class ShotBuilderPanelComponent {
       return;
     }
 
-    console.log({ content });
+    CONSOLE.log('PROMPT:', { content });
 
     this.loading.set(true);
     this.error.set(null);
