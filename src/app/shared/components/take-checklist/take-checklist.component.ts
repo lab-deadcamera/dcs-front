@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 import {
@@ -10,6 +10,9 @@ import {
 import { StudioStore } from '@app/core/stores/studio.store';
 import { Tooltip } from 'primeng/tooltip';
 
+/** Ventana (ms) para distinguir un clic simple de un doble clic en el rating. */
+const DOUBLE_CLICK_DELAY = 300;
+
 /**
  * Vertical column of small checkmarks rendered to the right of the viewer.
  *
@@ -18,9 +21,11 @@ import { Tooltip } from 'primeng/tooltip';
  *   · current — empty box, accent border + glow (cursor sits here)
  *   · done    — filled box with a check
  *
- * Clicking previews the take's video. In 'checks' rating mode (see
- * `RATING_MODE`), clicking also cycles the take's rating — one check →
- * two checks → cleared — and the button shows ✓ / ✓✓ for the rating.
+ * Clicking selects the take and previews its video in the viewer. In
+ * 'checks' rating mode (see `RATING_MODE`), a single click also cycles the
+ * take's rating — one check → two checks → cleared — but only when the
+ * clicked take is the one already in the viewer; a double-click cycles the
+ * rating of any take. The button shows ✓ / ✓✓ for the rating.
  * Keyboard activation is handled by the native `<button>`;
  * aria-checked communicates state to AT.
  */
@@ -89,6 +94,7 @@ import { Tooltip } from 'primeng/tooltip';
             [attr.aria-checked]="ariaChecked(take)"
             [attr.data-testid]="'take-' + take.index"
             (click)="onClick(take)"
+            (dblclick)="onDoubleClick(take)"
           >
             @if (isChecksRating()) {
               @let checks = ratingSymbols(take.rating ?? 0);
@@ -119,9 +125,12 @@ import { Tooltip } from 'primeng/tooltip';
     </div>
   `,
 })
-export class TakeChecklistComponent {
+export class TakeChecklistComponent implements OnDestroy {
   private readonly i18n = inject(TranslateService);
   protected readonly studio = inject(StudioStore);
+
+  /** Pending single-click rating timer; cleared when a double-click follows. */
+  private clickTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly takes = input<readonly Take[]>([]);
 
@@ -166,11 +175,69 @@ export class TakeChecklistComponent {
   }
 
   onClick(take: Take): void {
-    this.studio.setImagePreview(RESOLVE_URL(take.video_url) ?? '');
+    // Clic simple: selecciona la toma y carga su video en el visor.
+    this.loadTakeVideo(take);
+
     if (!isChecksRating()) return;
-    // Cycle the rating in checks mode: 0 → 1 check (3★) → 2 checks (5★) → 0.
+
+    // Rating: un clic simple solo califica la toma que ya está en el visor.
+    // Se usa un timer corto para distinguirlo del doble clic (que califica
+    // cualquier toma). En un doble clic, el segundo click limpia el timer del
+    // primero y onDoubleClick califica una sola vez.
+    const wasCurrent = this.isCurrentTake(take);
+    this.clearRatingTimer();
+    this.clickTimer = setTimeout(() => {
+      this.clickTimer = null;
+      if (wasCurrent) this.cycleRating(take);
+    }, DOUBLE_CLICK_DELAY);
+  }
+
+  /** Doble clic: califica cualquier toma (modo checks), sin importar cuál esté en el visor. */
+  onDoubleClick(take: Take): void {
+    this.clearRatingTimer();
+    if (!isChecksRating()) return;
+    this.cycleRating(take);
+  }
+
+  /** Carga el video de una toma en el visor (mismo patrón que onSelectTake en index-studio). */
+  private loadTakeVideo(take: Take): void {
+    this.studio.selectTake(take.index);
+    const video = take.video_local_url || take.video_url;
+    this.studio.setImagePreview(video ? RESOLVE_URL(video) : '');
+    if (!video) return;
+    this.studio.pushClip({
+      id: crypto.randomUUID(),
+      prompt: '',
+      videoLocalUrl: video,
+      createdAt: Date.now(),
+      durationSeconds: 5,
+      resolution: '480p',
+      takeIndex: take.index,
+      rating: take.rating,
+    });
+  }
+
+  /** True si la toma es la que el visor muestra actualmente (antes de seleccionarla). */
+  private isCurrentTake(take: Take): boolean {
+    const list = this.takes();
+    return list[this.currentIndex()]?.index === take.index;
+  }
+
+  /** Cicla el rating en modo checks: 0 → 1 check (3★) → 2 checks (5★) → 0. */
+  private cycleRating(take: Take): void {
     const checks = this.checksFor(take);
     const next = checks === 0 ? 3 : checks === 1 ? 5 : 0;
     this.studio.setTakeRating(take.index, next);
+  }
+
+  private clearRatingTimer(): void {
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer);
+      this.clickTimer = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearRatingTimer();
   }
 }
