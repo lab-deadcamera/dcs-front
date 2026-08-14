@@ -2,6 +2,7 @@ export * from './custom-translate-loader';
 export * from './files-api.service';
 export * from './model.service';
 export * from './generation-logs.service';
+export * from './push-notification.service';
 export * from './shot-builder-logs.service';
 export * from './text-generator.service';
 export * from './image-generator.service';

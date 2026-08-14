@@ -1,0 +1,94 @@
+<section class="px-6 py-6">
+  <div class="mb-6">
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.MONITOR.TITLE' | translate }}</h1>
+    <p class="mt-1 text-[12px] text-fg-muted">{{ 'ADMIN.MONITOR.SUBTITLE' | translate }}</p>
+  </div>
+
+  <!-- Push notifications -->
+  <div class="max-w-3xl rounded border p-5" style="border-color: var(--border-color)">
+    <div class="mb-4 flex items-center justify-between gap-4">
+      <h2 class="text-[13px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.MONITOR.PUSH_TITLE' | translate }}</h2>
+      <span
+        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest"
+        [class.bg-emerald-900]="pushSubscribed()"
+        [class.text-emerald-400]="pushSubscribed()"
+        [class.bg-ink-700]="!pushSubscribed()"
+        [class.text-fg-muted]="!pushSubscribed()"
+      >
+        <i
+          class="pi"
+          [class.pi-bell]="pushSubscribed()"
+          [class.pi-bell-slash]="!pushSubscribed()"
+          aria-hidden="true"
+        ></i>
+        {{ (pushSubscribed() ? 'ADMIN.MONITOR.SUBSCRIBED' : 'ADMIN.MONITOR.NOT_SUBSCRIBED') | translate }}
+      </span>
+    </div>
+
+    <!-- Status -->
+    <dl class="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+      <div class="flex items-center justify-between border-b py-2.5" style="border-color: var(--border-color)">
+        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">{{ 'ADMIN.MONITOR.SUPPORTED' | translate }}</dt>
+        <dd class="text-[13px]">{{ (pushSupported() ? 'ADMIN.MONITOR.YES' : 'ADMIN.MONITOR.NO') | translate }}</dd>
+      </div>
+      <div class="flex items-center justify-between border-b py-2.5" style="border-color: var(--border-color)">
+        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">{{ 'ADMIN.MONITOR.PERMISSION' | translate }}</dt>
+        <dd class="font-mono text-[12px]">{{ pushPermission() }}</dd>
+      </div>
+      <div class="flex items-center justify-between border-b py-2.5" style="border-color: var(--border-color)">
+        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">{{ 'ADMIN.MONITOR.VAPID' | translate }}</dt>
+        <dd class="text-[13px]">{{ (pushConfigured() ? 'ADMIN.MONITOR.YES' : 'ADMIN.MONITOR.NO') | translate }}</dd>
+      </div>
+      <div class="flex items-center justify-between border-b py-2.5" style="border-color: var(--border-color)">
+        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">{{ 'ADMIN.MONITOR.ENDPOINT' | translate }}</dt>
+        <dd class="max-w-[280px] truncate font-mono text-[11px] text-fg-muted" [pTooltip]="pushEndpoint()">
+          {{ pushEndpoint() || '—' }}
+        </dd>
+      </div>
+    </dl>
+
+    <!-- Actions -->
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+      <p-button
+        [label]="(pushSubscribed() ? 'ADMIN.MONITOR.UNSUBSCRIBE' : 'ADMIN.MONITOR.SUBSCRIBE') | translate"
+        [icon]="pushSubscribed() ? 'pi pi-bell-slash' : 'pi pi-bell'"
+        [loading]="pushBusy()"
+        [disabled]="!pushConfigured()"
+        (onClick)="toggleSubscription()"
+      />
+      <input
+        pInputText
+        class="w-64"
+        [ngModel]="testMessage()"
+        (ngModelChange)="testMessage.set($event)"
+        [placeholder]="'ADMIN.MONITOR.TEST_PLACEHOLDER' | translate"
+        [disabled]="!pushSubscribed()"
+        (keyup.enter)="sendTest()"
+      />
+      <p-button
+        [label]="'ADMIN.MONITOR.SEND_TEST' | translate"
+        icon="pi pi-send"
+        severity="secondary"
+        [disabled]="!pushSubscribed() || pushBusy()"
+        (onClick)="sendTest()"
+      />
+      @if (testState() !== 'idle') {
+        <span class="text-[12px]" role="status">
+          @switch (testState()) {
+            @case ('sent') {
+              <span class="text-emerald-400">{{ 'ADMIN.MONITOR.TEST_SENT' | translate }}</span>
+            }
+            @case ('no-subscription') {
+              <span class="text-amber-400">{{ 'ADMIN.MONITOR.TEST_NO_SUB' | translate }}</span>
+            }
+            @default {
+              <span class="text-red-400">{{ 'ADMIN.MONITOR.TEST_ERROR' | translate }}</span>
+            }
+          }
+        </span>
+      }
+    </div>
+
+    <p class="mt-4 text-[11px] italic text-fg-muted">{{ 'ADMIN.MONITOR.PUSH_HINT' | translate }}</p>
+  </div>
+</section>

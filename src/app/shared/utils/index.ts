@@ -6,3 +6,4 @@ export * from './crypto.util';
 export * from './array.utils';
 export * from './rating.util';
 export * from './reference-info.util';
+export * from './console.utils';

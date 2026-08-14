@@ -65,7 +65,7 @@ import { StudioApiService } from '@app/services/studio-api.service';
 import { ProjectsApiService } from '@app/modules/projects/projects/services/projects-api.service';
 import { FilesApiService } from '@app/services/files-api.service';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
+import { CONSOLE, ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/shared/utils';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 import { environment } from '@environment/environment';
@@ -239,7 +239,7 @@ export class ShotBuilderPanelComponent {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  readonly isProduction = environment.production;
+  readonly isProduction = true; // TODO: remove this
 
   /** True while free assets are being uploaded (persisted to the episode). */
   readonly uploadingAssets = signal(false);
@@ -787,7 +787,7 @@ export class ShotBuilderPanelComponent {
     if (!raw) return null;
 
     const data = parseArtifactData(raw);
-    console.log(
+    CONSOLE.log(
       '[artifact] raw preview:',
       raw.slice(0, 200),
       'parsed:',
@@ -863,7 +863,7 @@ export class ShotBuilderPanelComponent {
           try {
             sendContent = await this.extractPdfText(reader.result);
           } catch (err) {
-            console.error('[pdf] failed to extract text from', file.name, err);
+            CONSOLE.error('[pdf] failed to extract text from', file.name, err);
             sendContent = `[Unable to parse ${file.name}. The PDF could not be read as text.]`;
           }
         }
@@ -1156,7 +1156,7 @@ export class ShotBuilderPanelComponent {
       return;
     }
 
-    console.log({ content });
+    CONSOLE.log('PROMPT:', { content });
 
     this.loading.set(true);
     this.error.set(null);
@@ -1189,6 +1189,7 @@ export class ShotBuilderPanelComponent {
     this.shotBuilderService
       .generate({
         projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
         // The shot builder generates at episode level — no scene is required.
         // The backend still validates scene_id (binding:required) but never
         // uses it, so fall back to the chapter id when no scene is selected.
@@ -1311,6 +1312,7 @@ export class ShotBuilderPanelComponent {
     this.shotBuilderService
       .refineShots({
         projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
         // Same scene fallback as send(): the backend validates scene_id but
         // the breakdown is generated at episode level.
         sceneId:

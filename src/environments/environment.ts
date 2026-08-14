@@ -10,4 +10,12 @@ export const environment = {
    *                Al mostrar, 4→5, 2→3, 1→0.
    */
   RATING_MODE: 'checks',
+  PUSH_ENABLED: true,
+  /**
+   * VAPID public key generada con: npx web-push generate-vapid-keys
+   * Debe coincidir con la private key que usa el backend para enviar.
+   * Vacía = push deshabilitado.
+   */
+  PUSH_VAPID_PUBLIC_KEY:
+    'BL57bfx0fIs7phB_XBaoPpU-3FzvNv4h8nk45ghXs5xoFaCcXZA4JKdP8oGreKzSPXPKFnfGF5HLDgjE_oOLd74',
 };

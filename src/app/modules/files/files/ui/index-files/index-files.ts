@@ -21,7 +21,7 @@ import { DialogModule } from 'primeng/dialog';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { DOWNLOAD_VIDEO, GENERATE_URL_FILE } from '@app/shared/utils';
+import { CONSOLE, DOWNLOAD_VIDEO, GENERATE_URL_FILE } from '@app/shared/utils';
 import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover/asset-info-popover.component';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
@@ -230,7 +230,13 @@ export class IndexFiles implements OnInit {
     this.assetInfoPopover.open(event, {
       id: f.id,
       name: f.filename,
-      kind: this.isImage(f) ? 'image' : this.isVideo(f) ? 'video' : this.isAudio(f) ? 'audio' : f.format,
+      kind: this.isImage(f)
+        ? 'image'
+        : this.isVideo(f)
+          ? 'video'
+          : this.isAudio(f)
+            ? 'audio'
+            : f.format,
       type: f.category,
     });
   }
@@ -256,7 +262,7 @@ export class IndexFiles implements OnInit {
    */
   protected onMediaError(e: Event): void {
     const el = e.currentTarget as HTMLMediaElement;
-    console.warn('Media failed to load:', el.src);
+    CONSOLE.warn('Media failed to load:', el.src);
   }
 
   protected formatSize(bytes: number): string {

@@ -1,3 +1,5 @@
+import { CONSOLE } from './console.utils';
+
 /**
  * Download a video file, showing a save dialog when supported (Chrome, Edge, Opera).
  * Falls back to the standard blob download on Safari/Firefox where the picker is
@@ -18,12 +20,14 @@ export const DOWNLOAD_VIDEO = async (url: string, filename: string = '') => {
     // so the user can pick the target folder on every OS, including Mac.
     if ('showSaveFilePicker' in window) {
       try {
-        const handle = await (window as unknown as Window & {
-          showSaveFilePicker: (opts: {
-            suggestedName?: string;
-            types?: { description: string; accept: Record<string, string[]> }[];
-          }) => Promise<FileSystemFileHandle>;
-        }).showSaveFilePicker({
+        const handle = await (
+          window as unknown as Window & {
+            showSaveFilePicker: (opts: {
+              suggestedName?: string;
+              types?: { description: string; accept: Record<string, string[]> }[];
+            }) => Promise<FileSystemFileHandle>;
+          }
+        ).showSaveFilePicker({
           suggestedName: filename,
           types: [
             {
@@ -53,6 +57,6 @@ export const DOWNLOAD_VIDEO = async (url: string, filename: string = '') => {
 
     URL.revokeObjectURL(link.href);
   } catch (error) {
-    console.error('Download failed for:', url, error);
+    CONSOLE.error('Download failed for:', url, error);
   }
 };

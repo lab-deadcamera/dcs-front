@@ -13,6 +13,7 @@ import {
   Shot,
   ShotNotes,
 } from '@app/core/interfaces';
+import { CONSOLE } from '@app/shared/utils';
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -72,7 +73,7 @@ export interface SceneData {
   duration: number;
   start: number;
   end: number;
-  sceneType: string;         // "present" | "flashback" | "fantasy" | ...
+  sceneType: string; // "present" | "flashback" | "fantasy" | ...
   mode: string;
   continuity: SceneContinuity;
   references: Reference[];
@@ -126,6 +127,7 @@ export class ShotBuilderService {
    */
   generate(request: {
     projectId: string;
+    projectName?: string;
     sceneId: string;
     prompt: string;
     systemPrompt?: string;
@@ -155,6 +157,7 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
+      project_name: request.projectName || '',
       model: 'claude-shot-builder',
       api_model: request.model || 'claude-sonnet-4-6',
       prompt: request.prompt,
@@ -204,6 +207,7 @@ export class ShotBuilderService {
    */
   refineShots(request: {
     projectId: string;
+    projectName?: string;
     sceneId: string;
     previousResponse: string;
     changeRequest: string;
@@ -239,6 +243,7 @@ export class ShotBuilderService {
     const body: Record<string, unknown> = {
       scene_id: request.sceneId,
       project_id: request.projectId,
+      project_name: request.projectName || '',
       model: 'claude-shot-builder',
       api_model: request.model || 'claude-sonnet-4-6',
       previous_response: request.previousResponse,
@@ -411,7 +416,7 @@ export class ShotBuilderService {
             return res.data;
           }),
           catchError((err) => {
-            console.error('Failed to materialize shot:', shot.name, err);
+            CONSOLE.error('Failed to materialize shot:', shot.name, err);
             return of(null);
           }),
         );
@@ -447,7 +452,7 @@ export class ShotBuilderService {
       )
       .pipe(
         catchError((err) => {
-          console.error('Failed to create shot:', payload.name, err);
+          CONSOLE.error('Failed to create shot:', payload.name, err);
           return of({
             success: false,
             data: undefined,
@@ -468,15 +473,22 @@ export class ShotBuilderService {
     characterId: string,
     slot?: string,
   ) {
-    return this.http.post<{ success: boolean; data?: { id: string }; message?: string }>(
-      `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources/characters`,
-      { character_id: characterId, ...(slot ? { slot } : {}) },
-    ).pipe(
-      catchError((err) => {
-        console.error('Failed to assign character to shot:', err);
-        return of({ success: false, data: undefined, message: err?.error?.message || err?.message || 'Unknown error' });
-      }),
-    );
+    return this.http
+      .post<{
+        success: boolean;
+        data?: { id: string };
+        message?: string;
+      }>(`${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources/characters`, { character_id: characterId, ...(slot ? { slot } : {}) })
+      .pipe(
+        catchError((err) => {
+          CONSOLE.error('Failed to assign character to shot:', err);
+          return of({
+            success: false,
+            data: undefined,
+            message: err?.error?.message || err?.message || 'Unknown error',
+          });
+        }),
+      );
   }
 
   // ── Private helpers ───────────────────────────────────────────────
@@ -523,21 +535,24 @@ export class ShotBuilderService {
             notes: s.continuity?.notes,
           },
           references: s.references || [],
-          shots: (s.shots || []).map((shot: any, i: number) => ({
-            // Shot number = its order within the scene (1, 2, 3…). The scene
-            // number itself comes from the script (scriptNumber above).
-            number: i + 1,
-            id: shot.id,
-            name: shot.title || '',
-            description: shot.description || shot.prompt?.en || '',
-            references: shot.references as Reference[] | undefined,
-            prompt_en: shot.prompt?.en ? normalizeSeedanceSlots(shot.prompt.en) : undefined,
-            prompt_zh: shot.prompt?.zh ? normalizeSeedanceSlots(shot.prompt.zh) : undefined,
-            duration: shot.duration,
-            start: shot.start,
-            end: shot.end,
-            notes: shot.notes as ShotNotes | undefined,
-          }) as ShotBuilderShot),
+          shots: (s.shots || []).map(
+            (shot: any, i: number) =>
+              ({
+                // Shot number = its order within the scene (1, 2, 3…). The scene
+                // number itself comes from the script (scriptNumber above).
+                number: i + 1,
+                id: shot.id,
+                name: shot.title || '',
+                description: shot.description || shot.prompt?.en || '',
+                references: shot.references as Reference[] | undefined,
+                prompt_en: shot.prompt?.en ? normalizeSeedanceSlots(shot.prompt.en) : undefined,
+                prompt_zh: shot.prompt?.zh ? normalizeSeedanceSlots(shot.prompt.zh) : undefined,
+                duration: shot.duration,
+                start: shot.start,
+                end: shot.end,
+                notes: shot.notes as ShotNotes | undefined,
+              }) as ShotBuilderShot,
+          ),
         }));
 
         return {
@@ -638,7 +653,10 @@ export class ShotBuilderService {
         } else {
           // We're inside a string — look ahead to decide if this
           // is the closing delimiter or content that should be replaced
-          const rest = chars.slice(i + 1).join('').trimStart();
+          const rest = chars
+            .slice(i + 1)
+            .join('')
+            .trimStart();
           const nextStructural = rest.match(/^[,:\]}]/);
           const atEnd = rest.length === 0 || rest.trim().length === 0;
           if (nextStructural || atEnd) {

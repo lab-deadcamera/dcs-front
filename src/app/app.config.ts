@@ -1,9 +1,10 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '@core/interceptors/auth.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideIcons } from '@ng-icons/core';
 import {
   heroSunMicro,
@@ -49,6 +50,9 @@ export const appConfig: ApplicationConfig = {
         useClass: CustomTranslateLoader,
       },
       fallbackLang: 'en',
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: true,
     }),
   ],
 };

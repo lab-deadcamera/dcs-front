@@ -1142,6 +1142,27 @@
       "NO_ROLES": "El servidor no devolvió roles",
       "ROLE_LEVEL": "{{name}} (nivel {{level}})"
     },
+    "MONITOR": {
+      "TITLE": "Monitor",
+      "SUBTITLE": "Estado de integraciones, servicios y API.",
+      "PUSH_TITLE": "Notificaciones push",
+      "SUPPORTED": "Soportado",
+      "PERMISSION": "Permiso",
+      "VAPID": "VAPID configurado",
+      "ENDPOINT": "Endpoint",
+      "SUBSCRIBED": "Suscrito",
+      "NOT_SUBSCRIBED": "No suscrito",
+      "SUBSCRIBE": "Suscribir",
+      "UNSUBSCRIBE": "Desuscribir",
+      "TEST_PLACEHOLDER": "Mensaje de prueba…",
+      "SEND_TEST": "Enviar prueba",
+      "TEST_SENT": "Prueba enviada ✓",
+      "TEST_NO_SUB": "Sin suscripción — suscribite primero",
+      "TEST_ERROR": "No se pudo enviar la prueba",
+      "YES": "Sí",
+      "NO": "No",
+      "PUSH_HINT": "Las notificaciones de prueba validan toda la cadena: VAPID → push service → service worker. Re-suscribite tras rotar las llaves VAPID."
+    },
     "PROJECTS": {
       "SUBTITLE": "Todos los proyectos, incluidos los inactivos — administralos desde acá.",
       "EMPTY": "Todavía no hay proyectos.",
