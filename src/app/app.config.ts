@@ -52,7 +52,7 @@ export const appConfig: ApplicationConfig = {
       fallbackLang: 'en',
     }),
     provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
+      enabled: true,
     }),
   ],
 };
