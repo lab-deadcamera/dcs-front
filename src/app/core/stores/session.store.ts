@@ -240,6 +240,10 @@ export class SessionStore {
     this._avatarUrl.set(null);
     localStorage.removeItem('dcs-token');
     void this.storage.delete('session');
+    // Force a fresh fetch of the current language so the next session doesn't
+    // reuse stale in-memory translations (e.g. after a deploy with new keys).
+    // Errors are ignored — logout must never fail because of a network hiccup.
+    this.translate.reloadLang(this._language()).subscribe({ error: () => undefined });
   }
 
   reset() {
