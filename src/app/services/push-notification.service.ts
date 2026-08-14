@@ -121,9 +121,16 @@ export class PushNotificationService {
 
     try {
       this.isBusy.set(true);
-      const sub = await this.swPush.requestSubscription({
-        serverPublicKey: this.vapidPublicKey,
-      });
+      // The browser's pushManager.subscribe() can hang silently when the SW is
+      // installed but the page is not yet controlled by it (common right after
+      // a deploy). Guard with a timeout so the UI never spins forever.
+      const sub = await withTimeout(
+        this.swPush.requestSubscription({
+          serverPublicKey: this.vapidPublicKey,
+        }),
+        30_000,
+        'Timeout suscribiendo: el service worker no está controlando la página. Recargá (Ctrl+Shift+R) y reintentá.',
+      );
       const json = sub.toJSON() as PushSubscriptionJSON;
       this.subscription.set(json);
       this.isSubscribed.set(true);
@@ -221,4 +228,21 @@ export class PushNotificationService {
     if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
     return Notification.permission;
   }
+}
+
+/** Resuelve `promise` o la rechaza con `message` tras `ms` milisegundos. */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }

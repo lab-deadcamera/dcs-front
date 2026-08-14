@@ -16,7 +16,7 @@ export const environment = {
    * HTTPS: back-dev.road2theoscars.tech ya es secure context.
    */
   PUSH_VAPID_PUBLIC_KEY:
-    'p9UUmqrWY4B4mta4PgJVXJmKrka1ZI89g6iRzQsFZV_v-dvOYdwFYT0ZMedbKloEvi9W00YJPHmUGRVgl8i4Bw',
+    'BKfVFJqq1mOAeJrWuD4CVVyZiq5GtWSPPYOokc0LBWVf7_nbzmHcBWE9GTHnWypaBL4vVtNGCTx5lBkVYJfIuAc',
 };
 
 // export const environment = {
