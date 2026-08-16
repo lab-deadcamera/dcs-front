@@ -23,12 +23,12 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TooltipModule } from 'primeng/tooltip';
 import { Popover } from 'primeng/popover';
 import { SceneAssignmentComponent } from '@modules/director/director/ui/scene-assignment/scene-assignment';
 import { TruncateLenPipe } from '@app/core/pipes';
+import { StudioStore } from '@app/core/stores/studio.store';
 
 export interface BreadcrumbOption {
   id: string;
@@ -75,8 +75,7 @@ function sortOptions<T extends { name: string; number: number }>(
 ): T[] {
   const dir = pref.dir === 'desc' ? -1 : 1;
   return [...list].sort((a, b) => {
-    const cmp =
-      pref.field === 'number' ? a.number - b.number : a.name.localeCompare(b.name);
+    const cmp = pref.field === 'number' ? a.number - b.number : a.name.localeCompare(b.name);
     return cmp * dir;
   });
 }
@@ -103,6 +102,7 @@ function sortOptions<T extends { name: string; number: number }>(
 })
 export class StudioBreadcrumbComponent {
   private readonly i18n = inject(TranslateService);
+  private readonly studioState = inject(StudioStore);
 
   // ── Inputs: option arrays ───────────────────────────────────────────
 
@@ -166,9 +166,7 @@ export class StudioBreadcrumbComponent {
     const dir = this.sortPref().dir === 'desc' ? -1 : 1;
     return [...this.projects()].sort((a, b) => a.name.localeCompare(b.name) * dir);
   });
-  protected readonly sortedChapters = computed(() =>
-    sortOptions(this.chapters(), this.sortPref()),
-  );
+  protected readonly sortedChapters = computed(() => sortOptions(this.chapters(), this.sortPref()));
   protected readonly sortedScenes = computed(() => sortOptions(this.scenes(), this.sortPref()));
   protected readonly sortedShots = computed(() => sortOptions(this.shots(), this.sortPref()));
 
@@ -192,6 +190,16 @@ export class StudioBreadcrumbComponent {
     this.sortPref.update((p) => ({ ...p, dir }));
     this.persistSortPref();
   }
+
+  protected stateLoading = computed(() => {
+    this.studioState.setLoadingBreadcrumb(
+      this.loadingProjects() ||
+        this.loadingChapters() ||
+        this.loadingScenes() ||
+        this.loadingShots(),
+    );
+    return this.studioState.loadingBreadcrumb();
+  });
 
   private persistSortPref(): void {
     try {

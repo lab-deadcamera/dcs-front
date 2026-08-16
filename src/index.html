@@ -1,19 +1,39 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>DcsVideos</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="DCS">
-  <link rel="apple-touch-icon" href="assets/icons/180x180.png">
-  <link rel="icon" type="image/png" href="assets/img/favicon-zoom.png">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dead Camera Studios</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="DCS" />
+    <link rel="apple-touch-icon" href="assets/icons/180x180.png" />
+    <link rel="icon" type="image/png" href="assets/img/favicon-zoom.png" />
+    <link rel="preconnect" href="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg" />
+  </head>
+  <body>
+    <script>
+      // Apply theme before first paint to avoid a light-mode flash.
+      // Default is dark; an explicit stored preference wins.
+      (function () {
+        try {
+          var mode = 'dark';
+          var raw = localStorage.getItem('dcs-theme');
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.mode === 'light') mode = 'light';
+          }
+          if (mode === 'dark') {
+            document.documentElement.classList.add('dark', 'p-dark');
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
+    <app-root></app-root>
+  </body>
 </html>

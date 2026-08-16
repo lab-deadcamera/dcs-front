@@ -15,6 +15,7 @@ import { SectionHeaderComponent } from '@shared/components/section-header/sectio
 import { StudioStore } from '@app/core/stores/studio.store';
 import { DOWNLOAD_VIDEO, RESOLVE_URL } from '@app/shared/utils';
 import { MessageService } from 'primeng/api';
+import { RatingComponent } from '../rating/rating.component';
 
 /**
  * Section 01 — VIEWER.
@@ -29,7 +30,7 @@ import { MessageService } from 'primeng/api';
  */
 @Component({
   selector: 'app-viewer',
-  imports: [SectionHeaderComponent, CornerFrameComponent, TranslatePipe],
+  imports: [SectionHeaderComponent, CornerFrameComponent, TranslatePipe, RatingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:fullscreenchange)': 'syncFullscreen()',
@@ -256,6 +257,7 @@ import { MessageService } from 'primeng/api';
         </button>
       </div>
     </section>
+    <app-rating />
   `,
   styles: [
     `

@@ -273,40 +273,15 @@
   }
 
   <!-- Pagination -->
-  @if (pages().length > 0) {
-    <div class="mt-4 flex items-center justify-center gap-2">
-      <p-button
-        icon="pi pi-chevron-left"
-        severity="secondary"
-        [text]="true"
-        [rounded]="true"
-        [disabled]="prevDisabled()"
-        (onClick)="onPrevPage()"
-        [attr.aria-label]="'Previous page'"
-      />
-      @for (p of pages(); track p) {
-        <button
-          type="button"
-          class="min-w-[32px] rounded px-2 py-1 font-mono text-[12px] transition-colors"
-          [class.bg-primary-500]="files.page() === p"
-          [class.text-white]="files.page() === p"
-          [class.text-fg-muted]="files.page() !== p"
-          [class.hover:bg-primary-500/20]="files.page() !== p"
-          (click)="onGoToPage(p)"
-        >
-          {{ p }}
-        </button>
-      }
-      <p-button
-        icon="pi pi-chevron-right"
-        severity="secondary"
-        [text]="true"
-        [rounded]="true"
-        [disabled]="nextDisabled()"
-        (onClick)="onNextPage()"
-        [attr.aria-label]="'Next page'"
-      />
-    </div>
+  @if (files.totalPages() > 1) {
+    <p-paginator
+      class="mt-4"
+      [totalRecords]="files.total()"
+      [rows]="files.pageSize()"
+      [first]="(files.page() - 1) * files.pageSize()"
+      [rowsPerPageOptions]="[20, 40, 60]"
+      (onPageChange)="onPageChange($event)"
+    />
   }
 
   <app-file-link-dialog

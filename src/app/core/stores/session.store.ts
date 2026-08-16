@@ -23,11 +23,10 @@ interface SessionSnapshot {
   avatarUrl?: string | null;
 }
 
-function resolveInitialLanguage(translate: TranslateService): SupportedLanguage {
+function resolveInitialLanguage(_translate: TranslateService): SupportedLanguage {
+  // Default language is English. Only an explicit user choice overrides it.
   const stored = localStorage.getItem('dcs-language') as SupportedLanguage | null;
   if (stored && (stored === 'en' || stored === 'es')) return stored;
-  const browserLang = translate.getBrowserLang() as SupportedLanguage | undefined;
-  if (browserLang && (browserLang === 'en' || browserLang === 'es')) return browserLang;
   return 'en';
 }
 
@@ -37,7 +36,7 @@ function readStoredState(): Partial<SessionSnapshot> {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        mode: parsed.mode ?? 'light',
+        mode: parsed.mode ?? 'dark',
         primaryName: parsed.primary ?? 'blue',
         secondaryName: parsed.secondary ?? 'purple',
         accentName: parsed.accent ?? 'amber',
@@ -74,7 +73,7 @@ export class SessionStore {
   private readonly _token = signal<string | null>(null);
   private readonly _avatarUrl = signal<string | null>(null);
   private readonly _language = signal<SupportedLanguage>('en');
-  private readonly _mode = signal<'light' | 'dark'>('light');
+  private readonly _mode = signal<'light' | 'dark'>('dark');
   private readonly _primaryName = signal<string>('blue');
   private readonly _secondaryName = signal<string>('purple');
   private readonly _accentName = signal<string>('amber');
@@ -181,14 +180,14 @@ export class SessionStore {
           this._token.set(snap.token);
         }
         this._language.set(snap.language ?? resolveInitialLanguage(this.translate));
-        this._mode.set(snap.mode ?? storedTheme.mode ?? 'light');
+        this._mode.set(snap.mode ?? storedTheme.mode ?? 'dark');
         this._primaryName.set(snap.primaryName ?? storedTheme.primaryName ?? 'blue');
         this._secondaryName.set(snap.secondaryName ?? storedTheme.secondaryName ?? 'purple');
         this._accentName.set(snap.accentName ?? storedTheme.accentName ?? 'amber');
         this._avatarUrl.set(snap.avatarUrl ?? null);
       } else {
         this._language.set(resolveInitialLanguage(this.translate));
-        this._mode.set((storedTheme.mode as 'light' | 'dark') ?? 'light');
+        this._mode.set((storedTheme.mode as 'light' | 'dark') ?? 'dark');
         this._primaryName.set(storedTheme.primaryName ?? 'blue');
         this._secondaryName.set(storedTheme.secondaryName ?? 'purple');
         this._accentName.set(storedTheme.accentName ?? 'amber');

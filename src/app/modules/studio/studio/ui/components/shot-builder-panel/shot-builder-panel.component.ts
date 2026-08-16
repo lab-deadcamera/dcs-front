@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   input,
+  OnInit,
   output,
   signal,
   ViewChild,
@@ -69,6 +70,7 @@ import { CONSOLE, ResolvedRefInfo, inferKind, resolveReferenceInfo } from '@app/
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { AssetType, CharacterMetadata } from '@app/modules/characters/characters/interfaces';
 import { environment } from '@environment/environment';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 /**
  * System prompts are now managed server-side in the backend handler.
@@ -178,6 +180,7 @@ type AssetInfo =
     AssetViewerComponent,
     DialogModule,
     SourceThumbnailAssetPipe,
+    ProgressSpinnerModule,
     SourceAssetPipe,
     TranslatePipe,
   ],
@@ -186,7 +189,7 @@ type AssetInfo =
   styleUrls: ['./shot-builder-panel.component.css'],
   providers: [MessageService],
 })
-export class ShotBuilderPanelComponent {
+export class ShotBuilderPanelComponent implements OnInit {
   constructor() {
     this.validateClaudeModel();
     // Load the library's assetType map eagerly so the episode resource tabs
@@ -239,7 +242,7 @@ export class ShotBuilderPanelComponent {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  readonly isProduction = true; // TODO: remove this
+  readonly isProduction = false; // TODO: remove this
 
   /** True while free assets are being uploaded (persisted to the episode). */
   readonly uploadingAssets = signal(false);
@@ -556,6 +559,8 @@ export class ShotBuilderPanelComponent {
 
   /** IDs of thumbnails that failed to load. */
   private readonly brokenThumbs = signal<Set<string>>(new Set());
+
+  ngOnInit(): void {}
 
   protected isThumbBroken(id: string): boolean {
     return this.brokenThumbs().has(id);

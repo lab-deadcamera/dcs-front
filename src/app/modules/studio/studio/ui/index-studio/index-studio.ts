@@ -141,7 +141,6 @@ function mergeSceneAssignments(results: Array<ChapterAssignments | null>): Chapt
     ProncerComponent,
     OutputFormatComponent,
     CharacterAssetsComponent,
-    RatingComponent,
     ToastModule,
     FooterComponent,
     StudioBreadcrumbComponent,
