@@ -476,7 +476,12 @@ export class IndexStudio implements OnInit {
   );
 
   /** True while restoring a previous selection from localStorage. */
-  private readonly restoring = signal(false);
+  protected readonly restoring = signal(false);
+
+  /** Becomes true once the saved selection has been fully restored (or the
+   *  restore bailed out because part of it no longer exists). Useful to know
+   *  when the cascade finished instead of reacting per-select. */
+  protected readonly navRestoreDone = signal(false);
 
   /** Saved selection to restore (populated before restoring cascade). */
   private savedNav: StoredNavSelection | null = null;
@@ -493,6 +498,9 @@ export class IndexStudio implements OnInit {
         if (this.restoring() && this.savedNav) {
           this.restoreAfterProjects();
         }
+      } else if (this.restoring()) {
+        // Projects failed to load — nothing left to restore.
+        this.finishRestoring();
       }
     });
   }
@@ -528,22 +536,43 @@ export class IndexStudio implements OnInit {
           }));
         this.navChapters.set(items);
         this.autoSelectChapter(items);
+      } else if (this.restoring()) {
+        // Chapters failed to load — nothing left to restore.
+        this.finishRestoring();
       }
     });
+  }
+
+  /** End of the restore cascade — reset state so normal behavior resumes
+   *  (single-item auto-select) and the saved selection can no longer clobber
+   *  later reloads. Also flips `navRestoreDone` so callers know the restore
+   *  finished. */
+  private finishRestoring(): void {
+    this.restoring.set(false);
+    this.savedNav = null;
+    this.navRestoreDone.set(true);
   }
 
   /** After chapters load, select the right one (restored, auto, or none). */
   private autoSelectChapter(items: BreadcrumbOption[]): void {
     const saved = this.savedNav;
-    if (this.restoring() && saved?.chapterId) {
+    if (this.restoring()) {
+      // Restore ended at project level — nothing deeper to select.
+      if (!saved?.chapterId) {
+        this.finishRestoring();
+        return;
+      }
       const match = items.find((c) => c.id === saved.chapterId);
       if (match) {
         this.navSelectedChapterId.set(match.id);
         this.handleChapterSelected(match.id);
         return;
       }
+      // Saved chapter no longer exists — restore ends here.
+      this.finishRestoring();
+      return;
     }
-    if (!this.restoring() && items.length === 1) {
+    if (items.length === 1) {
       this.navSelectedChapterId.set(items[0].id);
       this.handleChapterSelected(items[0].id);
     }
@@ -653,6 +682,9 @@ export class IndexStudio implements OnInit {
           }));
         this.navScenes.set(items);
         this.autoSelectScene(items);
+      } else if (this.restoring()) {
+        // Scenes failed to load — nothing left to restore.
+        this.finishRestoring();
       }
     });
   }
@@ -660,17 +692,25 @@ export class IndexStudio implements OnInit {
   /** After scenes load, select the right one (restored, auto, or none). */
   private autoSelectScene(items: BreadcrumbOption[]): void {
     const saved = this.savedNav;
-    if (this.restoring() && saved?.sceneId) {
+    if (this.restoring()) {
+      // Restore ended at chapter level — nothing deeper to select.
+      if (!saved?.sceneId) {
+        this.finishRestoring();
+        return;
+      }
       const match = items.find((s) => s.id === saved.sceneId);
       if (match) {
         this.navSelectedSceneId.set(match.id);
         this.handleSceneSelected(match.id);
         return;
       }
+      // Saved scene no longer exists — restore ends here.
+      this.finishRestoring();
+      return;
     }
     // Never clobber a scene the user (or the shots-saved flow) just selected —
     // e.g. when scenes reload after the shot builder created new ones.
-    if (!this.restoring() && items.length === 1 && !this.navSelectedSceneId()) {
+    if (items.length === 1 && !this.navSelectedSceneId()) {
       this.navSelectedSceneId.set(items[0].id);
       this.handleSceneSelected(items[0].id);
     }
@@ -729,6 +769,9 @@ export class IndexStudio implements OnInit {
         }));
         this.navShots.set(items);
         this.autoSelectShot(items);
+      } else if (this.restoring()) {
+        // Shots failed to load — nothing left to restore.
+        this.finishRestoring();
       }
     });
   }
@@ -736,17 +779,26 @@ export class IndexStudio implements OnInit {
   /** After shots load, select the right one (restored, auto, or none). */
   private autoSelectShot(items: BreadcrumbOption[]): void {
     const saved = this.savedNav;
-    if (this.restoring() && saved?.shotId) {
+    if (this.restoring()) {
+      // Restore ended at scene level — nothing deeper to select.
+      if (!saved?.shotId) {
+        this.finishRestoring();
+        return;
+      }
       const match = items.find((sh) => sh.id === saved.shotId);
       if (match) {
         this.navSelectedShotId.set(match.id);
         this.onNavShotChange(match.id);
+        this.finishRestoring();
         return;
       }
+      // Saved shot no longer exists — restore ends here.
+      this.finishRestoring();
+      return;
     }
     // Never clobber a shot the shots-saved flow already selected (the shots
     // list reloading after creation would otherwise re-select a single shot).
-    if (!this.restoring() && items.length === 1 && !this.navSelectedShotId()) {
+    if (items.length === 1 && !this.navSelectedShotId()) {
       this.navSelectedShotId.set(items[0].id);
       this.onNavShotChange(items[0].id);
     }
@@ -843,8 +895,7 @@ export class IndexStudio implements OnInit {
     const project = this.navProjects().find((p) => p.id === saved.projectId);
     if (!project) {
       // Saved project no longer exists — bail out
-      this.restoring.set(false);
-      this.savedNav = null;
+      this.finishRestoring();
       localStorage.removeItem(LS_KEY);
       return;
     }

@@ -242,7 +242,8 @@ export class ShotBuilderPanelComponent implements OnInit {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  readonly isProduction = false; // TODO: remove this
+  readonly isProduction = environment.production; // TODO: remove this
+  readonly restoring = input(false);
 
   /** True while free assets are being uploaded (persisted to the episode). */
   readonly uploadingAssets = signal(false);
