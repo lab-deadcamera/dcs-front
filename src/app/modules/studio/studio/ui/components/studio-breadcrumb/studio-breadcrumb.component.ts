@@ -114,6 +114,10 @@ export class StudioBreadcrumbComponent {
   readonly showAssignmentButton = input(false);
   /** Show the scene/shot edit & delete buttons (gated to directors/admins). */
   readonly canManage = input(false);
+  /** True while the parent restores the last saved selection from localStorage.
+   *  Lets the breadcrumb (or its consumers) know the restore is still running;
+   *  it flips back to false when the restore cascade finishes. */
+  readonly restoring = input(false);
 
   // ── Inputs: loading states ──────────────────────────────────────────
 
