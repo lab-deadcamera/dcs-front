@@ -15,6 +15,25 @@
     <link rel="preconnect" href="/assets/img/Facebook_Profile_Photo_196x196_Isotipo_Black.jpg" />
   </head>
   <body>
+    <script>
+      // Apply theme before first paint to avoid a light-mode flash.
+      // Default is dark; an explicit stored preference wins.
+      (function () {
+        try {
+          var mode = 'dark';
+          var raw = localStorage.getItem('dcs-theme');
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.mode === 'light') mode = 'light';
+          }
+          if (mode === 'dark') {
+            document.documentElement.classList.add('dark', 'p-dark');
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
     <app-root></app-root>
   </body>
 </html>

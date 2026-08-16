@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
-import {
-  isChecksRating,
-  RESOLVE_URL,
-  ratingSymbols,
-  ratingToChecks,
-} from '@app/shared/utils';
+import { isChecksRating, RESOLVE_URL, ratingSymbols, ratingToChecks } from '@app/shared/utils';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { Tooltip } from 'primeng/tooltip';
 
@@ -38,7 +41,7 @@ const DOUBLE_CLICK_DELAY = 300;
       class="relative flex flex-col items-center gap-1.5 overflow-y-auto px-2 py-6"
       role="group"
       [attr.aria-label]="ariaGroupLabel()"
-      [style.max-height.px]="maxHeight() || undefined"
+      [style.height.px]="maxHeight() ? maxHeight() + 150 : undefined"
     >
       <p class="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-fg-muted">
         {{ scenePrefix() || '–––' }}
@@ -79,6 +82,7 @@ const DOUBLE_CLICK_DELAY = 300;
             type="button"
             role="checkbox"
             pTooltip="{{ 'Take: ' + take.number }}"
+            tooltipPosition="left"
             class="group flex h-7 w-7 items-center justify-center rounded-sm border text-[10px] font-mono tabular-nums transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
             [class.border-ink-600]="state === 'pending'"
             [class.text-fg-muted]="state === 'pending'"
