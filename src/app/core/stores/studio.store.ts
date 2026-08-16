@@ -61,6 +61,7 @@ export class StudioStore {
   private readonly _chapterName = signal<string>('');
   private readonly _sceneName = signal<string>('');
   private readonly _shotName = signal<string>('');
+  private readonly _loadingBreadcrumb = signal<boolean>(true);
   readonly projectName = this._projectName.asReadonly();
   readonly chapterName = this._chapterName.asReadonly();
   readonly sceneName = this._sceneName.asReadonly();
@@ -74,6 +75,7 @@ export class StudioStore {
   readonly shotId = this._shotId.asReadonly();
   readonly sceneCode = this._sceneCode.asReadonly();
   readonly isReady = this._isReady.asReadonly();
+  readonly loadingBreadcrumb = this._loadingBreadcrumb.asReadonly();
 
   // ── Takes ────────────────────────────────────────────────────────
 
@@ -113,6 +115,11 @@ export class StudioStore {
    *  prompt text. Consumed (cleared) by the prompt-builder's prune effect. */
   private readonly _skipNextTokenPrune = signal(false);
   readonly skipNextTokenPrune = this._skipNextTokenPrune.asReadonly();
+
+  /** Set loading breadcrumb */
+  setLoadingBreadcrumb(loading: boolean): void {
+    this._loadingBreadcrumb.set(loading);
+  }
 
   /** Clear the one-shot "keep the slot in the prompt" flag. */
   clearSkipTokenPrune(): void {
@@ -156,7 +163,8 @@ export class StudioStore {
     >();
     for (const a of this._freeAssets()) {
       const slot = this._chapterAssetSlots().get(a.id);
-      if (slot) slotToAsset.set(slot.toLowerCase(), { fileId: a.id, filename: a.filename, kind: a.kind });
+      if (slot)
+        slotToAsset.set(slot.toLowerCase(), { fileId: a.id, filename: a.filename, kind: a.kind });
     }
 
     for (const token of tokens) {
