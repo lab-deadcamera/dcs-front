@@ -466,17 +466,25 @@ export class PromptBuilderComponent implements OnInit {
       return;
     }
 
-    // Resolve the source language: last confirmed value, else the instant
-    // heuristic, else 'auto' (the backend's fasttext detector decides and
-    // returns detectedLanguage). This prevents the deadlock where sourceLang
-    // is '' and the backend rejects source:'' as "Idioma no soportado".
-    const src = this.sourceLang() || this.detectSourceLang(text) || 'auto';
-
     this.translating.set(true);
     // Start translation
     this.languageNotSupported.set(false);
     this.translatedText.set(null);
     this.openPopoverFromLang();
+
+    // Chinese targets go straight to Claude: NLLB (600M distilled) degrades
+    // technical cinematography prompts, and the zh prompt is what Seedance
+    // renders — it has to be clean. Covers EN → zh and any other source → zh.
+    if (targetLang === 'zh') {
+      this.translateWithClaudeFallback(text, targetLang);
+      return;
+    }
+
+    // Resolve the source language: last confirmed value, else the instant
+    // heuristic, else 'auto' (the backend's fasttext detector decides and
+    // returns detectedLanguage). This prevents the deadlock where sourceLang
+    // is '' and the backend rejects source:'' as "Idioma no soportado".
+    const src = this.sourceLang() || this.detectSourceLang(text) || 'auto';
 
     this.translator.translate(text, targetLang, src, true).subscribe({
       next: (res) => {
@@ -500,10 +508,11 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * The NLLB translator failed → translate via Claude (optimizePrompt), with
-   * the EXCLUSIVE task of translating to the target language. Nothing is
-   * optimized or restyled; structure, technical values and the [ImageN]/
-   * [VideoN]/[AudioN] reference tags are preserved (tags stay in English).
+   * Translate via Claude (optimizePrompt) with the EXCLUSIVE task of
+   * translating to the target language — used directly for Chinese targets and
+   * as the fallback when the NLLB translator fails. Nothing is optimized or
+   * restyled; structure, technical values and the [ImageN]/[VideoN]/[AudioN]
+   * reference tags are preserved (tags stay in English, no spaces).
    */
   private translateWithClaudeFallback(text: string, targetLang: 'en' | 'es' | 'zh'): void {
     const langName =
@@ -513,7 +522,8 @@ export class PromptBuilderComponent implements OnInit {
       `Translate the following prompt to ${langName}. This is your ONLY task — ` +
       `do NOT optimize, rewrite, restyle, shorten or summarize it. Preserve the ` +
       `structure, section labels, technical values, and the [ImageN]/[VideoN]/[AudioN] ` +
-      `reference tags exactly (keep the tags in English). Output only the translated prompt.`;
+      `reference tags exactly (keep the tags in English and write them with NO space, ` +
+      `e.g. "[Image1]" not "[Image 1]"). Output only the translated prompt.`;
 
     const projectId = this.studio.projectId() || '';
     const sceneId = this.studio.sceneId() || '';
