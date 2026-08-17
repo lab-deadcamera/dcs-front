@@ -11,6 +11,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Take } from '@core/interfaces/session.models';
 import { isChecksRating, RESOLVE_URL, ratingSymbols, ratingToChecks } from '@app/shared/utils';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { UsedAsset, VideoGenerateRequest } from '@app/core/interfaces';
 import { Tooltip } from 'primeng/tooltip';
 
 /** Ventana (ms) para distinguir un clic simple de un doble clic en el rating. */
@@ -213,6 +214,30 @@ export class TakeChecklistComponent implements OnDestroy {
     this.studio.selectTake(take.index);
     const video = take.video_local_url || take.video_url;
     this.studio.setImagePreview(video ? RESOLVE_URL(video) : '');
+
+    const payload: VideoGenerateRequest = JSON.parse(
+      take.request_payload || '{}',
+    ) as VideoGenerateRequest;
+    const text: string = payload.content
+      ?.filter((c) => c.type === 'text')
+      ?.map((c) => c.text)
+      .join('\n');
+    this.studio.setRawDescription(text);
+
+    this.studio.clearUsedAssets();
+    payload.content
+      ?.filter((a) => a.type !== 'text')
+      .forEach((a) => {
+        const asset: UsedAsset = {
+          fileId: a.id,
+          characterId: '',
+          name: a.text,
+          filename: a.name,
+          kind: a.type,
+        };
+        this.studio.useAsset(asset);
+      });
+
     if (!video) return;
     this.studio.pushClip({
       id: crypto.randomUUID(),
