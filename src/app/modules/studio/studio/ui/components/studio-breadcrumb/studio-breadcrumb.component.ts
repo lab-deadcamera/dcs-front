@@ -286,10 +286,12 @@ export class StudioBreadcrumbComponent {
     const source = form.get('source')?.value as BreadcrumbOption | null;
     if (!source) return null; // brand new shot — any non-empty name is valid
 
-    if (!name.startsWith(source.name)) return { suffixRequired: true };
-    const suffix = name.slice(source.name.length);
-    const letters = [...suffix].filter((ch) => /[a-zA-Z]/.test(ch)).length;
-    return letters >= 3 ? null : { suffixTooShort: true };
+    return null;
+    // if (!name.startsWith(source.name)) return { suffixRequired: true };
+    // Solo verificamos que tenga al menos 3 letras si el sufijo tiene menos de 3 caracteres
+    // const suffix = name.slice(source.name.length);
+    // const letters = [...suffix].filter((ch) => /[a-zA-Z]/.test(ch)).length;
+    // return letters >= 3 ? null : { suffixTooShort: true };
   }
 
   // ── Handlers ────────────────────────────────────────────────────────
@@ -359,7 +361,11 @@ export class StudioBreadcrumbComponent {
   /** User picked a shot to clone from — prefill the base name so they can
    *  append their own suffix (no "(copy)" auto-added). */
   protected onNewShotSourceChange(source: BreadcrumbOption | null): void {
-    this.newShotForm.patchValue({ source, name: source ? source.name : '' });
+    const copy = { source, name: source ? source.name : '' };
+    if (copy && copy.name) {
+      copy.name = copy.name + ' (copy)';
+    }
+    this.newShotForm.patchValue(copy);
     this.newShotForm.markAllAsTouched();
   }
 
