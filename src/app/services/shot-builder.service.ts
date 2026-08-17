@@ -215,6 +215,7 @@ export class ShotBuilderService {
     skillID?: string;
     userName?: string;
     generateZh?: boolean;
+    sceneContext?: SceneContext;
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -253,6 +254,16 @@ export class ShotBuilderService {
       user_name: request.userName || '',
       generate_zh: request.generateZh !== false,
     };
+
+    // Include scene context if provided (same shape as generate()).
+    if (request.sceneContext) {
+      body['scene_context'] = {
+        description: request.sceneContext.description,
+        characters: request.sceneContext.characters,
+        presets: request.sceneContext.presets,
+        assets: request.sceneContext.assets,
+      };
+    }
 
     return this.http
       .post<{
