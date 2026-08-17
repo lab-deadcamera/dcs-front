@@ -584,7 +584,33 @@
       "LOADING_SKILLS": "Cargando skills...",
       "DEFAULT_NO_SKILL": "Default (sin skill)",
       "GENERATE_ZH": "Generar prompts en chino ({{ zh }})",
-      "ZH_HINT": "Cuando está activado, el Shot Builder genera prompts en inglés y chino. El toggle de idioma aparece en cada tarjeta de shot. Cuando está desactivado, solo se genera en inglés."
+      "ZH_HINT": "Cuando está activado, el Shot Builder genera prompts en inglés y chino. El toggle de idioma aparece en cada tarjeta de shot. Cuando está desactivado, solo se genera en inglés.",
+      "REFERENCES_SECTION": "Referencias [Image]",
+      "UNRESOLVED_COUNT": "{{n}} sin resolver",
+      "VIEW_ASSET_METADATA": "Ver metadata del asset",
+      "ASSIGN_ASSET_TO_SLOT": "Asignar asset al slot <b>{{slot}}</b>",
+      "LIBRARY": "Biblioteca",
+      "SEARCH_PLACEHOLDER": "Buscar por nombre…",
+      "SEARCH_RESOURCE_ARIA": "Buscar recurso por nombre",
+      "EPISODE_LABEL": "Del episodio",
+      "NO_SLOT": "sin slot",
+      "REFERENCE_SLOT_TITLE": "Referencia <b>{{slot}}</b>",
+      "TOAST_ASSIGN_FAILED": "Asignación fallida",
+      "TOAST_ASSIGN_FAILED_DETAIL": "No se pudo asignar {{name}} al slot {{slot}}.",
+      "TOAST_RESOURCE_ASSIGNED": "Recurso asignado",
+      "TOAST_RESOURCE_ASSIGNED_DETAIL": "{{name}} → {{slot}}",
+      "TOAST_SLOT_RELEASE_FAILED": "No se pudo liberar el slot {{slot}}.",
+      "TOAST_ALREADY_ASSIGNED": "Ya asignado",
+      "TOAST_ALREADY_ASSIGNED_DETAIL": "El asset ya tiene el slot {{slot}}.",
+      "TOAST_ASSET_ASSIGNED_SUCCESS": "Asset asignado",
+      "TOAST_ASSET_ASSIGNED_SUCCESS_DETAIL": "{{fileId}} → {{slot}}",
+      "TOAST_ASSIGN_ASSET_FAILED": "No se pudo asignar el asset al slot {{slot}}.",
+      "TOAST_UNSUPPORTED_TYPE": "Tipo no soportado",
+      "TOAST_UNSUPPORTED_TYPE_DETAIL": "Solo imagen, video o audio.",
+      "TOAST_UPLOAD_ERROR": "Error de subida",
+      "TIMELINE_ARIA": "Distribución de tiempo por plano",
+      "TIMELINE_SEG_ARIA": "Plano {{id}}, {{duration}} segundos",
+      "TIMELINE_SLACK_TITLE": "{{slack}}s holgura"
     },
     "SEQUENCE": {
       "CONVENTIONS": "Convenciones bloqueadas",
@@ -636,7 +662,11 @@
       "DOUBLE_CLICK_EDIT": "Doble clic para editar",
       "CURRENT_SCENE_LEGACY": "Escena actual (legacy)",
       "SCENE_FALLBACK": "Escena {{num}}",
-      "PRE_PROMPT": "Pre Prompt"
+      "PRE_PROMPT": "Pre Prompt",
+      "HEADER_STATS": "{{shots}} planos · {{cuts}} cortes · duración total {{duration}}s",
+      "DURATION_CAP": "/ {{duration}}s tope",
+      "SLACK_LABEL": "+{{slack}}s holgura",
+      "SHOTS_COUNT_SUFFIX": "· {{n}} planos"
     }
   },
   "COMMON": {

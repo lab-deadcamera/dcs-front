@@ -112,14 +112,14 @@ export class ShotBuilderSettingsDialogComponent {
   protected readonly skills = signal<Skill[]>([]);
   protected readonly skillsLoading = signal(false);
 
-  protected selectedModelId = 'claude_haiku';
+  protected selectedModelId = 'claude_opus';
   protected selectedSkillId: string | null = null;
   protected generateChinese = false;
 
   /** Initialize form values when dialog opens. */
   private readonly syncOnOpen = effect(() => {
     if (!this.visible()) return;
-    this.selectedModelId = 'claude_haiku';
+    this.selectedModelId = 'claude_opus';
     this.selectedSkillId = this.studio.selectedSkill()?.id || null;
     this.generateChinese = false;
 

@@ -57,7 +57,7 @@ import {
 import responseOkMock from '@app/core/mocks/response-07-08.json';
 import { Reference, Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
-import { CLAUDE_MODELS } from '@app/core/constants';
+import { CLAUDE_MODELS, LEVEL_ROL } from '@app/core/constants';
 import { ModelService } from '@app/services/model.service';
 import { FileCategory } from '@app/core/interfaces';
 import { AspectRatio, ReferenceAsset } from '@app/core/interfaces/studio.models';
@@ -242,7 +242,7 @@ export class ShotBuilderPanelComponent implements OnInit {
   readonly uploadedFiles = signal<UploadedFile[]>([]);
   readonly activeFileId = signal<string | null>(null);
 
-  readonly isProduction = environment.production; // TODO: remove this
+  readonly isProduction = environment.production || this.sessionStore.roleLevel() > LEVEL_ROL.ADMIN; // TODO: remove this
   readonly restoring = input(false);
 
   /** True while free assets are being uploaded (persisted to the episode). */
@@ -2114,7 +2114,9 @@ export class ShotBuilderPanelComponent implements OnInit {
     const prompt = this.promptText().trim();
     // Images are excluded: Claude can't read a base64 blob in a text block.
     // Reference images are analyzed via scene_context (backend vision URLs).
-    const newFiles = this.uploadedFiles().filter((f) => !f.sent && !f.mimeType?.startsWith('image/'));
+    const newFiles = this.uploadedFiles().filter(
+      (f) => !f.sent && !f.mimeType?.startsWith('image/'),
+    );
 
     const parts: string[] = [];
     if (prompt) parts.push(prompt);

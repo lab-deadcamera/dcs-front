@@ -584,7 +584,33 @@
       "LOADING_SKILLS": "Loading skills...",
       "DEFAULT_NO_SKILL": "Default (no skill)",
       "GENERATE_ZH": "Generate Chinese prompts ({{ zh }})",
-      "ZH_HINT": "When enabled, the shot builder generates both English and Chinese prompts. The language toggle appears on each shot card. When disabled, only English is generated."
+      "ZH_HINT": "When enabled, the shot builder generates both English and Chinese prompts. The language toggle appears on each shot card. When disabled, only English is generated.",
+      "REFERENCES_SECTION": "References [Image]",
+      "UNRESOLVED_COUNT": "{{n}} unresolved",
+      "VIEW_ASSET_METADATA": "View asset metadata",
+      "ASSIGN_ASSET_TO_SLOT": "Assign asset to slot <b>{{slot}}</b>",
+      "LIBRARY": "Library",
+      "SEARCH_PLACEHOLDER": "Search by name…",
+      "SEARCH_RESOURCE_ARIA": "Search resource by name",
+      "EPISODE_LABEL": "From episode",
+      "NO_SLOT": "no slot",
+      "REFERENCE_SLOT_TITLE": "Reference <b>{{slot}}</b>",
+      "TOAST_ASSIGN_FAILED": "Assignment failed",
+      "TOAST_ASSIGN_FAILED_DETAIL": "Could not assign {{name}} to slot {{slot}}.",
+      "TOAST_RESOURCE_ASSIGNED": "Resource assigned",
+      "TOAST_RESOURCE_ASSIGNED_DETAIL": "{{name}} → {{slot}}",
+      "TOAST_SLOT_RELEASE_FAILED": "Could not release slot {{slot}}.",
+      "TOAST_ALREADY_ASSIGNED": "Already assigned",
+      "TOAST_ALREADY_ASSIGNED_DETAIL": "Asset already has slot {{slot}}.",
+      "TOAST_ASSET_ASSIGNED_SUCCESS": "Asset assigned",
+      "TOAST_ASSET_ASSIGNED_SUCCESS_DETAIL": "{{fileId}} → {{slot}}",
+      "TOAST_ASSIGN_ASSET_FAILED": "Could not assign asset to slot {{slot}}.",
+      "TOAST_UNSUPPORTED_TYPE": "Unsupported type",
+      "TOAST_UNSUPPORTED_TYPE_DETAIL": "Image, video or audio only.",
+      "TOAST_UPLOAD_ERROR": "Upload error",
+      "TIMELINE_ARIA": "Time distribution per shot",
+      "TIMELINE_SEG_ARIA": "Shot {{id}}, {{duration}} seconds",
+      "TIMELINE_SLACK_TITLE": "{{slack}}s slack"
     },
     "SEQUENCE": {
       "CONVENTIONS": "Locked conventions",
@@ -636,7 +662,11 @@
       "DOUBLE_CLICK_EDIT": "Double-click to edit",
       "CURRENT_SCENE_LEGACY": "Current scene (legacy)",
       "SCENE_FALLBACK": "Scene {{num}}",
-      "PRE_PROMPT": "Pre Prompt"
+      "PRE_PROMPT": "Pre Prompt",
+      "HEADER_STATS": "{{shots}} shots · {{cuts}} cuts · total duration {{duration}}s",
+      "DURATION_CAP": "/ {{duration}}s cap",
+      "SLACK_LABEL": "+{{slack}}s slack",
+      "SHOTS_COUNT_SUFFIX": "· {{n}} shots"
     }
   },
   "TOAST": {
