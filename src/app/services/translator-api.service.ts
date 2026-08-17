@@ -41,7 +41,11 @@ export class TranslatorApiService {
     // detector resolves the language and returns detectedLanguage.
     const src = source || 'auto';
     if (block) {
-      const body: TranslateBlocksRequest = { blocks: this.splitIntoBlocks(text), source: src, target };
+      const body: TranslateBlocksRequest = {
+        blocks: this.splitIntoBlocks(text),
+        source: src,
+        target,
+      };
       return this.http.post<TranslateResponse>(`${this.apiUrl}/translate-blocks`, body).pipe(
         map((response) => {
           const res = response as unknown as TranslateBlocksResponse;
@@ -60,6 +64,7 @@ export class TranslatorApiService {
 
   private replacePlaceHolder(text: string): string {
     return text
+      .replace(/\[图像/g, '[Image')
       .replace(/\[图片/g, '[Image')
       .replace(/\[视频/g, '[Video')
       .replace(/\[语音/g, '[Audio')

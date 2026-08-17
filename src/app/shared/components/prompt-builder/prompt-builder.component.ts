@@ -546,20 +546,22 @@ export class PromptBuilderComponent implements OnInit {
   }
 
   /**
-   * Instant source-language guess. Only commits when confident: CJK → Chinese,
-   * Spanish-specific glyphs → Spanish. Plain text (incl. English) returns ''
-   * so the backend's fasttext detector (source: 'auto') stays the authority —
-   * its detectedLanguage is stored into sourceLang after each translate.
+   * Instant source-language guess. Only commits when confident:
+   * - CJK → Chinese.
+   * - Spanish-exclusive markers (ñ, inverted ¡¿) → Spanish. Shared accented
+   *   vowels (é in the DCS section label "Mélange", "café", …) are deliberately
+   *   NOT used — a single "é" would misfire on an English DCS prompt.
+   * Everything else defaults to English (the app's dominant prompt language).
    */
   private detectSourceLang(text: string): 'en' | 'es' | 'zh' | '' {
     const sample = text.slice(0, 2000);
     if (/[一-鿿㐀-䶿豈-﫿぀-ヿ가-힯]/.test(sample)) {
       return 'zh';
     }
-    if (/[¿¡áéíóúüñ]/.test(sample)) {
+    if (/[ñÑ¿¡]/.test(sample)) {
       return 'es';
     }
-    return '';
+    return 'en';
   }
 
   /** Show the translate popover anchored to the translate button. */
@@ -589,6 +591,8 @@ export class PromptBuilderComponent implements OnInit {
 
     this.skipStoreSync = true;
     this.studio.setRawDescription(text);
+    // Only here does the editor content actually become the target language,
+    // so sourceLang is updated now (not in the translate response).
     this.sourceLang.set(this.translateLang());
     this.editorContent.set(text);
     this.translatedText.set(null);
