@@ -71,19 +71,18 @@ interface PreviewScene {
           }
         </h1>
         <p class="subline">
-          {{ seq.shots.length }} planos · {{ seq.shots.length }} cortes · duración total
-          {{ seq.duration }}s
+          {{ 'STUDIO.SEQUENCE.HEADER_STATS' | translate: { shots: seq.shots.length, cuts: seq.shots.length, duration: seq.duration } }}
           @if (approvedCount() > 0) {
-            · {{ approvedCount() }}/{{ seq.shots.length }} aprobados
+            · {{ 'STUDIO.SEQUENCE.APPROVED_COUNT' | translate: { n: approvedCount(), total: seq.shots.length } }}
           }
         </p>
         <div class="runline">
           <span class="big">{{ seq.duration }}s</span>
-          <span class="cap">/ {{ seq.sequenceFlow.duration }}s tope</span>
+          <span class="cap">{{ 'STUDIO.SEQUENCE.DURATION_CAP' | translate: { duration: seq.sequenceFlow.duration } }}</span>
           @if (slack() > 0) {
-            <span class="slack">+{{ slack() }}s holgura</span>
+            <span class="slack">{{ 'STUDIO.SEQUENCE.SLACK_LABEL' | translate: { slack: slack() } }}</span>
           }
-          <span class="count">· {{ seq.shots.length }} planos</span>
+          <span class="count">{{ 'STUDIO.SEQUENCE.SHOTS_COUNT_SUFFIX' | translate: { n: seq.shots.length } }}</span>
         </div>
       </header>
 

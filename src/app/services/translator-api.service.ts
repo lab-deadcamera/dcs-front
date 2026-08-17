@@ -135,11 +135,10 @@ export class TranslatorApiService {
   private splitIntoBlocks(text: string): string[] {
     return (
       text
-        // dividir por '.' o salto de línea
-        .split(/[\.\n]+/)
-        // limpiar espacios sobrantes
+        // Split on newlines and sentence-ending periods (ASCII . and full-width 。)
+        // to preserve semantic blocks — section labels (：) and semicolons stay inside.
+        .split(/[\n.。]+/)
         .map((block) => block.trim())
-        // filtrar vacíos
         .filter((block) => block.length > 0)
     );
   }

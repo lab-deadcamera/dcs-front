@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Popover } from 'primeng/popover';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -56,10 +56,10 @@ import { CharactersService } from '@app/modules/characters/characters/services';
     <div class="ref-resolver">
       <!-- Header + unresolved badge -->
       <div class="ref-header">
-        <span class="section-tag ref-title">Referencias [Image]</span>
+        <span class="section-tag ref-title">{{ 'STUDIO.SHOT_BUILDER.REFERENCES_SECTION' | translate }}</span>
         @if (unresolved().length > 0) {
-          <span class="ref-badge" [attr.title]="unresolved().length + ' sin resolver'">
-            {{ unresolved().length }} sin resolver
+          <span class="ref-badge" [attr.title]="'STUDIO.SHOT_BUILDER.UNRESOLVED_COUNT' | translate: { n: unresolved().length }">
+            {{ 'STUDIO.SHOT_BUILDER.UNRESOLVED_COUNT' | translate: { n: unresolved().length } }}
           </span>
         }
       </div>
@@ -73,7 +73,7 @@ import { CharactersService } from '@app/modules/characters/characters/services';
               [class.ref-chip-unresolved]="isUnresolvedRef(ref)"
               [class.ref-chip-ok]="!isUnresolvedRef(ref)"
               (click)="openInfoPopover($event, ref)"
-              [title]="'Ver metadata del asset'"
+              [title]="'STUDIO.SHOT_BUILDER.VIEW_ASSET_METADATA' | translate"
             >
               <em>{{ ref.slot }}</em>
               <span class="ref-name">{{ refNameFor(ref) }}</span>
@@ -113,22 +113,20 @@ import { CharactersService } from '@app/modules/characters/characters/services';
       <p-popover #assignPopover [dismissable]="true" styleClass="asset-popover-z">
         @if (assignTarget(); as target) {
           <div class="ref-assign-popover">
-            <p class="ref-popover-title">
-              Asignar asset al slot <b>{{ target.slot }}</b>
-            </p>
+            <p class="ref-popover-title" [innerHTML]="'STUDIO.SHOT_BUILDER.ASSIGN_ASSET_TO_SLOT' | translate: { slot: target.slot }"></p>
 
             <!-- Library resources (Characters library) — pick a character,
                  location, prop or audio and assign it to this slot. -->
             <div class="ref-lib">
               <div class="ref-lib-head">
-                <span class="ref-lib-label">Biblioteca</span>
+                <span class="ref-lib-label">{{ 'STUDIO.SHOT_BUILDER.LIBRARY' | translate }}</span>
                 <input
                   type="text"
                   class="ref-lib-search"
-                  placeholder="Buscar por nombre…"
+                  placeholder="{{ 'STUDIO.SHOT_BUILDER.SEARCH_PLACEHOLDER' | translate }}"
                   [value]="libSearch()"
                   (input)="onLibSearch($event)"
-                  [attr.aria-label]="'Buscar recurso por nombre'"
+                  [attr.aria-label]="'STUDIO.SHOT_BUILDER.SEARCH_RESOURCE_ARIA' | translate"
                 />
               </div>
               <div class="ref-lib-tabs">
@@ -178,12 +176,12 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                 }
               </div>
               @if (libraryByType()[activeLibType()].length === 0) {
-                <p class="ref-popover-empty">Sin recursos de este tipo</p>
+                <p class="ref-popover-empty">{{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}</p>
               }
             </div>
 
             <!-- Episode free assets -->
-            <span class="ref-episode-label">Del episodio</span>
+            <span class="ref-episode-label">{{ 'STUDIO.SHOT_BUILDER.EPISODE_LABEL' | translate }}</span>
             @if (sortedFreeAssets().length > 0) {
               <div class="ref-asset-grid">
                 @for (a of sortedFreeAssets(); track a.id) {
@@ -214,7 +212,7 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                         ></i>
                       </div>
                     }
-                    <span class="ref-asset-slot">{{ chapterAssetSlots().get(a.id) || 'sin slot' }}</span>
+                    <span class="ref-asset-slot">{{ chapterAssetSlots().get(a.id) || ('STUDIO.SHOT_BUILDER.NO_SLOT' | translate) }}</span>
                   </button>
                 }
               </div>
@@ -251,7 +249,7 @@ import { CharactersService } from '@app/modules/characters/characters/services';
       <p-popover #infoPopover [dismissable]="true" styleClass="asset-popover-z">
         @if (infoTarget(); as ref) {
           <div class="ref-info-popover">
-            <p class="ref-popover-title">Referencia <b>{{ ref.slot }}</b></p>
+            <p class="ref-popover-title" [innerHTML]="'STUDIO.SHOT_BUILDER.REFERENCE_SLOT_TITLE' | translate: { slot: ref.slot }"></p>
 
             @if (resolvedInfoFor(ref); as info) {
               @if (info.fileKind === 'image' && info.fileId && !isThumbBroken(info.fileId)) {
@@ -761,6 +759,7 @@ export class ShotReferenceResolverComponent {
   private readonly filesApi = inject(FilesApiService);
   private readonly toast = inject(MessageService);
   private readonly chars = inject(CharactersService);
+  private readonly i18n = inject(TranslateService);
 
   @ViewChild('assignPopover') protected readonly assignPopover!: Popover;
 
@@ -883,13 +882,13 @@ export class ShotReferenceResolverComponent {
   protected refTypeLabel(type: ReferenceType): string {
     switch (type) {
       case 'character':
-        return 'personaje';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_CHARACTER');
       case 'location':
-        return 'locación';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_LOCATION');
       case 'prop':
-        return 'objeto';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_PROP');
       case 'audio':
-        return 'audio';
+        return this.i18n.instant('STUDIO.SEQUENCE.REF_TYPE_AUDIO');
       case 'plate':
         return 'plate';
       default:
@@ -952,8 +951,8 @@ export class ShotReferenceResolverComponent {
             if (r.error) {
               this.toast.add({
                 severity: 'error',
-                summary: 'Asignación fallida',
-                detail: r.msg || `No se pudo asignar ${res.name} al slot ${slot}.`,
+                summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+                detail: r.msg || this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: res.name, slot }),
               });
               return;
             }
@@ -962,15 +961,15 @@ export class ShotReferenceResolverComponent {
             this.assignPopover.hide();
             this.toast.add({
               severity: 'success',
-              summary: 'Recurso asignado',
-              detail: `${res.name} → ${slot}`,
+              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_RESOURCE_ASSIGNED'),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_RESOURCE_ASSIGNED_DETAIL', { name: res.name, slot }),
             });
           },
           error: () => {
             this.toast.add({
               severity: 'error',
-              summary: 'Asignación fallida',
-              detail: `No se pudo asignar ${res.name} al slot ${slot}.`,
+              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: res.name, slot }),
             });
           },
         });
@@ -978,8 +977,8 @@ export class ShotReferenceResolverComponent {
       error: () => {
         this.toast.add({
           severity: 'error',
-          summary: 'Asignación fallida',
-          detail: `No se pudo liberar el slot ${slot}.`,
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+          detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_SLOT_RELEASE_FAILED', { slot }),
         });
       },
     });
@@ -1087,8 +1086,8 @@ export class ShotReferenceResolverComponent {
     if (currentSlot === slot) {
       this.toast.add({
         severity: 'info',
-        summary: 'Ya asignado',
-        detail: `El asset ya tiene el slot ${slot}.`,
+        summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ALREADY_ASSIGNED'),
+        detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ALREADY_ASSIGNED_DETAIL', { slot }),
       });
       this.assignPopover.hide();
       return;
@@ -1110,15 +1109,15 @@ export class ShotReferenceResolverComponent {
             this.assignPopover.hide();
             this.toast.add({
               severity: 'success',
-              summary: 'Asset asignado',
-              detail: `${fileId} → ${slot}`,
+              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS'),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS_DETAIL', { fileId, slot }),
             });
           },
           error: () => {
             this.toast.add({
               severity: 'error',
-              summary: 'Asignación fallida',
-              detail: `No se pudo asignar el asset al slot ${slot}.`,
+              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_ASSET_FAILED', { slot }),
             });
           },
         });
@@ -1140,8 +1139,8 @@ export class ShotReferenceResolverComponent {
       error: () => {
         this.toast.add({
           severity: 'error',
-          summary: 'Asignación fallida',
-          detail: `No se pudo liberar el slot ${slot}.`,
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+          detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_SLOT_RELEASE_FAILED', { slot }),
         });
       },
     });
@@ -1178,8 +1177,8 @@ export class ShotReferenceResolverComponent {
       } else {
         this.toast.add({
           severity: 'warn',
-          summary: 'Tipo no soportado',
-          detail: 'Solo imagen, video o audio.',
+          summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UNSUPPORTED_TYPE'),
+          detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UNSUPPORTED_TYPE_DETAIL'),
         });
         done();
         continue;
@@ -1190,7 +1189,7 @@ export class ShotReferenceResolverComponent {
         .subscribe({
           next: (up) => {
             if (up.error || !up.data) {
-              this.toast.add({ severity: 'error', summary: 'Upload error', detail: up.msg });
+              this.toast.add({ severity: 'error', summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_ERROR'), detail: up.msg });
               done();
               return;
             }
@@ -1217,8 +1216,8 @@ export class ShotReferenceResolverComponent {
                   error: () =>
                     this.toast.add({
                       severity: 'error',
-                      summary: 'Asignación fallida',
-                      detail: `No se pudo asignar ${f.name} al slot ${slot}.`,
+                      summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+                      detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: f.name, slot }),
                     }),
                   complete: () => done(),
                 });
@@ -1229,8 +1228,8 @@ export class ShotReferenceResolverComponent {
           error: () => {
             this.toast.add({
               severity: 'error',
-              summary: 'Upload error',
-              detail: `No se pudo subir ${f.name}.`,
+              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_ERROR'),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_FAILED', { name: f.name }),
             });
             done();
           },

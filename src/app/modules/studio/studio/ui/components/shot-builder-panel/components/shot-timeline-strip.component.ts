@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SequenceFlow } from '@app/core/interfaces';
 
 @Component({
   selector: 'app-shot-timeline-strip',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="strip-block">
@@ -19,7 +20,7 @@ import { SequenceFlow } from '@app/core/interfaces';
       <div
         class="strip"
         role="list"
-        [attr.aria-label]="'Distribución de tiempo por plano'"
+        [attr.aria-label]="'STUDIO.SHOT_BUILDER.TIMELINE_ARIA' | translate"
         (click)="onStripClick($event)"
         (mouseenter)="onStripHover($event, true)"
         (mouseleave)="onStripHover($event, false)"
@@ -30,7 +31,7 @@ import { SequenceFlow } from '@app/core/interfaces';
             [class.spike]="seg.marker"
             [style]="{ flex: seg.end - seg.start + ' 0 0', background: seg.color || '#5e7073' }"
             [attr.data-shot]="seg.shotId"
-            [attr.aria-label]="'Plano ' + seg.id + ', ' + (seg.end - seg.start) + ' segundos'"
+            [attr.aria-label]="'STUDIO.SHOT_BUILDER.TIMELINE_SEG_ARIA' | translate: { id: seg.id, duration: seg.end - seg.start }"
           >
             <span>{{ seg.id }}</span>
           </button>
@@ -39,7 +40,7 @@ import { SequenceFlow } from '@app/core/interfaces';
           <div
             class="strip-slack"
             [style]="{ flex: slackSeconds() + ' 0 0' }"
-            [title]="slackSeconds() + 's holgura'"
+            [title]="'STUDIO.SHOT_BUILDER.TIMELINE_SLACK_TITLE' | translate: { slack: slackSeconds() }"
           ></div>
         }
       </div>
