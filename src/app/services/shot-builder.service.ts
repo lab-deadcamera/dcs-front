@@ -159,7 +159,7 @@ export class ShotBuilderService {
       project_id: request.projectId,
       project_name: request.projectName || '',
       model: 'claude-shot-builder',
-      api_model: request.model || 'claude-sonnet-4-6',
+      api_model: request.model || 'claude-opus-4-8',
       prompt: request.prompt,
       system_prompt: request.systemPrompt || '',
       skill_id: request.skillID || '',
@@ -246,7 +246,7 @@ export class ShotBuilderService {
       project_id: request.projectId,
       project_name: request.projectName || '',
       model: 'claude-shot-builder',
-      api_model: request.model || 'claude-sonnet-4-6',
+      api_model: request.model || 'claude-opus-4-8',
       previous_response: request.previousResponse,
       change_request: request.changeRequest,
       system_prompt: '',
@@ -331,7 +331,7 @@ export class ShotBuilderService {
       scene_id: request.sceneId,
       project_id: request.projectId,
       model: 'claude-shot-builder',
-      api_model: request.model || 'claude-sonnet-4-6',
+      api_model: request.model || 'claude-opus-4-8',
       current_prompt: request.currentPrompt,
       user_instructions: request.userInstructions || '',
       user_name: request.userName || '',
@@ -489,7 +489,10 @@ export class ShotBuilderService {
         success: boolean;
         data?: { id: string };
         message?: string;
-      }>(`${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources/characters`, { character_id: characterId, ...(slot ? { slot } : {}) })
+      }>(
+        `${environment.API_URL}/projects/${projectId}/chapters/${chapterId}/scenes/${sceneId}/shots/${shotId}/resources/characters`,
+        { character_id: characterId, ...(slot ? { slot } : {}) },
+      )
       .pipe(
         catchError((err) => {
           CONSOLE.error('Failed to assign character to shot:', err);
