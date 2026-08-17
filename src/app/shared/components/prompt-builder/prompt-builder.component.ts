@@ -352,6 +352,9 @@ export class PromptBuilderComponent implements OnInit {
   /** Flag to prevent syncing store → editor when the change originated from the editor. */
   private skipStoreSync = false;
 
+  /** Last detected source language — used to re-detect when the prompt changes (e.g. take switch). */
+  private lastDetectedSource: 'en' | 'es' | 'zh' | '' = '';
+
   /**
    * Last observed number of chips per kind. Tokens are pruned only when the
    * count *decreases*, so legitimate text written manually (or hydrated from
@@ -371,6 +374,20 @@ export class PromptBuilderComponent implements OnInit {
         }
       }
       this.skipStoreSync = false;
+    });
+
+    // Auto-detect source language whenever rawDescription changes and the
+    // detected language differs from the previous one. Covers initial load
+    // AND take switches (store sets _rawDescription directly, bypassing
+    // setRawDescription so skipStoreSync is NOT set).
+    effect(() => {
+      const text = this.studio.rawDescription();
+      if (!text) return;
+      const detected = this.detectSourceLang(text);
+      this.translateLang.set(detected as any);
+      if (detected && detected !== this.lastDetectedSource) {
+        this.lastDetectedSource = detected;
+      }
     });
 
     // When the user removes a chip, drop the matching tokens from the editor
@@ -429,11 +446,6 @@ export class PromptBuilderComponent implements OnInit {
     this.skipStoreSync = true;
     this.studio.setRawDescription(event.textValue || '');
     this.translationCache.clear();
-    // Fill sourceLang live while it has never been confirmed — never clobber
-    // a value the backend detector already confirmed.
-    if (!this.sourceLang()) {
-      this.sourceLang.set(this.detectSourceLang(event.textValue || ''));
-    }
   }
 
   protected onGenerate(): void {
@@ -494,8 +506,8 @@ export class PromptBuilderComponent implements OnInit {
         // Learn the authoritative source from the backend detector so
         // sourceLang is populated without asking the user.
         const detected = res.detectedLanguage?.language;
-        if (detected && (detected === 'en' || detected === 'es' || detected === 'zh')) {
-          this.sourceLang.set(detected);
+        if (detected && ['en', 'es', 'zh'].includes(detected)) {
+          this.sourceLang.set(detected as any);
         }
         this.translating.set(false);
       },
