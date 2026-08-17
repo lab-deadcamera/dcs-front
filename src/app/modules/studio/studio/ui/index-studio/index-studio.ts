@@ -927,6 +927,9 @@ export class IndexStudio implements OnInit {
     // Clear previous used assets + original before loading a new shot. Must run
     // BEFORE setShotDescription below, otherwise it would wipe the new original.
     this.studio.clearUsedAssets();
+    // Reset the prompt editor immediately so the old shot's text doesn't linger
+    // while the new shot's description loads asynchronously.
+    this.studio.setRawDescription('');
 
     // Load the pre-prompt for cloned shots (normal navigation does not pass it).
     // Records it as the ORIGINAL so slot hydration/reindex sees the raw text.
