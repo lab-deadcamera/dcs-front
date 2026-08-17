@@ -1,4 +1,7 @@
-<nav class="studio-breadcrumb card mb-3" [attr.aria-label]="'STUDIO.BREADCRUMB.NAV_ARIA' | translate">
+<nav
+  class="studio-breadcrumb card mb-3"
+  [attr.aria-label]="'STUDIO.BREADCRUMB.NAV_ARIA' | translate"
+>
   <!-- Project breadcrumb segment -->
   <div class="studio-bcrumb-segment">
     @if (loadingProjects()) {
@@ -118,9 +121,11 @@
                   <i class="pi pi-pencil"></i>
                 </button>
                 <span
-                  [pTooltip]="(item.takeCount ?? 0) > 0
-                    ? ('STUDIO.BREADCRUMB.CANT_DELETE_SCENE' | translate: { n: item.takeCount })
-                    : ('STUDIO.BREADCRUMB.DELETE_SCENE' | translate)"
+                  [pTooltip]="
+                    (item.takeCount ?? 0) > 0
+                      ? ('STUDIO.BREADCRUMB.CANT_DELETE_SCENE' | translate: { n: item.takeCount })
+                      : ('STUDIO.BREADCRUMB.DELETE_SCENE' | translate)
+                  "
                   tooltipPosition="left"
                 >
                   <button
@@ -184,9 +189,11 @@
                   <i class="pi pi-pencil"></i>
                 </button>
                 <span
-                  [pTooltip]="(item.takeCount ?? 0) > 0
-                    ? ('STUDIO.BREADCRUMB.CANT_DELETE_SHOT' | translate: { n: item.takeCount })
-                    : ('STUDIO.BREADCRUMB.DELETE_SHOT' | translate)"
+                  [pTooltip]="
+                    (item.takeCount ?? 0) > 0
+                      ? ('STUDIO.BREADCRUMB.CANT_DELETE_SHOT' | translate: { n: item.takeCount })
+                      : ('STUDIO.BREADCRUMB.DELETE_SHOT' | translate)
+                  "
                   tooltipPosition="left"
                 >
                   <button
@@ -239,9 +246,9 @@
 <p-popover #sortPopover [dismissable]="true" appendTo="body">
   <div class="w-72 p-4 flex flex-col gap-4">
     <div class="flex flex-col gap-1">
-      <label for="sort-field" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-        >{{ 'STUDIO.BREADCRUMB.FIELD' | translate }}</label
-      >
+      <label for="sort-field" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+        'STUDIO.BREADCRUMB.FIELD' | translate
+      }}</label>
       <p-select
         id="sort-field"
         [options]="[
@@ -256,9 +263,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label for="sort-dir" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-        >{{ 'STUDIO.BREADCRUMB.DIRECTION' | translate }}</label
-      >
+      <label for="sort-dir" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+        'STUDIO.BREADCRUMB.DIRECTION' | translate
+      }}</label>
       <p-select
         id="sort-dir"
         [options]="[
@@ -274,7 +281,10 @@
       />
     </div>
     <p class="text-[10px] italic text-fg-muted">
-      {{ 'STUDIO.BREADCRUMB.CURRENT_SORT' | translate: { field: sortFieldLabel(), dir: sortDirLabel() } }}
+      {{
+        'STUDIO.BREADCRUMB.CURRENT_SORT'
+          | translate: { field: sortFieldLabel(), dir: sortDirLabel() }
+      }}
     </p>
   </div>
 </p-popover>
@@ -301,9 +311,9 @@
   <form [formGroup]="newShotForm">
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
-        <label for="new-shot-source" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >{{ 'STUDIO.BREADCRUMB.FROM_SHOT_OPTIONAL' | translate }}</label
-        >
+        <label for="new-shot-source" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'STUDIO.BREADCRUMB.FROM_SHOT_OPTIONAL' | translate
+        }}</label>
         <p-select
           id="new-shot-source"
           [options]="sortedShots()"
@@ -311,6 +321,7 @@
           [showClear]="true"
           [placeholder]="'STUDIO.BREADCRUMB.BRAND_NEW_SHOT' | translate"
           class="w-full"
+          appendTo="body"
           formControlName="source"
           (onChange)="onNewShotSourceChange($event.value ?? null)"
           [pTooltip]="'STUDIO.BREADCRUMB.CLONE_TOOLTIP' | translate"
@@ -321,9 +332,9 @@
         </p>
       </div>
       <div class="flex flex-col gap-1">
-        <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >{{ 'STUDIO.BREADCRUMB.SHOT_NAME' | translate }}</label
-        >
+        <label for="new-shot-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'STUDIO.BREADCRUMB.SHOT_NAME' | translate
+        }}</label>
         <input
           id="new-shot-name"
           pInputText
@@ -334,9 +345,14 @@
         @if (newShotForm.controls.name.touched && newShotForm.controls.name.invalid) {
           <p class="text-[10px] text-red-400">
             @if (newShotForm.controls.name.hasError('suffixTooShort')) {
-              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()?.name } }}
+              {{
+                'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()?.name }
+              }}
             } @else if (newShotForm.controls.name.hasError('suffixRequired')) {
-              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_REQUIRED' | translate: { name: newShotSource()?.name } }}
+              {{
+                'STUDIO.BREADCRUMB.CLONE_SUFFIX_REQUIRED'
+                  | translate: { name: newShotSource()?.name }
+              }}
             } @else {
               {{ 'STUDIO.BREADCRUMB.ENTER_SHOT_NAME' | translate }}
             }
@@ -344,7 +360,9 @@
         } @else {
           <p class="text-[10px] italic text-fg-muted">
             @if (newShotSource()) {
-              {{ 'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()!.name } }}
+              {{
+                'STUDIO.BREADCRUMB.CLONE_SUFFIX_HINT' | translate: { name: newShotSource()!.name }
+              }}
             } @else {
               {{ 'STUDIO.BREADCRUMB.SHOT_HINT' | translate }}
             }
@@ -385,9 +403,9 @@
   <form [formGroup]="newEpisodeForm">
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
-        <label for="new-episode-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >{{ 'STUDIO.BREADCRUMB.NUMBER' | translate }}</label
-        >
+        <label for="new-episode-number" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'STUDIO.BREADCRUMB.NUMBER' | translate
+        }}</label>
         <input
           id="new-episode-number"
           pInputText
@@ -400,9 +418,9 @@
         }
       </div>
       <div class="flex flex-col gap-1">
-        <label for="new-episode-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-          >{{ 'STUDIO.BREADCRUMB.FIELD_NAME' | translate }}</label
-        >
+        <label for="new-episode-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+          'STUDIO.BREADCRUMB.FIELD_NAME' | translate
+        }}</label>
         <input
           id="new-episode-name"
           pInputText
@@ -410,7 +428,9 @@
           class="w-full p-component p-inputtext"
         />
         @if (newEpisodeForm.controls.name.touched && newEpisodeForm.controls.name.invalid) {
-          <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}</p>
+          <p class="text-[10px] text-red-400">
+            {{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}
+          </p>
         }
       </div>
     </div>
@@ -469,9 +489,9 @@
     <form [formGroup]="editForm">
       <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <label for="edit-number" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-            >{{ 'STUDIO.BREADCRUMB.NUMBER' | translate }}</label
-          >
+          <label for="edit-number" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+            'STUDIO.BREADCRUMB.NUMBER' | translate
+          }}</label>
           <input
             id="edit-number"
             pInputText
@@ -484,9 +504,9 @@
           }
         </div>
         <div class="flex flex-col gap-1">
-          <label for="edit-name" class="text-[12px] font-bold uppercase tracking-[0.12em]"
-            >{{ 'STUDIO.BREADCRUMB.FIELD_NAME' | translate }}</label
-          >
+          <label for="edit-name" class="text-[12px] font-bold uppercase tracking-[0.12em]">{{
+            'STUDIO.BREADCRUMB.FIELD_NAME' | translate
+          }}</label>
           <input
             id="edit-name"
             pInputText
@@ -494,7 +514,9 @@
             class="w-full p-component p-inputtext"
           />
           @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
-            <p class="text-[10px] text-red-400">{{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}</p>
+            <p class="text-[10px] text-red-400">
+              {{ 'STUDIO.BREADCRUMB.NAME_REQUIRED' | translate }}
+            </p>
           }
         </div>
       </div>
