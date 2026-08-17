@@ -1175,22 +1175,10 @@ export class ShotBuilderPanelComponent implements OnInit {
     const selectedSkill = this.studio.selectedSkill();
 
     // Build scene context from the store for richer generation:
-    // characters + free assets loaded via setChapterAssignments()
-    // when the chapter was selected.
-    const sceneContext: SceneContext = {
-      description: this.studio.rawDescription() || undefined,
-      characters: this.studio.chapterCharacterData().map((c) => ({
-        ...(c.fileId ? { id: c.fileId } : {}),
-        name: c.name,
-        ...(c.slot ? { slot: c.slot } : {}),
-      })),
-      assets: this.studio.freeAssets().map((a) => ({
-        id: a.id,
-        filename: a.filename,
-        mimeType:
-          a.kind === 'image' ? 'image/png' : a.kind === 'video' ? 'video/mp4' : 'audio/mpeg',
-      })),
-    };
+    // characters (with portrait file id + slot) + free assets (image/video/
+    // audio). The backend resolves image ids to public vision URLs so Claude
+    // can analyze the actual reference images.
+    const sceneContext = this.buildSceneContext();
 
     this.shotBuilderService
       .generate({
@@ -1331,6 +1319,7 @@ export class ShotBuilderPanelComponent implements OnInit {
         changeRequest,
         model: this.claudeModelName(),
         skillID: selectedSkill?.id || undefined,
+        sceneContext: this.buildSceneContext(),
         userName,
         generateZh: this.generateChinese(),
       })
@@ -2100,9 +2089,32 @@ export class ShotBuilderPanelComponent implements OnInit {
   /** Content for a refine turn: the typed prompt plus only NEW (unsent) files.
    *  Files already sent to generate-shots are NOT resent — their content is
    *  already interpreted inside the previous breakdown (previous_response). */
+  /** Build the scene context sent to Claude for both generate and refine:
+   *  characters carry their portrait file id (resolved backend-side to a public
+   *  vision URL) and slot; free assets carry id + filename + kind so the backend
+   *  can decide which are image references worth analyzing. */
+  private buildSceneContext(): SceneContext {
+    return {
+      description: this.studio.rawDescription() || undefined,
+      characters: this.studio.chapterCharacterData().map((c) => ({
+        ...(c.fileId ? { id: c.fileId } : {}),
+        name: c.name,
+        ...(c.slot ? { slot: c.slot } : {}),
+      })),
+      assets: this.studio.freeAssets().map((a) => ({
+        id: a.id,
+        filename: a.filename,
+        mimeType:
+          a.kind === 'image' ? 'image/png' : a.kind === 'video' ? 'video/mp4' : 'audio/mpeg',
+      })),
+    };
+  }
+
   private getRefineContent(): string {
     const prompt = this.promptText().trim();
-    const newFiles = this.uploadedFiles().filter((f) => !f.sent);
+    // Images are excluded: Claude can't read a base64 blob in a text block.
+    // Reference images are analyzed via scene_context (backend vision URLs).
+    const newFiles = this.uploadedFiles().filter((f) => !f.sent && !f.mimeType?.startsWith('image/'));
 
     const parts: string[] = [];
     if (prompt) parts.push(prompt);
@@ -2120,7 +2132,9 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   private getSendContent(): string {
     const prompt = this.promptText().trim();
-    const files = this.uploadedFiles();
+    // Images are excluded: Claude can't read a base64 blob in a text block.
+    // Reference images are analyzed via scene_context (backend vision URLs).
+    const files = this.uploadedFiles().filter((f) => !f.mimeType?.startsWith('image/'));
 
     if (!prompt && files.length === 0) return '';
 

@@ -23,6 +23,7 @@ import { AssetInfoPopoverComponent } from '@shared/components/asset-info-popover
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { TranslatorApiService } from '@app/services/translator-api.service';
+import { ShotBuilderService } from '@app/services/shot-builder.service';
 import { UsedAsset, UsedAssetKind } from '@core/interfaces/studio.models';
 import { buildSlotReferences } from '@core/utils/slot-reindex';
 import { CharactersService } from '@app/modules/characters/characters/services';
@@ -235,6 +236,7 @@ export class PromptBuilderComponent implements OnInit {
   protected readonly studio = inject(StudioStore);
   protected readonly session = inject(SessionStore);
   private readonly translator = inject(TranslatorApiService);
+  private readonly shotBuilder = inject(ShotBuilderService);
   private readonly i18n = inject(TranslateService);
   private readonly chars = inject(CharactersService);
   protected readonly translating = signal(false);
@@ -427,6 +429,11 @@ export class PromptBuilderComponent implements OnInit {
     this.skipStoreSync = true;
     this.studio.setRawDescription(event.textValue || '');
     this.translationCache.clear();
+    // Fill sourceLang live while it has never been confirmed — never clobber
+    // a value the backend detector already confirmed.
+    if (!this.sourceLang()) {
+      this.sourceLang.set(this.detectSourceLang(event.textValue || ''));
+    }
   }
 
   protected onGenerate(): void {
@@ -459,35 +466,102 @@ export class PromptBuilderComponent implements OnInit {
       return;
     }
 
+    // Resolve the source language: last confirmed value, else the instant
+    // heuristic, else 'auto' (the backend's fasttext detector decides and
+    // returns detectedLanguage). This prevents the deadlock where sourceLang
+    // is '' and the backend rejects source:'' as "Idioma no soportado".
+    const src = this.sourceLang() || this.detectSourceLang(text) || 'auto';
+
     this.translating.set(true);
     // Start translation
     this.languageNotSupported.set(false);
     this.translatedText.set(null);
     this.openPopoverFromLang();
 
-    const blocks = this.splitIntoBlocks(text);
-    if (blocks.length === 0) {
-      this.translating.set(false);
-      return;
-    }
-
-    this.translator.translateBlocks(blocks, targetLang, this.sourceLang()).subscribe({
+    this.translator.translate(text, targetLang, src, true).subscribe({
       next: (res) => {
         this.languageNotSupported.set(false);
-        const result = res.translations.join('\n');
-        this.translatedText.set(result);
-        this.translationCache.set(targetLang, result);
-        this.translating.set(false);
-      },
-      error: (err) => {
-        this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.TRANSLATION_FAILED'));
-        if (err.error && (err.error?.detail ?? '').includes('Idioma no soportado')) {
-          this.languageNotSupported.set(true);
-          this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.SELECT_SOURCE'));
+        this.translatedText.set(res.translatedText);
+        this.translationCache.set(targetLang, res.translatedText);
+        // Learn the authoritative source from the backend detector so
+        // sourceLang is populated without asking the user.
+        const detected = res.detectedLanguage?.language;
+        if (detected && (detected === 'en' || detected === 'es' || detected === 'zh')) {
+          this.sourceLang.set(detected);
         }
         this.translating.set(false);
       },
+      error: () => {
+        // NLLB translator failed → fall back to Claude via optimizePrompt with
+        // the EXCLUSIVE task of translating to the target language.
+        this.translateWithClaudeFallback(text, targetLang);
+      },
     });
+  }
+
+  /**
+   * The NLLB translator failed → translate via Claude (optimizePrompt), with
+   * the EXCLUSIVE task of translating to the target language. Nothing is
+   * optimized or restyled; structure, technical values and the [ImageN]/
+   * [VideoN]/[AudioN] reference tags are preserved (tags stay in English).
+   */
+  private translateWithClaudeFallback(text: string, targetLang: 'en' | 'es' | 'zh'): void {
+    const langName =
+      ({ en: 'English', es: 'Spanish', zh: 'Chinese' } as Record<string, string>)[targetLang] ??
+      targetLang;
+    const instruction =
+      `Translate the following prompt to ${langName}. This is your ONLY task — ` +
+      `do NOT optimize, rewrite, restyle, shorten or summarize it. Preserve the ` +
+      `structure, section labels, technical values, and the [ImageN]/[VideoN]/[AudioN] ` +
+      `reference tags exactly (keep the tags in English). Output only the translated prompt.`;
+
+    const projectId = this.studio.projectId() || '';
+    const sceneId = this.studio.sceneId() || '';
+    const userName = this.session.user()?.handle || '';
+
+    this.shotBuilder
+      .optimizePrompt({
+        projectId,
+        sceneId,
+        currentPrompt: text,
+        userInstructions: instruction,
+        userName,
+      })
+      .subscribe({
+        next: (res) => {
+          if (res.optimizedPrompt) {
+            this.languageNotSupported.set(false);
+            this.translatedText.set(res.optimizedPrompt);
+            this.translationCache.set(targetLang, res.optimizedPrompt);
+          } else {
+            this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.TRANSLATION_FAILED'));
+          }
+          this.translating.set(false);
+        },
+        error: () => {
+          this.translatedText.set(this.i18n.instant('STUDIO.PROMPT.TRANSLATION_FAILED'));
+          this.translating.set(false);
+        },
+      });
+  }
+
+  /**
+   * Instant source-language guess. Only commits when confident:
+   * - CJK → Chinese.
+   * - Spanish-exclusive markers (ñ, inverted ¡¿) → Spanish. Shared accented
+   *   vowels (é in the DCS section label "Mélange", "café", …) are deliberately
+   *   NOT used — a single "é" would misfire on an English DCS prompt.
+   * Everything else defaults to English (the app's dominant prompt language).
+   */
+  private detectSourceLang(text: string): 'en' | 'es' | 'zh' | '' {
+    const sample = text.slice(0, 2000);
+    if (/[一-鿿㐀-䶿豈-﫿぀-ヿ가-힯]/.test(sample)) {
+      return 'zh';
+    }
+    if (/[ñÑ¿¡]/.test(sample)) {
+      return 'es';
+    }
+    return 'en';
   }
 
   /** Show the translate popover anchored to the translate button. */
@@ -509,36 +583,6 @@ export class PromptBuilderComponent implements OnInit {
    * (preserving paragraph structure), then sub-divides any block longer
    * than 500 characters by sentence boundaries (`. `).
    */
-  private splitIntoBlocks(text: string): string[] {
-    const MAX_LEN = 500;
-    const blocks: string[] = [];
-    const paragraphs = text.split('\n');
-
-    for (const para of paragraphs) {
-      if (!para) {
-        blocks.push('');
-        continue;
-      }
-      if (para.length <= MAX_LEN) {
-        blocks.push(para);
-      } else {
-        const sentences = para.split(/(?<=[.!?])\s+/);
-        let chunk = '';
-        for (const sentence of sentences) {
-          const candidate = chunk ? chunk + ' ' + sentence : sentence;
-          if (candidate.length > MAX_LEN && chunk) {
-            blocks.push(chunk);
-            chunk = sentence;
-          } else {
-            chunk = candidate;
-          }
-        }
-        if (chunk) blocks.push(chunk);
-      }
-    }
-
-    return blocks;
-  }
 
   /** Apply the translated text: replace editor content with the translation. */
   protected applyTranslation(popover: Popover): void {
@@ -547,6 +591,9 @@ export class PromptBuilderComponent implements OnInit {
 
     this.skipStoreSync = true;
     this.studio.setRawDescription(text);
+    // Only here does the editor content actually become the target language,
+    // so sourceLang is updated now (not in the translate response).
+    this.sourceLang.set(this.translateLang());
     this.editorContent.set(text);
     this.translatedText.set(null);
     popover.hide();

@@ -30,28 +30,56 @@ export class TranslatorApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.TRANSLATOR_URL;
 
-  translate(text: string, target: string): Observable<TranslateResponse> {
-    const body: TranslateRequest = { q: text, source: 'auto', target };
-    return this.http.post<TranslateResponse>(`${this.apiUrl}/translate`, body);
-  }
-
-  translateBlocks(
-    blocks: string[],
+  translate(
+    text: string,
     target: string,
     source: string = 'auto',
-  ): Observable<TranslateBlocksResponse> {
-    const body: TranslateBlocksRequest = { blocks, source, target };
-    return this.http.post<TranslateBlocksResponse>(`${this.apiUrl}/translate-blocks`, body).pipe(
-      map((response) => {
-        const translated = response.translations.map((t) =>
-          t
-            .replace(/\[图片/g, '[Image')
-            .replace(/\[视频/g, '[Video')
-            .replace(/\[语音/g, '[Audio')
-            .replace(/\[文档/g, '[Document'),
-        );
-        return { ...response, translations: translated };
-      }),
+    block: boolean = false,
+  ): Observable<TranslateResponse> {
+    // '' (unknown source) must never reach the backend — it raises
+    // "Idioma no soportado". Fall back to 'auto' so the backend's fasttext
+    // detector resolves the language and returns detectedLanguage.
+    const src = source || 'auto';
+    if (block) {
+      const body: TranslateBlocksRequest = {
+        blocks: this.splitIntoBlocks(text),
+        source: src,
+        target,
+      };
+      return this.http.post<TranslateResponse>(`${this.apiUrl}/translate-blocks`, body).pipe(
+        map((response) => {
+          const res = response as unknown as TranslateBlocksResponse;
+          const translated = res.translations.map((t) => this.replacePlaceHolder(t));
+          return {
+            translatedText: translated.join('\n'),
+            detectedLanguage: response.detectedLanguage,
+          };
+        }),
+      );
+    } else {
+      const body: TranslateRequest = { q: text, source: src, target };
+      return this.http.post<TranslateResponse>(`${this.apiUrl}/translate`, body);
+    }
+  }
+
+  private replacePlaceHolder(text: string): string {
+    return text
+      .replace(/\[图像/g, '[Image')
+      .replace(/\[图片/g, '[Image')
+      .replace(/\[视频/g, '[Video')
+      .replace(/\[语音/g, '[Audio')
+      .replace(/\[文档/g, '[Document');
+  }
+
+  private splitIntoBlocks(text: string): string[] {
+    return (
+      text
+        // dividir por '.' o salto de línea
+        .split(/[\.\n]+/)
+        // limpiar espacios sobrantes
+        .map((block) => block.trim())
+        // filtrar vacíos
+        .filter((block) => block.length > 0)
     );
   }
 }
