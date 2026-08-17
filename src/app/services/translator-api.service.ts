@@ -33,11 +33,15 @@ export class TranslatorApiService {
   translate(
     text: string,
     target: string,
-    source: string = 'en',
+    source: string = 'auto',
     block: boolean = false,
   ): Observable<TranslateResponse> {
+    // '' (unknown source) must never reach the backend — it raises
+    // "Idioma no soportado". Fall back to 'auto' so the backend's fasttext
+    // detector resolves the language and returns detectedLanguage.
+    const src = source || 'auto';
     if (block) {
-      const body: TranslateRequest = { q: text, source, target };
+      const body: TranslateBlocksRequest = { blocks: this.splitIntoBlocks(text), source: src, target };
       return this.http.post<TranslateResponse>(`${this.apiUrl}/translate-blocks`, body).pipe(
         map((response) => {
           const res = response as unknown as TranslateBlocksResponse;
@@ -49,7 +53,7 @@ export class TranslatorApiService {
         }),
       );
     } else {
-      const body: TranslateRequest = { q: text, source, target };
+      const body: TranslateRequest = { q: text, source: src, target };
       return this.http.post<TranslateResponse>(`${this.apiUrl}/translate`, body);
     }
   }
@@ -63,33 +67,14 @@ export class TranslatorApiService {
   }
 
   private splitIntoBlocks(text: string): string[] {
-    const MAX_LEN = 500;
-    const blocks: string[] = [];
-    const paragraphs = text.split('\n');
-
-    for (const para of paragraphs) {
-      if (!para) {
-        blocks.push('');
-        continue;
-      }
-      if (para.length <= MAX_LEN) {
-        blocks.push(para);
-      } else {
-        const sentences = para.split(/(?<=[.!?])\s+/);
-        let chunk = '';
-        for (const sentence of sentences) {
-          const candidate = chunk ? chunk + ' ' + sentence : sentence;
-          if (candidate.length > MAX_LEN && chunk) {
-            blocks.push(chunk);
-            chunk = sentence;
-          } else {
-            chunk = candidate;
-          }
-        }
-        if (chunk) blocks.push(chunk);
-      }
-    }
-
-    return blocks;
+    return (
+      text
+        // dividir por '.' o salto de línea
+        .split(/[\.\n]+/)
+        // limpiar espacios sobrantes
+        .map((block) => block.trim())
+        // filtrar vacíos
+        .filter((block) => block.length > 0)
+    );
   }
 }
