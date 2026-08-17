@@ -465,18 +465,11 @@ export class PromptBuilderComponent implements OnInit {
     this.translatedText.set(null);
     this.openPopoverFromLang();
 
-    const blocks = this.splitIntoBlocks(text);
-    if (blocks.length === 0) {
-      this.translating.set(false);
-      return;
-    }
-
-    this.translator.translateBlocks(blocks, targetLang, this.sourceLang()).subscribe({
+    this.translator.translate(text, targetLang, this.sourceLang(), true).subscribe({
       next: (res) => {
         this.languageNotSupported.set(false);
-        const result = res.translations.join('\n');
-        this.translatedText.set(result);
-        this.translationCache.set(targetLang, result);
+        this.translatedText.set(res.translatedText);
+        this.translationCache.set(targetLang, res.translatedText);
         this.translating.set(false);
       },
       error: (err) => {
@@ -509,36 +502,6 @@ export class PromptBuilderComponent implements OnInit {
    * (preserving paragraph structure), then sub-divides any block longer
    * than 500 characters by sentence boundaries (`. `).
    */
-  private splitIntoBlocks(text: string): string[] {
-    const MAX_LEN = 500;
-    const blocks: string[] = [];
-    const paragraphs = text.split('\n');
-
-    for (const para of paragraphs) {
-      if (!para) {
-        blocks.push('');
-        continue;
-      }
-      if (para.length <= MAX_LEN) {
-        blocks.push(para);
-      } else {
-        const sentences = para.split(/(?<=[.!?])\s+/);
-        let chunk = '';
-        for (const sentence of sentences) {
-          const candidate = chunk ? chunk + ' ' + sentence : sentence;
-          if (candidate.length > MAX_LEN && chunk) {
-            blocks.push(chunk);
-            chunk = sentence;
-          } else {
-            chunk = candidate;
-          }
-        }
-        if (chunk) blocks.push(chunk);
-      }
-    }
-
-    return blocks;
-  }
 
   /** Apply the translated text: replace editor content with the translation. */
   protected applyTranslation(popover: Popover): void {
