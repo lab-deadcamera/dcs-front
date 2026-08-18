@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   OnInit,
@@ -30,6 +31,8 @@ import {
   SceneData,
   EpisodeData,
   SceneContext,
+  ShotRefineTarget,
+  ChatTurn,
   normalizeSeedanceSlots,
   shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
@@ -103,6 +106,11 @@ type ChatMessage = {
   timestamp: number;
   /** Whether this message belongs to a generate or a refine turn (badge). */
   kind?: 'generate' | 'refine';
+  /** Shots this turn was scoped to (per-shot refine). */
+  targets?: ShotRefineTarget[];
+  /** The parsed breakdown for assistant generate/refine turns — rendered
+   *  inline in the chat so versions accumulate and can be restored. */
+  result?: ShotBuilderResult;
 };
 
 type UploadedFile = {
@@ -394,6 +402,24 @@ export class ShotBuilderPanelComponent implements OnInit {
   readonly refineText = signal('');
   /** Whether the refine box is expanded. */
   readonly refineExpanded = signal(false);
+
+  /** Chat container, scrolled to the latest message on each turn. */
+  @ViewChild('chatScroll') private readonly chatScrollEl?: { nativeElement: HTMLElement };
+  /** Auto-scroll the chat to the newest message when the thread grows. */
+  private readonly chatAutoScroll = effect(() => {
+    this.chatMessages();
+    queueMicrotask(() => {
+      const el = this.chatScrollEl?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  });
+
+  /** The shot currently being refined from its inline chat card. */
+  readonly targetRefine = signal<ShotRefineTarget | null>(null);
+  /** Instruction for the targeted refine (dialog). */
+  readonly refineShotText = signal('');
+  /** Whether the per-shot refine dialog is open. */
+  readonly refineShotVisible = signal(false);
 
   readonly canRefine = computed(
     () => !this.loading() && this.hasPreviousResponse() && this.refineText().trim().length > 0,
@@ -1245,6 +1271,7 @@ export class ShotBuilderPanelComponent implements OnInit {
               kind: 'generate',
               content: summary,
               timestamp: Date.now(),
+              result,
             },
           ]);
         },
@@ -1278,21 +1305,33 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   /** Shared refine pipeline used by both the "Refine breakdown" box and the
    *  main send() when a previous response already exists. addChatMessage is
-   *  false when called from send(), which already appended the user message. */
-  private runRefine(changeRequest: string, addChatMessage: boolean): void {
+   *  false when called from send(), which already appended the user message.
+   *  targets scopes the refine to specific shots (per-shot refine). */
+  private runRefine(
+    changeRequest: string,
+    addChatMessage: boolean,
+    targets?: ShotRefineTarget[],
+  ): void {
     const previousResponse = this.rawResponse();
     if (!previousResponse) return;
 
+    // When scoped to shots, make the scoping explicit in the instruction text
+    // too (belt and suspenders with the structured targets field).
+    const targetLabel = targets?.length ? this.targetLabel(targets) : '';
+    const scopedRequest = targetLabel
+      ? `Modificá SOLO el shot ${targetLabel}: ${changeRequest}`
+      : changeRequest;
+
     if (addChatMessage) {
-      // Add user message to chat
       this.chatMessages.update((items) => [
         ...items,
         {
           id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           role: 'user',
           kind: 'refine',
-          content: changeRequest,
+          content: scopedRequest,
           timestamp: Date.now(),
+          ...(targets?.length ? { targets } : {}),
         },
       ]);
     }
@@ -1316,12 +1355,14 @@ export class ShotBuilderPanelComponent implements OnInit {
           this.studio.chapterId() ||
           '',
         previousResponse,
-        changeRequest,
+        changeRequest: scopedRequest,
         model: this.claudeModelName(),
         skillID: selectedSkill?.id || undefined,
         sceneContext: this.buildSceneContext(),
         userName,
         generateZh: this.generateChinese(),
+        ...(targets?.length ? { targets } : {}),
+        recentContext: this.recentContext(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -1359,11 +1400,13 @@ export class ShotBuilderPanelComponent implements OnInit {
               kind: 'refine',
               content: summary,
               timestamp: Date.now(),
+              ...(targets?.length ? { targets } : {}),
+              result,
             },
           ]);
 
           // Remember the applied change request for the viewer banner.
-          this.lastRefineInfo.set({ changeRequest });
+          this.lastRefineInfo.set({ changeRequest: scopedRequest });
 
           this.refineText.set('');
           this.refineExpanded.set(false);
@@ -1386,6 +1429,84 @@ export class ShotBuilderPanelComponent implements OnInit {
         },
       });
   }
+
+  /** "89-A" / "89-A, 90-B" label for targeted refines. */
+  private targetLabel(targets: ShotRefineTarget[]): string {
+    return targets.map((t) => `${t.sceneNumber}-${t.shotId}`).join(', ');
+  }
+
+  /** Last few user turns, bounded, for conversational coherence on refine. */
+  private recentContext(): ChatTurn[] {
+    return this.chatMessages()
+      .filter((m) => m.role === 'user' && m.content.trim())
+      .slice(-3)
+      .map((m) => ({ role: 'user', content: m.content.slice(0, 500) }));
+  }
+
+  /** Restore an earlier version from the chat thread into the workspace. */
+  restoreVersion(msg: ChatMessage): void {
+    if (!msg.result) return;
+    const result = msg.result;
+    this.episodeData.set(result.episode || null);
+    this.scenes.set(result.scenes);
+    this.shots.set(result.scenes.flatMap((s) => s.shots ?? []));
+    this.rawResponse.set(result.rawText);
+    const seq = shotBuilderResultToSequence(result, this.studio.output().aspectRatio);
+    this.sequenceData.set(seq ? computeCharacterCount(seq) : null);
+    this.lastRefineInfo.set(null);
+
+    this.chatMessages.update((items) => [
+      ...items,
+      {
+        id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        role: 'user',
+        kind: 'refine',
+        content: this.i18n.instant('STUDIO.SHOT_BUILDER.RESTORED'),
+        timestamp: Date.now(),
+      },
+    ]);
+  }
+
+  /** Open the per-shot refine dialog for the given shot. */
+  openRefineShot(target: ShotRefineTarget): void {
+    this.targetRefine.set(target);
+    this.refineShotText.set('');
+    this.refineShotVisible.set(true);
+  }
+
+  /** Run the targeted refine from the per-shot dialog. */
+  confirmRefineShot(): void {
+    const instruction = this.refineShotText().trim();
+    const target = this.targetRefine();
+    this.refineShotVisible.set(false);
+    this.targetRefine.set(null);
+    if (!instruction || !target) return;
+    this.runRefine(instruction, true, [target]);
+  }
+
+  /** Inline-card chip label for a shot: scene-prefixed id when available. */
+  shotChipLabel(sceneNumber: number, shot: ShotBuilderShot): string {
+    if (shot.id) return `${sceneNumber}-${shot.id}`;
+    return `S${shot.number}`;
+  }
+
+  /** Dialog header for the per-shot refine. */
+  readonly refineShotTitle = computed(() => {
+    const t = this.targetRefine();
+    if (!t) return '';
+    return this.i18n.instant('STUDIO.SHOT_BUILDER.REFINE_SHOT_TITLE', {
+      shot: `${t.sceneNumber}-${t.shotId}`,
+    });
+  });
+
+  /** Dialog placeholder for the per-shot refine. */
+  readonly refineShotPlaceholder = computed(() => {
+    const t = this.targetRefine();
+    if (!t) return '';
+    return this.i18n.instant('STUDIO.SHOT_BUILDER.REFINE_SHOT_PLACEHOLDER', {
+      shot: `${t.sceneNumber}-${t.shotId}`,
+    });
+  });
 
   clearChat(): void {
     this.chatMessages.set([]);

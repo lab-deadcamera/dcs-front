@@ -402,6 +402,49 @@
           @if (replaceByType()[replaceLibType()].length === 0) {
             <p class="replace-empty">Sin recursos de este tipo</p>
           }
+
+          <!-- Episode assignments (chapter characters + free assets) — shown
+               separately so the user can replace the slot with something the
+               episode already carries, not just the unassigned library. -->
+          @if (episodeReplaceOptions().length > 0) {
+            <p class="replace-episode-label">
+              {{ 'STUDIO.SHOT_BUILDER.EPISODE_ASSIGNMENTS' | translate }}
+            </p>
+            <div class="replace-grid">
+              @for (opt of episodeReplaceOptions(); track opt.fileId) {
+                <button
+                  type="button"
+                  class="replace-tile"
+                  (click)="pickReplacement(opt)"
+                  [title]="opt.slot ? opt.slot + ' · ' + opt.name : opt.name"
+                >
+                  @if (opt.kind === 'image' || opt.kind === 'mixed') {
+                    <img
+                      [src]="opt.fileId | sourceThumbnailAsset"
+                      [alt]="opt.name"
+                      class="replace-img"
+                      loading="lazy"
+                    />
+                  } @else {
+                    <div class="replace-placeholder">
+                      <i
+                        class="pi"
+                        [class.pi-video]="opt.kind === 'video'"
+                        [class.pi-volume-up]="opt.kind === 'audio'"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                  }
+                  <span class="replace-name">
+                    @if (opt.slot) {
+                      <em class="replace-slot">{{ opt.slot }}</em>
+                    }
+                    {{ opt.name }}
+                  </span>
+                </button>
+              }
+            </div>
+          }
         </div>
       }
     }

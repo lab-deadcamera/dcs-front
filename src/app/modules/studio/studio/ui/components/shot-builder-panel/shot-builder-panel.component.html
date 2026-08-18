@@ -36,7 +36,7 @@
             </div>
 
             <!-- Chat messages -->
-            <div class="flex-1 overflow-y-auto">
+            <div #chatScroll class="flex-1 overflow-y-auto">
               @if (chatMessages().length === 0) {
                 <p class="text-center text-[12px] text-fg-muted">
                   {{ 'STUDIO.SHOT_BUILDER.EMPTY_HINT' | translate }}
@@ -76,7 +76,70 @@
                         }
                       </span>
                     }
+                    @if (msg.kind === 'refine' && msg.targets?.length) {
+                      <span
+                        class="ml-2 inline-block rounded-full bg-violet-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-300"
+                      >
+                        {{ 'STUDIO.SHOT_BUILDER.KIND_TARGETED' | translate }}
+                      </span>
+                    }
                     <pre class="mt-1 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
+
+                    <!-- Inline read-only shot list — versions accumulate here -->
+                    @if (msg.result && msg.result.scenes.length > 0) {
+                      <div class="mt-2 rounded border border-ink-600 bg-ink-900/60 p-2">
+                        @for (scene of msg.result.scenes; track scene.scriptNumber) {
+                          <div class="mb-1.5">
+                            <div
+                              class="flex items-baseline gap-2 text-[11px] text-fg-muted"
+                            >
+                              <span class="shrink-0 font-mono font-semibold text-fg-strong"
+                                >#{{ scene.scriptNumber }}</span
+                              >
+                              <span class="truncate">{{ scene.scriptLocation }}</span>
+                              <span class="ml-auto shrink-0"
+                                >{{ scene.shots.length }} shots · {{ scene.duration }}s</span
+                              >
+                            </div>
+                            <div class="mt-1 flex flex-wrap gap-1">
+                              @for (shot of scene.shots; track $index) {
+                                <span
+                                  class="inline-flex items-center gap-1 rounded bg-ink-800 px-1.5 py-0.5 font-mono text-[10px] text-fg"
+                                >
+                                  {{ shotChipLabel(scene.scriptNumber, shot) }}
+                                  @if (shot.id) {
+                                    <button
+                                      type="button"
+                                      class="text-fg-muted transition-colors hover:text-violet-400"
+                                      [pTooltip]="'STUDIO.SHOT_BUILDER.REFINE_SHOT' | translate"
+                                      tooltipPosition="top"
+                                      aria-label="Refine shot"
+                                      (click)="
+                                        openRefineShot({
+                                          sceneNumber: scene.scriptNumber,
+                                          shotId: shot.id,
+                                        })
+                                      "
+                                    >
+                                      ⟳
+                                    </button>
+                                  }
+                                </span>
+                              }
+                            </div>
+                          </div>
+                        }
+                        <div class="mt-1.5 flex justify-end border-t border-ink-700 pt-1.5">
+                          <button
+                            type="button"
+                            class="text-[11px] font-semibold uppercase tracking-wide text-primary-400 transition-colors hover:text-primary-300"
+                            (click)="restoreVersion(msg)"
+                          >
+                            {{ 'STUDIO.SHOT_BUILDER.RESTORE_VERSION' | translate }}
+                          </button>
+                        </div>
+                      </div>
+                    }
                   </div>
                 }
               }
@@ -1160,6 +1223,41 @@
         </div>
       </ng-template>
     </p-dialog>
+
+    <!-- Per-shot refine dialog (scoped change request) -->
+    @if (targetRefine()) {
+      <p-dialog
+        [visible]="refineShotVisible()"
+        (visibleChange)="refineShotVisible.set($event)"
+        [modal]="true"
+        [closable]="true"
+        [draggable]="false"
+        [style]="{ width: '30rem', maxWidth: '95vw' }"
+        [header]="refineShotTitle()"
+      >
+        <textarea
+          class="h-24 w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg focus:border-primary-400 focus:outline-none"
+          [placeholder]="refineShotPlaceholder()"
+          [(ngModel)]="refineShotText"
+          (keydown.enter)="confirmRefineShot()"
+        ></textarea>
+        <ng-template pTemplate="footer">
+          <div class="flex justify-end gap-2">
+            <p-button
+              severity="secondary"
+              [text]="true"
+              [label]="'COMMON.CANCEL' | translate"
+              (onClick)="refineShotVisible.set(false)"
+            />
+            <p-button
+              icon="pi pi-refresh"
+              [label]="'COMMON.CONFIRM' | translate"
+              (onClick)="confirmRefineShot()"
+            />
+          </div>
+        </ng-template>
+      </p-dialog>
+    }
 
     <!-- Confirmation dialog before saving scenes + shots -->
     @if (confirmDialogVisible()) {
