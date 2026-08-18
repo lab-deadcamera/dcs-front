@@ -105,6 +105,19 @@ export interface SceneContext {
   assets?: Array<{ id?: string; filename: string; mimeType: string }>;
 }
 
+/** A single shot to refine (scene script number + shot id within the scene). */
+export interface ShotRefineTarget {
+  sceneNumber: number;
+  shotId: string;
+}
+
+/** One message from the conversational thread, sent as bounded coherence
+ *  context on refine (last few turns) — never the full history. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 /** Result from the proncer endpoint. */
 export interface OptimizePromptResult {
   optimizedPrompt: string;
@@ -216,6 +229,10 @@ export class ShotBuilderService {
     userName?: string;
     generateZh?: boolean;
     sceneContext?: SceneContext;
+    /** Refine ONLY these shots (scene script number + shot id). */
+    targets?: ShotRefineTarget[];
+    /** Last few conversation turns for thread coherence (bounded). */
+    recentContext?: ChatTurn[];
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -253,6 +270,10 @@ export class ShotBuilderService {
       skill_id: request.skillID || '',
       user_name: request.userName || '',
       generate_zh: request.generateZh !== false,
+      ...(request.targets && request.targets.length > 0 ? { targets: request.targets } : {}),
+      ...(request.recentContext && request.recentContext.length > 0
+        ? { recent_context: request.recentContext }
+        : {}),
     };
 
     // Include scene context if provided (same shape as generate()).

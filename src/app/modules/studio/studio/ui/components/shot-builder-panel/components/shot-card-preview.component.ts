@@ -152,6 +152,20 @@ export function beatInfoFromSegments(
           </div>
         }
 
+        @let watchFor = shot().notes.watchFor;
+        @if (watchFor && watchFor.length > 0) {
+          <div class="grow">
+            <span class="k">{{ 'STUDIO.SEQUENCE.WATCH_FOR' | translate }}</span>
+            <span class="v">
+              <ul class="warning-list">
+                @for (w of watchFor; track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            </span>
+          </div>
+        }
+
         @let todos = shot().notes.todos;
         @if (todos && todos.length > 0) {
           <div class="grow">

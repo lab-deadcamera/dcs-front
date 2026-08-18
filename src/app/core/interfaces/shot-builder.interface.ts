@@ -278,6 +278,9 @@ export interface PromptCounter {
 export interface ShotNotes {
   warnings?: string[];
   todos?: string[];
+  /** Production QA notes: learned failure modes, continuity locks, what to
+   *  check in the first render. Emitted by the shot builder per shot. */
+  watchFor?: string[];
   approved?: boolean;
 }
 

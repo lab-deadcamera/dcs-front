@@ -225,6 +225,19 @@ import { SelectModule } from 'primeng/select';
         font-style: italic;
         margin: 0;
       }
+      .replace-episode-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--amber, #e0a95c);
+        margin: 8px 0 4px;
+      }
+      .replace-slot {
+        display: block;
+        color: var(--amber, #e0a95c);
+        font-style: normal;
+      }
     `,
   ],
 })
@@ -789,6 +802,9 @@ export class PromptBuilderComponent implements OnInit {
     for (const item of this.chars.items()) {
       const c = item.character;
       if (!c?.id) continue;
+      // The replace picker lists unassigned library ingredients here; the
+      // episode-assigned resources live in the separate "From episode" section.
+      if (this.studio.chapterCharacterIds().has(c.id)) continue;
       const metadata = parsePromptMetadata(c.metadata);
       const kind: UsedAssetKind = metadata.fileKind ?? 'image';
       if (kind !== target.kind && !(target.kind === 'image' && kind === 'mixed')) continue;
@@ -801,9 +817,51 @@ export class PromptBuilderComponent implements OnInit {
         name: c.name,
         fileId: file.file_id,
         kind,
+        isCharacter: true,
       });
     }
     return buckets;
+  });
+
+  /** Resources already assigned to the episode (chapter characters + free
+   *  assets) that can replace the chip's slot — a separate section so the
+   *  user can swap in something the episode already carries, not just the
+   *  unassigned library. Ordered by slot number (slot-less last). */
+  protected readonly episodeReplaceOptions = computed<ReplaceOption[]>(() => {
+    const target = this.replaceTarget();
+    if (!target) return [];
+    const query = this.replaceSearch().trim().toLowerCase();
+    const usedFileIds = new Set(this.studio.usedAssets().map((a) => a.fileId));
+    const out: ReplaceOption[] = [];
+    for (const c of this.studio.chapterCharacterData()) {
+      if (!c.fileId || usedFileIds.has(c.fileId)) continue;
+      const kind = (c.kind === 'mixed' ? 'image' : c.kind) as UsedAssetKind;
+      if (kind !== target.kind && !(target.kind === 'image' && kind === 'mixed')) continue;
+      if (query && !c.name.toLowerCase().includes(query)) continue;
+      out.push({
+        id: c.id,
+        name: c.name,
+        fileId: c.fileId,
+        kind,
+        slot: c.slot,
+        isCharacter: true,
+      });
+    }
+    for (const a of this.studio.freeAssets()) {
+      if (!a.id || usedFileIds.has(a.id)) continue;
+      const kind = a.kind as UsedAssetKind;
+      if (kind !== target.kind && !(target.kind === 'image' && kind === 'mixed')) continue;
+      if (query && !a.filename.toLowerCase().includes(query)) continue;
+      out.push({
+        id: a.id,
+        name: a.filename,
+        fileId: a.id,
+        kind,
+        slot: this.studio.chapterAssetSlots().get(a.id) ?? '',
+        isCharacter: false,
+      });
+    }
+    return out.sort((x, y) => slotNum(x.slot) - slotNum(y.slot));
   });
 
   protected onReplaceSearch(event: Event): void {
@@ -845,7 +903,7 @@ export class PromptBuilderComponent implements OnInit {
     const old = this.studio.usedAssets().find((a) => a.fileId === target.fileId);
     this.studio.replaceUsedAsset(target.fileId, {
       fileId: opt.fileId,
-      characterId: opt.id,
+      characterId: opt.isCharacter ? opt.id : '',
       name: opt.name,
       filename: opt.name,
       kind: opt.kind,
@@ -923,12 +981,16 @@ export class PromptBuilderComponent implements OnInit {
   }
 }
 
-/** One replaceable library resource in the prompt-builder's replace picker. */
+/** One replaceable resource in the prompt-builder's replace picker. */
 interface ReplaceOption {
   id: string;
   name: string;
   fileId: string;
   kind: UsedAssetKind;
+  /** [ImageN]/[VideoN]/[AudioN] slot when the resource is already assigned to the episode. */
+  slot?: string;
+  /** True for chapter characters (characterId is meaningful); false for free assets. */
+  isCharacter?: boolean;
 }
 
 /** Character metadata arrives from the wire as a JSON string; some surfaces
@@ -943,4 +1005,11 @@ function parsePromptMetadata(raw: string | null | undefined): CharacterMetadata 
     }
   }
   return raw as CharacterMetadata;
+}
+
+/** Extract the numeric part of an [ImageN]/[VideoN]/[AudioN] slot; 0 when absent. */
+function slotNum(slot: string | undefined): number {
+  if (!slot) return 0;
+  const m = slot.match(/(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
 }

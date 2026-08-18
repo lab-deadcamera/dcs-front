@@ -145,7 +145,7 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                 </div>
 
               <div class="ref-lib-grid">
-                @for (r of libraryByType()[activeLibType()]; track r.id) {
+                @for (r of pagedLibrary(); track r.id) {
                   <button
                     type="button"
                     class="ref-lib-tile"
@@ -178,44 +178,78 @@ import { CharactersService } from '@app/modules/characters/characters/services';
               @if (libraryByType()[activeLibType()].length === 0) {
                 <p class="ref-popover-empty">{{ 'STUDIO.SHOT_BUILDER.TAB_EMPTY' | translate }}</p>
               }
+              @if (libTotalPages() > 1) {
+                <div class="ref-pagination">
+                  <button type="button" class="ref-page-btn" [disabled]="libPage() === 0" (click)="libGoPrev()">
+                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                  </button>
+                  <span class="ref-page-info">{{ libPage() + 1 }} / {{ libTotalPages() }}</span>
+                  <button type="button" class="ref-page-btn" [disabled]="libPage() >= libTotalPages() - 1" (click)="libGoNext(libraryByType()[activeLibType()].length)">
+                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </div>
+              }
             </div>
 
-            <!-- Episode free assets -->
-            <span class="ref-episode-label">{{ 'STUDIO.SHOT_BUILDER.EPISODE_LABEL' | translate }}</span>
-            @if (sortedFreeAssets().length > 0) {
+            <!-- Episode assignments: chapter characters + free assets -->
+            <div class="ref-episode-head">
+              <span class="ref-episode-label">{{ 'STUDIO.SHOT_BUILDER.EPISODE_LABEL' | translate }}</span>
+              @if (episodeResources().length > 0) {
+                <input
+                  type="text"
+                  class="ref-lib-search"
+                  placeholder="{{ 'STUDIO.SHOT_BUILDER.SEARCH_PLACEHOLDER' | translate }}"
+                  [value]="episodeSearch()"
+                  (input)="onEpisodeSearch($event)"
+                  [attr.aria-label]="'STUDIO.SHOT_BUILDER.SEARCH_RESOURCE_ARIA' | translate"
+                />
+              }
+            </div>
+            @if (filteredEpisodeResources().length > 0) {
               <div class="ref-asset-grid">
-                @for (a of sortedFreeAssets(); track a.id) {
+                @for (r of pagedEpisodeResources(); track r.id) {
                   <button
                     type="button"
                     class="ref-asset-tile"
-                    [class.ref-asset-active]="chapterAssetSlots().get(a.id) === target.slot"
-                    [class.ref-asset-broken]="isThumbBroken(a.id)"
-                    (click)="assignFile(a.id, target.slot)"
-                    [title]="chapterAssetSlotLabel(a.id, a.filename)"
+                    [class.ref-asset-active]="r.slot === target.slot"
+                    [class.ref-asset-broken]="r.fileId ? isThumbBroken(r.fileId) : false"
+                    (click)="assignEpisodeResource(r, target.slot)"
+                    [title]="r.slot ? r.slot + ' · ' + r.name : r.name"
                   >
-                    @if (a.kind === 'image' && !isThumbBroken(a.id)) {
+                    @if (r.kind === 'image' && r.fileId && !isThumbBroken(r.fileId)) {
                       <img
-                        [src]="a.id | sourceAsset"
-                        [alt]="a.filename"
+                        [src]="r.fileId | sourceAsset"
+                        [alt]="r.name"
                         class="ref-asset-img"
                         loading="lazy"
-                        (error)="onThumbError(a.id)"
+                        (error)="onThumbError(r.fileId)"
                       />
                     } @else {
                       <div class="ref-asset-placeholder">
                         <i
                           class="pi"
-                          [class.pi-image]="a.kind === 'image'"
-                          [class.pi-video]="a.kind === 'video'"
-                          [class.pi-volume-up]="a.kind === 'audio'"
+                          [class.pi-image]="r.kind === 'image'"
+                          [class.pi-video]="r.kind === 'video'"
+                          [class.pi-volume-up]="r.kind === 'audio'"
                           aria-hidden="true"
                         ></i>
                       </div>
                     }
-                    <span class="ref-asset-slot">{{ chapterAssetSlots().get(a.id) || ('STUDIO.SHOT_BUILDER.NO_SLOT' | translate) }}</span>
+                    <span class="ref-asset-slot">{{ r.slot || ('STUDIO.SHOT_BUILDER.NO_SLOT' | translate) }}</span>
                   </button>
                 }
               </div>
+              @if (episodeTotalPages() > 1) {
+                <div class="ref-pagination">
+                  <button type="button" class="ref-page-btn" [disabled]="episodePage() === 0" (click)="episodeGoPrev()">
+                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                  </button>
+                  <span class="ref-page-info">{{ episodePage() + 1 }} / {{ episodeTotalPages() }}</span>
+                  <button type="button" class="ref-page-btn" [disabled]="episodePage() >= episodeTotalPages() - 1" (click)="episodeGoNext(filteredEpisodeResources().length)">
+                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </div>
+              }
             } @else {
               <p class="ref-popover-empty">{{ 'STUDIO.SEQUENCE.NO_FREE_ASSETS' | translate }}</p>
             }
@@ -687,8 +721,6 @@ import { CharactersService } from '@app/modules/characters/characters/services';
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
         gap: 6px;
-        max-height: 170px;
-        overflow-y: auto;
       }
       .ref-lib-tile {
         display: flex;
@@ -721,12 +753,55 @@ import { CharactersService } from '@app/modules/characters/characters/services';
         text-overflow: ellipsis;
         text-align: center;
       }
+      .ref-episode-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
       .ref-episode-label {
         font-family: 'JetBrains Mono', monospace;
         font-size: 10px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--ink-faint, #6a7977);
+      }
+      .ref-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .ref-page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--ink-dim, #9aa6a3);
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0;
+        transition: all 0.15s ease;
+      }
+      .ref-page-btn:hover:not(:disabled) {
+        color: var(--ink, #ece6d8);
+        border-color: var(--teal, #4fb0b5);
+      }
+      .ref-page-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .ref-page-info {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--ink-faint, #6a7977);
+        min-width: 40px;
+        text-align: center;
       }
       .ref-popover-empty {
         font-size: 12px;
@@ -776,6 +851,34 @@ export class ShotReferenceResolverComponent {
 
   protected onLibSearch(event: Event): void {
     this.libSearch.set((event.target as HTMLInputElement).value);
+    this.libPage.set(0);
+  }
+
+  /** Text the user typed in the episode search box (filters by resource name). */
+  protected readonly episodeSearch = signal('');
+
+  protected onEpisodeSearch(event: Event): void {
+    this.episodeSearch.set((event.target as HTMLInputElement).value);
+    this.episodePage.set(0);
+  }
+
+  // ── Pagination ──────────────────────────────────────────────────────────
+
+  protected readonly pageSize = 12;
+  protected readonly libPage = signal(0);
+  protected readonly episodePage = signal(0);
+
+  protected libGoPrev(): void {
+    this.libPage.update((p) => Math.max(0, p - 1));
+  }
+  protected libGoNext(total: number): void {
+    this.libPage.update((p) => Math.min(p + 1, Math.ceil(total / this.pageSize) - 1));
+  }
+  protected episodeGoPrev(): void {
+    this.episodePage.update((p) => Math.max(0, p - 1));
+  }
+  protected episodeGoNext(total: number): void {
+    this.episodePage.update((p) => Math.min(p + 1, Math.ceil(total / this.pageSize) - 1));
   }
 
   protected readonly libTabs: { id: AssetType; labelKey: string }[] = [
@@ -814,6 +917,35 @@ export class ShotReferenceResolverComponent {
     return buckets;
   });
 
+  /** Library resources for the active tab, sliced to the current page. */
+  protected readonly pagedLibrary = computed(() => {
+    const all = this.libraryByType()[this.activeLibType()];
+    const start = this.libPage() * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  });
+
+  protected readonly libTotalPages = computed(() => {
+    return Math.max(1, Math.ceil(this.libraryByType()[this.activeLibType()].length / this.pageSize));
+  });
+
+  /** Episode resources filtered by search, then sliced to the current page. */
+  protected readonly filteredEpisodeResources = computed(() => {
+    const query = this.episodeSearch().trim().toLowerCase();
+    const all = this.episodeResources();
+    if (!query) return all;
+    return all.filter((r) => r.name.toLowerCase().includes(query));
+  });
+
+  protected readonly pagedEpisodeResources = computed(() => {
+    const all = this.filteredEpisodeResources();
+    const start = this.episodePage() * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  });
+
+  protected readonly episodeTotalPages = computed(() => {
+    return Math.max(1, Math.ceil(this.filteredEpisodeResources().length / this.pageSize));
+  });
+
   /** Slots the user has assigned a free asset to — a reference whose assetId
    *  still doesn't match is considered resolved once its slot is in here. */
   protected readonly assignedSlots = signal<Set<string>>(new Set());
@@ -842,11 +974,53 @@ export class ShotReferenceResolverComponent {
     return map;
   });
 
-  /** Episode free assets ordered by their [ImageN] slot (slot-less last). */
-  protected readonly sortedFreeAssets = computed(() => {
-    const slotOf = (id: string) => slotNum(this.studio.chapterAssetSlots().get(id) ?? '');
-    return [...this.studio.freeAssets()].sort((a, b) => slotOf(a.id) - slotOf(b.id));
+  /** Episode-assigned resources — chapter characters + free assets — ordered by
+   *  their [ImageN] slot (slot-less last). Shown together in the "Del episodio"
+   *  section so the user can assign a slot from everything the episode carries,
+   *  not just the unassigned library. */
+  protected readonly episodeResources = computed<EpisodeResource[]>(() => {
+    const out: EpisodeResource[] = [];
+    for (const c of this.studio.chapterCharacterData()) {
+      out.push({
+        id: c.id,
+        name: c.name,
+        fileId: c.fileId,
+        slot: c.slot,
+        kind: c.kind === 'video' ? 'video' : c.kind === 'audio' ? 'audio' : 'image',
+        isCharacter: true,
+      });
+    }
+    for (const a of this.studio.freeAssets()) {
+      out.push({
+        id: a.id,
+        name: a.filename,
+        fileId: a.id,
+        slot: this.studio.chapterAssetSlots().get(a.id) ?? '',
+        kind: a.kind === 'video' ? 'video' : a.kind === 'audio' ? 'audio' : 'image',
+        isCharacter: false,
+      });
+    }
+    return out.sort((x, y) => slotNum(x.slot) - slotNum(y.slot));
   });
+
+  /** Assign an episode resource to a ref slot locally — no backend calls.
+   *  Replaces the usedAsset file for that slot so the prompt uses the
+   *  correct asset, and marks the slot as resolved. */
+  protected assignEpisodeResource(r: EpisodeResource, slot: string): void {
+    const existing = this.studio.usedAssets().find((a) => a.slot === slot);
+    if (existing) {
+      this.studio.replaceUsedAsset(existing.fileId, {
+        fileId: r.fileId || r.id,
+        characterId: r.isCharacter ? r.id : '',
+        name: r.name,
+        filename: r.name,
+        kind: r.kind,
+        slot,
+      });
+    }
+    this.markAssigned(slot);
+    this.assignPopover.hide();
+  }
 
   protected readonly chapterAssetSlots = computed(() => this.studio.chapterAssetSlots());
 
@@ -894,10 +1068,6 @@ export class ShotReferenceResolverComponent {
       default:
         return type;
     }
-  }
-
-  protected chapterAssetSlotLabel(id: string, filename: string): string {
-    return this.studio.chapterAssetSlots().get(id) || filename;
   }
 
   protected isThumbBroken(id: string): boolean {
@@ -1264,6 +1434,20 @@ interface LibResource {
   fileId: string;
   kind: string;
   assetType: AssetType;
+}
+
+/** One episode-assigned resource in the "Del episodio" section — a chapter
+ *  character or a free asset, carrying its [ImageN] slot. */
+interface EpisodeResource {
+  /** Character id (characters) or file id (free assets) — the assign key. */
+  id: string;
+  name: string;
+  /** File id for the thumbnail preview / the assigned file. */
+  fileId: string;
+  /** [ImageN]/[VideoN]/[AudioN] slot, or '' when the episode has none. */
+  slot: string;
+  kind: 'image' | 'video' | 'audio';
+  isCharacter: boolean;
 }
 
 /** Character metadata arrives from the wire as a JSON string; some surfaces
