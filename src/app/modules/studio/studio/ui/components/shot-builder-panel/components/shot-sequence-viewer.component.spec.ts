@@ -250,4 +250,44 @@ describe('ShotSequenceViewerComponent', () => {
     (component as any).openPreview();
     expect((component as any).previewVisible()).toBe(true);
   });
+
+  it('reemplaza el slot de la ref por el slot del recurso del episodio (refs y pre-prompt)', () => {
+    setSequence([makeShot('S1', 'Mira a [Image1] mientras avanza', ['[Image1]'])]);
+    (component as any).pendingRefShotId = 'S1';
+
+    (component as any).onResourceAssigned({
+      ref: { slot: '[Image1]', assetId: 'missing-[Image1]', type: 'character' },
+      resource: { id: 'char-clara', name: 'Clara', slot: '[Image5]' },
+    });
+
+    const derived = (component as any).shotFor((component as any).sequence().shots[0]);
+    // La ref ahora apunta al slot del recurso y al recurso en sí.
+    expect(derived.references[0].slot).toBe('[Image5]');
+    expect(derived.references[0].assetId).toBe('char-clara');
+    // El token del pre-prompt se reemplazó por el slot del recurso.
+    expect(derived.prompt.en).toBe('Mira a [Image5] mientras avanza');
+
+    // Y el pre-prompt emitido al crear usa el token reemplazado.
+    (component as any).approvedMap['S1'] = true;
+    (component as any).approvedTick.update((n: number) => n + 1);
+    const emitted: any[] = [];
+    (component as any).createPrePromptsClicked.subscribe((l: any[]) => emitted.push(l));
+    (component as any).emitCreatePrePrompts();
+    expect(emitted[0][0].prompt).toBe('Mira a [Image5] mientras avanza');
+  });
+
+  it('no toca la ref cuando el recurso del episodio no tiene slot propio', () => {
+    setSequence([makeShot('S1', 'plano con [Image1]', ['[Image1]'])]);
+    (component as any).pendingRefShotId = 'S1';
+
+    (component as any).onResourceAssigned({
+      ref: { slot: '[Image1]', assetId: 'missing-[Image1]', type: 'character' },
+      resource: { id: 'file-x', name: 'placa.png', slot: '' },
+    });
+
+    const derived = (component as any).shotFor((component as any).sequence().shots[0]);
+    expect(derived.references[0].slot).toBe('[Image1]');
+    expect(derived.references[0].assetId).toBe('file-x');
+    expect(derived.prompt.en).toBe('plano con [Image1]');
+  });
 });

@@ -13,11 +13,12 @@ import { CommonModule } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { Sequence, SequenceScene, Shot, Reference, ReferenceType } from '@app/core/interfaces';
+import { Sequence, SequenceScene, Shot, Prompt, Reference, ReferenceType } from '@app/core/interfaces';
 import { ShotCardPreviewComponent, beatInfoFromSegments } from './shot-card-preview.component';
 import { ShotTimelineStripComponent } from './shot-timeline-strip.component';
 import { ShotReferenceResolverComponent } from './shot-reference-resolver.component';
 import { StudioStore } from '@app/core/stores/studio.store';
+import { replaceSlotToken } from '@app/core/utils/slot-reindex';
 
 /** One shot row of the super-admin preview modal. */
 interface PreviewShot {
@@ -148,6 +149,7 @@ interface PreviewScene {
         [projectId]="projectId()"
         [chapterId]="chapterId()"
         (assignedSlotsChange)="onAssignedSlotsChange($event)"
+        (resourceAssigned)="onResourceAssigned($event)"
       />
 
       <!-- Section tag -->
@@ -1007,9 +1009,9 @@ export class ShotSequenceViewerComponent {
             ? this.i18n.instant('STUDIO.SEQUENCE.CURRENT_SCENE_LEGACY')
             : this.i18n.instant('STUDIO.SEQUENCE.SCENE_FALLBACK', { num })),
         shots: shots.map((s) => {
+          const derived = this.shotFor(s);
           const lang = this.langMap[s.id] || 'en';
-          const over = this.promptOverrides()[s.id];
-          const prompt = lang === 'zh' ? (over?.zh ?? s.prompt.zh) : (over?.en ?? s.prompt.en);
+          const prompt = lang === 'zh' ? derived.prompt.zh : derived.prompt.en;
           return { id: s.id, title: s.title, lang, prompt: prompt || '' };
         }),
       });
@@ -1072,9 +1074,45 @@ export class ShotSequenceViewerComponent {
 
   /** A shot-card ref requested to assign a resource to its slot — open the
    *  shared resolver's assign popover anchored at the card's "+" button. */
-  protected onRefAssign(payload: { event: Event; ref: Reference }): void {
+  protected onRefAssign(payload: { event: Event; ref: Reference; shotId: string }): void {
+    this.pendingRefShotId = payload.shotId;
     this.refResolver?.openAssignPopover(payload.event, payload.ref);
   }
+
+  /** Track which shot the user is assigning a resource for so the
+   *  resourceAssigned handler can update the correct reference. */
+  private pendingRefShotId = '';
+
+  /** When the resolver picks an episode resource for a ref slot, update the
+   *  corresponding shot's reference assetId locally (no backend call). */
+  protected onResourceAssigned(payload: {
+    ref: Reference;
+    resource: { id: string; name: string; slot?: string };
+  }): void {
+    const shotId = this.pendingRefShotId;
+    if (!shotId) return;
+    this.refOverrides.update((map) => {
+      const cur = map[shotId] || {};
+      return { ...map, [shotId]: { ...cur, [payload.ref.slot]: payload.resource.id } };
+    });
+    // If the picked episode resource carries its own slot, that slot replaces
+    // the ref's current one — both in the refs and in the pre-prompt tokens.
+    const newSlot = payload.resource.slot;
+    if (newSlot && newSlot !== payload.ref.slot) {
+      this.slotOverrides.update((map) => {
+        const cur = map[shotId] || {};
+        return { ...map, [shotId]: { ...cur, [payload.ref.slot]: newSlot } };
+      });
+    }
+  }
+
+  /** Per-shot reference assetId overrides — keyed by shotId then by slot. */
+  protected readonly refOverrides = signal<Record<string, Record<string, string>>>({});
+
+  /** Per-shot reference slot overrides — keyed by shotId then by the ORIGINAL
+   *  slot, mapping to the slot the selected episode resource carries. Applied
+   *  to both the refs and the pre-prompt text. */
+  protected readonly slotOverrides = signal<Record<string, Record<string, string>>>({});
 
   /** UNIQUE source of truth for unresolved references: every reference of the
    *  sequence with no related asset/character in the episode, excluding slots
@@ -1177,25 +1215,50 @@ export class ShotSequenceViewerComponent {
   }
 
   /** The shot as the card should render it — with any user prompt edits
-   *  applied on top of the original. Returns the same reference when there are
-   *  no overrides, so OnPush change detection isn't forced unnecessarily. */
+   *  applied on top of the original, plus reference re-assignments (new
+   *  assetId and, for episode picks, a new slot whose token is rewritten in
+   *  the prompt text). Returns the same reference when there are no overrides,
+   *  so OnPush change detection isn't forced unnecessarily. */
   protected shotFor(shot: Shot): Shot {
     const over = this.promptOverrides()[shot.id];
-    if (!over) return shot;
-    return {
-      ...shot,
-      prompt: {
-        en: over.en ?? shot.prompt.en,
-        zh: over.zh ?? shot.prompt.zh,
-      },
-    };
+    const refOver = this.refOverrides()[shot.id];
+    const slotOver = this.slotOverrides()[shot.id];
+    if (!over && !refOver && !slotOver) return shot;
+
+    let prompt: Prompt = shot.prompt;
+    if (over) {
+      prompt = { en: over.en ?? shot.prompt.en, zh: over.zh ?? shot.prompt.zh };
+    }
+    if (slotOver) {
+      let en = prompt.en;
+      let zh = prompt.zh ?? '';
+      for (const [oldSlot, newSlot] of Object.entries(slotOver)) {
+        en = replaceSlotToken(en, oldSlot, newSlot);
+        zh = replaceSlotToken(zh, oldSlot, newSlot);
+      }
+      prompt = { en, zh };
+    }
+
+    const result: Shot = prompt !== shot.prompt ? { ...shot, prompt } : shot;
+    if (refOver || slotOver) {
+      result.references = shot.references.map((r) => {
+        let ref = r;
+        const newAssetId = refOver?.[r.slot];
+        if (newAssetId) ref = { ...ref, assetId: newAssetId };
+        const newSlot = slotOver?.[r.slot];
+        if (newSlot) ref = { ...ref, slot: newSlot };
+        return ref;
+      });
+    }
+    return result;
   }
 
-  /** Short preview of the prompt text (first N chars), honoring edits. */
+  /** Short preview of the prompt text (first N chars), honoring edits and
+   *  reference re-assignments. */
   protected promptPreview(shot: Shot): string {
     const lang = this.langMap[shot.id] || 'en';
-    const over = this.promptOverrides()[shot.id];
-    const text = lang === 'zh' ? (over?.zh ?? shot.prompt.zh) : (over?.en ?? shot.prompt.en);
+    const derived = this.shotFor(shot);
+    const text = lang === 'zh' ? derived.prompt.zh : derived.prompt.en;
     if (!text) return '(empty)';
     return text.length > 80 ? text.slice(0, 77) + '…' : text;
   }
@@ -1223,16 +1286,15 @@ export class ShotSequenceViewerComponent {
     const shots = this.approvedShots();
     if (shots.length === 0) return;
     const list = shots.map((shot) => {
+      const derived = this.shotFor(shot);
       const lang = this.langMap[shot.id] || 'en';
-      const over = this.promptOverrides()[shot.id];
-      const value =
-        (lang === 'zh' ? (over?.zh ?? shot.prompt.zh) : (over?.en ?? shot.prompt.en)) || '';
+      const value = lang === 'zh' ? derived.prompt.zh : derived.prompt.en;
       const sceneNum = parseInt(this.sceneNumberFor(shot.id), 10);
       return {
         sceneNumber: Number.isFinite(sceneNum) ? sceneNum : 0,
         shotId: shot.id,
         lang,
-        prompt: value,
+        prompt: value || '',
       };
     });
     this.createPrePromptsClicked.emit(list);
