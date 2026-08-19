@@ -322,6 +322,8 @@ export class ShotBuilderPanelComponent implements OnInit {
   private readonly claudeModelName = signal<string>(CLAUDE_MODELS[0].name);
   /** Whether to generate Chinese prompts (prompt.zh). */
   protected readonly generateChinese = signal(false);
+  /** Whether to use generate-shots-v2 (structure-only base + skill behavior). */
+  protected readonly useV2 = signal(false);
 
   protected readonly selectedModelName = computed(() => this.claudeModelName());
 
@@ -331,6 +333,10 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   protected onGenerateChineseChange(enabled: boolean): void {
     this.generateChinese.set(enabled);
+  }
+
+  protected onUseV2Change(enabled: boolean): void {
+    this.useV2.set(enabled);
   }
 
   /** Index of the currently active file tab. -1 means "Preview" (artifact) tab. */
@@ -1225,6 +1231,7 @@ export class ShotBuilderPanelComponent implements OnInit {
         skillID: selectedSkill?.id || undefined,
         userName,
         generateZh: this.generateChinese(),
+        useV2: this.useV2(),
         sceneContext,
       })
       .subscribe({

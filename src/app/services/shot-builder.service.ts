@@ -154,6 +154,7 @@ export class ShotBuilderService {
     userName?: string;
     sceneContext?: SceneContext;
     generateZh?: boolean;
+    useV2?: boolean;
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -195,12 +196,16 @@ export class ShotBuilderService {
       };
     }
 
+    const url = request.useV2
+      ? `${environment.API_URL}/studio/text/claude/generate-shots-v2`
+      : `${environment.API_URL}/studio/text/claude/generate-shots`;
+
     return this.http
       .post<{
         success: boolean;
         data?: { taskId: string; model: string; status: string; text?: string };
         message?: string;
-      }>(`${environment.API_URL}/studio/text/claude/generate-shots`, body)
+      }>(url, body)
       .pipe(
         switchMap((response) => {
           if (!response.success || !response.data) {

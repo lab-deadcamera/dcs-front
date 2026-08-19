@@ -591,6 +591,8 @@
       "DEFAULT_NO_SKILL": "Default (no skill)",
       "GENERATE_ZH": "Generate Chinese prompts ({{ zh }})",
       "ZH_HINT": "When enabled, the shot builder generates both English and Chinese prompts. The language toggle appears on each shot card. When disabled, only English is generated.",
+      "USE_V2": "Skill as behavior (v2)",
+      "USE_V2_HINT": "Uses the structure-only base prompt; the behavior is defined by the selected skill. Requires a skill.",
       "REFERENCES_SECTION": "References [Image]",
       "UNRESOLVED_COUNT": "{{n}} unresolved",
       "VIEW_ASSET_METADATA": "View asset metadata",

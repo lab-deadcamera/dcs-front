@@ -591,6 +591,8 @@
       "DEFAULT_NO_SKILL": "Default (sin skill)",
       "GENERATE_ZH": "Generar prompts en chino ({{ zh }})",
       "ZH_HINT": "Cuando está activado, el Shot Builder genera prompts en inglés y chino. El toggle de idioma aparece en cada tarjeta de shot. Cuando está desactivado, solo se genera en inglés.",
+      "USE_V2": "Skill como comportamiento (v2)",
+      "USE_V2_HINT": "Usa el prompt base de solo estructura; el comportamiento lo define la skill seleccionada. Requiere una skill.",
       "REFERENCES_SECTION": "Referencias [Image]",
       "UNRESOLVED_COUNT": "{{n}} sin resolver",
       "VIEW_ASSET_METADATA": "Ver metadata del asset",

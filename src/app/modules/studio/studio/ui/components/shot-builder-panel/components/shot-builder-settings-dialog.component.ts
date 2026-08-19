@@ -60,7 +60,8 @@ import { SkillService, Skill } from '@app/services/skill.service';
           } @else {
             <p-select
               [options]="skills()"
-              [(ngModel)]="selectedSkillId"
+              [ngModel]="selectedSkillId()"
+              (ngModelChange)="onSkillChange($event)"
               optionLabel="name"
               optionValue="id"
               [style]="{ width: '100%' }"
@@ -68,6 +69,24 @@ import { SkillService, Skill } from '@app/services/skill.service';
               [showClear]="true"
             />
           }
+        </div>
+
+        <!-- Skill-driven behavior (v2) -->
+        <div class="flex items-center gap-3 pt-1">
+          <p-checkbox
+            [binary]="true"
+            [(ngModel)]="useV2"
+            inputId="use-v2-toggle"
+            [disabled]="!selectedSkillId()"
+          />
+          <div class="flex flex-col">
+            <label for="use-v2-toggle" class="cursor-pointer text-[13px] text-fg">
+              {{ 'STUDIO.SHOT_BUILDER.USE_V2' | translate }}
+            </label>
+            <span class="text-[11px] text-fg-muted">
+              {{ 'STUDIO.SHOT_BUILDER.USE_V2_HINT' | translate }}
+            </span>
+          </div>
         </div>
 
         <!-- Chinese toggle -->
@@ -107,21 +126,24 @@ export class ShotBuilderSettingsDialogComponent {
   readonly modelChange = output<string>();
   readonly skillChange = output<string | null>();
   readonly generateChineseChange = output<boolean>();
+  readonly useV2Change = output<boolean>();
 
   protected readonly models = CLAUDE_MODELS;
   protected readonly skills = signal<Skill[]>([]);
   protected readonly skillsLoading = signal(false);
 
   protected selectedModelId = 'claude_opus';
-  protected selectedSkillId: string | null = null;
+  protected readonly selectedSkillId = signal<string | null>(null);
   protected generateChinese = false;
+  protected readonly useV2 = signal(false);
 
   /** Initialize form values when dialog opens. */
   private readonly syncOnOpen = effect(() => {
     if (!this.visible()) return;
     this.selectedModelId = 'claude_opus';
-    this.selectedSkillId = this.studio.selectedSkill()?.id || null;
+    this.selectedSkillId.set(this.studio.selectedSkill()?.id || null);
     this.generateChinese = false;
+    this.useV2.set(false);
 
     this.skillsLoading.set(true);
     this.skillService.list().subscribe((res) => {
@@ -131,6 +153,12 @@ export class ShotBuilderSettingsDialogComponent {
       }
     });
   });
+
+  protected onSkillChange(id: string | null): void {
+    this.selectedSkillId.set(id);
+    // v2 requires a skill — clear the flag when the skill is removed.
+    if (!id) this.useV2.set(false);
+  }
 
   protected apply(): void {
     const model = this.models.find((m) => m.id === this.selectedModelId);
@@ -152,8 +180,8 @@ export class ShotBuilderSettingsDialogComponent {
         provider_name: 'Claude (built-in)',
       };
     }
-    const skill = this.selectedSkillId
-      ? (this.skills().find((s) => s.id === this.selectedSkillId) ?? null)
+    const skill = this.selectedSkillId()
+      ? (this.skills().find((s) => s.id === this.selectedSkillId()) ?? null)
       : null;
     if (skill) {
       this.studio.setSelectedSkill({
@@ -165,8 +193,10 @@ export class ShotBuilderSettingsDialogComponent {
     } else {
       this.studio.setSelectedSkill(null);
       this.skillChange.emit(null);
+      this.useV2.set(false);
     }
     this.generateChineseChange.emit(this.generateChinese);
+    this.useV2Change.emit(this.useV2());
     this.visibleChange.emit(false);
   }
 }
