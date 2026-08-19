@@ -48,6 +48,19 @@ const TOKEN_PATTERN = /\[(image|video|audio)(\d+)\]/gi;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
 
 /**
+ * Replace every occurrence of the exact slot token `oldSlot` (e.g.
+ * "[Image1]", case-insensitive) with `newSlot`. Only full tokens are matched,
+ * so "[Image11]" is never corrupted by a replacement of "[Image1]".
+ */
+export function replaceSlotToken(text: string, oldSlot: string, newSlot: string): string {
+  if (!text || !oldSlot || !newSlot) return text;
+  const m = oldSlot.match(/^\[(image|video|audio)(\d+)\]$/i);
+  if (!m) return text;
+  const re = new RegExp(`\\[${m[1]}${m[2]}\\]`, 'gi');
+  return text.replace(re, newSlot);
+}
+
+/**
  * Distinct [ImageN]/[VideoN]/[AudioN] tokens in `text`, in ORDER OF FIRST
  * APPEARANCE, deduped (case-insensitive). The pre-prompt's first-appearance
  * order is what determines the positional numbering, so the model resolves

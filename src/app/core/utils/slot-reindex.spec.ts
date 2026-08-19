@@ -4,6 +4,7 @@ import {
   buildSlotReferences,
   collectSlotTokensInOrder,
   reindexSlotTokens,
+  replaceSlotToken,
 } from './slot-reindex';
 
 function used(overrides: Partial<UsedAsset>): UsedAsset {
@@ -151,5 +152,30 @@ describe('buildSlotReferences', () => {
     // first frame occupies image position 1, so the used asset is position 2.
     const text = reindexSlotTokens('[Image3]', refs);
     expect(text).toBe('[Image2]');
+  });
+});
+
+describe('replaceSlotToken', () => {
+  it('replaces every occurrence of the exact token', () => {
+    expect(replaceSlotToken('Mira a [Image1] y luego a [Image1] otra vez', '[Image1]', '[Image5]')).toBe(
+      'Mira a [Image5] y luego a [Image5] otra vez',
+    );
+  });
+
+  it('matches case-insensitively', () => {
+    expect(replaceSlotToken('plano [image1] final', '[Image1]', '[Image2]')).toBe(
+      'plano [Image2] final',
+    );
+  });
+
+  it('does not corrupt tokens with more digits ([Image11])', () => {
+    expect(replaceSlotToken('[Image1] y [Image11]', '[Image1]', '[Image5]')).toBe(
+      '[Image5] y [Image11]',
+    );
+  });
+
+  it('is a no-op without a valid old slot', () => {
+    expect(replaceSlotToken('hola [Image1]', 'no-slot', '[Image5]')).toBe('hola [Image1]');
+    expect(replaceSlotToken('hola [Image1]', '[Image1]', '')).toBe('hola [Image1]');
   });
 });

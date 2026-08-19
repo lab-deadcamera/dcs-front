@@ -56,9 +56,16 @@ import { CharactersService } from '@app/modules/characters/characters/services';
     <div class="ref-resolver">
       <!-- Header + unresolved badge -->
       <div class="ref-header">
-        <span class="section-tag ref-title">{{ 'STUDIO.SHOT_BUILDER.REFERENCES_SECTION' | translate }}</span>
+        <span class="section-tag ref-title">{{
+          'STUDIO.SHOT_BUILDER.REFERENCES_SECTION' | translate
+        }}</span>
         @if (unresolved().length > 0) {
-          <span class="ref-badge" [attr.title]="'STUDIO.SHOT_BUILDER.UNRESOLVED_COUNT' | translate: { n: unresolved().length }">
+          <span
+            class="ref-badge"
+            [attr.title]="
+              'STUDIO.SHOT_BUILDER.UNRESOLVED_COUNT' | translate: { n: unresolved().length }
+            "
+          >
             {{ 'STUDIO.SHOT_BUILDER.UNRESOLVED_COUNT' | translate: { n: unresolved().length } }}
           </span>
         }
@@ -113,7 +120,12 @@ import { CharactersService } from '@app/modules/characters/characters/services';
       <p-popover #assignPopover [dismissable]="true" styleClass="asset-popover-z">
         @if (assignTarget(); as target) {
           <div class="ref-assign-popover">
-            <p class="ref-popover-title" [innerHTML]="'STUDIO.SHOT_BUILDER.ASSIGN_ASSET_TO_SLOT' | translate: { slot: target.slot }"></p>
+            <p
+              class="ref-popover-title"
+              [innerHTML]="
+                'STUDIO.SHOT_BUILDER.ASSIGN_ASSET_TO_SLOT' | translate: { slot: target.slot }
+              "
+            ></p>
 
             <!-- Library resources (Characters library) — pick a character,
                  location, prop or audio and assign it to this slot. -->
@@ -130,19 +142,19 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                 />
               </div>
               <div class="ref-lib-tabs">
-                  @for (t of libTabs; track t.id) {
-                    <button
-                      type="button"
-                      class="ref-lib-tab"
-                      [class.on]="activeLibType() === t.id"
-                      (click)="activeLibType.set(t.id)"
-                      [attr.aria-pressed]="activeLibType() === t.id"
-                    >
-                      {{ t.labelKey | translate }}
-                      <span class="ref-lib-count">{{ libraryByType()[t.id].length }}</span>
-                    </button>
-                  }
-                </div>
+                @for (t of libTabs; track t.id) {
+                  <button
+                    type="button"
+                    class="ref-lib-tab"
+                    [class.on]="activeLibType() === t.id"
+                    (click)="activeLibType.set(t.id)"
+                    [attr.aria-pressed]="activeLibType() === t.id"
+                  >
+                    {{ t.labelKey | translate }}
+                    <span class="ref-lib-count">{{ libraryByType()[t.id].length }}</span>
+                  </button>
+                }
+              </div>
 
               <div class="ref-lib-grid">
                 @for (r of pagedLibrary(); track r.id) {
@@ -180,11 +192,21 @@ import { CharactersService } from '@app/modules/characters/characters/services';
               }
               @if (libTotalPages() > 1) {
                 <div class="ref-pagination">
-                  <button type="button" class="ref-page-btn" [disabled]="libPage() === 0" (click)="libGoPrev()">
+                  <button
+                    type="button"
+                    class="ref-page-btn"
+                    [disabled]="libPage() === 0"
+                    (click)="libGoPrev()"
+                  >
                     <i class="pi pi-chevron-left" aria-hidden="true"></i>
                   </button>
                   <span class="ref-page-info">{{ libPage() + 1 }} / {{ libTotalPages() }}</span>
-                  <button type="button" class="ref-page-btn" [disabled]="libPage() >= libTotalPages() - 1" (click)="libGoNext(libraryByType()[activeLibType()].length)">
+                  <button
+                    type="button"
+                    class="ref-page-btn"
+                    [disabled]="libPage() >= libTotalPages() - 1"
+                    (click)="libGoNext(libraryByType()[activeLibType()].length)"
+                  >
                     <i class="pi pi-chevron-right" aria-hidden="true"></i>
                   </button>
                 </div>
@@ -193,7 +215,9 @@ import { CharactersService } from '@app/modules/characters/characters/services';
 
             <!-- Episode assignments: chapter characters + free assets -->
             <div class="ref-episode-head">
-              <span class="ref-episode-label">{{ 'STUDIO.SHOT_BUILDER.EPISODE_LABEL' | translate }}</span>
+              <span class="ref-episode-label">{{
+                'STUDIO.SHOT_BUILDER.EPISODE_LABEL' | translate
+              }}</span>
               @if (episodeResources().length > 0) {
                 <input
                   type="text"
@@ -235,17 +259,31 @@ import { CharactersService } from '@app/modules/characters/characters/services';
                         ></i>
                       </div>
                     }
-                    <span class="ref-asset-slot">{{ r.slot || ('STUDIO.SHOT_BUILDER.NO_SLOT' | translate) }}</span>
+                    <span class="ref-asset-slot">{{
+                      r.slot || ('STUDIO.SHOT_BUILDER.NO_SLOT' | translate)
+                    }}</span>
                   </button>
                 }
               </div>
               @if (episodeTotalPages() > 1) {
                 <div class="ref-pagination">
-                  <button type="button" class="ref-page-btn" [disabled]="episodePage() === 0" (click)="episodeGoPrev()">
+                  <button
+                    type="button"
+                    class="ref-page-btn"
+                    [disabled]="episodePage() === 0"
+                    (click)="episodeGoPrev()"
+                  >
                     <i class="pi pi-chevron-left" aria-hidden="true"></i>
                   </button>
-                  <span class="ref-page-info">{{ episodePage() + 1 }} / {{ episodeTotalPages() }}</span>
-                  <button type="button" class="ref-page-btn" [disabled]="episodePage() >= episodeTotalPages() - 1" (click)="episodeGoNext(filteredEpisodeResources().length)">
+                  <span class="ref-page-info"
+                    >{{ episodePage() + 1 }} / {{ episodeTotalPages() }}</span
+                  >
+                  <button
+                    type="button"
+                    class="ref-page-btn"
+                    [disabled]="episodePage() >= episodeTotalPages() - 1"
+                    (click)="episodeGoNext(filteredEpisodeResources().length)"
+                  >
                     <i class="pi pi-chevron-right" aria-hidden="true"></i>
                   </button>
                 </div>
@@ -283,7 +321,12 @@ import { CharactersService } from '@app/modules/characters/characters/services';
       <p-popover #infoPopover [dismissable]="true" styleClass="asset-popover-z">
         @if (infoTarget(); as ref) {
           <div class="ref-info-popover">
-            <p class="ref-popover-title" [innerHTML]="'STUDIO.SHOT_BUILDER.REFERENCE_SLOT_TITLE' | translate: { slot: ref.slot }"></p>
+            <p
+              class="ref-popover-title"
+              [innerHTML]="
+                'STUDIO.SHOT_BUILDER.REFERENCE_SLOT_TITLE' | translate: { slot: ref.slot }
+              "
+            ></p>
 
             @if (resolvedInfoFor(ref); as info) {
               @if (info.fileKind === 'image' && info.fileId && !isThumbBroken(info.fileId)) {
@@ -829,6 +872,15 @@ export class ShotReferenceResolverComponent {
    *  validation. */
   readonly assignedSlotsChange = output<Set<string>>();
 
+  /** Emitted when the user picks an episode resource for a reference slot.
+   *  The viewer uses this to update the specific shot's reference assetId
+   *  without backend calls. `resource.slot` is the selected resource's own
+   *  [ImageN] slot, used to replace the ref's current slot. */
+  readonly resourceAssigned = output<{
+    ref: Reference;
+    resource: { id: string; name: string; slot?: string };
+  }>();
+
   protected readonly studio = inject(StudioStore);
   private readonly projectsApi = inject(ProjectsApiService);
   private readonly filesApi = inject(FilesApiService);
@@ -925,7 +977,10 @@ export class ShotReferenceResolverComponent {
   });
 
   protected readonly libTotalPages = computed(() => {
-    return Math.max(1, Math.ceil(this.libraryByType()[this.activeLibType()].length / this.pageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.libraryByType()[this.activeLibType()].length / this.pageSize),
+    );
   });
 
   /** Episode resources filtered by search, then sliced to the current page. */
@@ -1005,9 +1060,13 @@ export class ShotReferenceResolverComponent {
 
   /** Assign an episode resource to a ref slot locally — no backend calls.
    *  Replaces the usedAsset file for that slot so the prompt uses the
-   *  correct asset, and marks the slot as resolved. */
+   *  correct asset, and marks the slot as resolved. When the selected
+   *  resource carries its own [ImageN] slot, that slot becomes the ref's new
+   *  slot (the current one is replaced both in the refs and in the prompt). */
   protected assignEpisodeResource(r: EpisodeResource, slot: string): void {
+    const newSlot = r.slot || slot;
     const existing = this.studio.usedAssets().find((a) => a.slot === slot);
+    console.log({ assignEpisodeResource: { r, slot, newSlot, existing } });
     if (existing) {
       this.studio.replaceUsedAsset(existing.fileId, {
         fileId: r.fileId || r.id,
@@ -1015,9 +1074,10 @@ export class ShotReferenceResolverComponent {
         name: r.name,
         filename: r.name,
         kind: r.kind,
-        slot,
+        slot: newSlot,
       });
     }
+    this.resourceAssigned.emit({ ref: this.assignTarget()!, resource: r });
     this.markAssigned(slot);
     this.assignPopover.hide();
   }
@@ -1122,7 +1182,12 @@ export class ShotReferenceResolverComponent {
               this.toast.add({
                 severity: 'error',
                 summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
-                detail: r.msg || this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: res.name, slot }),
+                detail:
+                  r.msg ||
+                  this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', {
+                    name: res.name,
+                    slot,
+                  }),
               });
               return;
             }
@@ -1132,14 +1197,20 @@ export class ShotReferenceResolverComponent {
             this.toast.add({
               severity: 'success',
               summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_RESOURCE_ASSIGNED'),
-              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_RESOURCE_ASSIGNED_DETAIL', { name: res.name, slot }),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_RESOURCE_ASSIGNED_DETAIL', {
+                name: res.name,
+                slot,
+              }),
             });
           },
           error: () => {
             this.toast.add({
               severity: 'error',
               summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
-              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: res.name, slot }),
+              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', {
+                name: res.name,
+                slot,
+              }),
             });
           },
         });
@@ -1163,7 +1234,9 @@ export class ShotReferenceResolverComponent {
       if (s === slot) {
         const assignmentId = this.studio.chapterAssetAssignmentIds().get(fileId);
         if (assignmentId) {
-          removals.push(this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId));
+          removals.push(
+            this.projectsApi.removeAssetFromChapter(projectId, chapterId, assignmentId),
+          );
         }
       }
     }
@@ -1221,7 +1294,9 @@ export class ShotReferenceResolverComponent {
   }
 
   /** File shown in the full-screen viewer (same component as Files / shot builder). */
-  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(
+    null,
+  );
   /** Whether the full-screen viewer dialog is open. */
   protected readonly viewerVisible = signal(false);
 
@@ -1267,30 +1342,31 @@ export class ShotReferenceResolverComponent {
 
     // Reassign: remove the old assignment (by its row id) when it has a slot.
     const assign = (): void => {
-      this.projectsApi
-        .assignAssetToChapter(projectId, chapterId, fileId, slot)
-        .subscribe({
-          next: (res) => {
-            if (res?.data?.id) {
-              this.studio.registerChapterAssetAssignment(fileId, res.data.id);
-            }
-            this.markAssigned(slot);
-            this.refreshAssignments(projectId, chapterId);
-            this.assignPopover.hide();
-            this.toast.add({
-              severity: 'success',
-              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS'),
-              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS_DETAIL', { fileId, slot }),
-            });
-          },
-          error: () => {
-            this.toast.add({
-              severity: 'error',
-              summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
-              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_ASSET_FAILED', { slot }),
-            });
-          },
-        });
+      this.projectsApi.assignAssetToChapter(projectId, chapterId, fileId, slot).subscribe({
+        next: (res) => {
+          if (res?.data?.id) {
+            this.studio.registerChapterAssetAssignment(fileId, res.data.id);
+          }
+          this.markAssigned(slot);
+          this.refreshAssignments(projectId, chapterId);
+          this.assignPopover.hide();
+          this.toast.add({
+            severity: 'success',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS'),
+            detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSET_ASSIGNED_SUCCESS_DETAIL', {
+              fileId,
+              slot,
+            }),
+          });
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+            detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_ASSET_FAILED', { slot }),
+          });
+        },
+      });
     };
 
     // Clear any OTHER occupant of the target slot first, then move the picked
@@ -1354,56 +1430,59 @@ export class ShotReferenceResolverComponent {
         continue;
       }
 
-      this.filesApi
-        .upload({ file: f, category, storage: 'persistent' })
-        .subscribe({
-          next: (up) => {
-            if (up.error || !up.data) {
-              this.toast.add({ severity: 'error', summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_ERROR'), detail: up.msg });
-              done();
-              return;
-            }
-            const fileId = up.data.id;
-            this.studio.addFreeAsset({
-              id: fileId,
-              kind: inferKind(f),
-              filename: up.data.filename,
-              thumbnailUrl: this.filesApi.serveUrl(fileId),
-              tag: '',
-              slot: 'free',
-            });
-            if (projectId && chapterId) {
-              this.projectsApi
-                .assignAssetToChapter(projectId, chapterId, fileId, slot)
-                .subscribe({
-                  next: (res) => {
-                    if (res?.data?.id) {
-                      this.studio.registerChapterAssetAssignment(fileId, res.data.id);
-                    }
-                    this.markAssigned(slot);
-                    this.refreshAssignments(projectId, chapterId);
-                  },
-                  error: () =>
-                    this.toast.add({
-                      severity: 'error',
-                      summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
-                      detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', { name: f.name, slot }),
-                    }),
-                  complete: () => done(),
-                });
-            } else {
-              done();
-            }
-          },
-          error: () => {
+      this.filesApi.upload({ file: f, category, storage: 'persistent' }).subscribe({
+        next: (up) => {
+          if (up.error || !up.data) {
             this.toast.add({
               severity: 'error',
               summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_ERROR'),
-              detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_FAILED', { name: f.name }),
+              detail: up.msg,
             });
             done();
-          },
-        });
+            return;
+          }
+          const fileId = up.data.id;
+          this.studio.addFreeAsset({
+            id: fileId,
+            kind: inferKind(f),
+            filename: up.data.filename,
+            thumbnailUrl: this.filesApi.serveUrl(fileId),
+            tag: '',
+            slot: 'free',
+          });
+          if (projectId && chapterId) {
+            this.projectsApi.assignAssetToChapter(projectId, chapterId, fileId, slot).subscribe({
+              next: (res) => {
+                if (res?.data?.id) {
+                  this.studio.registerChapterAssetAssignment(fileId, res.data.id);
+                }
+                this.markAssigned(slot);
+                this.refreshAssignments(projectId, chapterId);
+              },
+              error: () =>
+                this.toast.add({
+                  severity: 'error',
+                  summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED'),
+                  detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_ASSIGN_FAILED_DETAIL', {
+                    name: f.name,
+                    slot,
+                  }),
+                }),
+              complete: () => done(),
+            });
+          } else {
+            done();
+          }
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_ERROR'),
+            detail: this.i18n.instant('STUDIO.SHOT_BUILDER.TOAST_UPLOAD_FAILED', { name: f.name }),
+          });
+          done();
+        },
+      });
     }
   }
 

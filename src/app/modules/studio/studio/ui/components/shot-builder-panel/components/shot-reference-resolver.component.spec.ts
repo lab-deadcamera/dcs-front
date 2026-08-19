@@ -8,6 +8,7 @@ import { ProjectsApiService } from '@app/modules/projects/projects/services/proj
 import { FilesApiService } from '@app/services/files-api.service';
 import { CharactersService } from '@app/modules/characters/characters/services';
 import { MessageService } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 import { Reference } from '@app/core/interfaces';
 import type { ShotReferenceResolverComponent } from './shot-reference-resolver.component';
 
@@ -25,6 +26,8 @@ class StudioStoreStub {
   readonly addFreeAsset = vi.fn();
   readonly registerChapterAssetAssignment = vi.fn();
   readonly setChapterAssignments = vi.fn();
+  readonly usedAssets = vi.fn().mockReturnValue([]);
+  readonly replaceUsedAsset = vi.fn();
 }
 
 @Injectable()
@@ -77,6 +80,7 @@ describe('ShotReferenceResolverComponent', () => {
         { provide: FilesApiService, useClass: FilesApiServiceStub },
         { provide: CharactersService, useClass: CharactersServiceStub },
         { provide: MessageService, useValue: { add: vi.fn() } },
+        { provide: TranslateService, useValue: { instant: (k: string) => k } },
       ],
     })
       .overrideComponent(ComponentClass, {
@@ -183,5 +187,29 @@ describe('ShotReferenceResolverComponent', () => {
     );
     expect(projects.assignAssetToChapter).toHaveBeenCalledWith('proj-1', 'chap-1', 'file-9', '[Image5]');
     expect(projects.getChapterAssignments).toHaveBeenCalled();
+  });
+
+  it('emite resourceAssigned con el slot del recurso del episodio al asignar desde "Del episodio"', () => {
+    const ref = makeRef({ slot: '[Image1]', assetId: 'missing' });
+    const payloads: any[] = [];
+    (component as any).resourceAssigned.subscribe((p: any) => payloads.push(p));
+    (component as any).assignTarget.set(ref);
+
+    (component as any).assignEpisodeResource(
+      {
+        id: 'char-clara',
+        name: 'Clara',
+        fileId: 'file-clara',
+        slot: '[Image5]',
+        kind: 'image',
+        isCharacter: true,
+      },
+      ref.slot,
+    );
+
+    expect(payloads).toHaveLength(1);
+    expect(payloads[0].ref.slot).toBe('[Image1]');
+    expect(payloads[0].resource.id).toBe('char-clara');
+    expect(payloads[0].resource.slot).toBe('[Image5]');
   });
 });
