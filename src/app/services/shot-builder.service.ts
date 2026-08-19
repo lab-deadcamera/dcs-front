@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
-import { catchError, finalize, map, of, throwError } from 'rxjs';
+import { catchError, finalize, map, Observable, of, switchMap, throwError, timer } from 'rxjs';
 import {
   AspectRatio,
   DirectorNotes,
@@ -14,6 +14,11 @@ import {
   ShotNotes,
 } from '@app/core/interfaces';
 import { CONSOLE } from '@app/shared/utils';
+
+/** Poll interval (ms) for the async generate-shots task. */
+const GENERATE_SHOTS_POLL_INTERVAL_MS = 5000;
+/** Hard bound on how long the UI keeps polling before giving up. */
+const GENERATE_SHOTS_POLL_TIMEOUT_MS = 45 * 60 * 1000;
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -197,11 +202,17 @@ export class ShotBuilderService {
         message?: string;
       }>(`${environment.API_URL}/studio/text/claude/generate-shots`, body)
       .pipe(
-        map((response) => {
+        switchMap((response) => {
           if (!response.success || !response.data) {
             throw new Error(response.message || 'Failed to generate shots');
           }
-          return this.parseShotsResponse(response.data);
+          const data = response.data;
+          // The backend answers immediately with a taskId in "processing" and
+          // produces the breakdown in the background, so poll until it is done.
+          if (data.status !== 'processing') {
+            return of(this.parseShotsResponse(data));
+          }
+          return this.pollShotsStatus(data.taskId);
         }),
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not generate shot list';
@@ -527,6 +538,50 @@ export class ShotBuilderService {
   }
 
   // ── Private helpers ───────────────────────────────────────────────
+
+  /**
+   * Poll the async generate-shots task until it reaches a terminal state:
+   * "succeeded" parses the clean JSON, "failed" surfaces the backend error.
+   * Bounded by GENERATE_SHOTS_POLL_TIMEOUT_MS so a dead task cannot leave the
+   * UI loading forever.
+   */
+  private pollShotsStatus(taskId: string): Observable<ShotBuilderResult> {
+    const deadline = Date.now() + GENERATE_SHOTS_POLL_TIMEOUT_MS;
+
+    const pollOnce = (): Observable<ShotBuilderResult> =>
+      this.http
+        .get<{
+          success: boolean;
+          data?: {
+            taskId: string;
+            model: string;
+            status: string;
+            text?: string;
+            error?: string;
+          };
+          message?: string;
+        }>(`${environment.API_URL}/studio/text/claude/generate-shots/status/${taskId}`)
+        .pipe(
+          switchMap((response) => {
+            if (!response.success || !response.data) {
+              throw new Error(response.message || 'Failed to check generation status');
+            }
+            const data = response.data;
+            if (data.status === 'succeeded') {
+              return of(this.parseShotsResponse(data));
+            }
+            if (data.status === 'failed') {
+              throw new Error(data.error || 'Shot generation failed');
+            }
+            if (Date.now() >= deadline) {
+              throw new Error('Shot generation timed out');
+            }
+            return timer(GENERATE_SHOTS_POLL_INTERVAL_MS).pipe(switchMap(() => pollOnce()));
+          }),
+        );
+
+    return pollOnce();
+  }
 
   private parseShotsResponse(data: {
     taskId: string;
