@@ -50,6 +50,7 @@ interface PreviewScene {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="viewer h-full overflow-y-auto" *ngIf="sequence() as seq">
+      <div class="hazard" aria-hidden="true"></div>
       <!-- Header -->
       <header class="viewer-header">
         <div class="eyebrow">
@@ -160,7 +161,7 @@ interface PreviewScene {
         <div class="scenes-accordion">
           @for (scene of seq.scenes; track scene.scriptNumber; let si = $index) {
             @let sceneShots = shotsForScene(scene);
-            <details class="scene-block" [open]="si === 0">
+            <details class="scene-block" [open]="si === 0" [style.--ac]="sceneColorFor(scene)">
               <summary class="scene-summary">
                 <div class="scene-title">
                   <span class="scene-n">#{{ scene.scriptNumber }}</span>
@@ -404,123 +405,164 @@ interface PreviewScene {
   `,
   styles: [
     `
+      :host {
+        --void: #050505;
+        --deep: #0a0a0a;
+        --plate: #0d0d0d;
+        --plate2: #121212;
+        --inset: #080808;
+        --line: #242200;
+        --line2: #3a3800;
+        --ink: #e8e8e0;
+        --dim: #8a8a7a;
+        --faint: #55554a;
+        --hud: #00e0ff;
+        --blade: #ff003c;
+        --alert: #ff6b1a;
+        --acid: #a6ff00;
+        --gold: #fcee0a;
+        --mono: 'Share Tech Mono', ui-monospace, Menlo, monospace;
+        --disp: 'Rajdhani', 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+        --tech: 'Chakra Petch', 'Share Tech Mono', ui-sans-serif, sans-serif;
+        --sk: -11deg;
+        display: block;
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.62;
+        background: radial-gradient(1100px 560px at 12% -10%, rgba(252, 238, 10, 0.07), transparent 60%),
+          radial-gradient(900px 480px at 95% 2%, rgba(255, 0, 60, 0.06), transparent 62%),
+          linear-gradient(180deg, #080b0e, var(--void) 40%);
+      }
       .viewer {
         max-width: 1080px;
         margin: 0 auto;
         padding: 1rem clamp(14px, 4vw, 40px) 40px;
+        position: relative;
       }
-
+      .hazard {
+        height: 6px;
+        margin-bottom: 20px;
+        background: repeating-linear-gradient(45deg, var(--gold) 0 9px, #000 9px 18px);
+        border-top: 1px solid var(--line2);
+      }
       .viewer-header {
-        border-bottom: 1px solid var(--line, #1e3133);
-        padding-bottom: 26px;
-        margin-bottom: 30px;
+        margin-bottom: 26px;
       }
-
       .eyebrow {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
         letter-spacing: 0.34em;
         text-transform: uppercase;
-        color: var(--teal, #4fb0b5);
+        color: var(--gold);
         display: flex;
         gap: 14px;
         align-items: center;
         flex-wrap: wrap;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
       .eyebrow .dot {
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        background: var(--amber, #e0a95c);
-        box-shadow: 0 0 10px var(--amber, #e0a95c);
+        background: var(--gold);
+        box-shadow: 0 0 10px var(--gold);
       }
       .eyebrow .sep {
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
       }
-
       h1 {
-        font-weight: 900;
-        font-size: clamp(30px, 6.2vw, 58px);
-        line-height: 0.96;
-        letter-spacing: -0.02em;
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: clamp(32px, 6.4vw, 60px);
+        line-height: 0.94;
+        letter-spacing: 0.005em;
         text-transform: uppercase;
-        color: var(--ink, #ece6d8);
+        color: #eef4f8;
+        margin: 0 0 10px;
+        transform: skewX(var(--sk));
+        transform-origin: left;
+        text-shadow: 1.5px 0 var(--hud), -1.5px 0 var(--blade), 0 0 30px rgba(252, 238, 10, 0.25);
       }
       h1 .scene {
         display: block;
-        color: var(--amber, #e0a95c);
-        font-size: 0.5em;
-        letter-spacing: 0.01em;
-        margin-top: 10px;
+        color: var(--dim);
+        font-size: 0.46em;
+        letter-spacing: 0.03em;
+        margin-top: 4px;
         font-weight: 700;
+        text-shadow: none;
       }
-
       .subline {
-        color: var(--ink-dim, #9aa6a3);
-        margin-top: 14px;
-        font-size: 14px;
-        max-width: 64ch;
+        font-family: var(--tech);
+        font-size: 12.5px;
+        color: var(--dim);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 22px;
       }
       .runline {
         display: flex;
-        gap: 10px;
-        align-items: baseline;
         flex-wrap: wrap;
-        margin-top: 22px;
-        font-family: 'JetBrains Mono', monospace;
+        gap: 8px;
       }
       .runline .big {
-        font-size: clamp(26px, 5vw, 38px);
+        font-family: var(--disp);
         font-weight: 700;
-        color: var(--ink, #ece6d8);
+        font-size: 44px;
+        line-height: 0.9;
+        color: var(--gold);
+        text-shadow: 0 0 14px rgba(252, 238, 10, 0.35);
+        transform: skewX(var(--sk));
       }
-      .runline .cap {
-        font-size: 15px;
-        color: var(--ink-faint, #6a7977);
-      }
-      .runline .slack {
-        font-size: 12px;
-        color: var(--teal, #4fb0b5);
-        border: 1px solid var(--teal-deep, #2f6e72);
-        border-radius: 100px;
-        padding: 3px 11px;
-        letter-spacing: 0.06em;
-      }
+      .runline .cap,
+      .runline .slack,
       .runline .count {
-        font-size: 12px;
-        color: var(--ink-dim, #9aa6a3);
-        letter-spacing: 0.18em;
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-end;
+        margin-bottom: 6px;
+        border: 1px solid var(--line2);
+        background: linear-gradient(180deg, var(--plate2), var(--plate));
+        padding: 5px 13px;
+        font-family: var(--tech);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--dim);
         text-transform: uppercase;
       }
-
+      .runline .slack {
+        border-color: color-mix(in srgb, var(--hud) 45%, var(--line2));
+        color: var(--hud);
+      }
+      .runline .count {
+        color: var(--faint);
+      }
       .refine-banner {
         display: flex;
         align-items: center;
         gap: 12px;
         flex-wrap: wrap;
-        background: rgba(224, 169, 92, 0.08);
-        border: 1px solid rgba(224, 169, 92, 0.35);
-        border-left: 2px solid var(--amber, #e0a95c);
-        border-radius: 3px;
-        padding: 10px 14px;
+        border: 1px solid color-mix(in srgb, #ff1a8c 40%, var(--line2));
+        background: linear-gradient(180deg, color-mix(in srgb, #ff1a8c 5%, transparent), transparent 65%);
+        border-left: 3px solid #ff1a8c;
+        padding: 12px 16px;
         margin-bottom: 24px;
       }
       .refine-tag {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 10px;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        color: var(--amber, #e0a95c);
+        color: #ff1a8c;
         white-space: nowrap;
         font-weight: 700;
       }
       .refine-text {
         font-size: 13px;
-        color: var(--ink-dim, #9aa6a3);
-        line-height: 1.5;
+        color: var(--dim);
+        line-height: 1.55;
       }
-
       .meta-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -533,31 +575,37 @@ interface PreviewScene {
         }
       }
       .card-flat {
-        background: var(--panel, #121f21);
-        border: 1px solid var(--line, #1e3133);
-        border-radius: 3px;
+        position: relative;
+        background: linear-gradient(180deg, var(--plate2), var(--plate));
+        border: 1px solid var(--line2);
         padding: 18px 20px;
       }
+      .card-flat::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--gold), transparent 74%);
+      }
       .card-flat h3 {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        color: var(--teal, #4fb0b5);
+        color: var(--gold);
         margin-bottom: 14px;
         font-weight: 700;
       }
-      .card-flat.f2f {
-        border-left: 2px solid var(--ember, #e0653c);
+      .card-flat.f2f::before {
+        background: linear-gradient(180deg, var(--alert), transparent 74%);
       }
       .card-flat.f2f p {
         font-size: 13.5px;
-        color: var(--ink-dim, #9aa6a3);
-        line-height: 1.55;
-      }
-      .card-flat.f2f p b {
-        color: var(--ink, #ece6d8);
-        font-weight: 600;
+        color: var(--dim);
+        line-height: 1.6;
+        margin: 0;
       }
       .chips {
         display: flex;
@@ -565,73 +613,79 @@ interface PreviewScene {
         gap: 7px;
       }
       .chip {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
-        color: var(--ink-dim, #9aa6a3);
-        border: 1px solid var(--line, #1e3133);
-        background: var(--bg2, #0f1a1c);
-        border-radius: 100px;
-        padding: 4px 11px;
+        color: var(--dim);
+        border: 1px solid var(--line2);
+        background: var(--inset);
+        padding: 5px 12px;
+        transform: skewX(var(--sk));
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
       }
       .chip b {
-        color: var(--ink, #ece6d8);
-        font-weight: 500;
+        color: var(--gold);
+        font-weight: 600;
       }
-
       .warnings-block {
-        margin: 10px 0;
+        margin: 10px 0 20px;
       }
       .warning-item {
         font-size: 13px;
-        color: var(--ink-dim, #9aa6a3);
+        color: var(--dim);
         padding: 4px 0;
       }
-
-      .refs-summary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 14px;
+      .warning-item::marker {
+        color: var(--alert);
       }
-
       .section-tag {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
-        letter-spacing: 0.28em;
+        letter-spacing: 0.3em;
         text-transform: uppercase;
-        color: var(--ink-faint, #6a7977);
+        color: var(--gold);
         margin: 40px 0 16px;
         display: flex;
         align-items: center;
         gap: 14px;
+        font-weight: 700;
       }
       .section-tag::after {
         content: '';
         flex: 1;
         height: 1px;
-        background: var(--line, #1e3133);
+        background: linear-gradient(90deg, var(--line2), transparent);
       }
-
       .shots-list {
         display: flex;
         flex-direction: column;
       }
-
-      /* ── Per-scene accordion ─────────────────────────────── */
       .scenes-accordion {
         display: flex;
         flex-direction: column;
       }
       .scene-block {
-        background: linear-gradient(180deg, var(--panel, #121f21), var(--bg2, #0f1a1c));
-        border: 1px solid var(--line, #1e3133);
-        border-radius: 3px;
-        margin-bottom: 18px;
+        position: relative;
+        margin-bottom: 20px;
+        background: var(--plate);
+        border: 1px solid var(--line);
+        border-radius: 0;
+        clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
         overflow: hidden;
         scroll-margin-top: 18px;
       }
+      .scene-block::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--ac, var(--gold)), transparent 74%);
+        z-index: 1;
+      }
       .scene-block[open] .scene-summary {
-        border-bottom: 1px solid var(--line, #1e3133);
+        border-bottom: 1px solid var(--line);
       }
       .scene-summary {
         display: flex;
@@ -639,7 +693,7 @@ interface PreviewScene {
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
-        padding: 14px 18px;
+        padding: 15px 20px;
         cursor: pointer;
         list-style: none;
         user-select: none;
@@ -648,62 +702,66 @@ interface PreviewScene {
         display: none;
       }
       .scene-summary:hover {
-        background: rgba(79, 176, 181, 0.05);
+        background: rgba(252, 238, 10, 0.04);
       }
       .scene-summary:focus-visible {
-        outline: 2px solid var(--teal, #4fb0b5);
+        outline: 2px solid var(--ac, var(--gold));
         outline-offset: -2px;
       }
       .scene-title {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
         min-width: 0;
       }
       .scene-n {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--disp);
         font-weight: 700;
-        font-size: 16px;
+        font-size: 22px;
         line-height: 1;
-        color: var(--ink, #ece6d8);
+        color: var(--ac, var(--gold));
+        transform: skewX(var(--sk));
+        transform-origin: left;
       }
       .scene-loc {
-        font-size: 13px;
-        color: var(--ink-dim, #9aa6a3);
+        font-family: var(--tech);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dim);
       }
       .scene-type {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 10px;
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        padding: 3px 8px;
-        border-radius: 100px;
-        color: #0c1315;
-        background: var(--amber, #e0a95c);
+        padding: 3px 9px;
+        color: #06080a;
+        background: var(--ac, var(--gold));
         white-space: nowrap;
       }
       .scene-meta {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
       .scene-dur {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
+        font-family: var(--disp);
+        font-size: 20px;
         font-weight: 700;
-        color: var(--amber, #e0a95c);
+        color: var(--ac, var(--gold));
       }
       .scene-count {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 10.5px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
       }
       .scene-chevron {
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
         font-size: 12px;
         transition: transform 0.15s ease;
       }
@@ -711,103 +769,95 @@ interface PreviewScene {
         transform: rotate(180deg);
       }
       .scene-block .shots-list {
-        padding: 16px 18px 0;
+        padding: 18px 20px 0;
       }
       .scene-block .shots-list app-shot-card-preview:last-child {
-        margin-bottom: 16px;
+        margin-bottom: 18px;
       }
-
       .note {
         margin-top: 36px;
-        background: var(--panel2, #16282a);
-        border: 1px solid var(--line, #1e3133);
-        border-left: 2px solid var(--amber, #e0a95c);
-        border-radius: 3px;
+        background: var(--plate);
+        border: 1px solid var(--line);
+        border-left: 2px solid var(--gold);
         padding: 22px clamp(18px, 3vw, 26px);
       }
       .note h3 {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: var(--amber, #e0a95c);
+        color: var(--gold);
         margin-bottom: 14px;
       }
       .note p {
         font-size: 14px;
-        color: var(--ink-dim, #9aa6a3);
+        color: var(--dim);
         line-height: 1.6;
       }
-
       .viewer-footer {
         margin-top: 42px;
         text-align: center;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
       }
-
       .cut {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 11px;
-        color: var(--ink, #ece6d8);
-        background: var(--bg2, #0f1a1c);
-        border: 1px solid var(--line, #1e3133);
-        border-radius: 3px;
+        color: var(--ink);
+        background: var(--inset);
+        border: 1px solid var(--line2);
         padding: 3px 9px;
       }
       .cut em {
-        color: var(--amber, #e0a95c);
+        color: var(--gold);
         font-style: normal;
         font-weight: 700;
       }
-
-      /* ── Summary ──────────────────────────────────────── */
       .summary {
-        margin-top: 20px;
-        border-top: 1px solid var(--line, #1e3133);
-        padding-top: 10px;
+        margin-top: 24px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
       }
       .summary-grid {
         display: flex;
         flex-direction: column;
         gap: 0;
         margin-bottom: 22px;
-        border: 1px solid var(--line, #1e3133);
-        border-radius: 3px;
-        overflow: hidden;
+        border: 1px solid var(--line2);
+        background: var(--inset);
       }
       .summary-row {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 8px 14px;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--mono);
         font-size: 11.5px;
-        border-bottom: 1px solid var(--line, #1e3133);
-        background: var(--panel, #121f21);
+        border-bottom: 1px solid var(--line);
+        background: var(--plate);
       }
       .summary-row:last-child {
         border-bottom: none;
       }
       .summary-row.summary-approved {
-        background: rgba(95, 185, 143, 0.06);
-        border-left: 2px solid #5fb98f;
+        background: rgba(166, 255, 0, 0.06);
+        border-left: 2px solid var(--acid);
       }
       .summary-row.summary-unapproved {
         opacity: 0.5;
       }
       .summary-approved-count {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 10.5px;
         letter-spacing: 0.1em;
-        color: #5fb98f;
-        border: 1px solid rgba(95, 185, 143, 0.4);
-        border-radius: 100px;
+        color: var(--acid);
+        border: 1px solid color-mix(in srgb, var(--acid) 40%, transparent);
         padding: 2px 10px;
         white-space: nowrap;
+        text-transform: uppercase;
       }
       .summary-id {
         display: inline-flex;
@@ -816,7 +866,7 @@ interface PreviewScene {
         font-size: inherit;
         line-height: inherit;
         font-weight: 700;
-        color: var(--ink, #ece6d8);
+        color: var(--gold);
         min-width: 35px;
         background: none;
         border: none;
@@ -826,24 +876,23 @@ interface PreviewScene {
         transition: color 0.12s ease;
       }
       .summary-id:hover {
-        color: var(--teal, #4fb0b5);
+        color: var(--hud);
         text-decoration: underline;
       }
       .summary-id:focus-visible {
-        outline: 2px solid var(--teal, #4fb0b5);
+        outline: 2px solid var(--hud);
         outline-offset: 2px;
-        border-radius: 2px;
       }
       .summary-scene {
         font-weight: 500;
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
       }
       .summary-sep {
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
         margin: 0 5px;
       }
       .summary-title {
-        color: var(--ink-dim, #9aa6a3);
+        color: var(--dim);
         min-width: 120px;
         max-width: 180px;
         overflow: hidden;
@@ -853,13 +902,13 @@ interface PreviewScene {
       .summary-lang {
         font-size: 10px;
         letter-spacing: 0.12em;
-        color: var(--teal, #4fb0b5);
+        color: var(--hud);
         min-width: 36px;
         text-transform: uppercase;
       }
       .summary-text {
         flex: 1;
-        color: var(--ink-faint, #6a7977);
+        color: var(--faint);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -869,53 +918,67 @@ interface PreviewScene {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 12px;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        background: var(--teal-deep, #2f6e72);
-        color: #eafcfb;
-        border: none;
-        border-radius: 3px;
-        padding: 10px 22px;
+        font-weight: 700;
+        background: linear-gradient(180deg, var(--plate2), var(--plate));
+        color: var(--ink);
+        border: 2px solid var(--gold);
+        padding: 11px 22px;
         cursor: pointer;
-        transition: background 0.16s ease;
+        transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
       }
-      .create-btn:hover {
-        background: var(--teal, #4fb0b5);
+      .create-btn:hover:not(:disabled) {
+        background: var(--gold);
+        color: #06080a;
+        box-shadow: 0 0 16px rgba(252, 238, 10, 0.4);
       }
       .create-btn:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
       }
-
       .preview-btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: var(--tech);
         font-size: 12px;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         background: transparent;
-        color: var(--ink-dim, #9aa6a3);
-        border: 1px solid var(--line, #1e3133);
-        border-radius: 3px;
-        padding: 9px 18px;
+        color: var(--dim);
+        border: 1px solid var(--line2);
+        padding: 10px 18px;
         cursor: pointer;
-        transition:
-          color 0.16s ease,
-          border-color 0.16s ease,
-          background 0.16s ease;
+        transition: color 0.16s ease, border-color 0.16s ease;
       }
       .preview-btn:hover:not(:disabled) {
-        color: var(--ink, #ece6d8);
-        border-color: var(--ink-faint, #6a7977);
-        background: rgba(79, 176, 181, 0.05);
+        color: var(--ink);
+        border-color: var(--hud);
       }
       .preview-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+      @media (max-width: 700px) {
+        h1 {
+          transform: none;
+        }
+        .runline .big {
+          transform: none;
+        }
+        .chip,
+        .scene-n {
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
       }
     `,
   ],
@@ -1179,6 +1242,15 @@ export class ShotSequenceViewerComponent {
     const all = this.sequence()?.shots ?? [];
     const byId = new Map<string, Shot>(all.map((s) => [s.id, s] as [string, Shot]));
     return (scene.shotIds ?? []).map((id) => byId.get(id)).filter((s): s is Shot => Boolean(s));
+  }
+
+  /** The scene's accent color, taken from its shot's timeline segment so the
+   *  scene block shares the exact color the timeline strip assigns it. */
+  protected sceneColorFor(scene: SequenceScene): string {
+    const segments = this.sequence()?.sequenceFlow.segments ?? [];
+    const ids = new Set(scene.shotIds ?? []);
+    const seg = segments.find((s) => ids.has(s.shotId));
+    return seg?.color || '#fcee0a';
   }
 
   /** Scene number (scriptNumber) that owns the given shot id, or '' when the

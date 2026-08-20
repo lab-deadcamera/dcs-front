@@ -112,6 +112,13 @@ export function beatInfoFromSegments(
           >
         </div>
 
+        @if ((shot().cuts ?? 0) > 0) {
+          <div class="grow">
+            <span class="k">{{ 'STUDIO.SHOT_BUILDER.CUTS' | translate }}</span>
+            <span class="v"><b>{{ shot().cuts }}</b></span>
+          </div>
+        }
+
         @if (shot().camera) {
           @if (shot().camera.framing) {
             <div class="grow">

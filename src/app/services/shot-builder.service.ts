@@ -38,6 +38,8 @@ export interface ShotBuilderShot {
   end?: number;
   /** Duration in seconds. */
   duration?: number;
+  /** Number of internal cuts within the shot (0 = single continuous take). */
+  cuts?: number;
   /** Per-shot notes (ingredients/warnings) from the SLIM response. */
   notes?: ShotNotes;
 }
@@ -887,9 +889,19 @@ export function normalizeSeedanceSlots(text: string | undefined | null): string 
  *
  * The backend SLIM response does not carry dramatic beats
  * (HOOK/FRICTION/SPIKE/BUTTON), so the time-budget strip is colored by scene
- * type instead — reusing the same palette as the panel's timeBudgetBar:
- * present → teal, flashback → amber, fantasy/dream → violet.
+ * instead — every shot of a scene shares the scene's accent color, so groups
+ * are visible at a glance on the timeline strip and in the beat tags.
  */
+/** Normalize a raw `cuts` value (LLM/backend) to a safe non-negative integer.
+ *  The backend emits the LLM JSON untouched, so `cuts` can arrive as a string,
+ *  negative, or fractional value — `'|'.repeat()` in the timeline strip would
+ *  throw a RangeError on any of those. */
+function normalizeCuts(value: unknown): number {
+  if (typeof value === 'string' && value.trim() !== '') value = Number(value);
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.max(0, Math.round(value));
+}
+
 export function shotBuilderResultToSequence(
   result: ShotBuilderResult,
   fallbackAspectRatio: AspectRatio = '9:16',
@@ -907,12 +919,21 @@ export function shotBuilderResultToSequence(
   }
   if (flat.length === 0) return null;
 
-  const sceneColor = (type: string): string =>
-    type === 'flashback'
-      ? '#f59e0b'
-      : type === 'fantasy' || type === 'dream'
-        ? '#8b5cf6'
-        : '#14b8a6';
+  // Distinct scenes share one color across all their shots. Colors come from a
+  // fixed accent palette (same family as the example-real shotlist design), so
+  // adjacent scenes read as visually separated groups on the timeline strip.
+  const SCENE_PALETTE = ['#fcee0a', '#00e0ff', '#ff6b1a', '#ff1a8c', '#a6ff00', '#ff003c'];
+  const sceneColors = new Map<number, string>();
+  let sceneColorIdx = 0;
+  const sceneColorFor = (num: number): string => {
+    let color = sceneColors.get(num);
+    if (!color) {
+      color = SCENE_PALETTE[sceneColorIdx % SCENE_PALETTE.length];
+      sceneColors.set(num, color);
+      sceneColorIdx++;
+    }
+    return color;
+  };
 
   const totalDuration =
     result.duration ||
@@ -960,7 +981,7 @@ export function shotBuilderResultToSequence(
   // Build the strip segments; fall back to a running cursor when the backend
   // did not include cumulative start/end timestamps.
   let cursor = 0;
-  const segments: FlowSegment[] = flat.map(({ shot, sceneType }) => {
+  const segments: FlowSegment[] = flat.map(({ shot, scriptNumber }) => {
     const id = idFor.get(shot) as string;
     const start = shot.start ?? cursor;
     const end = shot.end ?? start + Math.max(1, shot.duration || 0);
@@ -972,7 +993,8 @@ export function shotBuilderResultToSequence(
       start,
       end,
       intensity: 0.5,
-      color: sceneColor(sceneType),
+      color: sceneColorFor(scriptNumber),
+      cuts: normalizeCuts(shot.cuts),
     };
   });
 
@@ -987,6 +1009,7 @@ export function shotBuilderResultToSequence(
       duration: shot.duration || 0,
       start,
       end,
+      cuts: normalizeCuts(shot.cuts),
       camera: { lens: '', framing: '', movement: '', fps: 24, shutter: '180°', aspectRatio },
       composition: {},
       blocking: {},
@@ -1028,8 +1051,8 @@ export function shotBuilderResultToSequence(
     aspectRatio,
     references: [...refMap.values()],
     sequenceFlow: {
-      title: 'Presupuesto de tiempo',
-      subtitle: 'La temperatura sube con el conflicto',
+      title: 'TIME_BUDGET',
+      subtitle: '',
       duration: totalDuration,
       metric: 'dramaticIntensity',
       scale: { start: 'Frío', middle: 'Caliente', end: 'Vacío' },

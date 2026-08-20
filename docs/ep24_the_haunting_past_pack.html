@@ -1,0 +1,592 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP24 — The Haunting Past · Seedance shotlist</title>
+<style>
+:root{--bg:#0b0d10;--panel:#14181d;--panel2:#0f1318;--ink:#e7e3d8;--mut:#878d96;--line:#242a31;--brass:#c9a24b;--red:#e0533d;--amber:#d9a441;--green:#6db07a}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 80px}
+header.top{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:26px}
+.kicker{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--brass);font-weight:700}
+h1{font-size:clamp(26px,5vw,40px);margin:.15em 0 .1em;letter-spacing:.02em;text-transform:uppercase;font-weight:800}
+.sub{color:var(--mut);font-size:14px;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.meta span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--ink)}
+.meta .b{border-color:var(--brass);color:var(--brass)}
+.legend{margin-top:14px;font-size:12px;color:var(--mut);font-family:ui-monospace,monospace}
+.legend b{color:var(--amber)}.legend i{color:var(--red);font-style:normal}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin:20px 0;overflow:hidden}
+.chead{display:flex;gap:16px;align-items:flex-start}
+.dial{flex:none;width:52px;height:52px;border-radius:50%;border:2px solid var(--brass);color:var(--brass);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-weight:700;font-size:19px;box-shadow:inset 0 0 0 4px rgba(201,162,75,.08)}
+.ctitle h2{margin:2px 0 8px;font-size:20px;letter-spacing:.01em}
+.tags{display:flex;flex-wrap:wrap;gap:7px}
+.tag{font-family:ui-monospace,monospace;font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+.tag.sec{color:var(--brass);border-color:var(--brass)}
+.guide{margin:16px 0 10px;border-top:1px solid var(--line);padding-top:14px}
+.desc{margin:.2em 0 14px;color:var(--ink)}
+.gcols{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.gcol h3{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:0 0 7px;font-weight:700}
+.gcol ul{margin:0;padding-left:16px}
+.gcol li{font-size:13px;margin:4px 0;color:#cfd3d9}
+.gcol .ing code,.gcol .diag li{font-family:ui-monospace,monospace}
+.gcol .diag li{font-size:12.5px;color:#dcd6c4}
+.ing code{color:var(--brass);font-size:12px}
+.mut{color:var(--mut)}
+.promptwrap{border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-top:6px}
+.pbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang{background:transparent;border:0;color:var(--mut);font-family:ui-monospace,monospace;font-size:12px;padding:6px 14px;cursor:pointer;letter-spacing:.05em}
+.lang.on{background:var(--brass);color:#141414;font-weight:700}
+.pbar-right{display:flex;align-items:center;gap:12px}
+.counter{font-family:ui-monospace,monospace;font-size:12px;color:var(--green)}
+.counter.amber{color:var(--amber)}.counter.red{color:var(--red);font-weight:700}
+.copy{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:8px;padding:6px 13px;font-size:12px;cursor:pointer;font-family:ui-monospace,monospace}
+.copy:hover{background:var(--brass);color:#141414}
+.copy.done{background:var(--green);border-color:var(--green);color:#0b0d10}
+.prompt{margin:0;padding:15px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;color:#d7dbe0;max-height:460px;overflow:auto}
+@media(max-width:720px){.gcols{grid-template-columns:1fr}.dial{width:44px;height:44px;font-size:16px}}
+</style></head><body><div class="wrap">
+<header class="top">
+  <div class="kicker">Dead Camera Studios · Seedance 2.5 shotlist</div>
+  <h1>Ep. 24 — The Haunting Past</h1>
+  <p class="sub">Atraco a banco · flashback · pelea · giro final. Prompt bilingüe EN/中文 con switch por tarjeta (el switch cambia solo el prompt; la guía queda en español). Diálogos verbatim; las líneas de comm/V.O./o.s. se doblan en post con RVC.</p>
+  <div class="meta"><span class="b">17 shots</span><span class="b">80s</span><span>9:16 vertical</span><span>24 fps · 180°</span><span>Sc. 89–96</span><span>anti-plastic film-still</span></div>
+  <div class="legend">Contador por idioma — límite duro Seedance <b>3500</b> chars/idioma · <b>amber ≥ 3000</b> · <i>red ≥ 3500</i></div>
+</header>
+
+<article class="card" id="s1">
+  <header class="chead">
+    <span class="dial">01</span>
+    <div class="ctitle">
+      <h2>Dixie cruza el lote</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M1</span><span class="tag">General → medio · handheld seguimiento</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Dixie cruza el estacionamiento vacío hacia la entrada del banco, sube el teléfono a la oreja y no levanta la vista al reloj (10:58). Calma tensa antes del atraco.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Reloj 10:58 reforzado en render (poco fiable — respaldo como inserto en post).</li><li>El briefing de Wyatt por el comm es V.O. → se dobla en post con RVC.</li><li>Solo Dixie en cuadro; lote vacío.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Dixie (en cámara): &quot;Breathe, Wyatt.&quot;</li><li>Wyatt (V.O., a post): &quot;Truck’s at 11:02… talk to the phone.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Plate — banco ext día (lote vacío)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="1">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-1"></span>
+        <button class="copy" data-shot="1">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-1"></pre>
+  </div>
+</article>
+
+<article class="card" id="s2">
+  <header class="chead">
+    <span class="dial">02</span>
+    <div class="ctitle">
+      <h2>Dixie casa la sala (recon)</h2>
+      <div class="tags"><span class="tag sec">8s</span><span class="tag">M1</span><span class="tag">Medio · handheld drift</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Dixie entra al lobby de mármol con el teléfono en la oreja y barre la sala — guardia, oficina de vidrio, cámara del techo — mientras reporta lo que ve.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Única línea con lip-sync de la escena; marca la duración (~8s).</li><li>Barrido en tres pasadas deliberadas: mostrador → oficina → esquina del techo.</li><li>Solo Dixie en primer plano; la sala abre a su derecha.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Dixie (en cámara): &quot;One guard. Manager’s in the fishbowl. Northwest camera’s dead — nobody’s cleaned that lens in a year.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Plate — lobby banco (mármol, reloj)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="2">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-2"></span>
+        <button class="copy" data-shot="2">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-2"></pre>
+  </div>
+</article>
+
+<article class="card" id="s3">
+  <header class="chead">
+    <span class="dial">03</span>
+    <div class="ctitle">
+      <h2>Reconoce a Destiny</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M1</span><span class="tag">Two-shot en profundidad · handheld push</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">La mirada de Dixie se engancha en la cajera contando cientos (Destiny) y su paso se frena en seco; el plan se le cae de la cara.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>&quot;Vault&quot; de Wyatt = V.O. a post (dispara el giro de cabeza).</li><li>Two-shot en profundidad: Dixie primer plano izq, Destiny tras el mostrador midground der — sin solape.</li><li>Dardo ocular al name-tag.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Wyatt (V.O., post): &quot;Vault.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Destiny</li><li><code>@image3</code> — Plate — lobby banco</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="3">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-3"></span>
+        <button class="copy" data-shot="3">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-3"></pre>
+  </div>
+</article>
+
+<article class="card" id="s4">
+  <header class="chead">
+    <span class="dial">04</span>
+    <div class="ctitle">
+      <h2>Flashback — el arresto</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M3</span><span class="tag">Contrapicado cerrado · handheld áspero</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">FLASHBACK. Un policía somete a Destiny contra el asfalto mojado bajo la marquesina de la tienda; luz roja/azul; el duffel fuera de su alcance.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Locación = Fine-N-Quick de noche bajo lluvia.</li><li>Personajes menores SOLO por @imageN (sin palabras de edad, guard del build).</li><li>El grito de un nombre se añade en post sobre este frame.</li><li>Foco en Destiny; el policía es solo brazo/torso desde el borde superior.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>(grito, a post): &quot;Dixie!&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Destiny (flashback)</li><li><code>@image2</code> — Cop</li><li><code>@image3</code> — Plate — tienda ext noche lluvia</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="4">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-4"></span>
+        <button class="copy" data-shot="4">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-4"></pre>
+  </div>
+</article>
+
+<article class="card" id="s5">
+  <header class="chead">
+    <span class="dial">05</span>
+    <div class="ctitle">
+      <h2>Flashback — Dixie huye</h2>
+      <div class="tags"><span class="tag sec">3s</span><span class="tag">M3</span><span class="tag">Full figure · handheld chase</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">FLASHBACK. Young Dixie arrebata el duffel del suelo mojado y arranca a correr hacia la lluvia, sin mirar atrás. El instante exacto del abandono.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Personaje menor SOLO por @imageN (sin palabras de edad).</li><li>Corre de espaldas a cámara — sin lip-sync.</li><li>El grito del nombre (o.s.) va sobre esta corrida, en post.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>(o.s., a post): &quot;Dixie!&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Young Dixie (flashback)</li><li><code>@image2</code> — Plate — tienda ext noche lluvia</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="5">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-5"></span>
+        <button class="copy" data-shot="5">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-5"></pre>
+  </div>
+</article>
+
+<article class="card" id="s6">
+  <header class="chead">
+    <span class="dial">06</span>
+    <div class="ctitle">
+      <h2>&quot;I need a minute&quot;</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M1</span><span class="tag">Medio · handheld casi fijo</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">De vuelta en el presente: Dixie congelada mirando hacia la cajera, el reloj 11:01 al fondo; susurra que necesita un minuto y se aleja de la bóveda hacia los baños.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Reloj digital 11:01 lo trae el plate del lobby.</li><li>Lip-sync solo el susurro; las líneas de Wyatt = V.O. a post.</li><li>Gira y camina hacia el pasillo screen-left.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Dixie (susurro, en cámara): &quot;I need a minute.&quot;</li><li>Wyatt (V.O., post): &quot;Sixty seconds. Dixie. Sixty seconds.&quot; / &quot;You don’t HAVE a—&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Plate — lobby banco (reloj 11:01)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="6">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-6"></span>
+        <button class="copy" data-shot="6">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-6"></pre>
+  </div>
+</article>
+
+<article class="card" id="s7">
+  <header class="chead">
+    <span class="dial">07</span>
+    <div class="ctitle">
+      <h2>Baño — manos temblando</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M1</span><span class="tag">Medio · handheld casi fijo</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Dixie se aferra al lavamanos bajo el agua fría, las manos temblando, y sube los ojos al espejo. Al fondo, el pasador de la puerta corre.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>El pasador (o.s.) prepara la entrada de Destiny en el S8.</li><li>Silencioso; toda la energía en la actuación contenida.</li><li>Solo Dixie en cuadro.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Plate — baño mármol</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="7">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-7"></span>
+        <button class="copy" data-shot="7">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-7"></pre>
+  </div>
+</article>
+
+<article class="card" id="s8">
+  <header class="chead">
+    <span class="dial">08</span>
+    <div class="ctitle">
+      <h2>Confrontación (3 cortes)</h2>
+      <div class="tags"><span class="tag sec">7s</span><span class="tag">M1</span><span class="tag">Two-shot separado · 3 cortes internos · handheld</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Toma única con 3 cortes: Destiny en la puerta dice la cifra exacta; Dixie en el lavamanos reacciona; Destiny remata con los años que la contó.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Multi-corte en UNA generación para consistencia entre las dos actuaciones.</li><li>Cuerpos separados a lo largo del cuarto — nunca se cruzan (sin riesgo de fusión).</li><li>Cortes anclados a frases (Cut Timing).</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Destiny (en cámara): &quot;Forty-one thousand four hundred.&quot;</li><li>Dixie (en cámara): &quot;Destiny—&quot;</li><li>Destiny (en cámara): &quot;Counted it every night. Three years. Got very good at counting.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Destiny</li><li><code>@image3</code> — Plate — baño mármol</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="8">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-8"></span>
+        <button class="copy" data-shot="8">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-8"></pre>
+  </div>
+</article>
+
+<article class="card" id="s9">
+  <header class="chead">
+    <span class="dial">09</span>
+    <div class="ctitle">
+      <h2>Pelea 1 — azote + codo</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M3</span><span class="tag">Two-shot cerrado · handheld áspero · acción</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Destiny estampa a Dixie contra el azulejo con el antebrazo en la garganta; Dixie tuerce la muñeca y clava el codo en su boca. Cuerpo a cuerpo real, rápido.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Contacto real pero cuerpos DISTINTOS — nunca una sola masa (riesgo de fusión).</li><li>El esfuerzo va al tren superior; piernas parejas, sin cojera.</li><li>Solo gruñidos, sin palabras.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Destiny</li><li><code>@image3</code> — Plate — baño mármol</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="9">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-9"></span>
+        <button class="copy" data-shot="9">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-9"></pre>
+  </div>
+</article>
+
+<article class="card" id="s10">
+  <header class="chead">
+    <span class="dial">10</span>
+    <div class="ctitle">
+      <h2>Pelea 2 — empujón + secador</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M3</span><span class="tag">Two-shot · handheld áspero · acción</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Destiny escupe sangre y se lanza; Dixie la empuja; el talón resbala en el azulejo mojado, la cabeza golpea el secador de acero y cae. El giro donde la pelea termina.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>El empujón SEPARA a los cuerpos limpiamente (manos al pecho, luego suelta).</li><li>Destiny cae fuera del cuadro inferior; Dixie queda sola de pie.</li><li>Secador de acero fijo en la pared screen-left.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Destiny</li><li><code>@image3</code> — Plate — baño mármol</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="10">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-10"></span>
+        <button class="copy" data-shot="10">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-10"></pre>
+  </div>
+</article>
+
+<article class="card" id="s11">
+  <header class="chead">
+    <span class="dial">11</span>
+    <div class="ctitle">
+      <h2>Pulso + sirena + sale</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M1</span><span class="tag">Medio-bajo · handheld · sube al pararse</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Dixie se arrodilla sobre Destiny tendida, le toma el pulso, exhala largo; una sirena afuera la levanta de golpe y sale.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Destiny inmóvil en el piso — bajo riesgo de fusión (una de pie, otra tendida).</li><li>Dixie NUNCA encima del cuerpo: al lado y por arriba.</li><li>La sirena (o.s.) dispara el pararse y salir.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie</li><li><code>@image2</code> — Destiny</li><li><code>@image3</code> — Plate — baño mármol</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="11">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-11"></span>
+        <button class="copy" data-shot="11">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-11"></pre>
+  </div>
+</article>
+
+<article class="card" id="s12">
+  <header class="chead">
+    <span class="dial">12</span>
+    <div class="ctitle">
+      <h2>Inserto — el earpiece</h2>
+      <div class="tags"><span class="tag sec">3s</span><span class="tag">M5</span><span class="tag">Macro · locked-off · inserto</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Inserto: el earpiece en un charco fino sobre el azulejo oscuro, junto a la mano abierta e inerte de Destiny. Lo que queda en la línea.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Prop héroe: earpiece por @imageN.</li><li>Solo entra una mano (@image2 recortado al borde) — nada de cuerpo completo.</li><li>Prepara el giro final (el comm sigue vivo junto a Destiny).</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — AirPods / earpiece</li><li><code>@image2</code> — Destiny (solo mano)</li><li><code>@image3</code> — Plate — baño mármol (piso)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="12">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-12"></span>
+        <button class="copy" data-shot="12">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-12"></pre>
+  </div>
+</article>
+
+<article class="card" id="s13">
+  <header class="chead">
+    <span class="dial">13</span>
+    <div class="ctitle">
+      <h2>Wyatt espera — dot congelado</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M1</span><span class="tag">Medio en cabina · handheld · jolt</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Wyatt en la troca mira el tablet: el dot rojo congelado. Por el parabrisas entra el blindado con dos motos. Un toque en el vidrio lo sobresalta y arranca.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Asiento del pasajero VACÍO declarado (él es el único en la cabina).</li><li>El blindado y las motos, lejos por el parabrisas — genéricos, sin ingredient.</li><li>Línea del policía al vidrio = V.O. a post.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Cop (V.O., post): &quot;Can’t sit here, son.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Wyatt</li><li><code>@image2</code> — Tablet (pantalla comm)</li><li><code>@image3</code> — Plate — int troca (cabina)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="13">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-13"></span>
+        <button class="copy" data-shot="13">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-13"></pre>
+  </div>
+</article>
+
+<article class="card" id="s14">
+  <header class="chead">
+    <span class="dial">14</span>
+    <div class="ctitle">
+      <h2>Dixie sale — la troca entra</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M1</span><span class="tag">General → medio · handheld · reencuadre</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Dixie sale por las puertas de vidrio, labio partido y sangre en el puño; la curva vacía, una patrulla dobla la esquina; la troca roja entra y ella se mete tras la puerta abierta al arrancar.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>ENTRADA al vehículo OCULTA: se agacha tras la puerta abierta, interior nunca visible (regla anti-fusión).</li><li>Wyatt NO se muestra aquí (se establece dentro en el S15).</li><li>Estado: labio partido + sangre en el puño (lo carga el ingredient/estado).</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li class='mut'>(sin diálogo — shot mudo)</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Dixie (labio partido)</li><li><code>@image2</code> — Troca roja (ext, encendida)</li><li><code>@image3</code> — Plate — banco ext (puertas)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="14">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-14"></span>
+        <button class="copy" data-shot="14">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-14"></pre>
+  </div>
+</article>
+
+<article class="card" id="s15">
+  <header class="chead">
+    <span class="dial">15</span>
+    <div class="ctitle">
+      <h2>&quot;You went dark&quot;</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M1</span><span class="tag">Two-shot en cabina · handheld · sway</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">Troca en marcha: Wyatt maneja (izq) y mira a Dixie (der), que se limpia el labio partido y no dice nada. Dos personas y cuatro minutos perdidos.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Two-shot en banca corrida: posiciones candadas con hueco declarado (Wyatt izq / Dixie der).</li><li>Día (el atraco es ~11 AM); luz de calle barriendo.</li><li>Solo Wyatt con lip-sync.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Wyatt (en cámara): &quot;You went dark for four minutes.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Wyatt</li><li><code>@image2</code> — Dixie (labio partido)</li><li><code>@image3</code> — Plate — int troca (cabina)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="15">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-15"></span>
+        <button class="copy" data-shot="15">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-15"></pre>
+  </div>
+</article>
+
+<article class="card" id="s16">
+  <header class="chead">
+    <span class="dial">16</span>
+    <div class="ctitle">
+      <h2>El comm parpadea VERDE</h2>
+      <div class="tags"><span class="tag sec">4s</span><span class="tag">M1</span><span class="tag">Medio en cabina · handheld · push</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">En la troca en marcha, Wyatt ve el ícono del comm pasar a VERDE mientras sale una respiración húmeda de la bocina; baja los ojos al tablet y los sube al asiento del pasajero al decir su nombre.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>Tablet por @imageN con el ícono verde.</li><li>Respiración húmeda de la bocina = audio (diegético).</li><li>Solo Wyatt en este encuadre.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Wyatt (en cámara): &quot;...Dixie?&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Wyatt</li><li><code>@image2</code> — Tablet (comm verde)</li><li><code>@image3</code> — Plate — int troca (cabina)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="16">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-16"></span>
+        <button class="copy" data-shot="16">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-16"></pre>
+  </div>
+</article>
+
+<article class="card" id="s17">
+  <header class="chead">
+    <span class="dial">17</span>
+    <div class="ctitle">
+      <h2>&quot;Hi, Wyatt&quot; — smash a negro</h2>
+      <div class="tags"><span class="tag sec">5s</span><span class="tag">M1</span><span class="tag">Two-shot en cabina → push · smash cut</span></div>
+    </div>
+  </header>
+  <div class="guide">
+    <p class="desc">La voz de Destiny sale de la bocina: &quot;Hi, Wyatt.&quot; La pasajera (Dixie) — sentada justo ahí — gira lento la cabeza hacia el tablet; Wyatt se hiela. Smash cut a negro.</p>
+    <div class="gcols">
+      <div class="gcol"><h3>Notas de guía</h3><ul><li>&quot;Hi, Wyatt&quot; = V.O. desde la bocina, a post (ninguna cara la modula).</li><li>Two-shot estático en banca: posiciones candadas con hueco (Wyatt izq / Dixie der).</li><li>Push a la cara de Dixie al girar; corte duro a NEGRO en el giro.</li></ul></div>
+      <div class="gcol"><h3>Diálogos</h3><ul class="diag"><li>Destiny (V.O. por la bocina, post): &quot;Hi, Wyatt.&quot;</li></ul></div>
+      <div class="gcol"><h3>Ingredients (orden de adjunto)</h3><ul class="ing"><li><code>@image1</code> — Wyatt</li><li><code>@image2</code> — Dixie</li><li><code>@image3</code> — Tablet (comm verde)</li><li><code>@image4</code> — Plate — int troca (cabina)</li></ul></div>
+    </div>
+  </div>
+  <div class="promptwrap">
+    <div class="pbar">
+      <div class="switch" data-shot="17">
+        <button class="lang on" data-l="en">EN</button>
+        <button class="lang" data-l="zh">中文</button>
+      </div>
+      <div class="pbar-right">
+        <span class="counter" id="cnt-17"></span>
+        <button class="copy" data-shot="17">Copiar prompt</button>
+      </div>
+    </div>
+    <pre class="prompt" id="pre-17"></pre>
+  </div>
+</article>
+</div>
+<script>
+var DATA={"1": {"en": "Scene & Mood: A dark-haired woman in a business suit (@image1) crosses an empty asphalt parking lot toward the columned entrance of a brick bank, lifting a phone to her ear as she walks, eyes level and forward, never rising to the clock above the doors. Bright flat mid-morning, a calm surface pulled tight over nerves.\n\nFrame Map: @image1 centered at x=50%, walking from midground into foreground, full figure settling to waist-up as she nears, about 45% of frame height. Bank facade fills the upper two-thirds; the open lot is the lower negative space. Handheld setup.\n\nLocation & Blocking — @image2 (plate): Front exterior of a brick bank with white columns and a clock above the doors, an ATM alcove at screen-left, empty marked stalls across the front. @image1 walks straight across the open asphalt toward the entrance, weight even and unhurried, right hand carrying a phone up to her right ear, gaze held level on the doors. The clock above the doors reads 10:58. She keeps the same face, hair, and suit as @image1.\n\nCross-Frame Rules: @image1 is the only person in frame; the lot stays empty, no other figures.\n\nMovement: She crosses at a steady real-time walk, right hand lifting the phone to her ear across the first two seconds and holding it there, chin level, eyes locked on the doors, never tilting up toward the clock. One slow even blink, shoulders loose over a braced core, jacket shifting with each stride, a small dry swallow. Faint heat shimmer off the asphalt, a light breeze moving the entrance shrubs. Nothing else moves in the lot.\n\nDialogue: The dark-haired woman (@image1) says: \"Breathe, Wyatt.\"\n\nLast Frame: @image1 at the foot of the entrance walk, phone at her ear, face calm and forward, empty lot behind, the clock reading 10:58 above the doors. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image2 — brick bank exterior, flat bright mid-morning light, clear sky, dry empty parking lot.\n\nSound Bed: Diegetic only — unhurried footfalls on asphalt, distant traffic hum, a light breeze, the soft click of the phone meeting her ear, no music.\n\nCapture Realism: The figure sits in real depth — light haze separating softer, lower-contrast far planes from the foreground, never pasted flat. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. slow steady handheld follow easing in with her walk. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）穿过空荡的沥青停车场，走向砖砌银行带立柱的入口，边走边把手机举到耳边，目光平视前方，始终不抬头看门上方的时钟。明亮而平淡的上午，紧绷神经之上的一层平静。\n\n构图定位：@image1居中，x=50%，从中景走向前景，靠近时由全身收至半身，约占画面高度45%。银行立面占据上方三分之二；空荡的停车场为下方的负空间。手持机位。\n\n场景与走位——@image2（底板）：砖砌银行的正面外观，白色立柱、门上方一座时钟，画面左侧有ATM壁龛，前方是空的车位线。@image1径直穿过开阔的沥青地走向入口，重心平稳从容，右手把手机举到右耳，目光平视门口。门上方的时钟显示10:58。她保持与@image1相同的面孔、发型与套装。\n\n跨帧规则：画面中只有@image1一人；停车场保持空旷，无其他人物。\n\n运动：她以平稳的真实速度行走，右手在前两秒内把手机举到耳边并保持，下巴平视，目光锁定门口，始终不抬头看时钟。一次缓慢均匀的眨眼，肩部放松而核心紧绷，每一步外套随之摆动，一次干涩的吞咽。沥青上有淡淡的热浪，微风拂动入口的灌木。停车场内别无他物移动。\n\n台词：深色头发的女子（@image1）说：\"Breathe, Wyatt.\"\n\n末帧：@image1停在入口台阶前，手机贴耳，神情平静朝前，身后是空荡的停车场，门上方时钟显示10:58。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image2——砖砌银行外观，明亮平淡的上午光，晴空，干燥空旷的停车场。\n\n声音层：仅现场音——沥青上从容的脚步声，远处车流嗡鸣，一阵微风，手机贴耳的轻响，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与远景之间悬浮着轻薄的空气雾，使远景比前景更柔、更降饱和、对比更低，人物置身于空气之中而非贴于平面。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。缓慢平稳的手持跟随，随她走动轻推入场。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "2": {"en": "Scene & Mood: A dark-haired woman in a business suit (@image1) walks into a marble bank lobby with a phone at her ear, her eyes sweeping the guard, the manager's glass office, and a ceiling camera in slow deliberate passes as she reports what she sees. Composed, clinical, casing the room while looking like a customer.\n\nFrame Map: @image1 in the left third, x=38%, foreground, waist-up, about 55% of frame height, angled into the room. The marble hall and teller counter open as depth to screen-right. Handheld setup.\n\nLocation & Blocking — @image2 (plate): Marble bank lobby — a teller counter running along the right, a glass-walled manager office set back, chandeliers overhead, a small waiting area with chairs. @image1 stands a few steps inside the entrance on the open floor, body angled toward the counter, right hand holding a phone to her ear, head turning in slow measured arcs to take in the counter, the glass office, and the upper corners. She keeps the same face, hair, and suit as @image1.\n\nCross-Frame Rules: @image1 is the only person in the foreground; she stays in the left third, the room's depth stays to her right.\n\nMovement: She walks three unhurried steps in and slows, head panning in three separate deliberate sweeps — to the counter, to the glass office, up to a ceiling corner — the phone steady at her ear, jaw calm, a faint asymmetric tightening at one mouth corner as she clocks the dead camera. A rapid two-frame eye-dart to a second corner, then back. Breath easy, jacket settling, one even blink. Chandelier light steady, faint air drift. No other deliberate movement.\n\nDialogue: The dark-haired woman (@image1) says: \"One guard. Manager’s in the fishbowl. Northwest camera’s dead — nobody’s cleaned that lens in a year.\"\n\nLast Frame: @image1 in the left third, phone at her ear, gaze settling off toward the counter, the marble room open beside her. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image2 — marble bank interior, warm chandelier light, calm mid-morning, polished stone floor.\n\nSound Bed: Diegetic only — quiet footsteps on marble, low lobby murmur, faint air handling, no music.\n\nCapture Realism: The figure sits in real depth — light haze separating softer, lower-contrast far planes from the foreground, never pasted flat. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 50mm lens, no anamorphic, f/2.8 shallow depth of field. slow handheld drift settling as she stops. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 8s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）走进大理石银行大堂，手机贴耳，目光以缓慢刻意的扫视掠过保安、经理的玻璃办公室和天花板上的摄像头，一边低声报告所见。沉着、冷静，像个客户般踩点。\n\n构图定位：@image1位于左三分之一，x=38%，前景，半身，约占画面高度55%，身体斜朝房间内。大理石大堂与柜台向画面右侧延伸为纵深。手持机位。\n\n场景与走位——@image2（底板）：大理石银行大堂——右侧一排柜台，后方一间玻璃隔墙的经理办公室，头顶吊灯，一处带座椅的小等候区。@image1站在入口内几步的开阔地面上，身体斜朝柜台，右手把手机贴在耳边，头部以缓慢有度的弧线转动，扫过柜台、玻璃办公室和上方墙角。她保持与@image1相同的面孔、发型与套装。\n\n跨帧规则：前景中只有@image1一人；她保持在左三分之一，房间纵深保持在她右侧。\n\n运动：她从容走进三步后放慢，头部以三次独立而刻意的扫视转动——看向柜台、玻璃办公室、再抬向天花板一角——手机稳贴耳边，下颌平静，注意到那台失灵的摄像头时一侧嘴角微微不对称地收紧。一次两帧的快速眼神扫向另一角，再收回。呼吸平缓，外套落定，一次均匀眨眼。吊灯光稳定，微弱气流。别无刻意动作。\n\n台词：深色头发的女子（@image1）说：\"One guard. Manager’s in the fishbowl. Northwest camera’s dead — nobody’s cleaned that lens in a year.\"\n\n末帧：@image1位于左三分之一，手机贴耳，目光落向柜台方向，大理石大堂在她身旁敞开。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image2——大理石银行内部，温暖吊灯光，平静的上午，抛光石地面。\n\n声音层：仅现场音——大理石上轻微脚步声，大堂低语，微弱空调气流，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与远景之间悬浮着轻薄的空气雾，使远景比前景更柔、更降饱和、对比更低，人物置身于空气之中而非贴于平面。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线50mm镜头，无变形宽银幕畸变，f/2.8浅景深。缓慢的手持漂移，随她停步而落定。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，8秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "3": {"en": "Scene & Mood: A dark-haired woman in a business suit (@image1) turns her head toward the teller counter and her scan snags — a woman counting a stack of hundreds behind the station (@image2) — and her walk stops cold, the plan draining out of her face. A recognition that lands like a dropped stone.\n\nFrame Map: Two-shot in depth — @image1 foreground left third, x=32%, chest-up, turned toward screen-right; @image2 midground right third, x=68%, behind the counter, smaller in depth. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Marble bank lobby, teller counter along the right with numbered stations. @image1 stands on the open floor, mid-stride arrested, weight caught on the front foot, torso turned toward the counter, phone lowering an inch from her ear. @image2 stands behind the counter, squared to it, hands over a fanned stack of bills, head lowered to the count. Both keep the same face and hair as their references. The counter holds the distance between them.\n\nCross-Frame Rules: @image1 stays foreground-left, @image2 stays behind the counter midground-right; they never swap, never cross, never change depth. @image1's gaze goes to @image2; @image2 stays down on the count.\n\nMovement: @image1's head turns to the counter across the first second and stops; the front foot plants and the weight jams onto it, the phone drifting down an inch, lips parting a hair, a single slow blink held. A rapid two-frame eye-dart down to the name tag then back up to the face. @image2 keeps counting, thumb riffling the bills, unaware. Chandelier light steady; a bill corner flicking under her thumb. Nothing else moves.\n\nDialogue: none — silent shot. The single earpiece word that cues her turn is off-screen voice-over added in post.\n\nLast Frame: @image1 frozen mid-turn in the left third, phone half-lowered, eyes fixed on @image2 behind the counter, the count still going. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — marble bank interior, warm chandelier light, calm mid-morning.\n\nSound Bed: Diegetic only — the riffle of counted bills, low lobby tone, a distant printer, no music.\n\nCapture Realism: The figure sits in real depth — light haze separating softer, lower-contrast far planes from the foreground, never pasted flat. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 75mm lens, no anamorphic, f/2.8 shallow depth of field. handheld with a small involuntary push as she stops. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）转头看向柜台，扫视被一样东西勾住——一名女子（@image2）在柜台后数着一叠百元钞——她的脚步骤然停住，计划从脸上抽空。像一块石头坠地般的认出。\n\n构图定位：纵深双人镜头——@image1前景左三分之一，x=32%，胸部以上，转向画面右侧；@image2中景右三分之一，x=68%，在柜台后，因纵深而更小。手持机位。\n\n场景与走位——@image3（底板）：大理石银行大堂，右侧带编号窗口的柜台。@image1站在开阔地面上，步伐中途停住，重心压在前脚，上身转向柜台，手机从耳边降下一寸。@image2站在柜台后，正对柜台，双手覆在一叠扇形展开的钞票上，低头清点。两人各自保持与其参考相同的面孔与发型。柜台保持二人之间的距离。\n\n跨帧规则：@image1保持前景左侧，@image2保持在柜台后中景右侧；二人绝不互换、绝不越位、绝不改变纵深。@image1的目光投向@image2；@image2始终低头数钱。\n\n运动：@image1的头在第一秒内转向柜台并停住；前脚踏定、重心猛压其上，手机下滑一寸，双唇微启，一次缓慢眨眼并停顿。一次两帧的快速眼神下扫向名牌，再回到脸上。@image2继续数钱，拇指捻动钞票，浑然不觉。吊灯光稳定；拇指下一角钞票翻动。别无他物移动。\n\n台词：无——静默镜头。触发她转头的那个耳机单词为画外音，在后期加入。\n\n末帧：@image1在左三分之一处半转身僵住，手机半降，目光钉在柜台后的@image2身上，点钞仍在继续。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——大理石银行内部，温暖吊灯光，平静的上午。\n\n声音层：仅现场音——数钞的捻动声，大堂低音，远处一台打印机，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与远景之间悬浮着轻薄的空气雾，使远景比前景更柔、更降饱和、对比更低，人物置身于空气之中而非贴于平面。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线75mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，随她停步有一次不由自主的轻推。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "4": {"en": "Scene & Mood: A woman (@image1) is driven chest-down onto wet asphalt under a store canopy, a police officer's forearm (@image2) pinning her shoulder down, red and blue light strobing across the rain, a duffel bag spilled just out of her reach. The night everything broke.\n\nFrame Map: Low angle, @image1 filling the lower foreground, cheek to the wet ground, x=45%, head-and-shoulders large; @image2 entering the top of frame as a forearm and torso pressing down, not full figure. The duffel in the near foreground, x=25%. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Lit convenience store and fuel canopy at night in heavy rain, wet concrete. @image1 is down on the wet apron, chest and cheek to the ground, one arm stretched toward a duffel bag just beyond her fingers. @image2 is over her from behind, one knee and one forearm bearing down on her shoulder blade, only that arm, knee and lower torso in frame. She keeps the same face and hair as @image1.\n\nCross-Frame Rules: @image1 stays pinned in the lower foreground, @image2 a pressing arm and torso from the top edge; the officer's face never becomes the subject, @image1 is the focus throughout.\n\nMovement: @image1 is pressed down as the shot opens, cheek flattening against the wet ground, one hand clawing the last inch toward the duffel strap and failing, chest heaving on fast shallow breaths, eyes wide and fixed off-frame after something leaving. @image2's forearm holds steady pressure. Rain hammers and bounces off the concrete, red-and-blue wash pulsing across the wet ground and her face, her hair soaked flat, breath misting. Nothing else moves.\n\nDialogue: none — silent shot. Her single-word scream is added in post over this frame.\n\nLast Frame: @image1 pinned cheek-down in the foreground, hand splayed short of the duffel strap, red-and-blue light washing the rain, the officer a dark mass at the top edge. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — convenience-store forecourt at night, heavy rain, wet concrete, red-and-blue emergency light raking the scene.\n\nSound Bed: Diegetic only — hammering rain on concrete, a distant siren yelp, wet scuffling, fast breathing, no music.\n\nCapture Realism: The figure sits in real depth — rain-haze separating softer desaturated far planes; every surface damp and matte, hair and skin and wet ground moist with no beading and no specular hotspot. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. rough unstable handheld, low and close, jolting with the struggle. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名女子（@image1）被按倒、胸腹朝下压在便利店雨棚下的湿沥青地上，一名警官的前臂（@image2）将她的肩膀死死压在地面，红蓝警灯在雨中频闪，一只行李袋散落在她够不到的地方。暴雨拍打，狠戾，一切崩坏的那一夜。\n\n构图定位：低机位，@image1占据下方前景，脸颊贴地，x=45%，头肩很大；@image2从画面上缘进入，只是一条下压的前臂与躯干，并非全身。行李袋在近前景，x=25%。手持机位。\n\n场景与走位——@image3（底板）：夜晚暴雨中一间亮着灯的便利店与加油雨棚外景，湿滑反光的水泥地，画面右侧是加油机。@image1趴在湿地面上，胸口与脸颊贴地，一只手臂伸向刚好够不到的行李袋。@image2从后方压在她身上，一膝一臂压住她的肩胛，画面中只有手臂、膝盖与下半身躯干。她保持与@image1相同的面孔与发型。\n\n跨帧规则：@image1保持被压在下方前景，@image2保持为从上缘下压的手臂与躯干；警官的脸绝不成为主体，全程@image1为焦点。\n\n运动：镜头开始时@image1被压住，脸颊压平贴向湿地面，一只手伸出、抓向行李袋带子的最后一寸却够不到，胸口随急促浅促的呼吸起伏，双眼睁大、盯着画外某个正在离去的方向。@image2的前臂保持稳定压力，第二秒有一次微微下压。雨水砸在水泥上又弹起，红蓝光在湿地与她脸上脉动，她的头发被淋得贴平，呼吸成雾。别无他物移动。\n\n台词：无——静默镜头。她那一声单字尖叫在后期叠加于此画面之上。\n\n末帧：@image1脸颊贴地被压在前景，手摊开却够不到袋带，红蓝光洗过雨幕，警官是上缘一团下压的暗影。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——夜晚便利店前场，暴雨，湿滑反光的水泥，红蓝警灯扫过场景，身后是冷调的店光。\n\n声音层：仅现场音——雨点砸在水泥上，远处一声警笛短鸣，湿地扭打声，急促呼吸，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与被照亮的背景之间悬浮着雨雾，远景更柔更降饱和。每个表面都有水汽——潮湿的哑光头发，皮肤潮湿却完全哑光、无水珠无水亮，湿滑反光的地面只有克制的低反射，水汽加深而无一处高光点。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。粗糙不稳的手持，低而贴近，随扭打颠动。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "5": {"en": "Scene & Mood: A woman (@image1) snatches a duffel bag off the wet ground under the store canopy and bolts away into the rain, never looking back, her whole body committed to the run. The exact instant of abandonment.\n\nFrame Map: @image1 center-to-right, x=55%, foreground, full figure, caught mid-lunge then mid-stride away from camera, about 65% of frame height. Wet forecourt as depth ahead. Handheld setup.\n\nLocation & Blocking — @image2 (plate): Convenience-store forecourt and fuel canopy at night in heavy rain, wet reflective concrete, pumps and store glow. @image1 is low over the duffel at the open, one hand closing on the strap, then rising into a hard run away from camera deeper into the wet lot, back to the lens. She keeps the same face and hair as @image1.\n\nCross-Frame Rules: @image1 is the only figure in frame; she runs away from camera, never turning her head back.\n\nMovement: @image1's hand clamps the duffel strap and rips it up off the ground across the first second, her body uncoiling into a sprint, shoulders driving, the bag swinging against her hip, feet splashing hard through standing water, head fixed forward and away, never turning back. Rain sheeting through the canopy light, spray kicking off her heels, her soaked jacket flattened to her back. Nothing else moves toward camera.\n\nDialogue: none — silent shot. The off-screen scream of her name lands over this run, added in post.\n\nLast Frame: @image1 several strides out, back to camera, duffel swinging at her side, driving into the rain-dark lot, the store glow shrinking behind. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image2 — convenience-store forecourt at night, heavy rain, wet concrete, red-and-blue light fading behind, cold store glow.\n\nSound Bed: Diegetic only — feet splashing through water, hammering rain, a fading siren, hard breathing, no music.\n\nCapture Realism: The figure sits in real depth — rain-haze separating softer desaturated far planes; every surface damp and matte, hair and skin and wet ground moist with no beading and no specular hotspot. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. rough handheld chase energy, unstable and jolting as she breaks away. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 3s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名女子（@image1）从雨棚下的湿地面上抓起一只行李袋，头也不回地冲进雨中，全身都扑向奔逃。抛弃发生的那一刹那。\n\n构图定位：@image1偏中右，x=55%，前景，全身，从半扑抓袋到背对镜头迈步奔离，约占画面高度65%。前方湿滑的前场为纵深。手持机位。\n\n场景与走位——@image2（底板）：夜晚暴雨中的便利店前场与加油雨棚，湿滑反光的水泥，加油机与店光。@image1在开场时俯身扑向行李袋，一手扣住袋带，随即起身背对镜头、朝湿地深处猛力奔逃。她保持与@image1相同的面孔与发型。\n\n跨帧规则：画面中只有@image1一人；她背对镜头奔逃，绝不回头。\n\n运动：@image1的手在第一秒扣住袋带、猛地从地面拽起，身体如弹簧般弹起冲刺，肩膀发力，袋子拍打髋部，双脚重重踩过积水，头始终朝前朝远，绝不回头。雨水在雨棚灯光下倾泻，脚跟溅起水花，湿透的外套贴平在背上。无任何东西朝镜头移动。\n\n台词：无——静默镜头。画外呼喊她名字的尖叫叠加于此奔逃之上，后期加入。\n\n末帧：@image1已奔出数步，背对镜头，行李袋在体侧摆动，冲入雨夜的场地，身后店光渐小。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image2——夜晚便利店前场，暴雨，湿水泥，身后红蓝光渐隐，冷调店光。\n\n声音层：仅现场音——双脚踩水声，暴雨拍打，渐远的警笛，粗重呼吸，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与被照亮的背景之间悬浮着雨雾，远景更柔更降饱和。每个表面都有水汽——潮湿的哑光头发，皮肤潮湿却完全哑光、无水珠无水亮，湿滑反光的地面只有克制的低反射，水汽加深而无一处高光点。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。粗糙的手持追拍感，随她挣脱奔逃而不稳颠动。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，3秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "6": {"en": "Scene & Mood: A dark-haired woman in a business suit (@image1) stands rooted in the marble lobby, staring off toward the teller counter with the plan gone from her eyes, then turns and walks away from the vault as a wall clock reads 11:01. Refusing the mission out loud, quietly.\n\nFrame Map: @image1 center-left, x=42%, foreground, chest-up, about 55% of frame height; the digital wall clock visible in the upper background reading 11:01. Handheld setup.\n\nLocation & Blocking — @image2 (plate): Marble bank lobby, teller counter to the right, a lit digital wall clock high on the back wall, a corridor toward the restrooms at screen-left. @image1 stands on the open floor, phone loose at her ear, gaze fixed off toward the counter, then pivots and walks toward the screen-left corridor, away from the counter. The digital wall clock reads 11:01. She keeps the same face, hair, and suit as @image1.\n\nCross-Frame Rules: @image1 is the only figure in the foreground; the clock stays fixed in the background reading 11:01.\n\nMovement: @image1 holds dead still for the first two seconds, gaze locked off-frame, the hand with the phone tightening until the knuckles set, a hard dry swallow moving her throat, one slow uneven blink. Then her jaw sets, she turns on the ball of her foot and walks off toward the screen-left corridor, out of the counter's pull. Breath shallow, jacket shifting on the turn. Chandelier light steady. No other deliberate motion.\n\nDialogue: The dark-haired woman (@image1) whispers: \"I need a minute.\"\n\nLast Frame: @image1 caught on the turn, shoulder leading toward the screen-left corridor, face tight, the clock reading 11:01 behind. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image2 — marble bank interior, warm chandelier light, a digital wall clock at 11:01.\n\nSound Bed: Diegetic only — a hushed lobby tone, her own shallow breath, a single distant phone ring, no music.\n\nCapture Realism: The figure sits in real depth — light haze separating softer, lower-contrast far planes from the foreground, never pasted flat. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 50mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, near-still on the freeze then a small settle as she turns. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）钉在大理石大堂里，目光空空地望向柜台方向，计划已从眼中消失，随后转身、离开金库方向走开，此时墙上的时钟显示11:01。她低声地、却明确地拒绝了这次任务。\n\n构图定位：@image1偏中左，x=42%，前景，胸部以上，约占画面高度55%；上方背景可见数字墙钟显示11:01。手持机位。\n\n场景与走位——@image2（底板）：大理石银行大堂，右侧柜台，后墙高处一座亮着的数字墙钟，画面左侧是通往洗手间的走廊。@image1站在开阔地面上，手机松松贴耳，目光定在柜台方向，随后以脚掌为轴转身，朝画面左侧走廊走去、远离柜台。数字墙钟显示11:01。她保持与@image1相同的面孔、发型与套装。\n\n跨帧规则：前景中只有@image1一人；时钟固定在背景，显示11:01。\n\n运动：@image1前两秒纹丝不动，目光锁在画外，握手机的手收紧到指节发白，喉头一次干涩的吞咽，一次缓慢不匀的眨眼。随后下颌一紧，以脚掌为轴转身，朝画面左侧走廊走去，脱离柜台的牵引。呼吸浅促，转身时外套摆动。吊灯光稳定。别无刻意动作。\n\n台词：深色头发的女子（@image1）低声说：\"I need a minute.\"\n\n末帧：@image1在转身瞬间被定格，肩膀领向画面左侧走廊，神情紧绷，身后时钟显示11:01。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image2——大理石银行内部，温暖吊灯光，数字墙钟显示11:01。\n\n声音层：仅现场音——压低的大堂环境音，她自己浅促的呼吸，远处一声电话铃，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与远景之间悬浮着轻薄的空气雾，使远景比前景更柔、更降饱和、对比更低，人物置身于空气之中而非贴于平面。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线50mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，定格时几乎不动，随她转身轻微落定。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "7": {"en": "Scene & Mood: A dark-haired woman in a business suit (@image1) leans over a marble restroom sink under cold running water, her hands trembling as she grips the basin, dragging her eyes up to her own reflection. Trying to force herself back together.\n\nFrame Map: @image1 center, x=50%, foreground, waist-up over the sink, about 60% of frame height, her reflection in the mirror behind. Handheld setup.\n\nLocation & Blocking — @image2 (plate): Marble restroom with a run of sinks under mirrors along one wall, dark wood stalls opposite, a dark wood door at the far end. @image1 stands at a sink, both hands gripping the basin rim, upper body tipped forward over running water, head lowered then lifting to the mirror. She keeps the same face, hair, and suit as @image1.\n\nCross-Frame Rules: @image1 is the only person in frame.\n\nMovement: @image1's hands tremble under the cold water across the first two seconds, fingers whitening on the basin rim, shoulders rising on a tight held breath; she lowers her head, then drags her gaze up to the mirror and holds it, jaw flexing, a hard swallow, one uneven double-blink. Water sheeting over her wrists and swirling down the drain, a bead running from her chin. Behind her, at the far end, the door's deadbolt slides across with a hard metal snap. Nothing else moves.\n\nDialogue: none — silent shot.\n\nLast Frame: @image1 gripping the basin, eyes locked on her own reflection, water running, the far door just having bolted behind her. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image2 — dim marble restroom, warm vanity light over the mirrors, dark wood stalls in shadow.\n\nSound Bed: Diegetic only — cold water running hard into the basin, tight breathing, the hard snap of a deadbolt sliding, low room tone, no music.\n\nCapture Realism: The figure sits in real depth — thin haze separating the figure from the dark background, far planes softer and lower-contrast. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 50mm lens, no anamorphic, f/2.8 shallow depth of field. handheld with a slow near-still hold over the sink. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）俯身在大理石洗手台前，冷水哗哗流着，她双手颤抖地扶住台盆，把目光缓缓抬向镜中的自己。她在强迫自己重新镇定。\n\n构图定位：@image1居中，x=50%，前景，在洗手台上方半身，约占画面高度60%，身后镜中有她的倒影。手持机位。\n\n场景与走位——@image2（底板）：大理石洗手间，一侧墙面是一排镜下的洗手池，对面是深色木质隔间，尽头是一扇深色木门。@image1站在洗手池前，双手扶住盆缘，上身前倾于流水之上，先低头、再抬向镜子。她保持与@image1相同的面孔、发型与套装。\n\n跨帧规则：画面中只有@image1一人。\n\n运动：前两秒@image1的双手在冷水下颤抖，指节扶着盆缘发白，肩膀随一口紧屏的气息抬起；她低下头，再把目光缓缓抬向镜子并停住，下颌绷动，一次用力吞咽，一次不匀的连眨。水流漫过她的手腕、旋入排水口，一滴水从她下巴滑落。她身后、尽头处，那扇门的插销发出一声硬金属响滑上。别无他物移动。\n\n台词：无——静默镜头。\n\n末帧：@image1扶着台盆，目光钉在镜中自己身上，水仍流着，身后尽头那扇门刚刚被插上。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image2——昏暗的大理石洗手间，镜前温暖的化妆灯，隐没在阴影里的深色木质隔间。\n\n声音层：仅现场音——冷水猛地冲入台盆，紧绷的呼吸，插销滑上的硬响，低沉的室内环境音，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——昏暗房间里的薄雾将人物与深色瓷砖背景分开，远景比前景更柔、对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线50mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，在洗手台上方缓慢近乎静止地保持。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "8": {"en": "Scene & Mood: In the marble restroom, a woman at the sink (@image1) turns to find another woman at the bolted door (@image2) who names an exact sum of money and the years she counted it — a debt walking back in. Three years of silence between them.\n\nFrame Map: One continuous take, two internal cuts. Cut 1 (0–2s): @image2 at the door, x=55%, medium, facing @image1. Cut 2 (2–4s): @image1 at the sink, x=45%, chest-up, turned to @image2. Cut 3 (4–7s): back to @image2 at the door, same as Cut 1. Handheld.\n\nLocation & Blocking — @image3 (plate): Marble restroom, sinks along one wall, a bolted door at the far end. @image1 stands at the sink, turned from the mirror toward the far door; @image2 stands just inside the bolted far door, squared to the room, facing @image1 down the length of the restroom. Both keep the same face and hair as their references. The length of the room holds them apart; they never close it here.\n\nCross-Frame Rules: @image1 stays at the sink end, @image2 at the door end; never swap, never cross the room, never change depth across the cuts. Eyelines locked on each other; identical positions carry across every cut, moved only by the small actions described.\n\nMovement: Cut 1 — @image2 still just inside the door, chin level, eyes down the room on @image1, one slow blink, a faint asymmetric set to her jaw. Cut 2 — @image1 turns fully to her, water running behind, lips parting on the name, a two-frame eye-dart over @image2's face then back. Cut 3 — @image2 holds her ground, only her mouth and a slight eye-tightening moving, one nostril flare on a held breath. Breath visible on both. No other motion.\n\nDialogue: @image2 (at the door): \"Forty-one thousand four hundred.\" Then @image1 (at the sink): \"Destiny—\" Then @image2: \"Counted it every night. Three years. Got very good at counting.\" Cut 1 = first line; Cut 2 = \"Destiny—\"; Cut 3 = last line to the end.\n\nLast Frame: @image2 at the door, jaw set, holding the room, @image1 a turned soft-focus figure at the far sink. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — dim marble restroom, warm vanity light, dark wood in shadow.\n\nSound Bed: Diegetic only — water running at the sink, two sets of held breath, a low room tone, no music.\n\nCapture Realism: The figure sits in real depth — thin haze separating the figure from the dark background, far planes softer and lower-contrast. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 55mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, near-still on each figure with a breath of drift, hard cuts between them. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 7s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：在大理石洗手间里，洗手池边的女子（@image1）转身，发现另一名女子（@image2）站在已上锁的门口，说出一笔精确的金额，以及她清点这笔钱的年头——一笔债从门口走了回来。两个人，和横在她们之间三年的沉默。\n\n构图定位：一条连续镜头，含两处内部切换。切1（0–2秒）：@image2在门口，居中x=55%，中景，正朝向@image1。切2（2–4秒）：@image1在洗手池边，x=45%，胸部以上，转向@image2。切3（4–7秒）：切回门口的@image2说最后一句，机位同切1。手持机位。\n\n场景与走位——@image3（底板）：大理石洗手间，一侧墙面是镜下洗手池，对面深色木质隔间，尽头一扇深色木门。@image1站在洗手池前，身体从镜子转向尽头的门。@image2站在已上锁的远门内侧，正对房间，隔着整间洗手间的长度面朝@image1。两人各自保持与其参考相同的面孔与发型。房间的长度保持二人之间的距离；本镜中她们绝不拉近。\n\n跨帧规则：@image1保持在洗手池一端，@image2保持在门口一端；跨切换绝不互换两端、绝不穿过房间、绝不改变纵深。视线彼此锁定。每次切换位置完全一致，仅由所述小动作带动。\n\n运动：切1——@image2静立门内，重心均衡，下巴平视，目光沿房间钉在@image1身上，一次缓慢克制的眨眼，下颌微微不对称地绷起。切2——洗手池边的@image1把肩完全转向她，身后水仍流着，念出名字时双唇微启，一次两帧的快速眼神扫过@image2的脸再收回。切3——@image2稳住不动，只有嘴与眼角一丝收紧在动，一口屏息中鼻翼一次翕动。二人呼吸可见，@image1身后水流不停。别无刻意动作。\n\n台词：门口的女子（@image2）说：\"Forty-one thousand four hundred.\" 随后洗手池边的女子（@image1）说：\"Destiny—\" 随后门口的女子（@image2）说：\"Counted it every night. Three years. Got very good at counting.\" 切1只承载\"Forty-one thousand four hundred.\"并在该句结束的瞬间结束。切2只承载\"Destiny—\"并在其结束瞬间结束。切3承载\"Counted it every night. Three years. Got very good at counting.\"直到末尾。\n\n末帧：@image2在门口，下颌紧绷，镇住整间房，@image1是远处洗手池边一个转身的柔焦身影。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——昏暗的大理石洗手间，温暖的化妆灯，隐于阴影的深色木质。\n\n声音层：仅现场音——洗手池的流水，两人屏住的呼吸，低沉的室内环境音，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——昏暗房间里的薄雾将人物与深色瓷砖背景分开，远景比前景更柔、对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线55mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，对每个人物几乎静止、带一丝呼吸般的漂移，二者之间硬切。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，7秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "9": {"en": "Scene & Mood: The woman from the door (@image2) drives the woman from the sink (@image1) back into the tiled wall, a forearm jamming across her throat, and @image1 twists the trapping wrist off and cracks an elbow up into her mouth. Fast, close, brutal real-time hand-to-hand.\n\nFrame Map: Tight two-shot against the wall, @image1 pinned at screen-right x=60%, chest-and-head; @image2's forearm and shoulder entering from screen-left driving into her; then the elbow swings the framing as @image2 rocks back. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Marble restroom, a tiled wall. @image1's back and shoulders slam flat against the tiled wall, chin lifting over a forearm pressed across her throat; @image2 is in tight from screen-left, one forearm bearing on the throat, shoulders square behind it, the rest of her body edged out of frame by the pin. Both keep the same face and hair as their references.\n\nCross-Frame Rules: @image1 stays pinned at screen-right against the wall, @image2 drives from screen-left; they never swap sides. Contact stays real — forearm on throat, then hands on wrist, then elbow to mouth — bodies stay distinct and never merge into one mass.\n\nMovement: @image2's forearm rams across @image1's throat and pins her to the tile, chin forced up, both hands flying to the trapping wrist; then @image1 twists the wrist off her throat, torso rotating, and drives her elbow up into @image2's mouth — @image2's head snapping back, blood off the lip, her body rocking off to screen-left. Feet scuffing and squeaking on tile, grunts of effort, hair whipping. Both work on two even braced legs, no limp and no dragging leg. Nothing else moves.\n\nDialogue: none — silent shot, grunts of effort only, no words.\n\nLast Frame: @image2 rocked back to screen-left, head snapped, blood at the lip; @image1 off the wall at screen-right, elbow still up, torso torqued. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — dim marble restroom, warm vanity light, a tiled wall.\n\nSound Bed: Diegetic only — a body hitting tile, scuffling feet squeaking on stone, sharp exhales and grunts of effort, no music.\n\nCapture Realism: The figure sits in real depth — thin haze separating the figure from the dark background; faint matte sweat sheen at hairline and throat, damp but never glossy. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. rough unstable handheld inside the struggle, jolting with every impact. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：门口来的女子（@image2）把洗手池边的女子（@image1）狠狠撞回瓷砖墙上，一条前臂横压住她的咽喉；@image1拧开钳住的手腕，一记手肘朝上撞进她的嘴。快速、贴身、真实时速的徒手搏斗。\n\n构图定位：贴身双人镜头贴墙，@image1被压在画面右侧x=60%，胸与头；@image2的前臂与肩膀从画面左侧插入抵住她；随后手肘挥出、@image2向后仰时带动构图摆动。手持机位。\n\n场景与走位——@image3（底板）：大理石洗手间，洗手池与隔间之间的一面瓷砖墙。@image1的背与肩平平撞上瓷砖墙，下巴被横压咽喉的前臂顶起；@image2从画面左侧贴身而入，一条前臂压住咽喉，肩膀在其后方摆正，她身体其余部分被这一压挤出画外。两人各自保持与其参考相同的面孔与发型。\n\n跨帧规则：@image1保持被压在画面右侧贴墙，@image2从画面左侧发力；二人绝不换边。接触保持真实——前臂压喉、双手抓腕、再肘击嘴——身体保持各自分明，绝不融为一团。\n\n运动：第一秒@image2的前臂横撞@image1咽喉、把她压在瓷砖上，@image1下巴被顶起，双手猛抓住那条钳住的手臂；接下来两秒@image1用力拧开手腕、上身旋转，一记手肘朝上斜撞进@image2的嘴——@image2的头猛地后仰，唇边溅出一点血，身体向画面左侧仰去。双脚在瓷砖上蹭动吱响，用力的闷哼，头发甩动。二人都以两条对称有力的腿站立，步姿均衡对称，不跛不拖腿。别无他物移动。\n\n台词：无——静默镜头，只有用力的闷哼，无台词。\n\n末帧：@image2向画面左侧后仰，头被撞偏，唇边有血；@image1离墙立于画面右侧，手肘仍抬着，上身拧转。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——昏暗的大理石洗手间，温暖的化妆灯，一面瓷砖墙。\n\n声音层：仅现场音——身体撞上瓷砖，双脚在石面蹭动吱响，急促的呼气与用力闷哼，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——昏暗房间里的薄雾将人物与深色瓷砖背景分开。发际线与咽喉处有淡淡的哑光汗光，潮湿但绝不油亮。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。粗糙不稳的手持深入扭打，随每次冲撞颠动。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "10": {"en": "Scene & Mood: The woman at screen-left (@image2) spits blood and lunges back in; the other (@image1) shoves her off hard, and @image2's heel skids out on the wet tile so the back of her head cracks the steel hand dryer and she drops. The turn where the fight ends.\n\nFrame Map: Two-shot, @image1 screen-right x=58% shoving out, @image2 screen-left driven back toward the wall-mounted hand dryer, then dropping down out of the lower-left frame. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Marble restroom, a steel hand dryer mounted on the tiled wall at screen-left. @image1 stands planted at screen-right, both hands coming up to shove; @image2 lunges in from screen-left, then is driven back against the tiled wall where the hand dryer is fixed, and slides down. Both keep the same face and hair as their references.\n\nCross-Frame Rules: @image1 stays planted screen-right, @image2 stays screen-left through the lunge, the shove, and the fall; they never swap sides, never merge — the shove separates them cleanly, hands to chest then released.\n\nMovement: @image2 spits a mouthful of blood and lunges back in across the first second; @image1's palms slam flat into @image2's chest and shove her off hard, arms extending, the two bodies separating; @image2 reels back, one heel skidding out on the wet tile, her balance gone, the back of her head cracking against the steel hand dryer with a hard flat impact, and she drops straight down out of the lower frame. @image1 stays up at screen-right, arms still extended from the shove, chest heaving. Feet skidding on wet stone, the metal clang of the dryer, a body folding to the floor. Both on even symmetrical legs until @image2 falls. Nothing else moves.\n\nDialogue: none — silent shot.\n\nLast Frame: @image1 alone upright at screen-right, arms still out from the shove, breathing hard, the empty tiled wall and the hand dryer at screen-left where @image2 has just dropped from frame. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — dim marble restroom, warm vanity light, a steel hand dryer on tile.\n\nSound Bed: Diegetic only — a wet skid on tile, the hard clang of a head on the metal dryer, a body dropping to stone, ragged breath, no music.\n\nCapture Realism: The figure sits in real depth — thin haze separating the figure from the dark background; faint matte sweat sheen at hairline and throat, damp but never glossy. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. rough handheld, a hard jolt on the shove and the impact. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：画面左侧的女子（@image2）啐出一口血、再度扑来；另一人（@image1）狠狠把她推开，@image2的脚跟在湿瓷砖上一滑，后脑撞上钢制干手器，随即倒下。搏斗终结的那一转折。\n\n构图定位：双人镜头，@image1在画面右侧x=58%向外推出，@image2在画面左侧被推向壁挂干手器，随后向画面左下方倒出框外。手持机位。\n\n场景与走位——@image3（底板）：大理石洗手间，画面左侧瓷砖墙上装有一台钢制干手器。@image1立定在画面右侧，双手抬起前推；@image2从画面左侧扑入，随后被推回固定着干手器的瓷砖墙，滑落下去。两人各自保持与其参考相同的面孔与发型。\n\n跨帧规则：@image1立定在画面右侧，@image2在扑击、被推、坠落全程保持在画面左侧；二人绝不换边、绝不融合——这一推把她们干净地分开，手抵胸口随即松开。\n\n运动：第一秒@image2啐出一口血再度扑来；@image1双掌平拍上@image2胸口、狠狠把她推开，双臂伸展，两具身体分开；@image2向后踉跄，一只脚跟在湿瓷砖上打滑，重心尽失，后脑一记硬实平撞砸上钢制干手器，随即直直坠出下方框外。@image1立在画面右侧，推出后双臂仍伸着，胸口起伏。双脚在湿石面打滑，干手器的金属撞响，身体折落地面。@image2坠落前二人都以对称均衡的腿站立。别无他物移动。\n\n台词：无——静默镜头。\n\n末帧：@image1独自立在画面右侧，推出的双臂仍伸着，喘息粗重，画面左侧是空瓷砖墙与干手器——@image2刚从那里坠出框外。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——昏暗的大理石洗手间，温暖的化妆灯，瓷砖上的钢制干手器。\n\n声音层：仅现场音——瓷砖上一记湿滑，头撞金属干手器的硬响，身体坠落石面，粗重的喘息，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——昏暗房间里的薄雾将人物与深色瓷砖背景分开。发际线与咽喉处有淡淡的哑光汗光，潮湿但绝不油亮。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。粗糙的手持，在推击与撞击处各有一次硬颠。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "11": {"en": "Scene & Mood: The woman left standing (@image1) kneels over the other (@image2) lying still on the restroom floor, presses two fingers to her throat, holds, and lets out a long breath — then a siren outside snaps her up and she goes. Checking whether she just killed the only person who knew her.\n\nFrame Map: @image1 kneeling foreground, x=48%, over @image2 who lies flat along the lower frame, x=50%, head toward screen-left. Then @image1 rises and clears toward screen-left. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Marble restroom floor, dark tile, near the sinks. @image2 lies flat on her back on the tile, arms slack, head toward screen-left, fully still. @image1 kneels beside her over her torso, one knee down, leaning in, two fingers going to the side of @image2's throat. Then @image1 stands and moves toward the screen-left door. Both keep the same face and hair as their references.\n\nCross-Frame Rules: @image2 stays flat on the floor, unmoving; @image1 is the only one who moves — kneels, checks, rises, exits. They never merge; @image1 stays above and beside the prone body, never on top of it.\n\nMovement: @image1 kneels and presses two fingers to @image2's throat across the first two seconds, going dead still to feel for a pulse, eyes down on the slack face; her shoulders drop and she lets out one long shaking exhale. At three seconds a siren rises outside — her head snaps up toward the sound, her body tightens, and she pushes up to standing and strides off toward the screen-left door. @image2 stays completely still on the floor, chest and face slack. A thread of water creeping across the tile. Nothing else moves.\n\nDialogue: none — silent shot.\n\nLast Frame: @image2 flat and still on the tile in the foreground; @image1 already rising and turning away toward the screen-left door, one last look down. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — dim marble restroom, warm vanity light, dark wet tile floor.\n\nSound Bed: Diegetic only — one long exhale, a siren rising outside, wet tile underfoot as she stands, no music.\n\nCapture Realism: The figure sits in real depth — thin haze separating the figure from the dark background, far planes softer and lower-contrast. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 50mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, low and still over the body, lifting as she stands. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：留在原地站着的女子（@image1）跪在倒地不动的另一人（@image2）身旁，两指按上她的咽喉，停住，长长地呼出一口气——随后外面一声警笛把她猛地拽起，她离开。她在确认自己是否刚刚杀了唯一了解她的人。\n\n构图定位：@image1跪在前景，x=48%，在平躺于下方框内的@image2上方，@image2的x=50%、头朝画面左侧。随后@image1起身朝画面左侧离开。手持机位。\n\n场景与走位——@image3（底板）：大理石洗手间地面，深色瓷砖，靠近洗手池。@image2仰面平躺在瓷砖上，双臂松垂，头朝画面左侧，完全不动。@image1跪在她身旁、俯在其躯干上方，一膝着地、俯身，两指探向@image2咽喉一侧。随后@image1起身、朝画面左侧的门走去。两人各自保持与其参考相同的面孔与发型。\n\n跨帧规则：@image2平躺地面、不动；@image1是唯一移动者——下跪、探脉、起身、离开。二人绝不融合；@image1始终在俯卧身体的上方与旁侧，绝不压在其身上。\n\n运动：前两秒@image1下跪、两指按上@image2的咽喉，为探脉而屏息不动，目光落在那张松弛的脸上；她的肩膀垂下，长长地、颤抖地呼出一口气。第三秒外面警笛升起——她的头猛地朝声音抬起，身体一紧，随即撑起站直，大步朝画面左侧的门走去。@image2在地面上完全不动，胸口与脸都松弛。一缕水在瓷砖上缓缓漫开。别无他物移动。\n\n台词：无——静默镜头。\n\n末帧：@image2平躺不动在前景瓷砖上；@image1已起身、转向画面左侧的门，最后低头看了一眼。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——昏暗的大理石洗手间，温暖的化妆灯，深色湿瓷砖地面。\n\n声音层：仅现场音——一声长长的呼气，外面升起的警笛，她起身时脚下湿瓷砖的声响，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——昏暗房间里的薄雾将人物与深色瓷砖背景分开，远景比前景更柔、对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线50mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，在身体上方低而静，随她起身抬升。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "12": {"en": "Scene & Mood: A single wireless earpiece (@image1) lies in a shallow film of water on the dark restroom tile, right beside a limp open hand (@image2) at the edge of frame. The thing left behind on the line.\n\nFrame Map: Macro insert, the earpiece (@image1) center foreground x=50%, filling about 30% of frame, in a thin sheet of water; a slack open hand (@image2) entering from the lower-right edge, fingers loose. Locked-off setup.\n\nLocation & Blocking — @image3 (plate): Dark restroom tile floor with a thin film of water. The earpiece (@image1) rests on the wet tile, half its shell mirrored in the water. Only a limp open hand and wrist (@image2) enter from the lower-right corner, palm up, fingers curled loose — the rest of the body stays out of frame. The earpiece keeps the look of @image1; the hand keeps the skin and look of @image2.\n\nCross-Frame Rules: only the earpiece and a single open hand are in frame; no full figure, no second hand. The hand stays at the frame edge, the earpiece stays centered.\n\nMovement: Almost still — a fine tremor of concentric rings spreading across the water film as a far-off vibration passes, a tiny wet glint shifting on the earpiece shell, the slack fingers utterly motionless. A single drop falls into the water at two seconds, one clean ripple rolling out. Nothing else moves.\n\nDialogue: none — silent shot.\n\nLast Frame: The earpiece centered in the wet tile, fresh rings fading across the water, the open hand slack at the lower-right edge. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — dark restroom tile, thin water film, dim warm spill from the vanity lights.\n\nSound Bed: Diegetic only — a single water drop, a faint electronic hiss from the earpiece, a distant muffled siren, no music.\n\nCapture Realism: The earpiece and wet tile sit in shallow real depth with soft focus falloff. Moisture on the tile — a damp matte film, muted low reflection, no beading, no specular hotspot. The one visible hand reads true matte skin — no shine, soft even pore texture, warmth preserved, never plastic. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 85mm lens, no anamorphic, f/2.8 shallow depth of field. locked-off macro, no camera movement. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 3s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一只无线耳机（@image1）躺在洗手间深色瓷砖上一层浅浅的水膜里，紧挨着画面边缘一只松垂摊开的手（@image2）。留在通话线上的东西。\n\n构图定位：微距插入镜头，耳机（@image1）居中前景x=50%，约占画面30%，浸在薄薄一层水中；一只松弛摊开的手（@image2）从右下缘进入，手指松垂。锁定机位。\n\n场景与走位——@image3（底板）：深色洗手间瓷砖地面，覆着一层薄水膜。耳机（@image1）搁在湿瓷砖上，半个外壳映在水中。只有一只松垂摊开的手与手腕（@image2）从右下角进入，掌心朝上、手指松松蜷着——身体其余部分留在画外。耳机保持@image1的外观；手保持@image2的肤色与样貌。\n\n跨帧规则：画面中只有耳机与一只摊开的手；无全身，无第二只手。手保持在画面边缘，耳机保持居中。\n\n运动：几乎静止——一阵远处的震动传来时，水膜上荡开一圈圈细密的同心波纹，耳机外壳上一点湿润的反光微微移动，松垂的手指纹丝不动。第二秒一滴水落入水中，一圈干净的涟漪荡开。别无他物移动。\n\n台词：无——静默镜头。\n\n末帧：耳机居中于湿瓷砖上，新荡起的波纹在水面渐隐，摊开的手松垂在右下缘。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——深色洗手间瓷砖，薄薄水膜，化妆灯投下昏暗的暖光。\n\n声音层：仅现场音——一滴水声，耳机里微弱的电流嘶声，远处一声闷闷的警笛，无音乐。\n\n拍摄真实感：耳机与湿瓷砖处于真实的浅景深中——微距主体周围有薄雾与柔焦渐隐。瓷砖上有水汽——潮湿的哑光水膜，克制的低反射，无水珠无高光点。画面中唯一可见的手呈真实哑光肤质——无高光，细腻均匀毛孔，保留暖调，绝不塑料感。低对比曲线——阴影提亮，高光滚降，不压死不过曝，所有高光移除，每个像素哑光漫射，略降饱和并保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线85mm镜头，无变形宽银幕畸变，f/2.8浅景深。锁定微距，无镜头移动。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，3秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "13": {"en": "Scene & Mood: A man sits behind the wheel of a parked pickup (@image1), eyes locked on a rigged tablet (@image2) where a red locator dot sits frozen, while through the windshield an armored truck and two police motorcycles roll into the bank lot — then a knock on his window jolts him and he pulls out. Waiting on a signal that has stopped moving.\n\nFrame Map: @image1 at the wheel, left third, x=35%, chest-up in three-quarter; the tablet (@image2) propped low-right foreground x=62%; windshield beyond showing the lot in depth. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Pickup cab interior, driver's side, tan bench seat. @image1 sits at the wheel, back to the seat, right hand low on the wheel, head tipped down to a tablet propped against the wheel, its screen showing a single red dot. Through the windshield, an armored truck with two police motorcycles rolls across the far lot. He keeps the same face and look as @image1; the tablet keeps the look of @image2.\n\nCross-Frame Rules: @image1 is the only person in the cab — the passenger seat and bench are empty. The armored truck and motorcycles stay far off through the windshield, never near the cab.\n\nMovement: @image1 stares at the frozen red dot, thumb hovering, jaw tight, a two-frame glance up through the windshield at the arriving armored truck then back down. At two seconds a knock raps the driver's window — his shoulders jump, head snapping screen-left — then he faces front, drops a hand to the shifter and the cab pulls forward. Flat daylight, the far truck crossing the lot. Only he moves in the cab.\n\nDialogue: none on camera — silent shot. The officer's line at the glass is off-screen voice-over added in post.\n\nLast Frame: @image1 facing front mid-flinch turning to drive, the tablet's red dot still frozen in the low foreground, the armored truck small through the windshield. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — pickup cab interior, flat daylight through the glass, the bank lot beyond.\n\nSound Bed: Diegetic only — an idling engine, a hard knuckle-knock on the window glass, distant motorcycle engines, no music.\n\nCapture Realism: The figures sit in real depth — cab interior and road beyond separated by soft daylight haze, background lower-contrast than the foreground. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 40mm lens, no anamorphic, f/2.8 shallow depth of field. handheld in the cab, a jolt on the knock. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名男子（@image1）坐在停着的皮卡驾驶座后，目光钉在一台改装平板（@image2）上——一个红色定位点凝固不动；与此同时，透过挡风玻璃，一辆运钞车与两辆警用摩托驶入银行停车场——随后车窗一声敲响令他一惊，他随即驶出。他在等一个已经停止移动的信号。\n\n构图定位：@image1在方向盘后，左三分之一，x=35%，四分之三侧胸上；平板（@image2）斜靠在右下前景x=62%；其后挡风玻璃透出纵深里的停车场。手持机位。\n\n场景与走位——@image3（底板）：皮卡车厢内部，驾驶侧——挡风玻璃横在上方，方向盘与仪表台在下，驾驶窗在画面左侧，米色长排座椅。@image1坐在驾驶座上，背靠椅背，右手低握方向盘，头低垂朝一台斜靠在方向盘或仪表台上的平板，平板屏上显示一个红点。透过挡风玻璃，一辆运钞车与两辆警用摩托驶过远处停车场。他保持与@image1相同的面孔与样貌；平板保持@image2的外观。\n\n跨帧规则：车厢内只有@image1一人——副驾与长椅其余部分都空着。运钞车与摩托保持在挡风玻璃外的远处，绝不靠近车厢。\n\n运动：@image1低头盯着平板上凝固的红点，拇指悬着不触屏，下颌紧绷，一次两帧的快速抬眼透过挡风玻璃扫向驶来的运钞车再低回。第二秒驾驶窗一声硬敲——他双肩一跳，头猛地转向画面左侧——随即转正朝前，一手落到换挡杆上，车厢开始向前驶出。平淡的日光，远处运钞车横过停车场，仪表台上淡淡的反光。车厢内只有他在动。\n\n台词：镜头内无台词——静默镜头。玻璃外警官的台词为画外音，后期加入。\n\n末帧：@image1在一惊之中转正朝前准备驾车，平板上的红点仍凝固在下前景，运钞车小小地透在挡风玻璃外。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——皮卡车厢内部，透过玻璃的平淡日光，其外是银行停车场。\n\n声音层：仅现场音——怠速的引擎，指节敲玻璃的硬响，远处摩托引擎声，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——车厢内部与窗外道路被柔和的日光雾分开，背景比前景对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线40mm镜头，无变形宽银幕畸变，f/2.8浅景深。车厢内手持，敲窗处一次颠动。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "14": {"en": "Scene & Mood: A dark-haired woman in a suit (@image1) shoulders out through the bank's glass doors, split lip and blood on her cuff, finds the curb empty as a squad car rounds the corner, and a red pickup (@image2) swings in so she can duck in behind the door as it pulls away.\n\nFrame Map: @image1 foreground, exiting center x=48%, waist-up then full as she moves; the red pickup (@image2) swinging in from screen-right into the midground; a squad car small in the far background screen-left. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Brick bank front, glass doors between the white columns, empty curb. @image1 pushes out through the glass doors and strides toward the curb, scanning; a red pickup (@image2) swings in fast from screen-right and stops at the curb; @image1 reaches the passenger side, pulls the door open and drops in behind it out of sight, the door shutting as the truck moves off. She keeps the same face, hair and suit as @image1, now with a split lip and a dark blood smear on one cuff; the truck keeps the look of @image2.\n\nCross-Frame Rules: @image1 is the only figure on foot; she ends the shot dropping in behind the open passenger door and out of view — her body never overlaps a driver, the cab interior stays unseen. The squad car stays far in the background.\n\nMovement: @image1 shoulders through the glass doors, split lip and bloodied cuff, head turning to a bare curb; the red pickup swings in hard from screen-right and rocks to a stop; she strides to the passenger door, hauls it open and ducks behind it out of frame as the door swings shut and the truck rolls off. Far back, a squad car noses around the corner. Jacket flaring on the move, exhaust haze off the truck. Nothing else moves in the foreground.\n\nDialogue: none — silent shot.\n\nLast Frame: The red pickup at the curb pulling away, the passenger door just shut with @image1 gone from view inside it, the bank doors settling closed behind, the squad car small at the far corner. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — brick bank exterior, flat bright daylight, empty curb, street beyond.\n\nSound Bed: Diegetic only — a glass door swinging, quick footsteps on concrete, a truck braking and a door thunk, a distant siren, no music.\n\nCapture Realism: The figure sits in real depth — light haze separating softer, lower-contrast far planes from the foreground, never pasted flat. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 35mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, a quick reframe as the truck swings in. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名深色头发、穿西装套装的女子（@image1）用肩撞开银行的玻璃门走出，嘴唇裂开、袖口带血，发现路缘空无一车，一辆警车正拐过街角；一辆红色皮卡（@image2）猛地驶入，她得以趁车启动时闪身钻到车门后。这场逃离，早了一拍也晚了一拍。\n\n构图定位：@image1在前景，从画面中部x=48%走出，起半身、随移动转全身；红色皮卡（@image2）从画面右侧驶入中景；一辆警车小小地在画面左侧远景。手持机位。\n\n场景与走位——@image3（底板）：砖砌银行正面外观，白色立柱之间的玻璃门，前方空的路缘与车位，其外是街道。@image1推开玻璃门走出、大步走向路缘，一边张望；一辆红色皮卡（@image2）从画面右侧快速驶入、停在路缘；@image1走到副驾一侧，拉开车门、闪身钻到门后消失于视线外，车门随皮卡启动而关上。远景中一辆警车拐过街角。她保持与@image1相同的面孔、发型与套装，此时嘴唇裂开、一侧袖口有一道暗血痕；皮卡保持@image2的外观。\n\n跨帧规则：@image1是唯一步行的人物；镜头以她钻到打开的副驾车门后、离开视线告终——她的身体绝不与驾驶者重叠，车厢内部始终不可见。警车保持在远景。\n\n运动：第一秒@image1用肩撞开玻璃门走出，嘴唇裂开、袖口带血，转头看向空荡的路缘；一辆红色皮卡从画面右侧猛地驶入、颠了一下停住；她大步走向副驾车门，拉开门、趁车门甩上、皮卡驶离时闪身钻到门后、离开画面。远处，一辆警车探头拐过街角。她移动时外套扬起，皮卡尾部有排气雾。前景别无他物移动。\n\n台词：无——静默镜头。\n\n末帧：红色皮卡在路缘启动驶离，副驾车门刚刚关上、@image1已消失于门内视线外，身后银行门缓缓合拢，警车小小地停在远处街角。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——砖砌银行外观，明亮平淡的日光，空的路缘，其外是街道。\n\n声音层：仅现场音——玻璃门开合，混凝土上急促的脚步，皮卡刹停与关门的闷响，远处一声警笛，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——相机、主体与远景之间悬浮着轻薄的空气雾，使远景比前景更柔、更降饱和、对比更低，人物置身于空气之中而非贴于平面。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线35mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，随皮卡驶入快速重新构图。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "15": {"en": "Scene & Mood: A man drives a moving pickup fast (@image1) and glances across at the dark-haired woman in the passenger seat (@image2), who wipes her split lip with the back of her hand and says nothing. Two people and four missing minutes in a moving cab.\n\nFrame Map: In-cab two-shot, @image1 at the wheel screen-left x=35% three-quarter, @image2 in the passenger seat screen-right x=65% three-quarter; windshield and side glass showing motion beyond. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Pickup cab interior, wide bench view — windshield across the top, wheel at screen-left, passenger side at screen-right, tan bench seat. @image1 sits at the wheel, both hands on it, eyes forward then flicking right; @image2 sits at the passenger end against the door, a clear gap of bench between them, wiping her lip with the back of one hand, staring ahead. Both keep the same face and look as their references; @image2 has a split lip. The bench gap holds them apart.\n\nCross-Frame Rules: @image1 stays at the wheel screen-left, @image2 stays at the passenger door screen-right, a visible gap of seat between them; they never slide together, never swap sides, never change depth.\n\nMovement: @image1 drives eyes-forward across the first second, then turns his head right toward @image2 as he speaks, jaw tight, a hard blink; @image2 draws the back of her hand slowly across her split lip, looks at the smear, and keeps her eyes forward, offering nothing, one slow controlled blink. Daylight and passing shadow sweeping across both faces and the windshield, the cab rocking slightly with the road. No other deliberate motion.\n\nDialogue: The man at the wheel (@image1) says: \"You went dark for four minutes.\"\n\nLast Frame: @image1 half-turned to her from the wheel, @image2 staring ahead at the passenger door with her hand lowering from her lip, the gap of seat between them. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — pickup cab at speed, daylight sweeping through the glass, dark road beyond.\n\nSound Bed: Diegetic only — engine and road noise, tires on asphalt, passing traffic, no music.\n\nCapture Realism: The figures sit in real depth — cab interior and road beyond separated by soft daylight haze, background lower-contrast than the foreground. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 50mm lens, no anamorphic, f/2.8 shallow depth of field. handheld in the moving cab, small road-driven sway. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一名男子（@image1）开着行驶中的皮卡疾驰，侧头看向副驾座上深色头发的女子（@image2）——她用手背擦了擦裂开的嘴唇，一言不发。行驶车厢里，两个人，和消失的四分钟。\n\n构图定位：车厢内双人镜头，@image1在方向盘后画面左侧x=35%四分之三侧，@image2在副驾座画面右侧x=65%四分之三侧；挡风玻璃与侧窗透出窗外的移动。手持机位。\n\n场景与走位——@image3（底板）：皮卡车厢内部，长排座椅广角——挡风玻璃横在上方，方向盘在画面左侧，副驾在画面右侧，米色长排座椅。@image1坐在方向盘后，双手握盘，目光朝前、随后瞥向右；@image2坐在副驾一端靠着车门，二人之间隔着一段明显的座椅空隙，用手背擦着嘴唇、目视前方。两人各自保持与其参考相同的面孔与样貌；@image2嘴唇裂开。座椅空隙保持二人相隔。\n\n跨帧规则：@image1保持在方向盘后画面左侧，@image2保持在副驾车门画面右侧，二人之间有可见的座椅空隙；绝不并到一起、绝不换边、绝不改变纵深。\n\n运动：第一秒@image1目视前方驾驶，随后开口时头转向右侧的@image2，下颌紧绷，一次用力眨眼；@image2用手背缓缓擦过裂开的嘴唇，看了看血痕，目光仍朝前，什么都不给，一次缓慢克制的眨眼。日光与掠过的阴影扫过两张脸与挡风玻璃，车厢随路面微微摇动。别无刻意动作。\n\n台词：方向盘后的男子（@image1）说：\"You went dark for four minutes.\"\n\n末帧：@image1从方向盘后半转向她，@image2目视前方的副驾车门、手正从唇边放下，二人之间是那段座椅空隙。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——疾驰中的皮卡车厢，日光透过玻璃扫过，其外是幽暗道路。\n\n声音层：仅现场音——引擎与路噪，轮胎碾过沥青，往来车流，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——车厢内部与窗外道路被柔和的日光雾分开，背景比前景对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线50mm镜头，无变形宽银幕畸变，f/2.8浅景深。行驶车厢内手持，随路面轻微摇晃。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "16": {"en": "Scene & Mood: In the moving cab a man (@image1) catches the comm icon on his rigged tablet (@image2) flicker from red to green as wet breathing leaks from the speaker, and his eyes drop to it then lift to the passenger seat as he says her name, unsure. The wrongness arriving before he understands it.\n\nFrame Map: @image1 at the wheel screen-left x=40% chest-up; the tablet (@image2) propped low-right foreground x=60% with the comm icon lit; passenger side out of frame right. Handheld setup.\n\nLocation & Blocking — @image3 (plate): Pickup cab interior, driver side, tablet propped against the dash or seat in the low foreground. @image1 sits at the wheel, one hand on it, head turning down to the tablet then up toward the passenger side; the tablet screen shows a comm icon shifting to green. He keeps the same face and look as @image1; the tablet keeps the look of @image2.\n\nCross-Frame Rules: @image1 is the only figure in this framing; the tablet stays fixed in the low foreground.\n\nMovement: @image1 drives across the first second, then his eyes snap down to the tablet as the comm icon flips to green, his brow drawing in; he holds a beat listening to the wet breath from the speaker, a single hard swallow, then his head lifts and turns toward the passenger seat off-frame right, lips parting on her name. Daylight sweeping the dash, faint screen glow on his face. No other deliberate motion.\n\nDialogue: The man at the wheel (@image1) says: \"...Dixie?\"\n\nLast Frame: @image1 half-turned toward the passenger side, uncertainty on his face, the tablet's comm icon glowing green in the low foreground. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image3 — pickup cab at speed, daylight through the glass.\n\nSound Bed: Diegetic only — engine and road noise, a wet ragged breath hissing from the tablet speaker, no music.\n\nCapture Realism: The figures sit in real depth — cab interior and road beyond separated by soft daylight haze, background lower-contrast than the foreground. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 55mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, a small push to the tablet then up. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 4s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：行驶的车厢里，一名男子（@image1）瞥见改装平板（@image2）上的通讯图标从红闪成绿，同时一阵潮湿的呼吸从扬声器里渗出，他的目光落到平板上、又抬向副驾座，念出她的名字，满是不确定。错乱在他理解之前就已到来。\n\n构图定位：@image1在方向盘后画面左侧x=40%胸上；平板（@image2）斜靠在右下前景x=60%，通讯图标亮着；副驾一侧在画面右侧框外。手持机位。\n\n场景与走位——@image3（底板）：皮卡车厢内部，驾驶侧，平板斜靠在下前景的仪表台或座椅上。@image1坐在方向盘后，一手握盘，头低向平板、再抬向副驾一侧；平板屏上通讯图标正转为绿色。他保持与@image1相同的面孔与样貌；平板保持@image2的外观。\n\n跨帧规则：此构图中只有@image1一人；平板固定在下前景。\n\n运动：第一秒@image1驾车，随后当通讯图标翻绿时他的目光猛地落到平板上，眉头拧紧；他停顿一拍、听着扬声器里潮湿的呼吸，一次用力吞咽，随后抬头转向画面右侧框外的副驾座，念出她名字时双唇微启。日光扫过仪表台，屏幕微光映在他脸上。别无刻意动作。\n\n台词：方向盘后的男子（@image1）说：\"...Dixie?\"\n\n末帧：@image1半转向副驾一侧，脸上写着不确定，平板的通讯图标在下前景发着绿光。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image3——疾驰中的皮卡车厢，透过玻璃的日光。\n\n声音层：仅现场音——引擎与路噪，平板扬声器里渗出的一口潮湿而粗粝的呼吸，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——车厢内部与窗外道路被柔和的日光雾分开，背景比前景对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线55mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，先轻推向平板再抬起。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，4秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}, "17": {"en": "Scene & Mood: A voice says \"Hi, Wyatt\" out of the tablet speaker (@image3) while the passenger (@image2) — sitting right there — slowly turns her head toward it, and the man at the wheel (@image1) goes cold. The trap closing on a smash cut to black.\n\nFrame Map: In-cab two-shot, @image1 at the wheel screen-left x=35%, @image2 passenger screen-right x=65%, the tablet (@image3) low-center foreground x=50% with a green comm icon; then a push onto @image2's face as it turns. Handheld setup.\n\nLocation & Blocking — @image4 (plate): Pickup cab interior, bench view, windshield across the top, tablet propped in the low foreground between the seats. @image1 sits at the wheel screen-left, head turning between the tablet and @image2; @image2 sits at the passenger door screen-right, a gap of bench between them, head beginning to turn from front toward the tablet and @image1. Both keep the same face and look as their references; the tablet keeps the look of @image3.\n\nCross-Frame Rules: @image1 stays at the wheel screen-left, @image2 stays at the passenger door screen-right, a gap of seat between them; they never slide together, never swap sides. The tablet stays fixed low-center.\n\nMovement: The comm speaker breathes and then speaks; @image1's face drains, his eyes cutting from the tablet to @image2; @image2, who has been staring ahead, turns her head slowly and evenly toward the sound across the last two seconds, her expression unreadable, until her eyes come round — and the frame smash-cuts hard to black on the turn. Daylight sweeping the cab, faint screen glow. No other deliberate motion.\n\nDialogue: A voice from the tablet speaker says: \"Hi, Wyatt.\" The line is off-screen voice-over from the speaker added in post; on camera both faces react but neither mouths this line.\n\nLast Frame: @image2's head come fully round toward the tablet and @image1, eyes landing, @image1 frozen at the wheel — then a hard cut to black. No on-screen text, no captions, no signage typography, no rendered text in the frame.\n\nWorld Plate: Anchored to @image4 — pickup cab at speed, daylight through the glass.\n\nSound Bed: Diegetic only — engine and road noise, a wet ragged breath and a woman's low voice from the tablet speaker, then abrupt silence on the cut to black, no music.\n\nCapture Realism: The figures sit in real depth — cab interior and road beyond separated by soft daylight haze, background lower-contrast than the foreground. Skin true cinematic matte — zero shine on forehead, nose, cheekbones, chin and collarbones, real peach fuzz at jaw and hairline, soft even pore texture, true subsurface scattering, warmth preserved, never plastic or waxy, no blemishes. Low-contrast curve — shadows lifted, highlights rolled off, nothing crushed or clipped, all speculars removed from skin, hair and fabric, every pixel matte and diffuse, slightly desaturated with warmth kept.\n\nCamera Capture: Real-time 1x, documentary-real, full-speed. 35mm film stock, clean spherical rectilinear 55mm lens, no anamorphic, f/2.8 shallow depth of field. handheld, a slow push onto her turning face, then a hard cut to black. Soft diffuse lateral key with subtle fill, low contrast, contained saturation, cool shadows, lifted faded blacks, neutral temperature. Even exposure edge to edge, no vignette. Color-pure optics, zero chromatic aberration. 9:16 vertical, 24fps 180 degree shutter, 5s. avoid slow motion, avoid jitter, avoid temporal flicker, avoid bent limbs, avoid identity drift.", "zh": "画面与氛围：一个声音从平板扬声器（@image3）里说出 \"Hi, Wyatt.\"，而副驾座上的她（@image2）——就坐在那里——缓缓把头转向声音，方向盘后的男子（@image1）浑身发冷。陷阱在一记切黑中合拢。\n\n构图定位：车厢内双人镜头，@image1在方向盘后画面左侧x=35%，@image2副驾在画面右侧x=65%，平板（@image3）在下方中央前景x=50%、通讯图标发绿；随后推向转头中的@image2的脸。手持机位。\n\n场景与走位——@image4（底板）：皮卡车厢内部，长椅广角，挡风玻璃横在上方，平板斜靠在两座之间的下前景。@image1坐在方向盘后画面左侧，头在平板与@image2之间转动；@image2坐在副驾车门画面右侧，二人之间隔着一段座椅空隙，头正从朝前开始转向平板与@image1。两人各自保持与其参考相同的面孔与样貌；平板保持@image3的外观。\n\n跨帧规则：@image1保持在方向盘后画面左侧，@image2保持在副驾车门画面右侧，二人之间有座椅空隙；绝不并到一起、绝不换边。平板固定在下方中央。\n\n运动：通讯扬声器先是呼吸、随后出声；@image1的脸色一沉，目光从平板切到@image2；一直目视前方的@image2在最后两秒里缓慢而均匀地把头转向声音，神情莫测，直到她的目光转过来——画面在这一转头上硬切到全黑。日光扫过车厢，屏幕微光。别无刻意动作。\n\n台词：一个声音从平板扬声器里说：\"Hi, Wyatt.\" 该句为扬声器传出的画外音，后期加入；镜头内两张脸都有反应，但都不对口型念这句。\n\n末帧：@image2的头完全转向平板与@image1，目光落定，@image1在方向盘后僵住——随即硬切到全黑。画面中无字幕、无文字、无标识字体、无任何渲染文字。\n\n世界底板：锚定于@image4——疾驰中的皮卡车厢，透过玻璃的日光。\n\n声音层：仅现场音——引擎与路噪，平板扬声器里一口潮湿粗粝的呼吸与一个女人低低的声音，随后在切黑处骤然静默，无音乐。\n\n拍摄真实感：人物处于真实的空间纵深中——车厢内部与窗外道路被柔和的日光雾分开，背景比前景对比更低。肤质呈真实电影级哑光——额头、鼻梁、颧骨、太阳穴、下巴与锁骨零高光，下颌与发际线有真实的汗毛，细腻均匀的毛孔质感，真实的次表面散射，保留暖调，略微降饱和但绝不苍白，绝不塑料感，绝不假人肌，绝不生硬——无瑕疵，细腻讨喜的质感。低对比曲线——阴影轻柔提亮并保留质感，高光柔和滚降，不压死黑不过曝。皮肤、头发与布料上的所有高光被彻底移除，每个像素哑光漫射。略微降饱和的调色，保留暖调。\n\n镜头捕捉：真实1倍速，纪录片式真实，全速。35mm胶片拍摄，干净的球面直线55mm镜头，无变形宽银幕畸变，f/2.8浅景深。手持，缓慢推向她转过来的脸，随后硬切到全黑。柔和的漫射侧主光配以微弱补光，低对比，克制的饱和度，冷调阴影，提亮的褪色黑位，中性色温。四角与中心一样明亮，无暗角。光学纯净，零色差。9:16竖屏，24fps，180°快门，5秒。避免慢动作，避免抖动，避免时间闪烁，避免肢体扭曲，避免身份漂移。"}};
+function setCnt(n,txt){var c=document.getElementById('cnt-'+n);var L=txt.length;c.textContent=L+' / 3500';c.className='counter'+(L>=3500?' red':(L>=3000?' amber':''));}
+function render(n){var card=document.getElementById('s'+n);var l=card.querySelector('.lang.on').dataset.l;var txt=DATA[n][l];document.getElementById('pre-'+n).textContent=txt;setCnt(n,txt);}
+document.querySelectorAll('.switch').forEach(function(sw){var n=sw.dataset.shot;sw.querySelectorAll('.lang').forEach(function(b){b.addEventListener('click',function(){sw.querySelectorAll('.lang').forEach(function(x){x.classList.remove('on')});b.classList.add('on');render(n);});});});
+document.querySelectorAll('.copy').forEach(function(btn){btn.addEventListener('click',function(){var n=btn.dataset.shot;var l=document.querySelector('#s'+n+' .lang.on').dataset.l;var t=DATA[n][l];navigator.clipboard.writeText(t).then(function(){btn.classList.add('done');var o=btn.textContent;btn.textContent='✓ Copiado';setTimeout(function(){btn.classList.remove('done');btn.textContent=o;},1300);});});});
+Object.keys(DATA).forEach(render);
+</script></body></html>

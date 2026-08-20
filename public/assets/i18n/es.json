@@ -516,6 +516,7 @@
       "COL_DURATION": "Duración",
       "COL_CAMERA": "Cámara",
       "COL_ACTION": "Acción",
+      "CUTS": "cortes",
       "COPY_TOOLTIP": "Copiar respuesta cruda",
       "SHOT_LIST": "Listado de shots",
       "ARTIFACT_TITLE": "Artefacto del listado de shots",

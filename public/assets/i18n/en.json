@@ -516,6 +516,7 @@
       "COL_DURATION": "Duration",
       "COL_CAMERA": "Camera",
       "COL_ACTION": "Action",
+      "CUTS": "cuts",
       "COPY_TOOLTIP": "Copy raw response",
       "SHOT_LIST": "Shot List",
       "ARTIFACT_TITLE": "Shot list artifact",

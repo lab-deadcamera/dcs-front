@@ -54,7 +54,7 @@ export function generateArtifactHtml(data: ArtifactData): string {
   const total = data.totalDuration;
   const cap = data.durationCap || 80;
   const slack = Math.max(0, cap - total);
-  const totalCuts = data.shots.reduce((a, s) => a + s.cuts, 0);
+  const totalCuts = data.shots.reduce((a, s) => a + (parseInt(String(s.cuts), 10) || 0), 0);
 
   const conventionsHtml = data.conventions
     .map((c) => `<span class="chip"><b>${esc(c.label)}</b> ${esc(c.value)}</span>`)
