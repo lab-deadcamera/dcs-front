@@ -383,6 +383,13 @@ export class PromptBuilderComponent implements OnInit {
       if (!this.skipStoreSync) {
         const currentText = this.stripHtml(this.editorContent());
         if (currentText !== storeVal) {
+          // External change (take switch, reset, clip load, optimizer result):
+          // the text under the editor is a different prompt, so every cached
+          // translation belongs to the OLD text — drop it and re-learn the
+          // source language on the next translate.
+          this.translationCache.clear();
+          this.translatedText.set(null);
+          this.sourceLang.set('');
           this.editorContent.set(storeVal);
         }
       }
@@ -629,6 +636,8 @@ export class PromptBuilderComponent implements OnInit {
     // Only here does the editor content actually become the target language,
     // so sourceLang is updated now (not in the translate response).
     this.sourceLang.set(this.translateLang());
+    // The base text changed — any cached translation for other languages is stale.
+    this.translationCache.clear();
     this.editorContent.set(text);
     this.translatedText.set(null);
     popover.hide();
@@ -668,6 +677,8 @@ export class PromptBuilderComponent implements OnInit {
     const text = ` [${reference}]`;
     quill.insertText(cursorPosition, text);
     quill.setSelection(cursorPosition + text.length, 0);
+    // The prompt text changed → any cached translation is stale.
+    this.translationCache.clear();
   }
 
   /**
@@ -695,6 +706,8 @@ export class PromptBuilderComponent implements OnInit {
     const payload = (needsSpace ? ' ' : '') + text;
     quill.insertText(end, payload);
     quill.setSelection(end + payload.length, 0);
+    // The prompt text changed → any cached translation is stale.
+    this.translationCache.clear();
   }
 
   /**
@@ -724,6 +737,8 @@ export class PromptBuilderComponent implements OnInit {
       length += 1;
     }
     quill.deleteText(index, length);
+    // The prompt text changed → any cached translation is stale.
+    this.translationCache.clear();
     // Quill's text-change event normally syncs back to the store via
     // (onTextChange), but flag it explicitly in case the source path
     // is treated as `api` instead of `user`.
