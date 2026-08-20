@@ -284,6 +284,43 @@ function escAttr(s: string): string {
  *   - JSON wrapped in data:text/plain;base64,... URIs
  */
 export function parseArtifactData(raw: string): ArtifactData | null {
+  const parsed = parseRawJson(raw);
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  // Old ArtifactData format: has totalDuration AND shots[0].prompt (string, not object)
+  const shots = (parsed as { shots?: unknown }).shots;
+  if (
+    shots &&
+    Array.isArray(shots) &&
+    typeof (parsed as { totalDuration?: unknown }).totalDuration === 'number' &&
+    typeof (shots[0] as { prompt?: unknown } | undefined)?.prompt === 'string'
+  ) {
+    return parsed as ArtifactData;
+  }
+
+  return null;
+}
+
+/**
+ * Parse a raw backend shot-builder response (episode + scenes format) into the
+ * legacy ArtifactData shape so generateArtifactHtml can render real
+ * generations in the doc-style layout. Returns null when the text is not the
+ * episode format (so callers can fall back to parseArtifactData).
+ */
+export function parseEpisodeArtifact(raw: string): ArtifactData | null {
+  const parsed = parseRawJson(raw) as RawShotBuilderResult | null;
+  if (!parsed || !Array.isArray(parsed.scenes) || parsed.scenes.length === 0) return null;
+
+  const firstShot = parsed.scenes
+    .map((scene) => scene.shots?.[0])
+    .find((shot) => shot && typeof shot.prompt === 'object');
+  if (!firstShot || typeof firstShot.prompt?.en !== 'string') return null;
+
+  return mapEpisodeToArtifact(parsed);
+}
+
+/** Shared raw-text cleaner: trim → base64 → markdown fences → JSON.parse. */
+function parseRawJson(raw: string): unknown | null {
   if (!raw) return null;
 
   let clean = raw.trim();
@@ -305,21 +342,213 @@ export function parseArtifactData(raw: string): ArtifactData | null {
   }
 
   try {
-    const parsed = JSON.parse(clean);
-    // Old ArtifactData format: has totalDuration AND shots[0].prompt (string, not object)
-    if (
-      parsed.shots &&
-      Array.isArray(parsed.shots) &&
-      typeof parsed.totalDuration === 'number' &&
-      typeof parsed.shots[0]?.prompt === 'string'
-    ) {
-      return parsed as ArtifactData;
-    }
+    return JSON.parse(clean);
   } catch {
-    // not parseable
+    return null;
+  }
+}
+
+interface RawShotBuilderResult {
+  episode?: {
+    title?: string;
+    totalDuration?: number;
+    mode?: string;
+    aspectRatio?: string;
+    directorNotes?: { goal?: string; styleGuide?: string; warnings?: string[] };
+  };
+  scenes?: RawScene[];
+}
+
+interface RawScene {
+  scriptNumber?: number;
+  scriptLocation?: string;
+  title?: string;
+  sceneType?: string;
+  mode?: string;
+  continuity?: {
+    location?: string;
+    timeContinuity?: string;
+    keepWardrobe?: boolean;
+    keepLighting?: boolean;
+    keepEyelines?: boolean;
+    keepCameraAxis?: boolean;
+  };
+  shots?: RawShot[];
+}
+
+interface RawShot {
+  id?: string;
+  title?: string;
+  description?: string;
+  duration?: number;
+  start?: number;
+  end?: number;
+  cuts?: number;
+  prompt?: { en?: string; zh?: string };
+  notes?: { watchFor?: string[]; warnings?: string[]; todos?: string[] };
+}
+
+interface IndexedShot {
+  shot: RawShot;
+  scene: RawScene;
+  index: number;
+}
+
+function mapEpisodeToArtifact(result: RawShotBuilderResult): ArtifactData {
+  const scenes = result.scenes ?? [];
+  const indexed: IndexedShot[] = [];
+  for (const scene of scenes) {
+    for (const shot of scene.shots ?? []) {
+      indexed.push({ shot, scene, index: indexed.length });
+    }
   }
 
-  return null;
+  const total =
+    result.episode?.totalDuration ??
+    indexed.reduce((sum, s) => sum + Math.max(0, s.shot.end ?? s.shot.duration ?? 0), 0);
+  const spikeIndex = computeSpikeIndex(indexed);
+
+  const shots: ArtifactShot[] = indexed.map(({ shot, scene, index }, i) => {
+    const cuts = toInt(shot.cuts, 0);
+    const duration =
+      toInt(shot.duration, Math.max(0, toInt(shot.end, 0) - toInt(shot.start, 0))) || 1;
+    return {
+      id: shot.id || String(index + 1),
+      beat: computeBeat(i, indexed.length, cuts, i === spikeIndex),
+      duration,
+      cuts,
+      title: shot.title || shot.description || `Plano ${index + 1}`,
+      spike: i === spikeIndex,
+      prompt: shot.prompt?.en || '',
+      promptZh: shot.prompt?.zh || '',
+      guide: {
+        scene: sceneLabel(scene),
+        type: sceneTypeLabel(scene),
+        cuts: buildCutSegments(shot, cuts, duration),
+        important: shot.notes?.watchFor?.join(' · ') || shot.description || '',
+      },
+    };
+  });
+
+  return {
+    title: result.episode?.title || 'Shot Builder',
+    scene: sceneLabel(scenes[0]),
+    totalDuration: total,
+    durationCap: 80,
+    shots,
+    conventions: buildConventions(result),
+    faceToFaceRule: result.episode?.directorNotes?.styleGuide || undefined,
+  };
+}
+
+function sceneLabel(scene: RawScene | undefined): string {
+  if (!scene) return '';
+  const loc = scene.scriptLocation || '';
+  const title = scene.title || '';
+  if (loc && title) return `${loc} · ${title}`;
+  if (scene.scriptNumber != null) return `Escena ${scene.scriptNumber}`;
+  return loc || title;
+}
+
+function sceneTypeLabel(scene: RawScene): string {
+  if (scene.sceneType) return scene.sceneType;
+  if (scene.mode) return scene.mode;
+  return 'Plano';
+}
+
+/** Cut segment breakdown: parsed from the prompt.en Movement block when
+ *  available, otherwise a proportional split of the duration. */
+function buildCutSegments(shot: RawShot, cuts: number, duration: number): Array<[string, string]> {
+  if (cuts <= 0) return [['Continuo', 'toma única sin cortes']];
+
+  const parsed = parseCutTimings(shot.prompt?.en || '');
+  if (parsed.length >= 2) {
+    return parsed.map((seg, i) => [`Corte ${i + 1}`, `${seg.name} (${seg.start}-${seg.end}s)`]);
+  }
+
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const span = duration / (cuts + 1);
+  const segs: Array<[string, string]> = [];
+  for (let i = 0; i <= cuts; i++) {
+    const a = Math.round(i * span);
+    const b = Math.round((i + 1) * span);
+    segs.push([`Corte ${i + 1}`, `${letters[i] ?? i + 1} (${a}-${b}s)`]);
+  }
+  return segs;
+}
+
+/** Extract "Cut X (a-bs)" markers from the Movement block, in order. */
+function parseCutTimings(prompt: string): Array<{ name: string; start: number; end: number }> {
+  const out: Array<{ name: string; start: number; end: number }> = [];
+  const re = /Cut\s+([A-Za-z0-9]+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*s\)/g;
+  let m: RegExpExecArray | null;
+  const seen = new Set<string>();
+  while ((m = re.exec(prompt)) !== null) {
+    const key = `${m[1].toLowerCase()}-${m[2]}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ name: m[1], start: Number(m[2]), end: Number(m[3]) });
+  }
+  return out;
+}
+
+/** Most cuts = the spike shot (visual marker in the strip). */
+function computeSpikeIndex(indexed: IndexedShot[]): number {
+  let idx = -1;
+  let max = 1;
+  for (let i = 0; i < indexed.length; i++) {
+    const cuts = toInt(indexed[i].shot.cuts, 0);
+    if (cuts > max) {
+      max = cuts;
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+function computeBeat(index: number, total: number, cuts: number, isSpike: boolean): string {
+  if (isSpike) return 'SPIKE';
+  if (total <= 1) return 'HOOK';
+  if (index === 0) return 'HOOK';
+  if (index === total - 1) return 'BUTTON';
+  return 'FRICTION';
+}
+
+function buildConventions(result: RawShotBuilderResult): ArtifactConvention[] {
+  const conv: ArtifactConvention[] = [];
+  const episode = result.episode;
+  if (episode?.mode) conv.push({ label: 'Modo', value: episode.mode });
+  if (episode?.aspectRatio) conv.push({ label: 'Aspecto', value: episode.aspectRatio });
+  if (episode?.directorNotes?.goal) conv.push({ label: 'Objetivo', value: episode.directorNotes.goal });
+
+  const locks: string[] = [];
+  const lockNames: Array<[keyof NonNullable<RawScene['continuity']>, string]> = [
+    ['keepWardrobe', 'wardrobe'],
+    ['keepLighting', 'iluminación'],
+    ['keepEyelines', 'eyelines'],
+    ['keepCameraAxis', 'eje de cámara'],
+  ];
+  for (const scene of result.scenes ?? []) {
+    for (const [key, label] of lockNames) {
+      if (scene.continuity?.[key]) {
+        locks.push(`Lock ${label}`);
+      }
+    }
+  }
+  const uniqueLocks = [...new Set(locks)];
+  if (uniqueLocks.length > 0) {
+    conv.push({ label: 'Continuidad', value: uniqueLocks.join(' · ') });
+  }
+
+  const sceneCount = (result.scenes ?? []).length;
+  if (sceneCount > 0) conv.push({ label: 'Escenas', value: String(sceneCount) });
+
+  return conv;
+}
+
+function toInt(value: unknown, fallback: number): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : fallback;
 }
 
 /**

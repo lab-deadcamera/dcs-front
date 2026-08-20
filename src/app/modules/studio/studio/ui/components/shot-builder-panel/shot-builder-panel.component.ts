@@ -54,6 +54,7 @@ GlobalWorkerOptions.workerSrc = '/assets/pdfjs/pdf.worker.min.mjs';
 import {
   generateArtifactHtml,
   parseArtifactData,
+  parseEpisodeArtifact,
   computeCharacterCount,
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
@@ -824,7 +825,7 @@ export class ShotBuilderPanelComponent implements OnInit {
     const raw = this.rawResponse();
     if (!raw) return null;
 
-    const data = parseArtifactData(raw);
+    const data = parseEpisodeArtifact(raw) ?? parseArtifactData(raw);
     CONSOLE.log(
       '[artifact] raw preview:',
       raw.slice(0, 200),
