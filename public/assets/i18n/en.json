@@ -504,6 +504,7 @@
         "BUTTON": "Analyze elements",
         "BUTTON_TOOLTIP": "Detect visual entities in the script to close the world before generating",
         "LOADING": "Analyzing script elements…",
+        "RETRY": "Retry analysis",
         "TITLE": "Elements to define",
         "SCENE": "Scene {{number}}",
         "STATUS": {

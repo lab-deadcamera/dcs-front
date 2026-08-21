@@ -504,6 +504,7 @@
         "BUTTON": "Analizar elementos",
         "BUTTON_TOOLTIP": "Detectar entidades visuales del guion para cerrar el mundo antes de generar",
         "LOADING": "Analizando elementos del guion…",
+        "RETRY": "Reintentar análisis",
         "TITLE": "Elementos a definir",
         "SCENE": "Escena {{number}}",
         "STATUS": {

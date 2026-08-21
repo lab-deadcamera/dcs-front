@@ -637,6 +637,18 @@
                     <span>{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.LOADING' | translate }}</span>
                   </div>
                 </div>
+              } @else if (isElementsTab() && error() && !analysis()) {
+                <div class="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+                  <i class="pi pi-exclamation-triangle text-3xl text-red-400"></i>
+                  <p class="text-[13px] text-red-400">{{ error() }}</p>
+                  <button
+                    type="button"
+                    class="rounded-md border border-ink-600 bg-ink-800 px-3 py-1.5 text-[11px] text-fg-muted transition-colors hover:border-red-400 hover:text-red-300"
+                    (click)="runElementAnalysis()"
+                  >
+                    {{ 'STUDIO.SHOT_BUILDER.ANALYSIS.RETRY' | translate }}
+                  </button>
+                </div>
               } @else if (isElementsTab() && analysis(); as result) {
                 <!-- Element elicitation (world-closing) -->
                 <div class="h-full overflow-y-auto px-4 py-3">
