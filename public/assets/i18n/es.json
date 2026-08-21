@@ -537,7 +537,10 @@
         "CLEAR_REFERENCE": "Quitar referencia",
         "DESCRIPTION_PLACEHOLDER": "Describí el elemento (se usará tal cual en cada shot)…",
         "DEDUP_NOTE": "Se aplica también en escenas {{scenes}}",
-        "BLOCK_TOOLTIP": "Resolvé los elementos pendientes antes de generar shots"
+        "BLOCK_TOOLTIP": "Resolvé los elementos pendientes antes de generar shots",
+        "WARNING_TOOLTIP": "{{n}} elemento(s) aún sin decidir — podés generar de todas formas",
+        "WARNING_BANNER": "{{n}} elemento(s) sin resolver — los shots se generarán con los datos disponibles",
+        "VIEW_PENDING": "Revisar"
       },
       "TIME_BUDGET": "Presupuesto de tiempo",
       "TIME_BUDGET_ARIA": "Presupuesto de tiempo: {{detail}}",

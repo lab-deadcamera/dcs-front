@@ -510,7 +510,7 @@
                     [loading]="loading()"
                     [pTooltip]="
                       generateBlocked()
-                        ? ('STUDIO.SHOT_BUILDER.ANALYSIS.BLOCK_TOOLTIP' | translate)
+                        ? ('STUDIO.SHOT_BUILDER.ANALYSIS.WARNING_TOOLTIP' | translate: { n: unresolvedEntities().length })
                         : hasPreviousResponse()
                           ? 'Refine the current breakdown (keeps unchanged shots identical)'
                           : 'Generate a shot list from the prompt'
@@ -518,6 +518,19 @@
                     tooltipPosition="top"
                   />
                 </div>
+                @if (generateBlocked()) {
+                  <div class="mt-1 flex items-center gap-1.5 rounded-md border border-yellow-800 bg-yellow-950 px-2 py-1 text-[10px] text-yellow-300">
+                    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                    <span>{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.WARNING_BANNER' | translate: { n: unresolvedEntities().length } }}</span>
+                    <button
+                      type="button"
+                      class="ml-auto underline hover:text-yellow-200"
+                      (click)="showElementsTab()"
+                    >
+                      {{ 'STUDIO.SHOT_BUILDER.ANALYSIS.VIEW_PENDING' | translate }}
+                    </button>
+                  </div>
+                }
               </div>
             </div>
           </section>

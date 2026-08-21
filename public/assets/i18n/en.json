@@ -537,7 +537,10 @@
         "CLEAR_REFERENCE": "Clear reference",
         "DESCRIPTION_PLACEHOLDER": "Describe the element (used as-is in every shot)…",
         "DEDUP_NOTE": "Also applies in scenes {{scenes}}",
-        "BLOCK_TOOLTIP": "Resolve pending elements before generating shots"
+        "BLOCK_TOOLTIP": "Resolve pending elements before generating shots",
+        "WARNING_TOOLTIP": "{{n}} element(s) still undecided — you can generate anyway",
+        "WARNING_BANNER": "{{n}} element(s) unresolved — shots will be generated with available data",
+        "VIEW_PENDING": "Review"
       },
       "TIME_BUDGET": "Time budget",
       "TIME_BUDGET_ARIA": "Time budget: {{detail}}",

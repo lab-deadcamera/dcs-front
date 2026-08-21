@@ -141,6 +141,7 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
             @for (entity of group.entities; track entity.entity_id) {
               <div
                 class="elicit-entity-card rounded-md p-2"
+                [class.elicit-entity-pending]="!isResolved(entity)"
                 role="group"
                 [attr.aria-label]="entity.mentioned_as"
               >
@@ -184,6 +185,11 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
                       } @else if (isResolved(entity)) {
                         <span class="rounded bg-green-900 px-1.5 py-0.5 text-[10px] text-green-300">
                           {{ statusKey(entity) | translate }}
+                        </span>
+                      } @else {
+                        <span class="elicit-pending-badge">
+                          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                          {{ pendingKey | translate }}
                         </span>
                       }
                     </div>
@@ -501,6 +507,27 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
         border-color: rgba(79, 176, 181, 0.45);
         box-shadow: 0 0 14px rgba(79, 176, 181, 0.2);
       }
+      .elicit-entity-pending {
+        border-color: rgba(234, 179, 8, 0.45);
+        box-shadow: 0 0 10px rgba(234, 179, 8, 0.15);
+      }
+      .elicit-entity-pending:hover {
+        border-color: rgba(234, 179, 8, 0.6);
+        box-shadow: 0 0 14px rgba(234, 179, 8, 0.25);
+      }
+      .elicit-pending-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 6px;
+        border-radius: 9999px;
+        background: rgba(234, 179, 8, 0.15);
+        color: #f59e0b;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
       .elicit-asset-thumb {
         position: relative;
         display: flex;
@@ -607,6 +634,7 @@ export class ElementElicitationComponent {
   readonly titleKey = `${ANALYSIS_PREFIX}.TITLE`;
   readonly sceneKey = `${ANALYSIS_PREFIX}.SCENE`;
   readonly orphanKey = `${ANALYSIS_PREFIX}.STATUS.ASSET_ORPHAN`;
+  readonly pendingKey = `${ANALYSIS_PREFIX}.STATUS.PENDING`;
   readonly assignTitleKey = `${ANALYSIS_PREFIX}.ASSIGN_TITLE`;
   readonly clearKey = `${ANALYSIS_PREFIX}.CLEAR_REFERENCE`;
   readonly descPlaceholderKey = `${ANALYSIS_PREFIX}.DESCRIPTION_PLACEHOLDER`;

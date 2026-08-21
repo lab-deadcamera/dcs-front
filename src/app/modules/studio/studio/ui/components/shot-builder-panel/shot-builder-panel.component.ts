@@ -423,7 +423,6 @@ export class ShotBuilderPanelComponent implements OnInit {
   readonly canSend = computed(
     () =>
       !this.loading() &&
-      !this.generateBlocked() &&
       Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
   );
 
