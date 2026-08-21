@@ -355,11 +355,17 @@ export class ShotBuilderService {
         message?: string;
       }>(`${environment.API_URL}/studio/text/claude/refine-shots`, body)
       .pipe(
-        map((response) => {
+        switchMap((response) => {
           if (!response.success || !response.data) {
             throw new Error(response.message || 'Failed to refine shots');
           }
-          return this.parseShotsResponse(response.data);
+          const data = response.data;
+          // The backend answers immediately with a taskId in "processing" and
+          // produces the refinement in the background, so poll until it is done.
+          if (data.status !== 'processing') {
+            return of(this.parseShotsResponse(data));
+          }
+          return this.pollShotsStatus(data.taskId);
         }),
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not refine shot list';
@@ -838,6 +844,7 @@ export class ShotBuilderService {
                 duration: shot.duration,
                 start: shot.start,
                 end: shot.end,
+                cuts: shot.cuts != null ? normalizeCuts(shot.cuts) : inferCutsFromPrompt(shot.prompt?.en),
                 notes: shot.notes as ShotNotes | undefined,
               }) as ShotBuilderShot,
           ),
@@ -869,6 +876,7 @@ export class ShotBuilderService {
           description: normalizeSeedanceSlots(s.prompt?.en) || s.prompt?.zh || '',
           references: s.references as Reference[] | undefined,
           prompt_en: s.prompt?.en ? normalizeSeedanceSlots(s.prompt.en) : undefined,
+          cuts: s.cuts != null ? normalizeCuts(s.cuts) : inferCutsFromPrompt(s.prompt?.en),
           duration: s.duration,
         }));
         // Wrap legacy shots in a single scene
@@ -1091,6 +1099,19 @@ function normalizeCuts(value: unknown): number {
   if (typeof value === 'string' && value.trim() !== '') value = Number(value);
   if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
   return Math.max(0, Math.round(value));
+}
+
+/** Infer the number of internal cuts from the prompt text when the `cuts` field
+ *  is missing from the shot JSON. Looks for explicit cut markers ("Cut A", etc.)
+ *  or fallback phrases like "hard cut to" / "hard cut between". */
+function inferCutsFromPrompt(prompt: string | undefined): number {
+  if (!prompt) return 0;
+  // Match explicit cut markers: "Cut A", "Cut B", "Cut 1", "Segment 2", etc.
+  const explicit = prompt.match(/\b(?:Cut|Segment)\s+[A-Z0-9]+/gi);
+  if (explicit && explicit.length >= 2) return explicit.length - 1;
+  // Fallback: count "hard cut" transitions
+  const hardCuts = prompt.match(/\bhard\s+cut\b/gi);
+  return hardCuts ? hardCuts.length : 0;
 }
 
 export function shotBuilderResultToSequence(
