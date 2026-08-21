@@ -1200,6 +1200,7 @@ export class ShotBuilderPanelComponent implements OnInit {
 
     this.analysisLoading.set(true);
     this.error.set(null);
+    this.showElementsTab();
 
     const userName = this.sessionStore.user()?.handle || '';
     this.shotBuilderService
