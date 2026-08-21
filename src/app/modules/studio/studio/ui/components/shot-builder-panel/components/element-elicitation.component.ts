@@ -176,15 +176,15 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
                       <span class="elicit-type-chip">
                         {{ categoryKey(entity.category) | translate }}
                       </span>
-                      @if (entity.definition_status === 'asset_orphan') {
+                      @if (isResolved(entity)) {
+                        <span class="rounded bg-green-900 px-1.5 py-0.5 text-[10px] text-green-300">
+                          {{ statusKey(entity) | translate }}
+                        </span>
+                      } @else if (entity.definition_status === 'asset_orphan') {
                         <span
                           class="rounded bg-yellow-900 px-1.5 py-0.5 text-[10px] text-yellow-300"
                         >
                           {{ orphanKey | translate }}
-                        </span>
-                      } @else if (isResolved(entity)) {
-                        <span class="rounded bg-green-900 px-1.5 py-0.5 text-[10px] text-green-300">
-                          {{ statusKey(entity) | translate }}
                         </span>
                       } @else {
                         <span class="elicit-pending-badge">
