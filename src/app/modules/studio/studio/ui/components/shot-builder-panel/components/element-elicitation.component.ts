@@ -805,7 +805,12 @@ export class ElementElicitationComponent {
 
   linkedAsset(entity: ElementEntity): PickerEntry | undefined {
     const id = entity.linked_asset_id;
-    return id ? this.allEntries().find((e) => e.key === id) : undefined;
+    if (!id) return undefined;
+    // Match by key (character_id for characters, file_id for free assets)
+    // or by fileId (asset orphan entities carry the file UUID as linked_asset_id).
+    return (
+      this.allEntries().find((e) => e.key === id || e.fileId === id) ?? undefined
+    );
   }
 
   /** Open the metadata/preview popover for the entity's assigned asset
