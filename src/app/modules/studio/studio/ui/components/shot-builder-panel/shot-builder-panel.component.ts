@@ -2344,7 +2344,7 @@ export class ShotBuilderPanelComponent implements OnInit {
     return {
       description: this.studio.rawDescription() || undefined,
       characters: this.studio.chapterCharacterData().map((c) => ({
-        ...(c.fileId ? { id: c.fileId } : {}),
+        id: c.id,
         name: c.name,
         ...(c.slot ? { slot: c.slot } : {}),
       })),
