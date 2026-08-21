@@ -61,7 +61,7 @@ import {
   computeCharacterCount,
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
-import responseOkMock from '@app/core/mocks/response-07-08.json';
+import responseOkMock from '@app/core/mocks/the-route.json';
 import { Reference, Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS, LEVEL_ROL } from '@app/core/constants';
@@ -307,7 +307,9 @@ export class ShotBuilderPanelComponent implements OnInit {
     ),
   );
   /** Hard block: generation stays disabled while any entity is unresolved. */
-  readonly generateBlocked = computed(() => this.analysis() !== null && this.unresolvedEntities().length > 0);
+  readonly generateBlocked = computed(
+    () => this.analysis() !== null && this.unresolvedEntities().length > 0,
+  );
 
   /** True after the claude-shot-builder model check completes. */
   readonly modelCheckDone = signal(false);
@@ -421,9 +423,7 @@ export class ShotBuilderPanelComponent implements OnInit {
   });
 
   readonly canSend = computed(
-    () =>
-      !this.loading() &&
-      Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
+    () => !this.loading() && Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
   );
 
   /** True when there is a previous generate-shots response to refine. */
@@ -1232,7 +1232,10 @@ export class ShotBuilderPanelComponent implements OnInit {
           this.analysis.set({ ...result, element_registry: registry });
           this.showElementsTab();
         },
-        error: () => this.analysisLoading.set(false),
+        error: (err) => {
+          this.error.set(err?.message || this.shotBuilderService.errorMessage() || 'Analysis failed');
+          this.analysisLoading.set(false);
+        },
         complete: () => this.analysisLoading.set(false),
       });
   }
@@ -1242,8 +1245,9 @@ export class ShotBuilderPanelComponent implements OnInit {
   protected onElementDecision(change: { entityId: string; patch: Partial<ElementEntity> }): void {
     this.analysis.update((current) => {
       if (!current) return current;
-      const group = current.element_registry.find((e) => e.entity_id === change.entityId)
-        ?.consistency_group;
+      const group = current.element_registry.find(
+        (e) => e.entity_id === change.entityId,
+      )?.consistency_group;
       return {
         ...current,
         element_registry: current.element_registry.map((e) =>
