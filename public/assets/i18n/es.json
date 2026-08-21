@@ -500,6 +500,46 @@
       "CLEAR": "Limpiar",
       "REFINE_SHOTS": "Refinar Shots",
       "GENERATE_SHOTS": "Generar Shots",
+      "ANALYSIS": {
+        "BUTTON": "Analizar elementos",
+        "BUTTON_TOOLTIP": "Detectar entidades visuales del guion para cerrar el mundo antes de generar",
+        "LOADING": "Analizando elementos del guion…",
+        "TITLE": "Elementos a definir",
+        "SCENE": "Escena {{number}}",
+        "STATUS": {
+          "PENDING": "Sin decidir",
+          "DEFINED": "Definido",
+          "INVENTED": "Inventado",
+          "ABSTRACTED": "Abstracto",
+          "ASSET_ORPHAN": "Sin asset"
+        },
+        "CATEGORY": {
+          "CHARACTER": "Personaje",
+          "LOCATION": "Ubicación",
+          "PROP": "Utilería",
+          "WARDROBE": "Vestuario",
+          "VEHICLE": "Vehículo",
+          "ANIMAL": "Animal",
+          "SCREEN_CONTENT": "Contenido en pantalla",
+          "WEATHER": "Clima",
+          "SOUND_OBJECT": "Objeto sonoro",
+          "OTHER": "Otro"
+        },
+        "DECISION": {
+          "DEFINE_WITH_REFERENCE": "Con referencia",
+          "DEFINE_WITH_TEXT": "Con texto",
+          "INVENT_FREE": "Inventar libre",
+          "INVENT_RESTRICTED": "Inventar acotado",
+          "ABSTRACT": "Abstracto"
+        },
+        "PICK_ASSET": "Elegir asset de referencia…",
+        "ASSET_INFO_ARIA": "Ver metadata del asset asignado",
+        "ASSIGN_TITLE": "Referencia para «{{name}}»",
+        "CLEAR_REFERENCE": "Quitar referencia",
+        "DESCRIPTION_PLACEHOLDER": "Describí el elemento (se usará tal cual en cada shot)…",
+        "DEDUP_NOTE": "Se aplica también en escenas {{scenes}}",
+        "BLOCK_TOOLTIP": "Resolvé los elementos pendientes antes de generar shots"
+      },
       "TIME_BUDGET": "Presupuesto de tiempo",
       "TIME_BUDGET_ARIA": "Presupuesto de tiempo: {{detail}}",
       "SCENE_TITLE": "Escena {{number}}: {{location}} ({{duration}}s, {{shots}} shots)",

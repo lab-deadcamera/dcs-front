@@ -500,6 +500,46 @@
       "CLEAR": "Clear",
       "REFINE_SHOTS": "Refine Shots",
       "GENERATE_SHOTS": "Generate Shots",
+      "ANALYSIS": {
+        "BUTTON": "Analyze elements",
+        "BUTTON_TOOLTIP": "Detect visual entities in the script to close the world before generating",
+        "LOADING": "Analyzing script elements…",
+        "TITLE": "Elements to define",
+        "SCENE": "Scene {{number}}",
+        "STATUS": {
+          "PENDING": "Undecided",
+          "DEFINED": "Defined",
+          "INVENTED": "Invented",
+          "ABSTRACTED": "Abstract",
+          "ASSET_ORPHAN": "No asset"
+        },
+        "CATEGORY": {
+          "CHARACTER": "Character",
+          "LOCATION": "Location",
+          "PROP": "Prop",
+          "WARDROBE": "Wardrobe",
+          "VEHICLE": "Vehicle",
+          "ANIMAL": "Animal",
+          "SCREEN_CONTENT": "Screen content",
+          "WEATHER": "Weather",
+          "SOUND_OBJECT": "Sound object",
+          "OTHER": "Other"
+        },
+        "DECISION": {
+          "DEFINE_WITH_REFERENCE": "With reference",
+          "DEFINE_WITH_TEXT": "With text",
+          "INVENT_FREE": "Invent freely",
+          "INVENT_RESTRICTED": "Invent restricted",
+          "ABSTRACT": "Abstract"
+        },
+        "PICK_ASSET": "Pick a reference asset…",
+        "ASSET_INFO_ARIA": "View assigned asset metadata",
+        "ASSIGN_TITLE": "Reference for “{{name}}”",
+        "CLEAR_REFERENCE": "Clear reference",
+        "DESCRIPTION_PLACEHOLDER": "Describe the element (used as-is in every shot)…",
+        "DEDUP_NOTE": "Also applies in scenes {{scenes}}",
+        "BLOCK_TOOLTIP": "Resolve pending elements before generating shots"
+      },
       "TIME_BUDGET": "Time budget",
       "TIME_BUDGET_ARIA": "Time budget: {{detail}}",
       "SCENE_TITLE": "Scene {{number}}: {{location}} ({{duration}}s, {{shots}} shots)",
