@@ -245,6 +245,15 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
                       (input)="onDescriptionInput(entity, $any($event.target).value)"
                     ></textarea>
                   }
+                  @default {
+                    @if (autoLinked(entity); as asset) {
+                      <div class="mt-2 flex items-center gap-2 rounded-md border border-green-900 bg-green-950 p-1.5 text-[12px]">
+                        <i class="pi pi-link text-green-400" aria-hidden="true"></i>
+                        <span class="flex-1 truncate text-green-300">{{ linkedAsset(entity)?.name }}</span>
+                        <span class="text-[10px] text-green-500">auto</span>
+                      </div>
+                    }
+                  }
                 }
 
                 @if (dedupScenes(entity).length > 0) {
@@ -718,7 +727,17 @@ export class ElementElicitationComponent {
   }
 
   isResolved(entity: ElementEntity): boolean {
-    return (RESOLVED_STATUSES as readonly string[]).includes(entity.definition_status);
+    return (
+      (RESOLVED_STATUSES as readonly string[]).includes(entity.definition_status) ||
+      // Auto-linked by the backend (linked_asset_id present, no user decision yet)
+      // counts as resolved — the entity already has a concrete reference.
+      (!!entity.linked_asset_id && !entity.user_decision)
+    );
+  }
+
+  /** True when the backend auto-linked an asset and the user hasn't overridden it. */
+  autoLinked(entity: ElementEntity): boolean {
+    return !!entity.linked_asset_id && !entity.user_decision;
   }
 
   chooseDecision(entity: ElementEntity, option: DecisionOption, event?: Event): void {
