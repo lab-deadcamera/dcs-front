@@ -14,6 +14,7 @@ import { FilesApiService } from '@app/services/files-api.service';
 import { CharactersApiService } from '@app/modules/characters/characters/services/characters-api.service';
 import { ModelService } from '@app/services/model.service';
 import { MessageService } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 import { Sequence } from '@app/core/interfaces';
 import dataMock from '@app/core/mocks/data.json';
 import type { ShotBuilderPanelComponent } from './shot-builder-panel.component';
@@ -39,6 +40,7 @@ class StudioStoreStub {
 @Injectable()
 class SessionStoreStub {
   readonly user = vi.fn().mockReturnValue(null);
+  readonly roleLevel = vi.fn().mockReturnValue(0);
 }
 
 @Injectable()
@@ -190,6 +192,7 @@ describe('ShotBuilderPanelComponent — duración', () => {
         { provide: CharactersApiService, useClass: CharactersApiServiceStub },
         { provide: ModelService, useClass: ModelServiceStub },
         { provide: MessageService, useValue: { add: vi.fn() } },
+        { provide: TranslateService, useValue: { instant: (k: string) => k } },
         { provide: DomSanitizer, useValue: sanitizerStub },
       ],
     })
@@ -362,6 +365,9 @@ describe('ShotBuilderPanelComponent — duración', () => {
   });
 
   it('deriva el assetType del character desde la librería', () => {
+    // The constructor eagerly loads types with the default stub response;
+    // force a reload now that list() returns library metadata.
+    (component as any).charactersLoaded = false;
     chars.list.mockReturnValue(
       of({
         error: false,
