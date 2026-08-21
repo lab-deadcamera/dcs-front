@@ -360,6 +360,37 @@
                 </div>
               }
 
+              <!-- Element elicitation (world-closing): analyze before generating -->
+              <div class="mb-2">
+                <button
+                  type="button"
+                  class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  (click)="runElementAnalysis()"
+                  [disabled]="
+                    loading() ||
+                    analysisLoading() ||
+                    (!promptText().trim() && uploadedFiles().length === 0)
+                  "
+                  pTooltip="{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.BUTTON_TOOLTIP' | translate }}"
+                  tooltipPosition="top"
+                >
+                  @if (analysisLoading()) {
+                    <i class="pi pi-spin pi-spinner text-fg-muted"></i>
+                  } @else {
+                    <i class="pi pi-bolt text-fg-muted"></i>
+                  }
+                  <span class="text-fg-muted">{{
+                    'STUDIO.SHOT_BUILDER.ANALYSIS.BUTTON' | translate
+                  }}</span>
+                </button>
+              </div>
+
+              @if (analysisLoading()) {
+                <p class="mb-2 text-[11px] text-fg-muted">
+                  {{ 'STUDIO.SHOT_BUILDER.ANALYSIS.LOADING' | translate }}
+                </p>
+              }
+
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <!-- <div class="flex items-center gap-2">
                 <input
@@ -478,9 +509,11 @@
                     [disabled]="!canSend()"
                     [loading]="loading()"
                     [pTooltip]="
-                      hasPreviousResponse()
-                        ? 'Refine the current breakdown (keeps unchanged shots identical)'
-                        : 'Generate a shot list from the prompt'
+                      generateBlocked()
+                        ? ('STUDIO.SHOT_BUILDER.ANALYSIS.BLOCK_TOOLTIP' | translate)
+                        : hasPreviousResponse()
+                          ? 'Refine the current breakdown (keeps unchanged shots identical)'
+                          : 'Generate a shot list from the prompt'
                     "
                     tooltipPosition="top"
                   />
@@ -544,6 +577,21 @@
                 </button>
               }
 
+              @if (analysisLoading() || analysis()) {
+                <button
+                  type="button"
+                  class="flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+                  [class.text-primary-400]="isElementsTab()"
+                  [class.border-b-2]="isElementsTab()"
+                  [class.border-primary-400]="isElementsTab()"
+                  [class.text-fg-muted]="!isElementsTab()"
+                  (click)="showElementsTab()"
+                >
+                  <i class="pi pi-sparkles" aria-hidden="true"></i>
+                  Elements
+                </button>
+              }
+
               <!-- Fullscreen toggle -->
               <button
                 type="button"
@@ -569,7 +617,23 @@
               [class.overflow-hidden]="!fullscreen()"
               [class.overflow-auto]="fullscreen()"
             >
-              @if (loading()) {
+              @if (isElementsTab() && analysisLoading()) {
+                <div class="flex h-full items-center justify-center text-[13px] text-fg-muted">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="pi pi-spin pi-spinner text-2xl text-primary-400"></i>
+                    <span>{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.LOADING' | translate }}</span>
+                  </div>
+                </div>
+              } @else if (isElementsTab() && analysis(); as result) {
+                <!-- Element elicitation (world-closing) -->
+                <div class="h-full overflow-y-auto px-4 py-3">
+                  <app-element-elicitation
+                    [registry]="result.element_registry"
+                    (entityChange)="onElementDecision($event)"
+                    (filesSelected)="uploadFreeAssets($event)"
+                  />
+                </div>
+              } @else if (loading()) {
                 <div class="flex h-full items-center justify-center text-[13px] text-fg-muted">
                   <div class="flex flex-col items-center gap-2">
                     <i class="pi pi-spin pi-spinner text-2xl text-primary-400"></i>

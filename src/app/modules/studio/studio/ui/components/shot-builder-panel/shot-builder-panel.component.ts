@@ -33,10 +33,13 @@ import {
   SceneContext,
   ShotRefineTarget,
   ChatTurn,
+  ElementEntity,
+  ElementRegistryResult,
   normalizeSeedanceSlots,
   shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
 import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-settings-dialog.component';
+import { ElementElicitationComponent } from './components/element-elicitation.component';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 /** Parse .docx files into HTML for preview. */
@@ -186,6 +189,7 @@ type AssetInfo =
     Popover,
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
+    ElementElicitationComponent,
     AssetViewerComponent,
     DialogModule,
     SourceThumbnailAssetPipe,
@@ -199,6 +203,9 @@ type AssetInfo =
   providers: [MessageService],
 })
 export class ShotBuilderPanelComponent implements OnInit {
+  /** Sentinel activeFileId value selecting the "Elements" tab. */
+  private static readonly ELEMENTS_TAB_ID = '__elements__';
+
   constructor() {
     this.validateClaudeModel();
     // Load the library's assetType map eagerly so the episode resource tabs
@@ -286,6 +293,21 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  // ── Element elicitation (world-closing) ─────────────────────────
+
+  /** Result of the last analyze-elements run, with UI statuses applied. */
+  readonly analysis = signal<ElementRegistryResult | null>(null);
+  /** True while analyze-elements is running. */
+  readonly analysisLoading = signal(false);
+  /** Entities still awaiting a user decision (pending or asset_orphan). */
+  readonly unresolvedEntities = computed(() =>
+    (this.analysis()?.element_registry ?? []).filter(
+      (e) => e.definition_status === 'pending' || e.definition_status === 'asset_orphan',
+    ),
+  );
+  /** Hard block: generation stays disabled while any entity is unresolved. */
+  readonly generateBlocked = computed(() => this.analysis() !== null && this.unresolvedEntities().length > 0);
 
   /** True after the claude-shot-builder model check completes. */
   readonly modelCheckDone = signal(false);
@@ -399,7 +421,10 @@ export class ShotBuilderPanelComponent implements OnInit {
   });
 
   readonly canSend = computed(
-    () => !this.loading() && Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
+    () =>
+      !this.loading() &&
+      !this.generateBlocked() &&
+      Boolean(this.promptText().trim() || this.uploadedFiles().length > 0),
   );
 
   /** True when there is a previous generate-shots response to refine. */
@@ -458,6 +483,11 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   /** True when the "Preview" tab (artifact / shot list) is selected. */
   readonly isPreviewTab = computed(() => this.activeFileId() === null);
+
+  /** True when the "Elements" tab (elicitation UI) is selected. */
+  readonly isElementsTab = computed(
+    () => this.activeFileId() === ShotBuilderPanelComponent.ELEMENTS_TAB_ID,
+  );
 
   /** True when there are parsed scenes/shots to show. */
   readonly hasShots = computed(() => this.scenes().length > 0);
@@ -973,7 +1003,14 @@ export class ShotBuilderPanelComponent implements OnInit {
    */
   onFreeAssetsSelected(event: Event): void {
     const target = event.target as HTMLInputElement | null;
-    const files = target?.files ? Array.from(target.files) : [];
+    this.uploadFreeAssets(target?.files ? Array.from(target.files) : []);
+    // Allow selecting the same file again.
+    if (target) target.value = '';
+  }
+
+  /** Uploads free assets from a raw file list (also used by the element
+   *  elicitation popover's upload button). */
+  uploadFreeAssets(files: File[]): void {
     if (files.length === 0) return;
 
     const projectId = this.projectId() || this.studio.projectId();
@@ -1074,9 +1111,6 @@ export class ShotBuilderPanelComponent implements OnInit {
         },
       });
     }
-
-    // Allow selecting the same file again.
-    if (target) target.value = '';
   }
 
   /** Extract plain text from a PDF using pdfjs-dist. */
@@ -1154,6 +1188,83 @@ export class ShotBuilderPanelComponent implements OnInit {
       if (nextIndex < 0) nextIndex = 0;
       this.selectFile(nextIndex);
     }
+  }
+
+  // ── Element elicitation (world-closing) ─────────────────────────
+
+  /** Run analyze-elements on the current send content and open the
+   *  elicitation UI. "undefined" entities from the analysis become "pending"
+   *  (undecided in the UI); "asset_orphan" is kept for the badge. */
+  runElementAnalysis(): void {
+    const content = this.getSendContent();
+    if (!content || this.analysisLoading()) return;
+
+    this.analysisLoading.set(true);
+    this.error.set(null);
+
+    const userName = this.sessionStore.user()?.handle || '';
+    this.shotBuilderService
+      .analyzeElements({
+        projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
+        sceneId:
+          this.sceneId() ||
+          this.studio.sceneId() ||
+          this.chapterId() ||
+          this.studio.chapterId() ||
+          '',
+        prompt: content,
+        model: this.claudeModelName(),
+        userName,
+        sceneContext: this.buildSceneContext(),
+      })
+      .subscribe({
+        next: (result) => {
+          if (result.element_registry.length === 0) {
+            // Guards in the service already set its error message.
+            this.error.set(this.shotBuilderService.errorMessage());
+            return;
+          }
+          const registry = result.element_registry.map((e) => ({
+            ...e,
+            definition_status:
+              e.definition_status === 'undefined' ? ('pending' as const) : e.definition_status,
+          }));
+          this.analysis.set({ ...result, element_registry: registry });
+          this.showElementsTab();
+        },
+        error: () => this.analysisLoading.set(false),
+        complete: () => this.analysisLoading.set(false),
+      });
+  }
+
+  /** Apply a decision patch from the elicitation UI, replicating it to every
+   *  entity in the same consistency_group (dedup across scenes). */
+  protected onElementDecision(change: { entityId: string; patch: Partial<ElementEntity> }): void {
+    this.analysis.update((current) => {
+      if (!current) return current;
+      const group = current.element_registry.find((e) => e.entity_id === change.entityId)
+        ?.consistency_group;
+      return {
+        ...current,
+        element_registry: current.element_registry.map((e) =>
+          e.entity_id === change.entityId || (!!group && e.consistency_group === group)
+            ? ({ ...e, ...change.patch } as ElementEntity)
+            : e,
+        ),
+      };
+    });
+  }
+
+  /** Resolved entities (final statuses only) to attach to generate/refine
+   *  calls. Undefined when there is no analysis or nothing was resolved. */
+  private resolvedElementRegistry(): ElementEntity[] | undefined {
+    const current = this.analysis();
+    if (!current) return undefined;
+    const resolved = current.element_registry.filter((e) =>
+      ['defined', 'invented', 'abstracted'].includes(e.definition_status),
+    );
+    return resolved.length > 0 ? resolved : undefined;
   }
 
   // ── Chat & generation ──────────────────────────────────────────────
@@ -1234,6 +1345,7 @@ export class ShotBuilderPanelComponent implements OnInit {
         generateZh: this.generateChinese(),
         useV2: this.useV2(),
         sceneContext,
+        elementRegistry: this.resolvedElementRegistry(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -1371,6 +1483,7 @@ export class ShotBuilderPanelComponent implements OnInit {
         generateZh: this.generateChinese(),
         ...(targets?.length ? { targets } : {}),
         recentContext: this.recentContext(),
+        elementRegistry: this.resolvedElementRegistry(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -2211,6 +2324,11 @@ export class ShotBuilderPanelComponent implements OnInit {
   /** Switch to the Preview tab (shot list / artifact). */
   showPreviewTab(): void {
     this.activeFileId.set(null);
+  }
+
+  /** Switch to the Elements tab (elicitation UI). */
+  showElementsTab(): void {
+    this.activeFileId.set(ShotBuilderPanelComponent.ELEMENTS_TAB_ID);
   }
 
   // ── Private ────────────────────────────────────────────────────────
