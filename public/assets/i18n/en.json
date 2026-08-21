@@ -532,7 +532,6 @@
           "INVENT_RESTRICTED": "Invent restricted",
           "ABSTRACT": "Abstract"
         },
-        "PICK_ASSET": "Pick a reference asset…",
         "ASSET_INFO_ARIA": "View assigned asset metadata",
         "ASSIGN_TITLE": "Reference for “{{name}}”",
         "CLEAR_REFERENCE": "Clear reference",

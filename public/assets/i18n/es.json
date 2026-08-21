@@ -532,7 +532,6 @@
           "INVENT_RESTRICTED": "Inventar acotado",
           "ABSTRACT": "Abstracto"
         },
-        "PICK_ASSET": "Elegir asset de referencia…",
         "ASSET_INFO_ARIA": "Ver metadata del asset asignado",
         "ASSIGN_TITLE": "Referencia para «{{name}}»",
         "CLEAR_REFERENCE": "Quitar referencia",

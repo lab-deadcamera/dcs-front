@@ -225,28 +225,6 @@ function parseCharacterMetadata(raw: string | null | undefined): CharacterMetada
                 </div>
 
                 @switch (chosenType(entity)) {
-                  @case ('define_with_reference') {
-                    <button
-                      type="button"
-                      class="mt-2 flex w-full items-center gap-2 rounded-md border border-ink-600 bg-ink-900 p-1.5 text-left text-[12px] text-fg transition-colors hover:border-primary-400 focus:border-primary-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                      [attr.aria-label]="pickAssetKey | translate"
-                      [disabled]="disabled()"
-                      (click)="openAssetPicker(entity, $event)"
-                    >
-                      <i class="pi pi-image text-fg-muted" aria-hidden="true"></i>
-                      @if (linkedAsset(entity); as asset) {
-                        <span class="flex-1 truncate">{{ asset.name }}</span>
-                      } @else {
-                        <span class="flex-1 truncate text-fg-muted">
-                          {{ pickAssetKey | translate }}
-                        </span>
-                      }
-                      <i
-                        class="pi pi-chevron-down ml-auto text-[10px] text-fg-muted"
-                        aria-hidden="true"
-                      ></i>
-                    </button>
-                  }
                   @case ('define_with_text') {
                     <textarea
                       class="mt-2 h-14 w-full resize-y rounded-md border border-ink-600 bg-ink-900 p-1.5 text-[12px] text-fg focus:border-primary-400 focus:outline-none"
@@ -629,7 +607,6 @@ export class ElementElicitationComponent {
   readonly titleKey = `${ANALYSIS_PREFIX}.TITLE`;
   readonly sceneKey = `${ANALYSIS_PREFIX}.SCENE`;
   readonly orphanKey = `${ANALYSIS_PREFIX}.STATUS.ASSET_ORPHAN`;
-  readonly pickAssetKey = `${ANALYSIS_PREFIX}.PICK_ASSET`;
   readonly assignTitleKey = `${ANALYSIS_PREFIX}.ASSIGN_TITLE`;
   readonly clearKey = `${ANALYSIS_PREFIX}.CLEAR_REFERENCE`;
   readonly descPlaceholderKey = `${ANALYSIS_PREFIX}.DESCRIPTION_PLACEHOLDER`;
@@ -745,6 +722,18 @@ export class ElementElicitationComponent {
   }
 
   chooseDecision(entity: ElementEntity, option: DecisionOption, event?: Event): void {
+    // For reference mode always (re)open the picker — no intermediate step.
+    if (option.value === 'define_with_reference') {
+      if (this.chosenType(entity) !== 'define_with_reference') {
+        this.entityChange.emit({
+          entityId: entity.entity_id,
+          patch: { user_decision: { type: option.value }, definition_status: 'pending' },
+        });
+      }
+      if (event) this.openAssetPicker(entity, event);
+      return;
+    }
+
     if (this.chosenType(entity) === option.value) return;
     const immediate =
       option.value === 'invent_free'
@@ -756,9 +745,6 @@ export class ElementElicitationComponent {
       entityId: entity.entity_id,
       patch: { user_decision: { type: option.value }, definition_status: immediate },
     });
-    if (option.value === 'define_with_reference' && event) {
-      this.openAssetPicker(entity, event);
-    }
   }
 
   openAssetPicker(entity: ElementEntity, event: Event): void {
