@@ -22,6 +22,8 @@ src/environments/build-version.ts
 .settings/
 *.sublime-workspace
 .opencode/package-lock.json
+.freebuff
+
 
 # Visual Studio Code
 .vscode/*
