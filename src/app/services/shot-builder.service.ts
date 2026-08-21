@@ -133,6 +133,37 @@ export interface OptimizePromptResult {
   rawText: string;
 }
 
+/** The user's resolution for one visual element before generation
+ *  (wire format matches the backend's ElementDecision). */
+export interface ElementDecision {
+  type: 'define_with_reference' | 'define_with_text' | 'invent_free' | 'invent_restricted' | 'abstract';
+  description?: string;
+}
+
+/** One visual element extracted by analyze-elements and resolved in the
+ *  elicitation UI (wire format matches the backend's ElementEntity).
+ *  definition_status comes from the analysis ("defined" | "asset_orphan" |
+ *  "undefined"); "pending" only exists while undecided in the UI, and once
+ *  decided it becomes "defined" | "invented" | "abstracted". */
+export interface ElementEntity {
+  entity_id: string;
+  category: string;
+  mentioned_as: string;
+  source_text?: string;
+  scene_number: number;
+  definition_status: 'defined' | 'asset_orphan' | 'undefined' | 'pending' | 'invented' | 'abstracted';
+  linked_asset_id?: string;
+  consistency_group?: string;
+  user_decision?: ElementDecision;
+}
+
+/** Parsed response from the analyze-elements endpoint. */
+export interface ElementRegistryResult {
+  element_registry: ElementEntity[];
+  summary: string;
+  rawText: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ShotBuilderService {
   protected readonly loading = signal(false);
@@ -157,6 +188,8 @@ export class ShotBuilderService {
     sceneContext?: SceneContext;
     generateZh?: boolean;
     useV2?: boolean;
+    /** Closed-world mode: resolved element registry from the elicitation UI. */
+    elementRegistry?: ElementEntity[];
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -196,6 +229,12 @@ export class ShotBuilderService {
         presets: request.sceneContext.presets,
         assets: request.sceneContext.assets,
       };
+    }
+
+    // Closed-world mode: forward the resolved element registry so the backend
+    // appends closed-world rules to the shot-builder system prompt.
+    if (request.elementRegistry && request.elementRegistry.length > 0) {
+      body['element_registry'] = request.elementRegistry;
     }
 
     const url = request.useV2
@@ -251,6 +290,8 @@ export class ShotBuilderService {
     targets?: ShotRefineTarget[];
     /** Last few conversation turns for thread coherence (bounded). */
     recentContext?: ChatTurn[];
+    /** Closed-world mode: resolved element registry from the elicitation UI. */
+    elementRegistry?: ElementEntity[];
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -292,6 +333,9 @@ export class ShotBuilderService {
       ...(request.recentContext && request.recentContext.length > 0
         ? { recent_context: request.recentContext }
         : {}),
+      ...(request.elementRegistry && request.elementRegistry.length > 0
+        ? { element_registry: request.elementRegistry }
+        : {}),
     };
 
     // Include scene context if provided (same shape as generate()).
@@ -319,6 +363,87 @@ export class ShotBuilderService {
         }),
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not refine shot list';
+          this.error.set(message);
+          return throwError(() => new Error(message));
+        }),
+        finalize(() => this.loading.set(false)),
+      );
+  }
+
+  /**
+   * Run the pre-generation element analysis (elicitation): Claude extracts the
+   * visual entities mentioned in the script and classifies each as "defined",
+   * "asset_orphan" or "undefined" so the user can resolve them in the UI
+   * before generate-shots. Async like generate(): polls until done.
+   */
+  analyzeElements(request: {
+    projectId: string;
+    projectName?: string;
+    sceneId: string;
+    prompt: string;
+    model?: string;
+    userName?: string;
+    sceneContext?: SceneContext;
+  }) {
+    if (!request.projectId) {
+      return of({ element_registry: [], summary: '', rawText: '' } as ElementRegistryResult).pipe(
+        (source$) => {
+          this.error.set('Select a project before analyzing elements');
+          return source$;
+        },
+      );
+    }
+
+    if (!request.prompt.trim()) {
+      return of({ element_registry: [], summary: '', rawText: '' } as ElementRegistryResult).pipe(
+        (source$) => {
+          this.error.set('Write a prompt before analyzing elements');
+          return source$;
+        },
+      );
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const body: Record<string, unknown> = {
+      scene_id: request.sceneId,
+      project_id: request.projectId,
+      project_name: request.projectName || '',
+      model: 'claude-shot-builder',
+      api_model: request.model || 'claude-opus-4-8',
+      prompt: request.prompt,
+      system_prompt: '',
+      skill_id: '',
+      user_name: request.userName || '',
+    };
+
+    // Include scene context if provided so Claude can auto-link reference
+    // assets (linked_asset_id) the same way generate-shots does.
+    if (request.sceneContext) {
+      body['scene_context'] = {
+        description: request.sceneContext.description,
+        characters: request.sceneContext.characters,
+        presets: request.sceneContext.presets,
+        assets: request.sceneContext.assets,
+      };
+    }
+
+    return this.http
+      .post<{
+        success: boolean;
+        data?: { taskId: string; model: string; status: string };
+        message?: string;
+      }>(`${environment.API_URL}/studio/text/claude/analyze-elements`, body)
+      .pipe(
+        switchMap((response) => {
+          if (!response.success || !response.data?.taskId) {
+            throw new Error(response.message || 'Failed to start element analysis');
+          }
+          return this.pollAnalyzeElementsStatus(response.data.taskId);
+        }),
+        catchError((err) => {
+          const message = err?.error?.message || err?.message || 'Could not analyze elements';
           this.error.set(message);
           return throwError(() => new Error(message));
         }),
@@ -552,6 +677,72 @@ export class ShotBuilderService {
    * Bounded by GENERATE_SHOTS_POLL_TIMEOUT_MS so a dead task cannot leave the
    * UI loading forever.
    */
+  private pollAnalyzeElementsStatus(taskId: string): Observable<ElementRegistryResult> {
+    const deadline = Date.now() + GENERATE_SHOTS_POLL_TIMEOUT_MS;
+
+    const pollOnce = (): Observable<ElementRegistryResult> =>
+      this.http
+        .get<{
+          success: boolean;
+          data?: {
+            taskId: string;
+            model: string;
+            status: string;
+            text?: string;
+            error?: string;
+          };
+          message?: string;
+        }>(`${environment.API_URL}/studio/text/claude/analyze-elements/status/${taskId}`)
+        .pipe(
+          switchMap((response) => {
+            if (!response.success || !response.data) {
+              throw new Error(response.message || 'Failed to check element analysis status');
+            }
+            const data = response.data;
+            if (data.status === 'succeeded') {
+              return of(this.parseElementRegistryResponse(data));
+            }
+            if (data.status === 'failed') {
+              throw new Error(data.error || 'Element analysis failed');
+            }
+            if (Date.now() >= deadline) {
+              throw new Error('Element analysis timed out');
+            }
+            return timer(GENERATE_SHOTS_POLL_INTERVAL_MS).pipe(switchMap(() => pollOnce()));
+          }),
+        );
+
+    return pollOnce();
+  }
+
+  private parseElementRegistryResponse(data: {
+    taskId: string;
+    model: string;
+    status: string;
+    text?: string;
+  }): ElementRegistryResult {
+    const decoded = this.decodeText(data.text || '');
+    if (!decoded) {
+      return { element_registry: [], summary: '', rawText: '' };
+    }
+
+    // Defensive: extract only the outermost JSON object in case Claude
+    // included text before or after the JSON.
+    const raw = this.forceExtractJSON(decoded);
+    const sanitized = this.sanitizeForJson(raw);
+    const parsed = JSON.parse(sanitized);
+
+    if (!Array.isArray(parsed.element_registry)) {
+      throw new Error('Element analysis returned an invalid registry');
+    }
+
+    return {
+      element_registry: parsed.element_registry as ElementEntity[],
+      summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+      rawText: raw,
+    };
+  }
+
   private pollShotsStatus(taskId: string): Observable<ShotBuilderResult> {
     const deadline = Date.now() + GENERATE_SHOTS_POLL_TIMEOUT_MS;
 
