@@ -164,21 +164,6 @@ export class ShotBuilderSettingsDialogComponent {
     const model = this.models.find((m) => m.id === this.selectedModelId);
     if (model) {
       this.modelChange.emit(model.name);
-      this.studio.model = {
-        id: model.id,
-        provider_id: 'claude-builtin',
-        name: model.name,
-        model_type: 'text',
-        api_key: '',
-        favorite: false,
-        url: '',
-        endpoint: '',
-        active: true,
-        created_at: '',
-        updated_at: '',
-        deleted_at: '',
-        provider_name: 'Claude (built-in)',
-      };
     }
     const skill = this.selectedSkillId()
       ? (this.skills().find((s) => s.id === this.selectedSkillId()) ?? null)

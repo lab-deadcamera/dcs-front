@@ -72,6 +72,62 @@ type ChatMessage = {
             [disabled]="loading()"
           ></textarea>
 
+          <!-- Chat messages -->
+          @if (chatMessages().length > 0) {
+            <div class="mt-2 flex flex-col gap-2">
+              @for (msg of chatMessages(); track msg.id) {
+                <div
+                  class="rounded-lg px-3 py-2 text-[12px]"
+                  [class.bg-ink-800]="msg.role === 'assistant'"
+                  [class.bg-ink-700]="msg.role === 'user'"
+                >
+                  <span
+                    class="text-[10px] font-semibold uppercase tracking-wide"
+                    [class.text-primary-400]="msg.role === 'assistant'"
+                    [class.text-fg-muted]="msg.role === 'user'"
+                  >
+                    {{ msg.role === 'assistant' ? 'Claude' : 'You' }}
+                  </span>
+                  <pre class="mt-0.5 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Optimized prompt preview -->
+          @if (optimizedPrompt()) {
+            <div class="mt-2 rounded-lg border border-primary-500/30 bg-primary-900/10 p-3">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-primary-400">
+                  Optimized Prompt
+                </span>
+              </div>
+              <pre class="whitespace-pre-wrap text-[12px] leading-relaxed text-fg">{{
+                optimizedPrompt()
+              }}</pre>
+            </div>
+          }
+
+          <!-- Suggestions -->
+          @if (suggestions().length > 0) {
+            <div class="mt-1">
+              <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                Suggestions
+              </span>
+              <ul class="mt-1 list-inside list-disc text-[11px] text-fg-muted">
+                @for (s of suggestions(); track s) {
+                  <li>{{ s }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if (error()) {
+            <div class="rounded-lg bg-red-900/30 px-3 py-2 text-[12px] text-red-400">
+              {{ error() }}
+            </div>
+          }
+
           <!-- Uploaded reference files (compact chips) -->
           @if (referenceFiles().length > 0) {
             <div class="flex flex-wrap gap-1.5">
@@ -160,62 +216,6 @@ type ChatMessage = {
               [disabled]="!optimizedPrompt()"
             />
           </div>
-
-          <!-- Chat messages -->
-          @if (chatMessages().length > 0) {
-            <div class="mt-2 flex flex-col gap-2">
-              @for (msg of chatMessages(); track msg.id) {
-                <div
-                  class="rounded-lg px-3 py-2 text-[12px]"
-                  [class.bg-ink-800]="msg.role === 'assistant'"
-                  [class.bg-ink-700]="msg.role === 'user'"
-                >
-                  <span
-                    class="text-[10px] font-semibold uppercase tracking-wide"
-                    [class.text-primary-400]="msg.role === 'assistant'"
-                    [class.text-fg-muted]="msg.role === 'user'"
-                  >
-                    {{ msg.role === 'assistant' ? 'Claude' : 'You' }}
-                  </span>
-                  <pre class="mt-0.5 whitespace-pre-wrap text-fg">{{ msg.content }}</pre>
-                </div>
-              }
-            </div>
-          }
-
-          <!-- Optimized prompt preview -->
-          @if (optimizedPrompt()) {
-            <div class="mt-2 rounded-lg border border-primary-500/30 bg-primary-900/10 p-3">
-              <div class="mb-1 flex items-center justify-between">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-primary-400">
-                  Optimized Prompt
-                </span>
-              </div>
-              <pre class="whitespace-pre-wrap text-[12px] leading-relaxed text-fg">{{
-                optimizedPrompt()
-              }}</pre>
-            </div>
-          }
-
-          <!-- Suggestions -->
-          @if (suggestions().length > 0) {
-            <div class="mt-1">
-              <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
-                Suggestions
-              </span>
-              <ul class="mt-1 list-inside list-disc text-[11px] text-fg-muted">
-                @for (s of suggestions(); track s) {
-                  <li>{{ s }}</li>
-                }
-              </ul>
-            </div>
-          }
-
-          @if (error()) {
-            <div class="rounded-lg bg-red-900/30 px-3 py-2 text-[12px] text-red-400">
-              {{ error() }}
-            </div>
-          }
         </div>
       }
 
@@ -400,7 +400,7 @@ export class ProncerComponent {
   /** Add the asset to the Prompt Builder's used assets (replicates
    *  character-assets onPickFreeAsset logic). */
   protected addAssetToPrompt(asset: AssetInfo): void {
-    const alreadyUsed = this.studio.usedAssets().some(a => a.fileId === asset.id);
+    const alreadyUsed = this.studio.usedAssets().some((a) => a.fileId === asset.id);
     if (alreadyUsed) {
       this.studio.unuseAsset(asset.id);
       return;
@@ -417,7 +417,7 @@ export class ProncerComponent {
 
   /** Remove the asset from the reference files list. */
   protected removeAssetFromReferences(asset: AssetInfo): void {
-    this.referenceFiles.update(files => files.filter(f => f.id !== asset.id));
+    this.referenceFiles.update((files) => files.filter((f) => f.id !== asset.id));
     this.assetInfoPopover.close();
   }
 
