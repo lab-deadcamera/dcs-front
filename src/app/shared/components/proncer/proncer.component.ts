@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
+import { AssetInfoPopoverComponent, AssetInfo } from '@shared/components/asset-info-popover/asset-info-popover.component';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
@@ -19,7 +21,7 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule, DialogModule],
+  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule, DialogModule, AssetInfoPopoverComponent, SourceThumbnailAssetPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
@@ -51,22 +53,13 @@ type ChatMessage = {
           @if (referenceFiles().length > 0) {
             <div class="flex flex-wrap gap-1.5">
               @for (file of referenceFiles(); track file.id; let i = $index) {
-                <div class="group relative flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5 cursor-pointer hover:border-primary-500/40 transition-colors">
+                <div
+                  class="group flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5 cursor-pointer hover:border-primary-500/40 transition-colors"
+                  (click)="openAssetInfo($event, file)"
+                  (keydown.enter)="openAssetInfo($event, file)"
+                >
                   @if (file.thumbnailUrl) {
-                    <!-- Hover popover preview -->
-                    <div class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div class="rounded-lg border border-ink-600 bg-ink-900 p-1 shadow-xl">
-                        <img [src]="file.thumbnailUrl" class="h-32 w-32 rounded object-cover" [alt]="file.name" />
-                        <p class="mt-1 max-w-[140px] truncate text-center text-[9px] text-fg-muted">{{ file.name }}</p>
-                      </div>
-                      <div class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-r border-b border-ink-600 bg-ink-900"></div>
-                    </div>
-                    <img
-                      [src]="file.thumbnailUrl"
-                      class="h-5 w-5 rounded object-cover"
-                      [alt]="file.name"
-                      (click)="previewFile.set({ name: file.name, url: file.thumbnailUrl! })"
-                    />
+                    <img [src]="file.thumbnailUrl | sourceThumbnailAsset" class="h-5 w-5 rounded object-cover" [alt]="file.name" />
                   } @else {
                     <span class="text-[10px]">{{ file.type.includes('video') ? '🎬' : '📄' }}</span>
                   }
@@ -195,25 +188,8 @@ type ChatMessage = {
         </div>
       }
 
-      <!-- Full-size image preview modal -->
-      <p-dialog
-        [header]="previewFile()?.name || 'Preview'"
-        [modal]="true"
-        [draggable]="false"
-        [resizable]="false"
-        [closable]="true"
-        [style]="{ width: '90vw', maxHeight: '90vh' }"
-        [contentStyle]="{ overflow: 'auto', padding: 0 }"
-        (onHide)="previewFile.set(null)"
-      >
-        @if (previewFile()) {
-          <img
-            [src]="previewFile()!.url"
-            [alt]="previewFile()!.name"
-            class="w-full rounded object-contain"
-          />
-        }
-      </p-dialog>
+      <!-- Asset metadata popover (reference chips) -->
+      <app-asset-info-popover #assetInfoPopover />
     </section>
   `,
 })
@@ -236,8 +212,9 @@ export class ProncerComponent {
   protected readonly referenceFiles = signal<{ id: string; name: string; type: string; thumbnailUrl?: string }[]>([]);
   protected readonly uploadingFiles = signal(false);
 
-  /** Full-screen preview modal state. */
-  protected readonly previewFile = signal<{ name: string; url: string } | null>(null);
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
+
+
 
   /** The prompt being edited — synced with StudioStore.rawDescription. */
   protected readonly editablePrompt = signal('');
@@ -364,6 +341,18 @@ export class ProncerComponent {
 
   protected removeReferenceFile(index: number): void {
     this.referenceFiles.update(files => files.filter((_, i) => i !== index));
+  }
+
+  protected openAssetInfo(event: Event, file: { id: string; name: string; type: string }): void {
+    const kind = file.type.startsWith('image/') ? 'image'
+      : file.type.startsWith('video/') ? 'video'
+      : file.type.startsWith('audio/') ? 'audio'
+      : 'image';
+    this.assetInfoPopover.open(event, {
+      id: file.id,
+      name: file.name,
+      kind,
+    });
   }
 
   private uploadFiles(files: File[]): void {
