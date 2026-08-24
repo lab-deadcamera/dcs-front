@@ -470,6 +470,7 @@ export class ShotBuilderService {
     shotContext?: { shotName?: string; shotDescription?: string };
     sceneContext?: SceneContext;
     elementRegistry?: ElementEntity[];
+    referenceFiles?: string[];
   }) {
     if (!request.sceneId || !request.projectId) {
       return of({
@@ -525,6 +526,11 @@ export class ShotBuilderService {
     // respects reference discipline (no appearance descriptions for image-linked elements).
     if (request.elementRegistry && request.elementRegistry.length > 0) {
       body['element_registry'] = request.elementRegistry;
+    }
+
+    // Reference files (images/videos) for visual analysis.
+    if (request.referenceFiles && request.referenceFiles.length > 0) {
+      body['reference_files'] = request.referenceFiles;
     }
 
     return this.http

@@ -6,6 +6,7 @@ import { SectionHeaderComponent } from '@shared/components/section-header/sectio
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
 import { ShotBuilderService, ShotBuilderResult, ElementEntity } from '@app/services/shot-builder.service';
+import { FilesApiService } from '@app/services/files-api.service';
 
 type ChatMessage = {
   id: string;
@@ -55,6 +56,63 @@ type ChatMessage = {
             placeholder="e.g. Make it more cinematic, add camera angles..."
             [disabled]="loading()"
           ></textarea>
+
+          <!-- Reference files (images/videos) -->
+          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            Reference Files (images, videos, frames)
+          </label>
+          <div
+            class="rounded-lg border-2 border-dashed border-ink-600 bg-ink-900/50 p-3 text-center transition-colors hover:border-primary-500/50"
+            (drop)="onFilesDropped($event)"
+            (dragover)="onDragOver($event)"
+          >
+            <input
+              #refFileInput
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              class="hidden"
+              (change)="onFilesSelected($event)"
+            />
+            <p-button
+              label="Add reference images or videos"
+              icon="pi pi-upload"
+              severity="secondary"
+              size="small"
+              [text]="true"
+              (onClick)="refFileInput.click()"
+              [disabled]="loading()"
+            />
+            <p class="mt-1 text-[10px] text-fg-muted">
+              Drag & drop or click to upload. Claude will analyze these visuals when optimizing.
+            </p>
+          </div>
+
+          <!-- Uploaded reference files list -->
+          @if (referenceFiles().length > 0) {
+            <div class="flex flex-wrap gap-2">
+              @for (file of referenceFiles(); track file.id; let i = $index) {
+                <div class="group relative flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800 px-2 py-1">
+                  @if (file.thumbnailUrl) {
+                    <img [src]="file.thumbnailUrl" class="h-8 w-8 rounded object-cover" [alt]="file.name" />
+                  } @else {
+                    <div class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted">
+                      {{ file.type.includes('video') ? '🎬' : '📄' }}
+                    </div>
+                  }
+                  <span class="max-w-[120px] truncate text-[11px] text-fg">{{ file.name }}</span>
+                  <button
+                    class="ml-1 text-fg-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    (click)="removeReferenceFile(i)"
+                  >×</button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (uploadingFiles()) {
+            <p class="text-[10px] text-primary-400">Uploading files...</p>
+          }
 
           <!-- Action buttons -->
           <div class="flex items-center justify-between">
@@ -142,6 +200,7 @@ export class ProncerComponent {
   private readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
+  private readonly filesApi = inject(FilesApiService);
 
   /** Resolved element registry from the StudioStore — enables reference discipline. */
   protected readonly elementRegistry = computed(() => this.studio.elementRegistry() as ElementEntity[] | undefined);
@@ -151,6 +210,10 @@ export class ProncerComponent {
   protected readonly error = signal<string | null>(null);
 
   protected readonly userInstructions = signal('');
+
+  /** Reference files (images/videos) uploaded by the user for visual analysis. */
+  protected readonly referenceFiles = signal<{ id: string; name: string; type: string; thumbnailUrl?: string }[]>([]);
+  protected readonly uploadingFiles = signal(false);
 
   /** The prompt being edited — synced with StudioStore.rawDescription. */
   protected readonly editablePrompt = signal('');
@@ -194,6 +257,8 @@ export class ProncerComponent {
     const sceneId = this.studio.sceneId();
     const userName = this.sessionStore.user()?.handle || '';
 
+    const refFileIds = this.referenceFiles().map(f => f.id);
+
     this.shotBuilderService
       .optimizePrompt({
         projectId: projectId || '',
@@ -202,6 +267,7 @@ export class ProncerComponent {
         userInstructions: instructions,
         userName,
         elementRegistry: this.elementRegistry(),
+        referenceFiles: refFileIds.length > 0 ? refFileIds : undefined,
       })
       .subscribe({
         next: (result) => {
@@ -247,5 +313,66 @@ export class ProncerComponent {
         timestamp: Date.now(),
       },
     ]);
+  }
+
+  // ── Reference file upload ──────────────────────────────────────────
+
+  protected onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input?.files ? Array.from(input.files) : [];
+    if (files.length === 0) return;
+    this.uploadFiles(files);
+    input.value = '';
+  }
+
+  protected onFilesDropped(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const files = event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : [];
+    if (files.length === 0) return;
+    this.uploadFiles(files);
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  protected removeReferenceFile(index: number): void {
+    this.referenceFiles.update(files => files.filter((_, i) => i !== index));
+  }
+
+  private uploadFiles(files: File[]): void {
+    this.uploadingFiles.set(true);
+    let pending = files.length;
+
+    for (const file of files) {
+      const category: 'images' | 'videos' | 'temp' = file.type.startsWith('image/') ? 'images'
+        : file.type.startsWith('video/') ? 'videos'
+        : 'temp';
+
+      this.filesApi.upload({ file, category, storage: 'persistent' }).subscribe({
+        next: (res) => {
+          if (!res.error && res.data) {
+            this.referenceFiles.update(current => [
+              ...current,
+              {
+                id: res.data!.id,
+                name: file.name,
+                type: file.type,
+                thumbnailUrl: file.type.startsWith('image/')
+                  ? this.filesApi.serveUrl(res.data!.id)
+                  : undefined,
+              },
+            ]);
+          }
+        },
+        error: () => { /* skip failed uploads */ },
+        complete: () => {
+          pending--;
+          if (pending <= 0) this.uploadingFiles.set(false);
+        },
+      });
+    }
   }
 }
