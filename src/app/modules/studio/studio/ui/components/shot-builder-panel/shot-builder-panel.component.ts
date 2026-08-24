@@ -965,13 +965,8 @@ export class ShotBuilderPanelComponent implements OnInit {
 
         processed += 1;
         if (processed === files.length) {
-          if (this.activeFileId() === null) {
-            const firstNewIndex = initialLength;
-            const filesNow = this.uploadedFiles();
-            if (filesNow.length > 0) {
-              this.selectFile(Math.min(firstNewIndex, filesNow.length - 1));
-            }
-          }
+          // Auto-switch to the Elements tab so the CTA is visible.
+          this.showElementsTab();
         }
       };
 
