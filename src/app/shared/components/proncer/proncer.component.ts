@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
-import { ShotBuilderService, ShotBuilderResult } from '@app/services/shot-builder.service';
+import { ShotBuilderService, ShotBuilderResult, ElementEntity } from '@app/services/shot-builder.service';
 
 type ChatMessage = {
   id: string;
@@ -143,6 +143,9 @@ export class ProncerComponent {
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
 
+  /** Resolved element registry from the StudioStore — enables reference discipline. */
+  protected readonly elementRegistry = computed(() => this.studio.elementRegistry() as ElementEntity[] | undefined);
+
   protected readonly expanded = signal(false);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -198,6 +201,7 @@ export class ProncerComponent {
         currentPrompt: prompt,
         userInstructions: instructions,
         userName,
+        elementRegistry: this.elementRegistry(),
       })
       .subscribe({
         next: (result) => {

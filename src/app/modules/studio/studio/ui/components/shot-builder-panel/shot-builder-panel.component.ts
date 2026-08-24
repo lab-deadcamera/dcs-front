@@ -1231,6 +1231,7 @@ export class ShotBuilderPanelComponent implements OnInit {
               e.definition_status === 'undefined' ? ('pending' as const) : e.definition_status,
           }));
           this.analysis.set({ ...result, element_registry: registry });
+          this.syncElementRegistryToStore();
           this.showElementsTab();
         },
         error: (err) => {
@@ -1258,6 +1259,7 @@ export class ShotBuilderPanelComponent implements OnInit {
         ),
       };
     });
+    this.syncElementRegistryToStore();
   }
 
   /** Resolved entities (final statuses only) to attach to generate/refine
@@ -1267,12 +1269,17 @@ export class ShotBuilderPanelComponent implements OnInit {
     if (!current) return undefined;
     const resolved = current.element_registry.filter((e) =>
       ['defined', 'invented', 'abstracted'].includes(e.definition_status),
-    );
-    return resolved.length > 0 ? resolved : undefined;
+    );    return resolved.length > 0 ? resolved : undefined;
+  }
+
+  /** Sync the resolved element registry to the StudioStore so the Proncer
+   *  can enforce reference discipline (no appearance descriptions for
+   *  image-linked elements). */
+  private syncElementRegistryToStore(): void {
+    this.studio.setElementRegistry(this.resolvedElementRegistry());
   }
 
   // ── Chat & generation ──────────────────────────────────────────────
-
   send(): void {
     // Second+ turn in the chat refines the existing breakdown instead of
     // regenerating from scratch — anchors on the previous response so only

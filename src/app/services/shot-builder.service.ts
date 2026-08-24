@@ -469,6 +469,7 @@ export class ShotBuilderService {
     userName?: string;
     shotContext?: { shotName?: string; shotDescription?: string };
     sceneContext?: SceneContext;
+    elementRegistry?: ElementEntity[];
   }) {
     if (!request.sceneId || !request.projectId) {
       return of({
@@ -518,6 +519,12 @@ export class ShotBuilderService {
         presets: request.sceneContext.presets,
         assets: request.sceneContext.assets,
       };
+    }
+
+    // Closed-world mode: forward the resolved element registry so the Proncer
+    // respects reference discipline (no appearance descriptions for image-linked elements).
+    if (request.elementRegistry && request.elementRegistry.length > 0) {
+      body['element_registry'] = request.elementRegistry;
     }
 
     return this.http

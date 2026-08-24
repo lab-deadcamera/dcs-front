@@ -247,6 +247,13 @@ export class StudioStore {
   readonly rawLength = computed(() => (this._rawDescription() ?? '').length);
   readonly canGenerate = computed(() => (this._rawDescription() ?? '').trim().length > 0);
 
+  /** Resolved element registry from the elicitation UI — shared across components. */
+  private readonly _elementRegistry = signal<unknown[] | undefined>(undefined);
+  readonly elementRegistry = this._elementRegistry.asReadonly();
+  setElementRegistry(registry: unknown[] | undefined) {
+    this._elementRegistry.set(registry);
+  }
+
   /**
    * The shot's pre-prompt exactly as it came from the backend. Set ONLY by
    * `setShotDescription`, so it never changes due to slot reindexing or user
