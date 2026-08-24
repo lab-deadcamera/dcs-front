@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
@@ -18,7 +19,7 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule],
+  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule, DialogModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
@@ -50,16 +51,29 @@ type ChatMessage = {
           @if (referenceFiles().length > 0) {
             <div class="flex flex-wrap gap-1.5">
               @for (file of referenceFiles(); track file.id; let i = $index) {
-                <div class="group relative flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5">
+                <div class="group relative flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5 cursor-pointer hover:border-primary-500/40 transition-colors">
                   @if (file.thumbnailUrl) {
-                    <img [src]="file.thumbnailUrl" class="h-5 w-5 rounded object-cover" [alt]="file.name" />
+                    <!-- Hover popover preview -->
+                    <div class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div class="rounded-lg border border-ink-600 bg-ink-900 p-1 shadow-xl">
+                        <img [src]="file.thumbnailUrl" class="h-32 w-32 rounded object-cover" [alt]="file.name" />
+                        <p class="mt-1 max-w-[140px] truncate text-center text-[9px] text-fg-muted">{{ file.name }}</p>
+                      </div>
+                      <div class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-r border-b border-ink-600 bg-ink-900"></div>
+                    </div>
+                    <img
+                      [src]="file.thumbnailUrl"
+                      class="h-5 w-5 rounded object-cover"
+                      [alt]="file.name"
+                      (click)="previewFile.set({ name: file.name, url: file.thumbnailUrl! })"
+                    />
                   } @else {
                     <span class="text-[10px]">{{ file.type.includes('video') ? '🎬' : '📄' }}</span>
                   }
                   <span class="max-w-[100px] truncate text-[10px] text-fg-muted">{{ file.name }}</span>
                   <button
                     class="text-fg-muted hover:text-red-400 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
-                    (click)="removeReferenceFile(i)"
+                    (click)="removeReferenceFile(i); $event.stopPropagation()"
                   >×</button>
                 </div>
               }
@@ -180,6 +194,26 @@ type ChatMessage = {
           }
         </div>
       }
+
+      <!-- Full-size image preview modal -->
+      <p-dialog
+        [header]="previewFile()?.name || 'Preview'"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+        [closable]="true"
+        [style]="{ width: '90vw', maxHeight: '90vh' }"
+        [contentStyle]="{ overflow: 'auto', padding: 0 }"
+        (onHide)="previewFile.set(null)"
+      >
+        @if (previewFile()) {
+          <img
+            [src]="previewFile()!.url"
+            [alt]="previewFile()!.name"
+            class="w-full rounded object-contain"
+          />
+        }
+      </p-dialog>
     </section>
   `,
 })
@@ -201,6 +235,9 @@ export class ProncerComponent {
   /** Reference files (images/videos) uploaded by the user for visual analysis. */
   protected readonly referenceFiles = signal<{ id: string; name: string; type: string; thumbnailUrl?: string }[]>([]);
   protected readonly uploadingFiles = signal(false);
+
+  /** Full-screen preview modal state. */
+  protected readonly previewFile = signal<{ name: string; url: string } | null>(null);
 
   /** The prompt being edited — synced with StudioStore.rawDescription. */
   protected readonly editablePrompt = signal('');
