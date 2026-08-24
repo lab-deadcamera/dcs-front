@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
@@ -17,7 +18,7 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent],
+  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
@@ -45,6 +46,71 @@ type ChatMessage = {
             [disabled]="loading()"
           ></textarea>
 
+          <!-- Uploaded reference files (compact chips) -->
+          @if (referenceFiles().length > 0) {
+            <div class="flex flex-wrap gap-1.5">
+              @for (file of referenceFiles(); track file.id; let i = $index) {
+                <div class="group relative flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5">
+                  @if (file.thumbnailUrl) {
+                    <img [src]="file.thumbnailUrl" class="h-5 w-5 rounded object-cover" [alt]="file.name" />
+                  } @else {
+                    <span class="text-[10px]">{{ file.type.includes('video') ? '🎬' : '📄' }}</span>
+                  }
+                  <span class="max-w-[100px] truncate text-[10px] text-fg-muted">{{ file.name }}</span>
+                  <button
+                    class="text-fg-muted hover:text-red-400 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    (click)="removeReferenceFile(i)"
+                  >×</button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (uploadingFiles()) {
+            <p class="text-[10px] text-primary-400">Uploading...</p>
+          }
+
+          <!-- Action buttons + reference upload -->
+          <div class="flex items-center gap-2">
+            <input
+              #refFileInput
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              class="hidden"
+              (change)="onFilesSelected($event)"
+            />
+            <p-button
+              icon="pi pi-paperclip"
+              severity="secondary"
+              size="small"
+              [text]="true"
+              (onClick)="refFileInput.click()"
+              [disabled]="loading()"
+              pTooltip="Attach reference images or videos"
+              tooltipPosition="top"
+            />
+            <p-button
+              label="Optimize"
+              icon="pi pi-arrow-right"
+              severity="primary"
+              size="small"
+              (onClick)="optimize()"
+              [disabled]="!canOptimize()"
+              [loading]="loading()"
+            />
+            <div class="flex-1"></div>
+            <p-button
+              label="Apply"
+              icon="pi pi-check"
+              severity="success"
+              size="small"
+              [text]="true"
+              (onClick)="applyOptimized()"
+              [disabled]="!optimizedPrompt()"
+            />
+          </div>
+
           <!-- User instructions -->
           <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
             Instructions for Claude
@@ -56,85 +122,6 @@ type ChatMessage = {
             placeholder="e.g. Make it more cinematic, add camera angles..."
             [disabled]="loading()"
           ></textarea>
-
-          <!-- Reference files (images/videos) -->
-          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-            Reference Files (images, videos, frames)
-          </label>
-          <div
-            class="rounded-lg border-2 border-dashed border-ink-600 bg-ink-900/50 p-3 text-center transition-colors hover:border-primary-500/50"
-            (drop)="onFilesDropped($event)"
-            (dragover)="onDragOver($event)"
-          >
-            <input
-              #refFileInput
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              class="hidden"
-              (change)="onFilesSelected($event)"
-            />
-            <p-button
-              label="Add reference images or videos"
-              icon="pi pi-upload"
-              severity="secondary"
-              size="small"
-              [text]="true"
-              (onClick)="refFileInput.click()"
-              [disabled]="loading()"
-            />
-            <p class="mt-1 text-[10px] text-fg-muted">
-              Drag & drop or click to upload. Claude will analyze these visuals when optimizing.
-            </p>
-          </div>
-
-          <!-- Uploaded reference files list -->
-          @if (referenceFiles().length > 0) {
-            <div class="flex flex-wrap gap-2">
-              @for (file of referenceFiles(); track file.id; let i = $index) {
-                <div class="group relative flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800 px-2 py-1">
-                  @if (file.thumbnailUrl) {
-                    <img [src]="file.thumbnailUrl" class="h-8 w-8 rounded object-cover" [alt]="file.name" />
-                  } @else {
-                    <div class="flex h-8 w-8 items-center justify-center rounded bg-ink-700 text-[10px] text-fg-muted">
-                      {{ file.type.includes('video') ? '🎬' : '📄' }}
-                    </div>
-                  }
-                  <span class="max-w-[120px] truncate text-[11px] text-fg">{{ file.name }}</span>
-                  <button
-                    class="ml-1 text-fg-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                    (click)="removeReferenceFile(i)"
-                  >×</button>
-                </div>
-              }
-            </div>
-          }
-
-          @if (uploadingFiles()) {
-            <p class="text-[10px] text-primary-400">Uploading files...</p>
-          }
-
-          <!-- Action buttons -->
-          <div class="flex items-center justify-between">
-            <p-button
-              label="Optimize"
-              icon="pi pi-arrow-right"
-              severity="primary"
-              size="small"
-              (onClick)="optimize()"
-              [disabled]="!canOptimize()"
-              [loading]="loading()"
-            />
-            <p-button
-              label="Apply"
-              icon="pi pi-check"
-              severity="success"
-              size="small"
-              [text]="true"
-              (onClick)="applyOptimized()"
-              [disabled]="!optimizedPrompt()"
-            />
-          </div>
 
           <!-- Chat messages -->
           @if (chatMessages().length > 0) {
