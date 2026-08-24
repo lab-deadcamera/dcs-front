@@ -364,7 +364,14 @@
               <div class="mb-2">
                 <button
                   type="button"
-                  class="flex items-center gap-1 rounded border border-ink-600 px-2 py-1 text-[11px] transition-colors hover:border-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="analyze-btn flex items-center gap-1 rounded border px-2 py-1 text-[11px] font-medium transition-all"
+                  [class.analyze-btn--idle]="!analysisLoading() && !analysis() && (promptText().trim() || uploadedFiles().length > 0)"
+                  [class.analyze-btn--loading]="analysisLoading()"
+                  [class.analyze-btn--done]="analysis() && !analysisLoading()"
+                  [class.border-ink-600]="!(promptText().trim() || uploadedFiles().length > 0)"
+                  [class.text-fg-muted]="!(promptText().trim() || uploadedFiles().length > 0)"
+                  [class.cursor-not-allowed]="!(promptText().trim() || uploadedFiles().length > 0)"
+                  [class.opacity-50]="!(promptText().trim() || uploadedFiles().length > 0)"
                   (click)="runElementAnalysis()"
                   [disabled]="
                     loading() ||
@@ -375,11 +382,13 @@
                   tooltipPosition="top"
                 >
                   @if (analysisLoading()) {
-                    <i class="pi pi-spin pi-spinner text-fg-muted"></i>
+                    <i class="pi pi-spin pi-spinner"></i>
+                  } @else if (analysis()) {
+                    <i class="pi pi-check"></i>
                   } @else {
-                    <i class="pi pi-bolt text-fg-muted"></i>
+                    <i class="pi pi-bolt"></i>
                   }
-                  <span class="text-fg-muted">{{
+                  <span>{{
                     'STUDIO.SHOT_BUILDER.ANALYSIS.BUTTON' | translate
                   }}</span>
                 </button>

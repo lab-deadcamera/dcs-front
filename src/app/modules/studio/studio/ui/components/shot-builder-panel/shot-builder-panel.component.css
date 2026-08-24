@@ -244,6 +244,63 @@
 .node-2 { animation-delay: 0.5s; }
 .node-3 { animation-delay: 1s; }
 
+/* ─── Analyze Button ─────────────────────────────────────────── */
+
+.analyze-btn {
+  border-color: var(--ink-600, #374151);
+  color: var(--fg-muted, #9ca3af);
+  background: transparent;
+}
+
+/* Idle: files loaded, ready to analyze → pulsing glow CTA */
+.analyze-btn--idle {
+  border-color: rgba(0,212,255,0.5);
+  color: #00d4ff;
+  animation: btnPulseGlow 2s ease-in-out infinite;
+}
+
+.analyze-btn--idle:hover {
+  border-color: #00d4ff;
+  background: rgba(0,212,255,0.1);
+  box-shadow: 0 0 16px rgba(0,212,255,0.4);
+  transform: scale(1.03);
+}
+
+.analyze-btn--idle:active {
+  transform: scale(0.97);
+}
+
+/* Loading: electric processing */
+.analyze-btn--loading {
+  border-color: rgba(224,169,92,0.6);
+  color: #e0a95c;
+  animation: btnElectricPulse 1s ease-in-out infinite;
+}
+
+/* Done: success state */
+.analyze-btn--done {
+  border-color: rgba(34,197,94,0.5);
+  color: #22c55e;
+}
+
+@keyframes btnPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(0,212,255,0.2);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(0,212,255,0.5), 0 0 28px rgba(0,212,255,0.15);
+  }
+}
+
+@keyframes btnElectricPulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(224,169,92,0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(224,169,92,0.5), 0 0 24px rgba(224,169,92,0.15);
+  }
+}
+
 /* ─── CTA State ──────────────────────────────────────────────── */
 
 .electric-cta-container {
