@@ -70,7 +70,19 @@ type ChatMessage = {
             <p class="text-[10px] text-primary-400">Uploading...</p>
           }
 
-          <!-- Action buttons + reference upload -->
+          <!-- User instructions -->
+          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            Instructions for Claude
+          </label>
+          <textarea
+            rows="2"
+            class="w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg"
+            [(ngModel)]="userInstructions"
+            placeholder="e.g. Make it more cinematic, add camera angles..."
+            [disabled]="loading()"
+          ></textarea>
+
+          <!-- Action buttons + reference upload (always at the end) -->
           <div class="flex items-center gap-2">
             <input
               #refFileInput
@@ -110,18 +122,6 @@ type ChatMessage = {
               [disabled]="!optimizedPrompt()"
             />
           </div>
-
-          <!-- User instructions -->
-          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-            Instructions for Claude
-          </label>
-          <textarea
-            rows="2"
-            class="w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg"
-            [(ngModel)]="userInstructions"
-            placeholder="e.g. Make it more cinematic, add camera angles..."
-            [disabled]="loading()"
-          ></textarea>
 
           <!-- Chat messages -->
           @if (chatMessages().length > 0) {
