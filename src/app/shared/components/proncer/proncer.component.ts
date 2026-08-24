@@ -397,16 +397,22 @@ export class ProncerComponent {
     });
   }
 
-  /** Add the asset's [ImageN] token to the prompt text. */
+  /** Add the asset to the Prompt Builder's used assets (replicates
+   *  character-assets onPickFreeAsset logic). */
   protected addAssetToPrompt(asset: AssetInfo): void {
-    const token = asset.slot || `[${asset.name}]`;
-    const current = this.editablePrompt() || this.studio.rawDescription() || '';
-    // Append token on a new line if not already present
-    if (!current.includes(token)) {
-      const updated = current ? `${current}\n${token}` : token;
-      this.editablePrompt.set(updated);
-      this.studio.setRawDescription(updated);
+    const alreadyUsed = this.studio.usedAssets().some(a => a.fileId === asset.id);
+    if (alreadyUsed) {
+      this.studio.unuseAsset(asset.id);
+      return;
     }
+    this.studio.useAsset({
+      fileId: asset.id,
+      characterId: asset.id,
+      name: asset.name,
+      filename: asset.name,
+      kind: (asset.kind as 'image' | 'video' | 'audio' | 'mixed') || 'image',
+      slot: asset.slot || this.studio.chapterAssetSlots().get(asset.id) || undefined,
+    });
   }
 
   /** Remove the asset from the reference files list. */
