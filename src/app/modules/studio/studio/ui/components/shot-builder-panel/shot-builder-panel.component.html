@@ -631,14 +631,46 @@
               [class.overflow-auto]="fullscreen()"
             >
               @if (isElementsTab() && analysisLoading()) {
-                <div class="electric-loading-container">
-                  <!-- Central energy core -->
-                  <div class="electric-core">
+                <!-- Loading state: simplified electric pulse -->
+                <div class="flex h-full items-center justify-center">
+                  <div class="electric-loading-container">
+                    <div class="electric-core">
+                      <div class="core-orb"></div>
+                      <div class="core-ring core-ring-1"></div>
+                      <div class="core-ring core-ring-2"></div>
+                      <div class="core-ring core-ring-3"></div>
+                      <svg class="lightning-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <path class="lightning bolt-1" d="M100 100 L85 60 L90 65 L70 20" />
+                        <path class="lightning bolt-2" d="M100 100 L120 55 L115 60 L135 15" />
+                        <path class="lightning bolt-3" d="M100 100 L140 80 L135 85 L170 70" />
+                        <path class="lightning bolt-4" d="M100 100 L60 85 L65 80 L25 65" />
+                        <path class="lightning bolt-5" d="M100 100 L130 120 L125 115 L160 140" />
+                        <path class="lightning bolt-6" d="M100 100 L70 115 L75 120 L35 145" />
+                      </svg>
+                      <div class="spark spark-1"></div>
+                      <div class="spark spark-2"></div>
+                      <div class="spark spark-3"></div>
+                      <div class="spark spark-4"></div>
+                    </div>
+                    <div class="electric-text">
+                      <span class="electric-label">{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.LOADING' | translate }}</span>
+                      <div class="electric-dots">
+                        <span class="dot dot-1">.</span>
+                        <span class="dot dot-2">.</span>
+                        <span class="dot dot-3">.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              } @else if (isElementsTab() && !analysis() && !error() && (promptText().trim() || uploadedFiles().length > 0)) {
+                <!-- CTA state: electrical call-to-action -->
+                <div class="electric-cta-container" (click)="runElementAnalysis()">
+                  <div class="electric-cta-glow"></div>
+                  <div class="electric-core cta-core">
                     <div class="core-orb"></div>
                     <div class="core-ring core-ring-1"></div>
                     <div class="core-ring core-ring-2"></div>
                     <div class="core-ring core-ring-3"></div>
-                    <!-- Lightning bolts -->
                     <svg class="lightning-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                       <path class="lightning bolt-1" d="M100 100 L85 60 L90 65 L70 20" />
                       <path class="lightning bolt-2" d="M100 100 L120 55 L115 60 L135 15" />
@@ -647,7 +679,6 @@
                       <path class="lightning bolt-5" d="M100 100 L130 120 L125 115 L160 140" />
                       <path class="lightning bolt-6" d="M100 100 L70 115 L75 120 L35 145" />
                     </svg>
-                    <!-- Electric sparks -->
                     <div class="spark spark-1"></div>
                     <div class="spark spark-2"></div>
                     <div class="spark spark-3"></div>
@@ -657,18 +688,11 @@
                     <div class="spark spark-7"></div>
                     <div class="spark spark-8"></div>
                   </div>
-                  <!-- Scan line effect -->
                   <div class="scan-line"></div>
-                  <!-- Text -->
-                  <div class="electric-text">
-                    <span class="electric-label">{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.LOADING' | translate }}</span>
-                    <div class="electric-dots">
-                      <span class="dot dot-1">.</span>
-                      <span class="dot dot-2">.</span>
-                      <span class="dot dot-3">.</span>
-                    </div>
+                  <div class="electric-cta-text">
+                    <span class="electric-cta-label">{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.CTA' | translate }}</span>
+                    <span class="electric-cta-sub">{{ 'STUDIO.SHOT_BUILDER.ANALYSIS.CTA_SUBTITLE' | translate }}</span>
                   </div>
-                  <!-- Circuit lines -->
                   <svg class="circuit-lines" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
                     <line class="circuit circuit-1" x1="0" y1="100" x2="400" y2="100" />
                     <line class="circuit circuit-2" x1="100" y1="0" x2="100" y2="200" />
