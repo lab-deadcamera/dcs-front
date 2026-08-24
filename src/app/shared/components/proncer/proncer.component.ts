@@ -1,15 +1,29 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
-import { AssetInfoPopoverComponent, AssetInfo } from '@shared/components/asset-info-popover/asset-info-popover.component';
+import {
+  AssetInfoPopoverComponent,
+  AssetInfo,
+} from '@shared/components/asset-info-popover/asset-info-popover.component';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
-import { ShotBuilderService, ShotBuilderResult, ElementEntity } from '@app/services/shot-builder.service';
+import {
+  ShotBuilderService,
+  ShotBuilderResult,
+  ElementEntity,
+} from '@app/services/shot-builder.service';
 import { FilesApiService } from '@app/services/files-api.service';
 
 type ChatMessage = {
@@ -21,7 +35,16 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent, TooltipModule, DialogModule, AssetInfoPopoverComponent, SourceThumbnailAssetPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    SectionHeaderComponent,
+    TooltipModule,
+    DialogModule,
+    AssetInfoPopoverComponent,
+    SourceThumbnailAssetPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
@@ -59,15 +82,23 @@ type ChatMessage = {
                   (keydown.enter)="openAssetInfo($event, file)"
                 >
                   @if (file.thumbnailUrl) {
-                    <img [src]="file.thumbnailUrl | sourceThumbnailAsset" class="h-5 w-5 rounded object-cover" [alt]="file.name" />
+                    <img
+                      [src]="file.id | sourceThumbnailAsset"
+                      class="h-5 w-5 rounded object-cover"
+                      [alt]="file.name"
+                    />
                   } @else {
                     <span class="text-[10px]">{{ file.type.includes('video') ? '🎬' : '📄' }}</span>
                   }
-                  <span class="max-w-[100px] truncate text-[10px] text-fg-muted">{{ file.name }}</span>
+                  <span class="max-w-[100px] truncate text-[10px] text-fg-muted">{{
+                    file.name
+                  }}</span>
                   <button
                     class="text-fg-muted hover:text-red-400 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
                     (click)="removeReferenceFile(i); $event.stopPropagation()"
-                  >×</button>
+                  >
+                    ×
+                  </button>
                 </div>
               }
             </div>
@@ -189,7 +220,13 @@ type ChatMessage = {
       }
 
       <!-- Asset metadata popover (reference chips) -->
-      <app-asset-info-popover #assetInfoPopover />
+      <app-asset-info-popover
+        #assetInfoPopover
+        useLabel="Add to Prompt"
+        removeLabel="Remove"
+        (use)="addAssetToPrompt($event)"
+        (remove)="removeAssetFromReferences($event)"
+      />
     </section>
   `,
 })
@@ -200,7 +237,9 @@ export class ProncerComponent {
   private readonly filesApi = inject(FilesApiService);
 
   /** Resolved element registry from the StudioStore — enables reference discipline. */
-  protected readonly elementRegistry = computed(() => this.studio.elementRegistry() as ElementEntity[] | undefined);
+  protected readonly elementRegistry = computed(
+    () => this.studio.elementRegistry() as ElementEntity[] | undefined,
+  );
 
   protected readonly expanded = signal(false);
   protected readonly loading = signal(false);
@@ -209,12 +248,12 @@ export class ProncerComponent {
   protected readonly userInstructions = signal('');
 
   /** Reference files (images/videos) uploaded by the user for visual analysis. */
-  protected readonly referenceFiles = signal<{ id: string; name: string; type: string; thumbnailUrl?: string }[]>([]);
+  protected readonly referenceFiles = signal<
+    { id: string; name: string; type: string; thumbnailUrl?: string }[]
+  >([]);
   protected readonly uploadingFiles = signal(false);
 
   @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
-
-
 
   /** The prompt being edited — synced with StudioStore.rawDescription. */
   protected readonly editablePrompt = signal('');
@@ -258,7 +297,7 @@ export class ProncerComponent {
     const sceneId = this.studio.sceneId();
     const userName = this.sessionStore.user()?.handle || '';
 
-    const refFileIds = this.referenceFiles().map(f => f.id);
+    const refFileIds = this.referenceFiles().map((f) => f.id);
 
     this.shotBuilderService
       .optimizePrompt({
@@ -340,14 +379,17 @@ export class ProncerComponent {
   }
 
   protected removeReferenceFile(index: number): void {
-    this.referenceFiles.update(files => files.filter((_, i) => i !== index));
+    this.referenceFiles.update((files) => files.filter((_, i) => i !== index));
   }
 
   protected openAssetInfo(event: Event, file: { id: string; name: string; type: string }): void {
-    const kind = file.type.startsWith('image/') ? 'image'
-      : file.type.startsWith('video/') ? 'video'
-      : file.type.startsWith('audio/') ? 'audio'
-      : 'image';
+    const kind = file.type.startsWith('image/')
+      ? 'image'
+      : file.type.startsWith('video/')
+        ? 'video'
+        : file.type.startsWith('audio/')
+          ? 'audio'
+          : 'image';
     this.assetInfoPopover.open(event, {
       id: file.id,
       name: file.name,
@@ -355,19 +397,39 @@ export class ProncerComponent {
     });
   }
 
+  /** Add the asset's [ImageN] token to the prompt text. */
+  protected addAssetToPrompt(asset: AssetInfo): void {
+    const token = asset.slot || `[${asset.name}]`;
+    const current = this.editablePrompt() || this.studio.rawDescription() || '';
+    // Append token on a new line if not already present
+    if (!current.includes(token)) {
+      const updated = current ? `${current}\n${token}` : token;
+      this.editablePrompt.set(updated);
+      this.studio.setRawDescription(updated);
+    }
+  }
+
+  /** Remove the asset from the reference files list. */
+  protected removeAssetFromReferences(asset: AssetInfo): void {
+    this.referenceFiles.update(files => files.filter(f => f.id !== asset.id));
+    this.assetInfoPopover.close();
+  }
+
   private uploadFiles(files: File[]): void {
     this.uploadingFiles.set(true);
     let pending = files.length;
 
     for (const file of files) {
-      const category: 'images' | 'videos' | 'temp' = file.type.startsWith('image/') ? 'images'
-        : file.type.startsWith('video/') ? 'videos'
-        : 'temp';
+      const category: 'images' | 'videos' | 'temp' = file.type.startsWith('image/')
+        ? 'images'
+        : file.type.startsWith('video/')
+          ? 'videos'
+          : 'temp';
 
       this.filesApi.upload({ file, category, storage: 'persistent' }).subscribe({
         next: (res) => {
           if (!res.error && res.data) {
-            this.referenceFiles.update(current => [
+            this.referenceFiles.update((current) => [
               ...current,
               {
                 id: res.data!.id,
@@ -380,7 +442,9 @@ export class ProncerComponent {
             ]);
           }
         },
-        error: () => { /* skip failed uploads */ },
+        error: () => {
+          /* skip failed uploads */
+        },
         complete: () => {
           pending--;
           if (pending <= 0) this.uploadingFiles.set(false);

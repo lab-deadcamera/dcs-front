@@ -136,6 +136,11 @@ export interface AssetInfo {
               {{ useLabel() }}
             </button>
           }
+          @if (removeLabel()) {
+            <button type="button" class="asset-info-remove" (click)="remove.emit(a)">
+              {{ removeLabel() }}
+            </button>
+          }
         </div>
       }
     </p-popover>
@@ -278,6 +283,27 @@ export interface AssetInfo {
       .asset-info-use:hover {
         background: rgba(224, 169, 92, 0.24);
       }
+      .asset-info-remove {
+        margin-top: 2px;
+        width: 100%;
+        padding: 8px 0;
+        border: 1px solid var(--line, #1e3133);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--ink-dim, #9aa6a3);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .asset-info-remove:hover {
+        border-color: #e05555;
+        color: #e05555;
+        background: rgba(224, 85, 85, 0.12);
+      }
     `,
   ],
 })
@@ -297,6 +323,10 @@ export class AssetInfoPopoverComponent {
   readonly useLabel = input<string>('');
   /** Emitted when the Use button is clicked. */
   readonly use = output<AssetInfo>();
+  /** Optional label for a "Remove" action. When empty, no Remove button renders. */
+  readonly removeLabel = input<string>('');
+  /** Emitted when the Remove button is clicked. */
+  readonly remove = output<AssetInfo>();
 
   @ViewChild('pop') protected readonly pop!: Popover;
 
