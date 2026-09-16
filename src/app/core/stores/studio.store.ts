@@ -15,7 +15,7 @@ import {
   UsedAsset,
   UsedAssetKind,
 } from '../interfaces/studio.models';
-import { ModelData } from '../interfaces';
+import { ModelConfig, ModelData } from '../interfaces';
 import { collectSlotTokensInOrder } from '../utils/slot-reindex';
 
 function clamp(n: number, min: number, max: number): number {
@@ -230,6 +230,33 @@ export class StudioStore {
 
   private readonly _modelCode = signal<ModelData | null>(null);
   readonly modelCode = this._modelCode.asReadonly();
+
+  /** Per-model generation limits from the selected model's config. */
+  readonly modelConfig = computed<ModelConfig | undefined>(() => this._modelCode()?.config);
+
+  /**
+   * Effective bounds for "videos per generation". The selected model's
+   * configured max_videos/min_videos win over the global defaults
+   * (1..MAX_BATCH_COUNT); zero/undefined means "no limit configured".
+   */
+  readonly minBatchCount = computed(() => {
+    const mv = this._modelCode()?.config?.min_videos ?? 0;
+    return mv > 0 ? mv : 1;
+  });
+  readonly maxBatchCount = computed(() => {
+    const mv = this._modelCode()?.config?.max_videos ?? 0;
+    return mv > 0 ? mv : MAX_BATCH_COUNT;
+  });
+
+  /** Effective duration bounds (seconds) from the selected model's config. */
+  readonly minDuration = computed(() => {
+    const d = this._modelCode()?.config?.min_duration ?? 0;
+    return d > 0 ? d : 4;
+  });
+  readonly maxDuration = computed(() => {
+    const d = this._modelCode()?.config?.max_duration ?? 0;
+    return d > 0 ? d : 15;
+  });
 
   // ── Skill ────────────────────────────────────────────────────────
 
@@ -559,6 +586,20 @@ export class StudioStore {
 
   set model(value: ModelData | null) {
     this._modelCode.set(value);
+    this.clampOutputToModelLimits();
+  }
+
+  /**
+   * Constrain the current output format to the selected model's configured
+   * limits (min/max videos, min/max duration). Values without a configured
+   * limit keep the global defaults (1..MAX_BATCH_COUNT, 4..15s).
+   */
+  private clampOutputToModelLimits(): void {
+    this._output.update((o) => ({
+      ...o,
+      batchCount: clamp(o.batchCount, this.minBatchCount(), this.maxBatchCount()),
+      durationSeconds: clamp(o.durationSeconds, this.minDuration(), this.maxDuration()),
+    }));
   }
 
   // ── Prompt ───────────────────────────────────────────────────────
@@ -580,7 +621,10 @@ export class StudioStore {
     this._output.update((o) => {
       const merged = { ...o, ...patch };
       if (patch.batchCount !== undefined) {
-        merged.batchCount = clamp(Math.round(patch.batchCount), 1, MAX_BATCH_COUNT);
+        merged.batchCount = clamp(Math.round(patch.batchCount), this.minBatchCount(), this.maxBatchCount());
+      }
+      if (patch.durationSeconds !== undefined) {
+        merged.durationSeconds = clamp(merged.durationSeconds, this.minDuration(), this.maxDuration());
       }
       return merged;
     });

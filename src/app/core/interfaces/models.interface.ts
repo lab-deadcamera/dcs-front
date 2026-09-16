@@ -21,9 +21,19 @@ export interface ModelData {
   default_asset_group_id?: string;
   project_name?: string;
   project_number?: string;
+  /** Per-model limits (min/max videos per generation, min/max duration). */
+  config?: ModelConfig;
   active: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string;
   provider_name: string;
+}
+
+/** Mirrors the backend models.config JSONB. Zero = no limit configured. */
+export interface ModelConfig {
+  min_videos?: number;
+  max_videos?: number;
+  min_duration?: number;
+  max_duration?: number;
 }

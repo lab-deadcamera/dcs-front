@@ -9,14 +9,17 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
 import { Model, Provider } from '../../../interfaces';
+import { ModelConfig } from '@app/core/interfaces/models.interface';
 
 @Component({
   selector: 'app-model-form-dialog',
@@ -26,6 +29,7 @@ import { Model, Provider } from '../../../interfaces';
     DialogModule,
     ButtonModule,
     InputTextModule,
+    InputNumberModule,
     SelectModule,
     ValidatorErrors,
   ],
@@ -51,6 +55,9 @@ export class ModelFormDialogComponent implements OnInit {
     { label: 'Image', value: 'image' },
   ]);
 
+  /** Limit inputs only make sense for models that generate videos. Reactive to model_type changes. */
+  protected readonly isVideoModel = computed(() => this.modelTypeValue() === 'video');
+
   readonly create = output<{
     provider_id: string;
     name: string;
@@ -63,6 +70,7 @@ export class ModelFormDialogComponent implements OnInit {
     default_asset_group_id?: string;
     project_name?: string;
     project_number?: string;
+    config?: ModelConfig;
   }>();
   readonly update = output<{
     id: string;
@@ -77,6 +85,7 @@ export class ModelFormDialogComponent implements OnInit {
       default_asset_group_id?: string;
       project_name?: string;
       project_number?: string;
+      config?: ModelConfig;
     };
   }>();
 
@@ -100,6 +109,15 @@ export class ModelFormDialogComponent implements OnInit {
     default_asset_group_id: [''],
     project_name: [''],
     project_number: [''],
+    min_videos: [null as number | null],
+    max_videos: [null as number | null],
+    min_duration: [null as number | null],
+    max_duration: [null as number | null],
+  });
+
+  /** Declared after `form` so it can observe its valueChanges. */
+  private readonly modelTypeValue = toSignal(this.form.controls['model_type'].valueChanges, {
+    initialValue: this.form.controls['model_type'].value,
   });
 
   private readonly syncOnModelChange = effect(() => {
@@ -127,6 +145,10 @@ export class ModelFormDialogComponent implements OnInit {
       project_name: m?.project_name ?? '',
       project_number: m?.project_number ?? '',
       model_type: m?.model_type ?? 'video',
+      min_videos: m?.config?.min_videos ?? null,
+      max_videos: m?.config?.max_videos ?? null,
+      min_duration: m?.config?.min_duration ?? null,
+      max_duration: m?.config?.max_duration ?? null,
     });
   }
 
@@ -167,6 +189,15 @@ export class ModelFormDialogComponent implements OnInit {
     }
 
     const raw = this.form.value;
+
+    // Build the config object from the limit inputs (empty = no limit).
+    const config: ModelConfig = {};
+    if (raw.min_videos != null) config.min_videos = raw.min_videos;
+    if (raw.max_videos != null) config.max_videos = raw.max_videos;
+    if (raw.min_duration != null) config.min_duration = raw.min_duration;
+    if (raw.max_duration != null) config.max_duration = raw.max_duration;
+    const hasConfig = Object.keys(config).length > 0;
+
     const v = {
       provider_id: raw.provider_id ?? '',
       name: raw.name ?? '',
@@ -179,11 +210,13 @@ export class ModelFormDialogComponent implements OnInit {
       default_asset_group_id: raw.default_asset_group_id || undefined,
       project_name: raw.project_name || undefined,
       project_number: raw.project_number || undefined,
+      config: hasConfig ? config : undefined,
     };
 
     if (this.isEdit()) {
-      // Only send defined optional fields
-      const patch: Record<string, string | undefined> = {};
+      // Only send defined optional fields, but always send `config` (even
+      // empty) so clearing all limit inputs resets the stored config.
+      const patch: Record<string, string | ModelConfig | undefined> = {};
       for (const key of [
         'name',
         'model_type',
@@ -198,6 +231,7 @@ export class ModelFormDialogComponent implements OnInit {
       ] as const) {
         if (v[key] !== undefined) patch[key] = v[key];
       }
+      patch['config'] = config;
       this.update.emit({ id: this.model()!.id, patch: patch as typeof v });
     } else {
       this.create.emit(v);

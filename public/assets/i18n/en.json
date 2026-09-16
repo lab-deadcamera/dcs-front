@@ -308,7 +308,7 @@
       "HD_CONFIRM": "click again to confirm",
       "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable.",
       "BATCH_COUNT": "Videos per generation",
-      "BATCH_COUNT_HINT": "Up to 4 — one independent call is sent per video.",
+      "BATCH_COUNT_HINT": "Up to {{max}} — one independent call is sent per video.",
       "BATCH_INC": "Increase count",
       "BATCH_DEC": "Decrease count"
     },
@@ -973,12 +973,18 @@
       "SECRET_ACCESS_KEY": "Secret Access Key",
       "DEFAULT_ASSET_GROUP_ID": "Default Asset Group ID",
       "PROJECT_NAME": "Project Name",
-      "PROJECT_NUMBER": "Project Number"
+      "PROJECT_NUMBER": "Project Number",
+      "MIN_VIDEOS": "Min videos per generation",
+      "MAX_VIDEOS": "Max videos per generation",
+      "MIN_DURATION": "Min duration (s)",
+      "MAX_DURATION": "Max duration (s)",
+      "LIMITS_HINT": "Leave empty for no limit. The studio clamps duration and video count to these values when this model is selected."
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "New Model",
       "EDIT_TITLE": "Edit Model",
-      "MORE_OPTIONS": "More options"
+      "MORE_OPTIONS": "More options",
+      "LIMITS_TITLE": "Generation limits"
     },
     "COL_ENDPOINT": "Endpoint",
     "COL_MODEL": "Model",

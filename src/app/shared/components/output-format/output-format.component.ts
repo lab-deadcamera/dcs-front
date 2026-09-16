@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
 import { PillToggleComponent } from '@shared/components/pill-toggle/pill-toggle.component';
 import { RangeSliderComponent } from '@shared/components/range-slider/range-slider.component';
 import { AspectRatio, ChipOption, Engine, Resolution } from '@core/interfaces/studio.models';
-import { MAX_BATCH_COUNT } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
 
 @Component({
@@ -60,8 +59,17 @@ export class OutputFormatComponent {
     this.studio.patchOutput({ engine });
   }
 
-  protected readonly minBatch = 1;
-  protected readonly maxBatch = MAX_BATCH_COUNT;
+  /** Effective duration bounds — from the selected model's config when set. */
+  protected readonly minDuration = this.studio.minDuration;
+  protected readonly maxDuration = this.studio.maxDuration;
+  protected readonly durationTicks = computed(() => [
+    this.studio.minDuration(),
+    Math.round((this.studio.minDuration() + this.studio.maxDuration()) / 2),
+    this.studio.maxDuration(),
+  ]);
+
+  protected readonly minBatch = this.studio.minBatchCount;
+  protected readonly maxBatch = this.studio.maxBatchCount;
 
   protected onBatchCount(delta: 1 | -1): void {
     const next = (this.studio.output().batchCount || 1) + delta;

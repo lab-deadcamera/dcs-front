@@ -15,6 +15,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { Provider, Model } from '../../interfaces';
+import { ModelConfig } from '@app/core/interfaces/models.interface';
 import { ProvidersService } from '../../services';
 import { ProviderFormDialogComponent } from '../components/provider-form-dialog/provider-form-dialog.component';
 import { ModelFormDialogComponent } from '../components/model-form-dialog/model-form-dialog.component';
@@ -186,6 +187,7 @@ export class IndexProviders implements OnInit {
     default_asset_group_id?: string;
     project_name?: string;
     project_number?: string;
+    config?: ModelConfig;
   }): void {
     this.submitting.set(true);
     this.service.createModel(evt).subscribe((res) => {

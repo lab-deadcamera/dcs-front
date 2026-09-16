@@ -36,7 +36,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { TakeChecklistComponent } from '@shared/components/take-checklist/take-checklist.component';
-import { MAX_BATCH_COUNT, UsedAssetKind } from '@core/interfaces/studio.models';
+import { UsedAssetKind } from '@core/interfaces/studio.models';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { GenerationLogsService, ModelService, VideoGeneratorService } from '@app/services';
 import { ProjectsApiService } from '@modules/projects/projects/services';
@@ -1384,7 +1384,7 @@ export class IndexStudio implements OnInit {
       });
       return;
     }
-    const count = Math.max(1, Math.min(MAX_BATCH_COUNT, this.studio.output().batchCount || 1));
+    const count = Math.max(1, Math.min(this.studio.maxBatchCount(), this.studio.output().batchCount || 1));
     for (let i = 0; i < count; i++) {
       this.runOneGeneration(text, i + 1, count);
     }
