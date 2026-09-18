@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, Signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { ToggleGroupComponent } from '@shared/components/toggle-group/toggle-group.component';
@@ -28,23 +28,42 @@ export class OutputFormatComponent {
     this.expanded.update((v) => !v);
   }
 
-  protected readonly aspectOptions: ChipOption<AspectRatio>[] = [
+  private static readonly ALL_ASPECTS: ChipOption<AspectRatio>[] = [
     { value: '16:9', labelKey: 'STUDIO.OUTPUT.ASPECT_16_9' },
     { value: '9:16', labelKey: 'STUDIO.OUTPUT.ASPECT_9_16' },
     { value: '21:9', labelKey: 'STUDIO.OUTPUT.ASPECT_21_9' },
+    { value: '1:1', labelKey: 'STUDIO.OUTPUT.ASPECT_1_1' },
   ];
 
-  protected readonly resolutionOptions: ChipOption<Exclude<Resolution, '1080p'>>[] = [
+  private static readonly ALL_RESOLUTIONS: ChipOption<Resolution>[] = [
     { value: '480p', labelKey: 'STUDIO.OUTPUT.RES_480P' },
     { value: '720p', labelKey: 'STUDIO.OUTPUT.RES_720P' },
+    { value: '1080p', labelKey: 'STUDIO.OUTPUT.RES_1080P' },
+    { value: '1440p', labelKey: 'STUDIO.OUTPUT.RES_1440P' },
+    { value: '2k', labelKey: 'STUDIO.OUTPUT.RES_2K' },
+    { value: '4k', labelKey: 'STUDIO.OUTPUT.RES_4K' },
   ];
+
+  /** Chips visible in the UI — narrowed to the selected model's declared set when configured. */
+  protected readonly aspectOptions: Signal<ChipOption<AspectRatio>[]> = computed(() => {
+    const allowed = this.studio.allowedAspectRatios();
+    if (!allowed) return OutputFormatComponent.ALL_ASPECTS;
+    return OutputFormatComponent.ALL_ASPECTS.filter((o) => allowed.includes(o.value));
+  });
+
+  protected readonly resolutionOptions: Signal<ChipOption<Resolution>[]> =
+    computed(() => {
+      const allowed = this.studio.allowedResolutions();
+      if (!allowed) return OutputFormatComponent.ALL_RESOLUTIONS;
+      return OutputFormatComponent.ALL_RESOLUTIONS.filter((o) => allowed.includes(o.value));
+    });
 
   protected onAspect(v: AspectRatio | null) {
     if (v) this.studio.patchOutput({ aspectRatio: v });
   }
 
   protected onResolution(v: Resolution | null) {
-    if (!v || v === '1080p') return;
+    if (!v) return;
     this.studio.patchOutput({ resolution: v });
   }
 

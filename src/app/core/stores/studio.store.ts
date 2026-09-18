@@ -5,6 +5,7 @@ import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 import {
+  AspectRatio,
   CinematographyConfig,
   GeneratedClip,
   MAX_BATCH_COUNT,
@@ -12,6 +13,7 @@ import {
   PendingGeneration,
   PROMPT_TEMPLATE,
   ReferenceAsset,
+  Resolution,
   UsedAsset,
   UsedAssetKind,
 } from '../interfaces/studio.models';
@@ -256,6 +258,22 @@ export class StudioStore {
   readonly maxDuration = computed(() => {
     const d = this._modelCode()?.config?.max_duration ?? 0;
     return d > 0 ? d : 15;
+  });
+
+  /** Aspect ratios offered in the UI — narrowed to the model's declared set when configured. */
+  readonly allowedAspectRatios = computed<AspectRatio[] | null>(() => {
+    const list = this._modelCode()?.config?.aspect_ratios;
+    if (!list || list.length === 0) return null;
+    const allowed = list as AspectRatio[];
+    return allowed.length > 0 ? allowed : null;
+  });
+
+  /** Resolutions offered in the UI — narrowed to the model's declared set when configured. */
+  readonly allowedResolutions = computed<Resolution[] | null>(() => {
+    const list = this._modelCode()?.config?.resolutions;
+    if (!list || list.length === 0) return null;
+    const allowed = list as Resolution[];
+    return allowed.length > 0 ? allowed : null;
   });
 
   // ── Skill ────────────────────────────────────────────────────────
@@ -591,15 +609,24 @@ export class StudioStore {
 
   /**
    * Constrain the current output format to the selected model's configured
-   * limits (min/max videos, min/max duration). Values without a configured
-   * limit keep the global defaults (1..MAX_BATCH_COUNT, 4..15s).
+   * limits (min/max videos, min/max duration, allowed aspect ratios and
+   * resolutions). Values without a configured limit keep the global
+   * defaults (1..MAX_BATCH_COUNT, 4..15s, full chip sets).
    */
   private clampOutputToModelLimits(): void {
     this._output.update((o) => ({
       ...o,
       batchCount: clamp(o.batchCount, this.minBatchCount(), this.maxBatchCount()),
       durationSeconds: clamp(o.durationSeconds, this.minDuration(), this.maxDuration()),
+      aspectRatio: this.nearestAllowed(o.aspectRatio, this.allowedAspectRatios(), o.aspectRatio),
+      resolution: this.nearestAllowed(o.resolution, this.allowedResolutions(), o.resolution),
     }));
+  }
+
+  /** Returns value when it is allowed, otherwise the first allowed option (or fallback). */
+  private nearestAllowed<T extends string>(value: T, allowed: T[] | null, fallback: T): T {
+    if (!allowed || allowed.length === 0) return value;
+    return allowed.includes(value) ? value : (allowed[0] ?? fallback);
   }
 
   // ── Prompt ───────────────────────────────────────────────────────
@@ -625,6 +652,20 @@ export class StudioStore {
       }
       if (patch.durationSeconds !== undefined) {
         merged.durationSeconds = clamp(merged.durationSeconds, this.minDuration(), this.maxDuration());
+      }
+      if (patch.aspectRatio !== undefined) {
+        merged.aspectRatio = this.nearestAllowed(
+          merged.aspectRatio,
+          this.allowedAspectRatios(),
+          merged.aspectRatio,
+        );
+      }
+      if (patch.resolution !== undefined) {
+        merged.resolution = this.nearestAllowed(
+          merged.resolution,
+          this.allowedResolutions(),
+          merged.resolution,
+        );
       }
       return merged;
     });

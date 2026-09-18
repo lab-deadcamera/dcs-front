@@ -305,6 +305,9 @@
       "RES_480P": "480p",
       "RES_720P": "720p",
       "RES_1080P": "1080p HD",
+      "RES_1440P": "1440p QHD",
+      "RES_2K": "2K",
+      "RES_4K": "4K",
       "HD_CONFIRM": "click again to confirm",
       "HD_HINT": "1080p HD lives in the viewer's bottom-right corner — needs two clicks to enable.",
       "BATCH_COUNT": "Videos per generation",
@@ -978,7 +981,9 @@
       "MAX_VIDEOS": "Max videos per generation",
       "MIN_DURATION": "Min duration (s)",
       "MAX_DURATION": "Max duration (s)",
-      "LIMITS_HINT": "Leave empty for no limit. The studio clamps duration and video count to these values when this model is selected."
+      "ASPECT_RATIOS": "Supported aspect ratios",
+      "RESOLUTIONS": "Supported resolutions",
+      "LIMITS_HINT": "Leave empty for no limit. The studio restricts the output format options to these values when this model is selected."
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "New Model",

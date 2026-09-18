@@ -30,10 +30,14 @@ export interface ModelData {
   provider_name: string;
 }
 
-/** Mirrors the backend models.config JSONB. Zero = no limit configured. */
+/** Mirrors the backend models.config JSONB. Zero / empty arrays = no limit configured. */
 export interface ModelConfig {
   min_videos?: number;
   max_videos?: number;
   min_duration?: number;
   max_duration?: number;
+  /** Aspect ratios the model supports (e.g. "16:9"). Empty = no restriction. */
+  aspect_ratios?: string[];
+  /** Resolutions the model supports (e.g. "720p"). Empty = no restriction. */
+  resolutions?: string[];
 }

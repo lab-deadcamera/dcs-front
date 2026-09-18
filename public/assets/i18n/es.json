@@ -305,6 +305,9 @@
       "RES_480P": "480p",
       "RES_720P": "720p",
       "RES_1080P": "1080p HD",
+      "RES_1440P": "1440p QHD",
+      "RES_2K": "2K",
+      "RES_4K": "4K",
       "HD_CONFIRM": "haz clic de nuevo para confirmar",
       "HD_HINT": "1080p HD está en la esquina inferior derecha del visor — requiere doble clic para activarse.",
       "BATCH_COUNT": "Videos por generación",
@@ -978,7 +981,9 @@
       "MAX_VIDEOS": "Máx. videos por generación",
       "MIN_DURATION": "Duración mínima (s)",
       "MAX_DURATION": "Duración máxima (s)",
-      "LIMITS_HINT": "Deja vacío para sin límite. El estudio ajusta la duración y la cantidad de videos a estos valores al seleccionar este modelo."
+      "ASPECT_RATIOS": "Relaciones de aspecto soportadas",
+      "RESOLUTIONS": "Resoluciones soportadas",
+      "LIMITS_HINT": "Deja vacío para sin límite. El estudio restringe las opciones de formato de salida a estos valores al seleccionar este modelo."
     },
     "MODEL_DIALOG": {
       "CREATE_TITLE": "Nuevo Modelo",

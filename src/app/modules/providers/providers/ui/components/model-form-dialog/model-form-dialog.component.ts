@@ -16,6 +16,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { ValidatorErrors } from '@shared/components/validation-errors/validator-errors.component';
 import { Model, Provider } from '../../../interfaces';
@@ -30,6 +31,7 @@ import { ModelConfig } from '@app/core/interfaces/models.interface';
     ButtonModule,
     InputTextModule,
     InputNumberModule,
+    MultiSelectModule,
     SelectModule,
     ValidatorErrors,
   ],
@@ -57,6 +59,10 @@ export class ModelFormDialogComponent implements OnInit {
 
   /** Limit inputs only make sense for models that generate videos. Reactive to model_type changes. */
   protected readonly isVideoModel = computed(() => this.modelTypeValue() === 'video');
+
+  /** Supported output formats a video model can declare. Empty selection = no restriction. */
+  protected readonly aspectRatioOptions = ['16:9', '9:16', '21:9', '1:1'];
+  protected readonly resolutionOptions = ['480p', '720p', '1080p', '1440p', '2k', '4k'];
 
   readonly create = output<{
     provider_id: string;
@@ -113,6 +119,8 @@ export class ModelFormDialogComponent implements OnInit {
     max_videos: [null as number | null],
     min_duration: [null as number | null],
     max_duration: [null as number | null],
+    aspect_ratios: [[] as string[]],
+    resolutions: [[] as string[]],
   });
 
   /** Declared after `form` so it can observe its valueChanges. */
@@ -149,6 +157,8 @@ export class ModelFormDialogComponent implements OnInit {
       max_videos: m?.config?.max_videos ?? null,
       min_duration: m?.config?.min_duration ?? null,
       max_duration: m?.config?.max_duration ?? null,
+      aspect_ratios: m?.config?.aspect_ratios ?? [],
+      resolutions: m?.config?.resolutions ?? [],
     });
   }
 
@@ -196,6 +206,8 @@ export class ModelFormDialogComponent implements OnInit {
     if (raw.max_videos != null) config.max_videos = raw.max_videos;
     if (raw.min_duration != null) config.min_duration = raw.min_duration;
     if (raw.max_duration != null) config.max_duration = raw.max_duration;
+    if (raw.aspect_ratios?.length) config.aspect_ratios = raw.aspect_ratios;
+    if (raw.resolutions?.length) config.resolutions = raw.resolutions;
     const hasConfig = Object.keys(config).length > 0;
 
     const v = {
