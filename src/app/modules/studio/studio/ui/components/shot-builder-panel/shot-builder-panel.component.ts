@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   OnInit,
@@ -30,10 +31,15 @@ import {
   SceneData,
   EpisodeData,
   SceneContext,
+  ShotRefineTarget,
+  ChatTurn,
+  ElementEntity,
+  ElementRegistryResult,
   normalizeSeedanceSlots,
   shotBuilderResultToSequence,
 } from '@app/services/shot-builder.service';
 import { ShotBuilderSettingsDialogComponent } from './components/shot-builder-settings-dialog.component';
+import { ElementElicitationComponent } from './components/element-elicitation.component';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 /** Parse .docx files into HTML for preview. */
@@ -51,10 +57,11 @@ GlobalWorkerOptions.workerSrc = '/assets/pdfjs/pdf.worker.min.mjs';
 import {
   generateArtifactHtml,
   parseArtifactData,
+  parseEpisodeArtifact,
   computeCharacterCount,
 } from '@app/services/shot-builder-artifact';
 /** A real generate-shots response (Episode → Scenes → Shots) used by the Mock Seq button. */
-import responseOkMock from '@app/core/mocks/response-07-08.json';
+import responseOkMock from '@app/core/mocks/the-route.json';
 import { Reference, Sequence } from '@app/core/interfaces';
 import { ShotSequenceViewerComponent } from './components/shot-sequence-viewer.component';
 import { CLAUDE_MODELS, LEVEL_ROL } from '@app/core/constants';
@@ -103,6 +110,11 @@ type ChatMessage = {
   timestamp: number;
   /** Whether this message belongs to a generate or a refine turn (badge). */
   kind?: 'generate' | 'refine';
+  /** Shots this turn was scoped to (per-shot refine). */
+  targets?: ShotRefineTarget[];
+  /** The parsed breakdown for assistant generate/refine turns — rendered
+   *  inline in the chat so versions accumulate and can be restored. */
+  result?: ShotBuilderResult;
 };
 
 type UploadedFile = {
@@ -177,6 +189,7 @@ type AssetInfo =
     Popover,
     ShotSequenceViewerComponent,
     ShotBuilderSettingsDialogComponent,
+    ElementElicitationComponent,
     AssetViewerComponent,
     DialogModule,
     SourceThumbnailAssetPipe,
@@ -190,6 +203,9 @@ type AssetInfo =
   providers: [MessageService],
 })
 export class ShotBuilderPanelComponent implements OnInit {
+  /** Sentinel activeFileId value selecting the "Elements" tab. */
+  private static readonly ELEMENTS_TAB_ID = '__elements__';
+
   constructor() {
     this.validateClaudeModel();
     // Load the library's assetType map eagerly so the episode resource tabs
@@ -278,6 +294,23 @@ export class ShotBuilderPanelComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  // ── Element elicitation (world-closing) ─────────────────────────
+
+  /** Result of the last analyze-elements run, with UI statuses applied. */
+  readonly analysis = signal<ElementRegistryResult | null>(null);
+  /** True while analyze-elements is running. */
+  readonly analysisLoading = signal(false);
+  /** Entities still awaiting a user decision (pending or asset_orphan). */
+  readonly unresolvedEntities = computed(() =>
+    (this.analysis()?.element_registry ?? []).filter(
+      (e) => e.definition_status === 'pending' || e.definition_status === 'asset_orphan',
+    ),
+  );
+  /** Hard block: generation stays disabled while any entity is unresolved. */
+  readonly generateBlocked = computed(
+    () => this.analysis() !== null && this.unresolvedEntities().length > 0,
+  );
+
   /** True after the claude-shot-builder model check completes. */
   readonly modelCheckDone = signal(false);
   /** True when the claude-shot-builder model was NOT found. */
@@ -314,6 +347,8 @@ export class ShotBuilderPanelComponent implements OnInit {
   private readonly claudeModelName = signal<string>(CLAUDE_MODELS[0].name);
   /** Whether to generate Chinese prompts (prompt.zh). */
   protected readonly generateChinese = signal(false);
+  /** Whether to use generate-shots-v2 (structure-only base + skill behavior). */
+  protected readonly useV2 = signal(false);
 
   protected readonly selectedModelName = computed(() => this.claudeModelName());
 
@@ -323,6 +358,10 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   protected onGenerateChineseChange(enabled: boolean): void {
     this.generateChinese.set(enabled);
+  }
+
+  protected onUseV2Change(enabled: boolean): void {
+    this.useV2.set(enabled);
   }
 
   /** Index of the currently active file tab. -1 means "Preview" (artifact) tab. */
@@ -395,6 +434,24 @@ export class ShotBuilderPanelComponent implements OnInit {
   /** Whether the refine box is expanded. */
   readonly refineExpanded = signal(false);
 
+  /** Chat container, scrolled to the latest message on each turn. */
+  @ViewChild('chatScroll') private readonly chatScrollEl?: { nativeElement: HTMLElement };
+  /** Auto-scroll the chat to the newest message when the thread grows. */
+  private readonly chatAutoScroll = effect(() => {
+    this.chatMessages();
+    queueMicrotask(() => {
+      const el = this.chatScrollEl?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  });
+
+  /** The shot currently being refined from its inline chat card. */
+  readonly targetRefine = signal<ShotRefineTarget | null>(null);
+  /** Instruction for the targeted refine (dialog). */
+  readonly refineShotText = signal('');
+  /** Whether the per-shot refine dialog is open. */
+  readonly refineShotVisible = signal(false);
+
   readonly canRefine = computed(
     () => !this.loading() && this.hasPreviousResponse() && this.refineText().trim().length > 0,
   );
@@ -425,6 +482,11 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   /** True when the "Preview" tab (artifact / shot list) is selected. */
   readonly isPreviewTab = computed(() => this.activeFileId() === null);
+
+  /** True when the "Elements" tab (elicitation UI) is selected. */
+  readonly isElementsTab = computed(
+    () => this.activeFileId() === ShotBuilderPanelComponent.ELEMENTS_TAB_ID,
+  );
 
   /** True when there are parsed scenes/shots to show. */
   readonly hasShots = computed(() => this.scenes().length > 0);
@@ -792,7 +854,7 @@ export class ShotBuilderPanelComponent implements OnInit {
     const raw = this.rawResponse();
     if (!raw) return null;
 
-    const data = parseArtifactData(raw);
+    const data = parseEpisodeArtifact(raw) ?? parseArtifactData(raw);
     CONSOLE.log(
       '[artifact] raw preview:',
       raw.slice(0, 200),
@@ -903,13 +965,8 @@ export class ShotBuilderPanelComponent implements OnInit {
 
         processed += 1;
         if (processed === files.length) {
-          if (this.activeFileId() === null) {
-            const firstNewIndex = initialLength;
-            const filesNow = this.uploadedFiles();
-            if (filesNow.length > 0) {
-              this.selectFile(Math.min(firstNewIndex, filesNow.length - 1));
-            }
-          }
+          // Auto-switch to the Elements tab so the CTA is visible.
+          this.showElementsTab();
         }
       };
 
@@ -940,7 +997,14 @@ export class ShotBuilderPanelComponent implements OnInit {
    */
   onFreeAssetsSelected(event: Event): void {
     const target = event.target as HTMLInputElement | null;
-    const files = target?.files ? Array.from(target.files) : [];
+    this.uploadFreeAssets(target?.files ? Array.from(target.files) : []);
+    // Allow selecting the same file again.
+    if (target) target.value = '';
+  }
+
+  /** Uploads free assets from a raw file list (also used by the element
+   *  elicitation popover's upload button). */
+  uploadFreeAssets(files: File[]): void {
     if (files.length === 0) return;
 
     const projectId = this.projectId() || this.studio.projectId();
@@ -1041,9 +1105,6 @@ export class ShotBuilderPanelComponent implements OnInit {
         },
       });
     }
-
-    // Allow selecting the same file again.
-    if (target) target.value = '';
   }
 
   /** Extract plain text from a PDF using pdfjs-dist. */
@@ -1123,8 +1184,97 @@ export class ShotBuilderPanelComponent implements OnInit {
     }
   }
 
-  // ── Chat & generation ──────────────────────────────────────────────
+  // ── Element elicitation (world-closing) ─────────────────────────
 
+  /** Run analyze-elements on the current send content and open the
+   *  elicitation UI. "undefined" entities from the analysis become "pending"
+   *  (undecided in the UI); "asset_orphan" is kept for the badge. */
+  runElementAnalysis(): void {
+    const content = this.getSendContent();
+    if (!content || this.analysisLoading()) return;
+
+    this.analysisLoading.set(true);
+    this.error.set(null);
+    this.showElementsTab();
+
+    const userName = this.sessionStore.user()?.handle || '';
+    this.shotBuilderService
+      .analyzeElements({
+        projectId: this.projectId() || this.studio.projectId() || '',
+        projectName: this.studio.projectName(),
+        sceneId:
+          this.sceneId() ||
+          this.studio.sceneId() ||
+          this.chapterId() ||
+          this.studio.chapterId() ||
+          '',
+        prompt: content,
+        model: this.claudeModelName(),
+        userName,
+        sceneContext: this.buildSceneContext(),
+      })
+      .subscribe({
+        next: (result) => {
+          if (result.element_registry.length === 0) {
+            // Guards in the service already set its error message.
+            this.error.set(this.shotBuilderService.errorMessage());
+            return;
+          }
+          const registry = result.element_registry.map((e) => ({
+            ...e,
+            definition_status:
+              e.definition_status === 'undefined' ? ('pending' as const) : e.definition_status,
+          }));
+          this.analysis.set({ ...result, element_registry: registry });
+          this.syncElementRegistryToStore();
+          this.showElementsTab();
+        },
+        error: (err) => {
+          this.error.set(err?.message || this.shotBuilderService.errorMessage() || 'Analysis failed');
+          this.analysisLoading.set(false);
+        },
+        complete: () => this.analysisLoading.set(false),
+      });
+  }
+
+  /** Apply a decision patch from the elicitation UI, replicating it to every
+   *  entity in the same consistency_group (dedup across scenes). */
+  protected onElementDecision(change: { entityId: string; patch: Partial<ElementEntity> }): void {
+    this.analysis.update((current) => {
+      if (!current) return current;
+      const group = current.element_registry.find(
+        (e) => e.entity_id === change.entityId,
+      )?.consistency_group;
+      return {
+        ...current,
+        element_registry: current.element_registry.map((e) =>
+          e.entity_id === change.entityId || (!!group && e.consistency_group === group)
+            ? ({ ...e, ...change.patch } as ElementEntity)
+            : e,
+        ),
+      };
+    });
+    this.syncElementRegistryToStore();
+  }
+
+  /** Resolved entities (final statuses only) to attach to generate/refine
+   *  calls. Undefined when there is no analysis or nothing was resolved. */
+  private resolvedElementRegistry(): ElementEntity[] | undefined {
+    const current = this.analysis();
+    if (!current) return undefined;
+    const resolved = current.element_registry.filter((e) =>
+      ['defined', 'invented', 'abstracted'].includes(e.definition_status),
+    );    return resolved.length > 0 ? resolved : undefined;
+  }
+
+  /** Sync the resolved element registry to the StudioStore so the Proncer
+   *  can enforce reference discipline (no appearance descriptions for
+   *  image-linked elements). */
+  private syncElementRegistryToStore(): void {
+    this.studio.setElementRegistry(this.resolvedElementRegistry());
+  }
+
+  // ── Chat & generation ──────────────────────────────────────────────
   send(): void {
     // Second+ turn in the chat refines the existing breakdown instead of
     // regenerating from scratch — anchors on the previous response so only
@@ -1199,7 +1349,9 @@ export class ShotBuilderPanelComponent implements OnInit {
         skillID: selectedSkill?.id || undefined,
         userName,
         generateZh: this.generateChinese(),
+        useV2: this.useV2(),
         sceneContext,
+        elementRegistry: this.resolvedElementRegistry(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -1245,6 +1397,7 @@ export class ShotBuilderPanelComponent implements OnInit {
               kind: 'generate',
               content: summary,
               timestamp: Date.now(),
+              result,
             },
           ]);
         },
@@ -1278,21 +1431,33 @@ export class ShotBuilderPanelComponent implements OnInit {
 
   /** Shared refine pipeline used by both the "Refine breakdown" box and the
    *  main send() when a previous response already exists. addChatMessage is
-   *  false when called from send(), which already appended the user message. */
-  private runRefine(changeRequest: string, addChatMessage: boolean): void {
+   *  false when called from send(), which already appended the user message.
+   *  targets scopes the refine to specific shots (per-shot refine). */
+  private runRefine(
+    changeRequest: string,
+    addChatMessage: boolean,
+    targets?: ShotRefineTarget[],
+  ): void {
     const previousResponse = this.rawResponse();
     if (!previousResponse) return;
 
+    // When scoped to shots, make the scoping explicit in the instruction text
+    // too (belt and suspenders with the structured targets field).
+    const targetLabel = targets?.length ? this.targetLabel(targets) : '';
+    const scopedRequest = targetLabel
+      ? `Modificá SOLO el shot ${targetLabel}: ${changeRequest}`
+      : changeRequest;
+
     if (addChatMessage) {
-      // Add user message to chat
       this.chatMessages.update((items) => [
         ...items,
         {
           id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           role: 'user',
           kind: 'refine',
-          content: changeRequest,
+          content: scopedRequest,
           timestamp: Date.now(),
+          ...(targets?.length ? { targets } : {}),
         },
       ]);
     }
@@ -1316,12 +1481,15 @@ export class ShotBuilderPanelComponent implements OnInit {
           this.studio.chapterId() ||
           '',
         previousResponse,
-        changeRequest,
+        changeRequest: scopedRequest,
         model: this.claudeModelName(),
         skillID: selectedSkill?.id || undefined,
         sceneContext: this.buildSceneContext(),
         userName,
         generateZh: this.generateChinese(),
+        ...(targets?.length ? { targets } : {}),
+        recentContext: this.recentContext(),
+        elementRegistry: this.resolvedElementRegistry(),
       })
       .subscribe({
         next: (result: ShotBuilderResult) => {
@@ -1359,11 +1527,13 @@ export class ShotBuilderPanelComponent implements OnInit {
               kind: 'refine',
               content: summary,
               timestamp: Date.now(),
+              ...(targets?.length ? { targets } : {}),
+              result,
             },
           ]);
 
           // Remember the applied change request for the viewer banner.
-          this.lastRefineInfo.set({ changeRequest });
+          this.lastRefineInfo.set({ changeRequest: scopedRequest });
 
           this.refineText.set('');
           this.refineExpanded.set(false);
@@ -1386,6 +1556,84 @@ export class ShotBuilderPanelComponent implements OnInit {
         },
       });
   }
+
+  /** "89-A" / "89-A, 90-B" label for targeted refines. */
+  private targetLabel(targets: ShotRefineTarget[]): string {
+    return targets.map((t) => `${t.sceneNumber}-${t.shotId}`).join(', ');
+  }
+
+  /** Last few user turns, bounded, for conversational coherence on refine. */
+  private recentContext(): ChatTurn[] {
+    return this.chatMessages()
+      .filter((m) => m.role === 'user' && m.content.trim())
+      .slice(-3)
+      .map((m) => ({ role: 'user', content: m.content.slice(0, 500) }));
+  }
+
+  /** Restore an earlier version from the chat thread into the workspace. */
+  restoreVersion(msg: ChatMessage): void {
+    if (!msg.result) return;
+    const result = msg.result;
+    this.episodeData.set(result.episode || null);
+    this.scenes.set(result.scenes);
+    this.shots.set(result.scenes.flatMap((s) => s.shots ?? []));
+    this.rawResponse.set(result.rawText);
+    const seq = shotBuilderResultToSequence(result, this.studio.output().aspectRatio);
+    this.sequenceData.set(seq ? computeCharacterCount(seq) : null);
+    this.lastRefineInfo.set(null);
+
+    this.chatMessages.update((items) => [
+      ...items,
+      {
+        id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        role: 'user',
+        kind: 'refine',
+        content: this.i18n.instant('STUDIO.SHOT_BUILDER.RESTORED'),
+        timestamp: Date.now(),
+      },
+    ]);
+  }
+
+  /** Open the per-shot refine dialog for the given shot. */
+  openRefineShot(target: ShotRefineTarget): void {
+    this.targetRefine.set(target);
+    this.refineShotText.set('');
+    this.refineShotVisible.set(true);
+  }
+
+  /** Run the targeted refine from the per-shot dialog. */
+  confirmRefineShot(): void {
+    const instruction = this.refineShotText().trim();
+    const target = this.targetRefine();
+    this.refineShotVisible.set(false);
+    this.targetRefine.set(null);
+    if (!instruction || !target) return;
+    this.runRefine(instruction, true, [target]);
+  }
+
+  /** Inline-card chip label for a shot: scene-prefixed id when available. */
+  shotChipLabel(sceneNumber: number, shot: ShotBuilderShot): string {
+    if (shot.id) return `${sceneNumber}-${shot.id}`;
+    return `S${shot.number}`;
+  }
+
+  /** Dialog header for the per-shot refine. */
+  readonly refineShotTitle = computed(() => {
+    const t = this.targetRefine();
+    if (!t) return '';
+    return this.i18n.instant('STUDIO.SHOT_BUILDER.REFINE_SHOT_TITLE', {
+      shot: `${t.sceneNumber}-${t.shotId}`,
+    });
+  });
+
+  /** Dialog placeholder for the per-shot refine. */
+  readonly refineShotPlaceholder = computed(() => {
+    const t = this.targetRefine();
+    if (!t) return '';
+    return this.i18n.instant('STUDIO.SHOT_BUILDER.REFINE_SHOT_PLACEHOLDER', {
+      shot: `${t.sceneNumber}-${t.shotId}`,
+    });
+  });
 
   clearChat(): void {
     this.chatMessages.set([]);
@@ -2084,6 +2332,11 @@ export class ShotBuilderPanelComponent implements OnInit {
     this.activeFileId.set(null);
   }
 
+  /** Switch to the Elements tab (elicitation UI). */
+  showElementsTab(): void {
+    this.activeFileId.set(ShotBuilderPanelComponent.ELEMENTS_TAB_ID);
+  }
+
   // ── Private ────────────────────────────────────────────────────────
 
   /** Content for a refine turn: the typed prompt plus only NEW (unsent) files.
@@ -2097,7 +2350,7 @@ export class ShotBuilderPanelComponent implements OnInit {
     return {
       description: this.studio.rawDescription() || undefined,
       characters: this.studio.chapterCharacterData().map((c) => ({
-        ...(c.fileId ? { id: c.fileId } : {}),
+        id: c.id,
         name: c.name,
         ...(c.slot ? { slot: c.slot } : {}),
       })),

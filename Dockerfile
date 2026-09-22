@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY . ./
 
-RUN npm install
+RUN corepack enable && npm ci
 RUN npm run build:${BUILD}
 
 FROM nginx:1.13.9-alpine

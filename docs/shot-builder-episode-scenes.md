@@ -21,9 +21,26 @@ Episode
 - Escribe prompt opcional + estimación de duración total
 - Habilita/deshabilita generación de chino
 
-### 2. Backend: ClaudeGenerateShots
+### 2. Backend: generación asíncrona
 
-El nuevo `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
+`POST /api/v1/studio/text/claude/generate-shots` responde **al instante** con `{ taskId, model, status: "processing" }` y procesa en background (goroutine con contexto detached de 20 min — sobrevive aunque el usuario cierre el panel).
+
+El frontend (`ShotBuilderService`) hace **polling** de `GET .../generate-shots/status/:taskId` cada ~5 s (timeout global de 45 min):
+
+- `succeeded` → `data.text` contiene el JSON del breakdown
+- `failed` → `data.error` con el motivo
+
+Variantes del flujo:
+
+| Endpoint | Modo | Diferencia |
+|----------|------|------------|
+| `POST /claude/generate-shots` | async | Prompt director completo (`defaultShotBuilderPrompt`); valida formato v1 |
+| `POST /claude/generate-shots-v2` | async | Solo estructura (`shotBuilderStructurePrompt`); la skill define el comportamiento; sin validación de formato v1 |
+| `POST /claude/refine-shots` | **síncrono** | Anti-drift: aplica solo el cambio pedido sobre el breakdown previo (`previous_response` + `change_request` + `targets` opcionales por shot); responde directo sin polling |
+
+Si hay `scene_context`, el backend lo antepone al prompt y adjunta imágenes de visión (retratos de personajes + free-assets `image/*`, con cap).
+
+El `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
 
 ```jsonc
 {
@@ -67,14 +84,8 @@ El nuevo `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
           "title": "Wyatt paces frantically",
           "description": "...",
           "duration": 10, "start": 0, "end": 10,
-          "camera": { "lens": "...", "framing": "...", "movement": "...", "fps": 24, "shutter": "180 degree", "aspectRatio": "9:16" },
-          "composition": { "frameMap": "...", "subjectLock": "...", "crossFrameRules": "...", "focus": "...", "depth": "Shallow DOF" },
-          "blocking": { "location": "...", "movement": "...", "interaction": "...", "positions": [...] },
-          "acting": { "emotion": "...", "bodyLanguage": "...", "dialogue": "...", "microExpressions": [...] },
-          "timeline": { "duration": 10, "segments": [...], "beats": [...] },
-          "audio": { "dialogue": "...", "ambient": "...", "sfx": [...], "music": false },
+          "references": [{ "slot": "[Image1]", "assetId": "wyatt", "type": "character" }],
           "prompt": { "en": "Scene & Mood: ...\n\nFrame Map: ...\n\n(11 bloques DCS-DIRECTION)", "zh": "..." },
-          "render": { "mode": "M1", "engine": "Seedance" },
           "notes": { "todos": [...], "warnings": [...], "approved": false }
         }
       ]
@@ -82,6 +93,8 @@ El nuevo `defaultShotBuilderPrompt` (DCS-DIRECTION) parsea el script y retorna:
   ]
 }
 ```
+
+> **Nota:** los shots son ahora *slim* (`id, title, description, duration, start/end, references, prompt{en,zh}, notes`). Campos ricos como `camera/composition/blocking/acting/timeline/audio/render` son legacy: el prompt actual instruye a Claude a NO emitirlos.
 
 ### 3. Frontend: Visualización
 
@@ -121,7 +134,7 @@ El shot list viewer debe mostrar:
 
 - **Convenciones** (Cross-Frame Rules, subject locks, warnings de continuidad)
 - **Referencias** (qué assets aplican a cada escena)
-- **Cada shot** mantiene su estructura actual (camera, composition, blocking, acting, timeline, audio, prompt, render, notes)
+- **Cada shot** mantiene su estructura actual (slim: id, title, description, duration/start/end, references, prompt{en,zh}, notes)
 
 ---
 
@@ -325,4 +338,4 @@ export const EPISODE_MOCK = {
 
 ---
 
-*Documento actualizado: 2026-07-29. Implementación completada. Pendiente: pruebas con PDF real.*
+*Documento actualizado: 2026-08-20. Flujo async + polling + v2 + refine documentados. Pendiente: pruebas con PDF real.*

@@ -146,6 +146,8 @@ export interface FlowSegment {
   intensity: number;
   marker?: boolean;
   color?: string;
+  /** Number of internal cuts within the shot (0 = single continuous take). */
+  cuts?: number;
 }
 
 export interface Reference {
@@ -184,6 +186,8 @@ export interface Shot {
   duration: number;
   start: number;
   end: number;
+  /** Number of internal cuts within the shot (0 = single continuous take). */
+  cuts?: number;
   camera: Camera;
   composition: Composition;
   blocking: Blocking;
@@ -278,6 +282,9 @@ export interface PromptCounter {
 export interface ShotNotes {
   warnings?: string[];
   todos?: string[];
+  /** Production QA notes: learned failure modes, continuity locks, what to
+   *  check in the first render. Emitted by the shot builder per shot. */
+  watchFor?: string[];
   approved?: boolean;
 }
 

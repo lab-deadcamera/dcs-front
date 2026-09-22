@@ -1,0 +1,1016 @@
+{
+  "episode": {
+    "title": "Episode 26 — The Re-Route",
+    "totalDuration": 168,
+    "totalShots": 16,
+    "assetAssignments": [
+      {
+        "slot": "[Image1]",
+        "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+        "type": "character"
+      },
+      {
+        "slot": "[Image2]",
+        "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+        "type": "character"
+      },
+      {
+        "slot": "[Image3]",
+        "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+        "type": "location"
+      },
+      {
+        "slot": "[Image4]",
+        "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+        "type": "character"
+      },
+      {
+        "slot": "[Image5]",
+        "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+        "type": "location"
+      },
+      {
+        "slot": "[Image6]",
+        "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+        "type": "location"
+      },
+      {
+        "slot": "[Image7]",
+        "assetId": "94d82ffd-2466-41c2-be5c-fff6003ce771",
+        "type": "location"
+      },
+      {
+        "slot": "[Image8]",
+        "assetId": "91c7c8c0-61b4-4e57-a5bf-7c375ba9d3a8",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image9]",
+        "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image10]",
+        "assetId": "8625af99-8357-417a-891e-c04eee412d6a",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image11]",
+        "assetId": "5bfed6f6-7487-4f9a-a53d-c0d0530fca87",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image12]",
+        "assetId": "94d35d71-3cdb-4edd-9d71-a1d8e3e830e5",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image13]",
+        "assetId": "2abc4a74-c9b3-443a-b9ec-6d659292b454",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image14]",
+        "assetId": "8d955a1f-4b61-41e5-bf2a-389900f8b4f4",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image15]",
+        "assetId": "a457297e-e412-4c15-a58d-1ae4a69326be",
+        "type": "prop"
+      },
+      {
+        "slot": "[Image17]",
+        "assetId": "e341e845-db12-4d6b-81cb-f5eb8358c3b7",
+        "type": "prop"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scriptNumber": 96,
+      "scriptLocation": "INT. WYATT'S BEDROOM — NIGHT",
+      "title": "The Unblinking Watch",
+      "description": "Wyatt sits at his laptop, unblinking, as decrypted camera feeds cycle across the screen.",
+      "duration": 10,
+      "start": 0,
+      "end": 10,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S BEDROOM — NIGHT",
+        "locationChange": false,
+        "timeContinuity": "NIGHT — episode cold open",
+        "charactersPresent": [
+          "Wyatt"
+        ],
+        "emotionalCarryover": "N/A — first scene",
+        "physicalCarryover": "N/A — first scene",
+        "wardrobeCarryover": "N/A — first scene",
+        "notes": [
+          "Episode cold open",
+          "Establishes the parallel cross-cut structure with Dixie"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image4]",
+          "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+          "type": "character"
+        },
+        {
+          "slot": "[Image3]",
+          "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+          "type": "location"
+        },
+        {
+          "slot": "[Image9]",
+          "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt unblinking at the screen",
+          "description": "Tight on Wyatt's lit face, unblinking, the camera-feed glow washing over him.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+              "type": "character"
+            },
+            {
+              "slot": "[Image3]",
+              "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+              "type": "location"
+            },
+            {
+              "slot": "[Image9]",
+              "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image4] [Image3] [Image9]\n\nScene & Mood: A young man sits close to an open laptop in a dark bedroom, face lit from below by the cool wash of a cycling screen, his eyes locked on it without blinking. Quiet, held, surveillance-cold intent.\n\nFrame Map: Chest-up single, [Image4] centered and slightly screen-left, filling the left two-thirds of frame, face turned three-quarters toward the laptop glow at frame-right edge. Laptop [Image9] sits in soft foreground lower-right, its lid and top screen-edge just visible, throwing light up onto his jaw. Empty dark negative space fills the upper-right and background. The rest of the bedroom is dissolved into shadow, excluded by the tight angle and low light.\n\nLocation & Blocking: Reproduce the bedroom exactly from [Image3] as ground truth — dim night interior, cluttered desk surface, unmade textures, single practical glow. Do not add or restyle furniture. [Image4] is seated at the desk, torso squared to the laptop, forearms resting near the keyboard, gaze pinned to the screen. Laptop [Image9] anchors the light source in the lower foreground; on its screen, decrypted camera feeds cycle — a teller line, a uniformed guard, a night street — cutting every second or two, consistent across the scene.\n\nCross-Frame Rules: Only [Image4] is in frame — solo shot, no other person present, no reflection of anyone else. He holds screen-center-left for the whole take. Eyeline stays down-and-right into the laptop, never to camera.\n\nMovement: Frozen pose — stillness is the performance. Cut A (0-10s) single unbroken take: 0s → face already lit and locked on the screen, no wind-up; 0-4s → he does not blink, jaw set, lips faintly parted, only the screen light shifting across his face as feeds cut; 4s → a single slow swallow moves his throat, the only voluntary motion; 5-8s → eyes track a micro-fraction left-to-right following something cycling on screen, pupils tightening in the changing light; 8s → one delayed, uneven blink — one lid a millisecond before the other — then locks open again; 9-10s → screen light flares brighter on a new feed, catching his eye-whites. Dead-still-mannequin reads as fake, twitchy-actor reads as nervous — the target is between them: a person so absorbed the body forgets to move, held by will not by paralysis. Micro-motion: shallow chest breath, faint eyelash tremor, screen flicker on skin. Nothing moves but the camera. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image4] center-left, face lit cold from the laptop below, eyes open and fixed on the off-frame-right screen, jaw set, mid-breath. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image3] bedroom, deep night, single cool laptop glow as key light, warm shadow falloff into black, teal-amber grade pushed cool.\n\nSound Bed: Low room tone, faint laptop fan hum, soft rhythmic click of the feed cycling, a single distant car passing outside.\n\nCapture Realism: Thin suspended air between the foreground laptop and the black background separates the planes, distant edges softer and desaturated. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at the jaw and hairline; soft fine even pore texture, light absorbed like true subsurface scattering, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly so the screen glow never clips to white, nothing crushed to black; all specular highlights surgically removed from skin and surfaces, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 75mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow push-in, color-negative daylight film rendition with fine 35mm grain, teal-amber grade pushed cool, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 10s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 10,
+          "start": 0,
+          "end": 10,
+          "notes": {
+            "todos": [
+              "Load [Image4] Wyatt",
+              "Load [Image3] bedroom plate",
+              "Load [Image9] open laptop with cycling feeds"
+            ],
+            "warnings": [],
+            "watchFor": [
+              "First frame already lit and locked — no build-up to the stare",
+              "Only Wyatt in frame — no second person, no reflection",
+              "Feeds must read as surveillance (teller/guard/street), not decorative UI"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 97,
+      "scriptLocation": "INT. DIXIE'S BEDROOM — NIGHT",
+      "title": "Two Masks",
+      "description": "Dixie rips open a dresser drawer, revealing two crochet rabbit masks — one black, one pink — and looks at them.",
+      "duration": 12,
+      "start": 10,
+      "end": 22,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. DIXIE'S BEDROOM — NIGHT",
+        "locationChange": true,
+        "timeContinuity": "NIGHT — parallel to Wyatt, cross-cut",
+        "charactersPresent": [
+          "Dixie"
+        ],
+        "emotionalCarryover": "Same cold, deliberate register as Wyatt's watch",
+        "physicalCarryover": "N/A — first Dixie scene",
+        "wardrobeCarryover": "N/A — first Dixie scene",
+        "notes": [
+          "Cross-cut to opposite location",
+          "Establishes Dixie's screen-side and bedroom plate"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image2]",
+          "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+          "type": "location"
+        },
+        {
+          "slot": "[Image11]",
+          "assetId": "5bfed6f6-7487-4f9a-a53d-c0d0530fca87",
+          "type": "prop"
+        },
+        {
+          "slot": "[Image13]",
+          "assetId": "2abc4a74-c9b3-443a-b9ec-6d659292b454",
+          "type": "prop"
+        },
+        {
+          "slot": "[Image14]",
+          "assetId": "8d955a1f-4b61-41e5-bf2a-389900f8b4f4",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie rips the drawer open",
+          "description": "Dixie yanks the dresser drawer open in one hard pull, then goes still looking down at two rabbit masks.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+              "type": "location"
+            },
+            {
+              "slot": "[Image11]",
+              "assetId": "5bfed6f6-7487-4f9a-a53d-c0d0530fca87",
+              "type": "prop"
+            },
+            {
+              "slot": "[Image13]",
+              "assetId": "2abc4a74-c9b3-443a-b9ec-6d659292b454",
+              "type": "prop"
+            },
+            {
+              "slot": "[Image14]",
+              "assetId": "8d955a1f-4b61-41e5-bf2a-389900f8b4f4",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5] [Image11] [Image13] [Image14]\n\nScene & Mood: A woman grips a dresser drawer and rips it open in one hard pull, then stops dead, looking down into it. Cold, deliberate, a decision already made.\n\nFrame Map: Cut A (0-6s): waist-up single, [Image2] center-left, facing the dresser at frame-right, hands on the drawer front; the open drawer [Image11] lower-center foreground. Cut B (6-12s): tighter chest-up over-shoulder, her face upper-left looking down, the two masks inside the drawer filling the lower foreground — black rabbit mask [Image14] and pink rabbit mask [Image13] side by side. The rest of the bedroom stays in soft shadow, excluded by the low tight angle; dark negative space fills the upper background.\n\nLocation & Blocking: Reproduce Dixie's bedroom exactly from [Image5] as ground truth — dim night interior, lived-in surfaces, single warm practical. Do not add or restyle furniture. [Image2] stands at the dresser, feet planted, torso squared to it. The drawer [Image11] is the interaction anchor at her hips; inside it rest the masks [Image14] and [Image13], both crochet, positioned side by side and never redrawn.\n\nCross-Frame Rules: Only [Image2] is in frame — solo, no other person. She holds screen center-left across both cuts, dresser stays screen-right. Eyeline down into the drawer throughout. This is Dixie's location; she holds screen-left as the cross-cut anchor opposite Wyatt.\n\nMovement: Cut A (0-6s): 0s → hands already gripping the drawer front, no wind-up; 1s → shoulders drop and she rips it open in one hard pull, elbows driving back, the drawer jolting to its stop; 2s → the pull-recoil rocks her weight back onto her heels; 3-4s → she freezes, chin dropping as her gaze falls into the drawer; 5s → a single slow exhale through the nose, one nostril flaring a millimeter; hard cut (no fade, no dissolve) to Cut B (6-12s) opening mid-stillness so the cut has a reason: 0s → her face already looking down at the two masks; 6-8s → eyes flick from the black mask to the pink and back, a slow measuring pass; 9s → jaw tightens, lips pressing to a flat line; 10s → an uneven double-blink; 11-12s → she goes still, staring, one hand lifting halfway toward the masks then stopping. Dead hands read as hiding something, theatrical grief reads as mugging — the target is between them: hands economical, face doing almost nothing but the eyes working. Micro-motion: breath in the shoulders, loose hair strand settling. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image2] chest-up upper-left looking down, one hand raised halfway, the black [Image14] and pink [Image13] rabbit masks filling the lower foreground inside the open drawer [Image11]. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image5] bedroom, deep night, single warm practical as key, cool shadow falloff, teal-amber grade.\n\nSound Bed: The hard wooden scrape and thud of the drawer ripping to its stop, low room tone, faint fabric shift, distant street outside.\n\nCapture Realism: Thin suspended air separates the foreground drawer from the shadowed background, distant edges softer and desaturated. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at the jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, fabric, and the crochet masks, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 50mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift-in, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 12s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 12,
+          "start": 10,
+          "end": 22,
+          "notes": {
+            "todos": [
+              "Load [Image2] Dixie bedroom",
+              "Load [Image5] Dixie bedroom plate",
+              "Load [Image11] open drawer, [Image13] pink mask, [Image14] black mask"
+            ],
+            "watchFor": [
+              "Both masks must appear — black AND pink, crochet, side by side",
+              "Dixie holds screen center-left as the cross-cut anchor",
+              "Drawer rip must have real recoil, not a gentle open"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 98,
+      "scriptLocation": "INT. WYATT'S BEDROOM — CONTINUOUS",
+      "title": "Cabled and Filling",
+      "description": "Wyatt types with two tactical watches cabled to the laptop, a progress bar filling on screen.",
+      "duration": 10,
+      "start": 22,
+      "end": 32,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Wyatt",
+        "charactersPresent": [
+          "Wyatt"
+        ],
+        "emotionalCarryover": "Same cold focus from scene 96",
+        "physicalCarryover": "Wyatt still seated at desk, same wardrobe",
+        "wardrobeCarryover": "Unchanged from scene 96",
+        "notes": [
+          "Cross-cut back to Wyatt's location",
+          "New props: two tactical watches cabled to laptop, progress bar on screen"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image4]",
+          "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+          "type": "character"
+        },
+        {
+          "slot": "[Image3]",
+          "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+          "type": "location"
+        },
+        {
+          "slot": "[Image9]",
+          "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+          "type": "prop"
+        },
+        {
+          "slot": "[Image15]",
+          "assetId": "a457297e-e412-4c15-a58d-1ae4a69326be",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt types, watches cabled",
+          "description": "Wyatt's hands type while two tactical watches sit cabled to the laptop, a progress bar filling on the screen.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+              "type": "character"
+            },
+            {
+              "slot": "[Image3]",
+              "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+              "type": "location"
+            },
+            {
+              "slot": "[Image9]",
+              "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+              "type": "prop"
+            },
+            {
+              "slot": "[Image15]",
+              "assetId": "a457297e-e412-4c15-a58d-1ae4a69326be",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image4] [Image3] [Image9] [Image15]\n\nScene & Mood: A young man's hands work a laptop keyboard while two tactical watches sit cabled beside it, a progress bar creeping across the screen. Cold, methodical, patient.\n\nFrame Map: Cut A (0-5s): high angle down on the desk, hands and keyboard center, the two tactical watches [Image15] cabled to the laptop [Image9] in the mid-foreground, screen showing a filling progress bar at top of frame. Cut B (5-10s): chest-up single, [Image4] center-left lit by the screen, gaze down at the laptop. The room stays in shadow, excluded by the tight desk framing; empty dark negative space in the upper background.\n\nLocation & Blocking: Reproduce the bedroom exactly from [Image3] as ground truth — dim night interior, cluttered desk, single laptop glow. Do not restyle. [Image4] seated, forearms on the desk. Laptop [Image9] center as light source; two identical tactical watches [Image15] lie side by side on the desk, thin cables running to the laptop ports, persistent and never redrawn. Progress bar fills steadily on screen across the scene.\n\nCross-Frame Rules: Only [Image4] in frame — solo. He holds screen center-left, the desk stays the anchor. Eyeline down to screen. Consistent with scene 96 Wyatt screen-side.\n\nMovement: Cut A (0-5s): 0s → fingers already mid-keystroke, no wind-up; 1-2s → steady economical typing, wrists low, small precise finger runs; 3s → his thumb brushes one cabled watch, checking the connection; 4s → typing pauses, fingers hovering as he reads; hard cut (no fade, no dissolve) to Cut B (5-10s) opening mid-read: 0s → his lit face already down on the screen; 5-7s → eyes track the progress bar filling, pupils narrowing; 8s → a slow single blink, one lid trailing the other; 9s → jaw shifts, a faint nostril flare as he exhales; 10s → he resumes a short burst of typing. Dead robotic hands read as fake, showy hacker-flourish reads as theatrical — the target is between them: precise, unhurried hands, face nearly still, only the eyes and breath alive. Micro-motion: shallow breath, screen flicker on skin, faint cable sway. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image4] chest-up center-left, fingers mid-keystroke, face lit cold, the two cabled watches [Image15] and filling progress bar held in the composition. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image3] bedroom, deep night, cool laptop glow key, warm shadow falloff, teal-amber grade pushed cool.\n\nSound Bed: Steady soft keyboard clatter, low laptop fan hum, a faint electronic tick as the progress bar advances, room tone.\n\nCapture Realism: Thin suspended air between the foreground desk and black background separates planes. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly so the screen never clips, nothing crushed to black; all specular highlights surgically removed from skin, metal watch cases, and surfaces, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 55mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow push-in, color-negative daylight film rendition with fine 35mm grain, teal-amber grade pushed cool, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 10s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 10,
+          "start": 22,
+          "end": 32,
+          "notes": {
+            "todos": [
+              "Load [Image4] Wyatt",
+              "Load [Image3] bedroom plate",
+              "Load [Image9] laptop, [Image15] watch (two copies cabled)"
+            ],
+            "watchFor": [
+              "Two identical tactical watches, cabled — not one, not loose",
+              "Progress bar visibly filling, consistent design",
+              "Wyatt holds same screen-side as scene 96"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 99,
+      "scriptLocation": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+      "title": "Four Names",
+      "description": "Dixie dumps manila folders of fake IDs, passports and bank statements onto the bed, then sweeps it all into a trash bag.",
+      "duration": 12,
+      "start": 32,
+      "end": 44,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Dixie",
+        "charactersPresent": [
+          "Dixie"
+        ],
+        "emotionalCarryover": "Cold resolve, decision made in scene 97",
+        "physicalCarryover": "Same wardrobe, same bedroom",
+        "wardrobeCarryover": "Unchanged from scene 97",
+        "notes": [
+          "New props: manila folders/IDs/passports, trash bag",
+          "Trash bag introduced — persists through scenes 104-105"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image2]",
+          "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+          "type": "location"
+        },
+        {
+          "slot": "[Image17]",
+          "assetId": "e341e845-db12-4d6b-81cb-f5eb8358c3b7",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie dumps and sweeps the documents",
+          "description": "Dixie upends manila folders onto the bed spilling IDs and passports, then sweeps everything into a trash bag.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+              "type": "location"
+            },
+            {
+              "slot": "[Image17]",
+              "assetId": "e341e845-db12-4d6b-81cb-f5eb8358c3b7",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5] [Image17]\n\nScene & Mood: A woman upends manila folders over a bed, IDs and passports fanning across the sheet, then sweeps all of it into a trash bag in a single arm. Cold, erasing, final.\n\nFrame Map: Cut A (0-6s): high angle down on the bed, [Image2] hands and forearms entering from screen-left, the manila folders [Image17] tipping and their contents — fake IDs, forged passports, bank statements — spilling across the sheet center-frame. Cut B (6-12s): waist-up, [Image2] center-left, her arm sweeping the documents off the bed into a black trash bag held open in the lower foreground. Bedroom stays in shadow, excluded by the overhead and tight angle; dark negative space at the frame edges.\n\nLocation & Blocking: Reproduce Dixie's bedroom exactly from [Image5] as ground truth — dim night interior, lived-in bed, single warm practical. Do not restyle. [Image2] leans over the bed, weight on one hand. The folders [Image17] and their spilled documents are the interaction anchor on the sheet; a black plastic trash bag sits held open at the bed edge, consistent design carried forward.\n\nCross-Frame Rules: Only [Image2] in frame — solo. She holds screen center-left, bed as anchor. Eyeline down at the documents. Consistent with scene 97 Dixie screen-side.\n\nMovement: Cut A (0-6s): 0s → hands already gripping the folders, no wind-up; 1s → she tips them, wrists rotating, documents cascading onto the sheet; 2-3s → a second folder upended, IDs and passports sliding and fanning; 4s → she flattens a palm and spreads them briefly, scanning the names; 5s → jaw sets, one uneven blink; hard cut (no fade, no dissolve) to Cut B (6-12s) opening mid-motion so the cut has a reason: 0s → her arm already swinging across the sheet; 6-8s → a hard sideways sweep drags every document toward the bag, papers crumpling; 9-10s → she scoops the last of them in, shoulder driving; 11s → a single nostril flare on the exhale; 12s → she stills, one hand on the bag mouth. Dead hands read as hiding something, theatrical purging reads as mugging — the target is between them: brisk economical sweeps, face flat, only breath and jaw alive. Micro-motion: papers settling, breath in the shoulders, hair strand shifting. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image2] waist-up center-left, one hand on the mouth of the black trash bag now holding the documents, the bare sheet behind. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image5] bedroom, deep night, warm practical key, cool shadow falloff, teal-amber grade.\n\nSound Bed: Paper cascade and slide, the crisp hard sweep of documents across the sheet, plastic bag crinkle, room tone, distant street.\n\nCapture Realism: Thin suspended air separates the foreground bed from the shadowed room. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, paper, and plastic, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 50mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 12s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 12,
+          "start": 32,
+          "end": 44,
+          "notes": {
+            "todos": [
+              "Load [Image2] Dixie",
+              "Load [Image5] Dixie bedroom plate",
+              "Load [Image17] manila folders/passports"
+            ],
+            "watchFor": [
+              "Documents must read as multiple names/IDs, not one set",
+              "Trash bag design must match the bag in scenes 104-105",
+              "Sweep must be one decisive arm, not tidy stacking"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 100,
+      "scriptLocation": "INT. WYATT'S BEDROOM — CONTINUOUS",
+      "title": "The Unlabeled Node",
+      "description": "Wyatt scrolls, stops on a network map showing one unlabeled node outside the branch system, and leans in.",
+      "duration": 10,
+      "start": 44,
+      "end": 54,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Wyatt",
+        "charactersPresent": [
+          "Wyatt"
+        ],
+        "emotionalCarryover": "Cold focus sharpening into a discovery",
+        "physicalCarryover": "Still seated, same wardrobe",
+        "wardrobeCarryover": "Unchanged",
+        "notes": [
+          "Screen content: network map with one unlabeled node outside the branch system",
+          "The lean-in is the beat"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image4]",
+          "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+          "type": "character"
+        },
+        {
+          "slot": "[Image3]",
+          "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+          "type": "location"
+        },
+        {
+          "slot": "[Image9]",
+          "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt finds the node and leans in",
+          "description": "Wyatt scrolls, freezes on a network map with a lone unlabeled node, and leans toward the screen.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+              "type": "character"
+            },
+            {
+              "slot": "[Image3]",
+              "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+              "type": "location"
+            },
+            {
+              "slot": "[Image9]",
+              "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image4] [Image3] [Image9]\n\nScene & Mood: A young man scrolls at his laptop, stops cold, then leans slowly toward the screen. Quiet, sharpening, the moment a hunter sees the thing it was looking for.\n\nFrame Map: Cut A (0-5s): over-shoulder from behind [Image4], his silhouette lower-left, the laptop [Image9] screen filling the upper-right showing a network map — clustered labeled nodes and one lone unlabeled node sitting apart with its own faint glow. Cut B (5-10s): reverse chest-up single, [Image4] center-left, face lit, leaning in toward camera-right. Room in shadow, excluded by the tight angle; dark negative space around the screen.\n\nLocation & Blocking: Reproduce the bedroom exactly from [Image3] as ground truth — dim night interior, cluttered desk, laptop glow. Do not restyle. [Image4] seated at the desk. Laptop [Image9] the light source; on screen a network map: a branch-system cluster of labeled nodes and one isolated node outside it, unlabeled, faintly pulsing, consistent across the shot.\n\nCross-Frame Rules: Only [Image4] in frame — solo. He holds screen center-left in the reverse, laptop the anchor. Eyeline pinned to the screen. Consistent with prior Wyatt screen-side.\n\nMovement: Cut A (0-5s): 0s → fingers already scrolling the trackpad, no wind-up; 1-2s → steady two-finger scroll, the map drifting up the screen; 3s → the lone node enters frame and his scroll stops dead, hand freezing; 4s → he holds, head tilting a degree; hard cut (no fade, no dissolve) to Cut B (5-10s) opening on the reverse mid-hold: 0s → his lit face already fixed on the screen; 5-6s → his upper body eases forward, spine curving, closing the gap to the screen; 7s → eyes widen a fraction, brows drawing together; 8s → a suspended blink, held open three seconds; 9s → one hand rises to the trackpad edge; 10s → he stops, nose near the glow. Dead-still reads as fake, wide theatrical eureka reads as mugging — the target is between them: the lean is slow and involuntary, face doing almost nothing but the pupils and the drawn brows. Micro-motion: breath, screen flicker on skin, faint dust in the beam. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image4] chest-up center-left, leaned in close to the screen, brows drawn, eyes on the lone unlabeled node glowing on the laptop [Image9]. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image3] bedroom, deep night, cool laptop glow key, warm shadow falloff, teal-amber grade pushed cool.\n\nSound Bed: Soft trackpad scroll, the abrupt silence as scrolling stops, low fan hum, a single faint electronic ping, room tone.\n\nCapture Realism: Thin suspended air between the foreground silhouette and the black room separates planes; a faint dust drift catches the screen beam. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly so the screen never clips, nothing crushed to black; all specular highlights surgically removed from skin and surfaces, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 75mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow push-in on the reverse, color-negative daylight film rendition with fine 35mm grain, teal-amber grade pushed cool, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 10s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 10,
+          "start": 44,
+          "end": 54,
+          "notes": {
+            "todos": [
+              "Load [Image4] Wyatt",
+              "Load [Image3] bedroom plate",
+              "Load [Image9] laptop with network map screen"
+            ],
+            "watchFor": [
+              "Network map must show ONE lone node apart from a labeled cluster",
+              "The lean-in is slow and involuntary, not a jump-scare",
+              "Wyatt screen-side consistent with prior scenes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 101,
+      "scriptLocation": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+      "title": "A Row of Weapons",
+      "description": "Dixie loads a rifle and two Glocks, laying them in a row.",
+      "duration": 12,
+      "start": 54,
+      "end": 66,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Dixie",
+        "charactersPresent": [
+          "Dixie"
+        ],
+        "emotionalCarryover": "Cold resolve hardening into readiness",
+        "physicalCarryover": "Same wardrobe, same bedroom",
+        "wardrobeCarryover": "Unchanged",
+        "notes": [
+          "New props: rifle, two Glocks laid in a row",
+          "Escalation beat — the arming"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image2]",
+          "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie loads and rows the weapons",
+          "description": "Dixie loads a rifle and two Glocks, laying them side by side in a deliberate row.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5]\n\nScene & Mood: A woman seats a magazine into a rifle with a firm palm, then lays it beside two pistols in a straight row on the bed. Cold, practiced, ceremonial.\n\nFrame Map: Cut A (0-6s): waist-up, [Image2] center-left, hands working the rifle held across her lap and forearms, the bed edge in the lower foreground. Cut B (6-12s): high angle down on the bed, a rifle and two matte-black pistols laid in a clean parallel row center-frame, her hands [Image2] setting the last one square from screen-left. Bedroom in shadow, excluded by the tight and overhead angles; dark negative space at the edges.\n\nLocation & Blocking: Reproduce Dixie's bedroom exactly from [Image5] as ground truth — dim night interior, lived-in bed, warm practical. Do not restyle. [Image2] seated or leaning at the bed. Weapons are the interaction anchor: a single rifle and two identical semi-automatic pistols, matte black, laid parallel and evenly spaced, consistent design across the shot.\n\nCross-Frame Rules: Only [Image2] in frame — solo. She holds screen center-left, bed the anchor. Eyeline down at the weapons. Consistent with prior Dixie screen-side.\n\nMovement: Cut A (0-6s): 0s → hands already gripping the rifle, magazine in the off-hand, no wind-up; 1s → she seats the magazine with a firm heel-of-palm push, the click landing; 2s → she racks the action back and forward in one clean pull; 3-4s → she turns the rifle over, checking it, forearms steady; 5s → jaw set, one uneven blink; hard cut (no fade, no dissolve) to Cut B (6-12s) opening mid-placement so the cut has a reason: 0s → her hand already lowering the rifle to the bed; 6-8s → she lays it straight, then squares the first pistol beside it with two fingers; 9-10s → she sets the second pistol, nudging it parallel; 11s → a slow exhale, nostril flaring a millimeter; 12s → her hands lift away and still over the row. Dead hands read as fake, showy gun-spinning reads as theatrical — the target is between them: efficient, unhurried, weapon-literate hands, face flat, only breath and jaw alive. Micro-motion: breath in the shoulders, hair strand, faint bed-sheet give. Realistic effort: a small forearm tremor on the magazine seat. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: High angle, the rifle and two pistols in a clean parallel row on the bed, [Image2] hands lifting away and stilling above them. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image5] bedroom, deep night, warm practical key, cool shadow falloff, teal-amber grade.\n\nSound Bed: The metallic seat of the magazine, the double clack of the action racking, the soft heavy set of steel on the bedspread, room tone, distant street.\n\nCapture Realism: Thin suspended air separates the foreground bed from the shadowed room. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Moisture omitted — dry scene. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin and matte weapon steel, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 55mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift-in, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 12s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 12,
+          "start": 54,
+          "end": 66,
+          "notes": {
+            "todos": [
+              "Load [Image2] Dixie",
+              "Load [Image5] Dixie bedroom plate"
+            ],
+            "watchFor": [
+              "One rifle and exactly two matte-black pistols, laid parallel",
+              "Weapon handling must read practiced, not fumbling",
+              "Keep the row clean and evenly spaced in the last frame"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 102,
+      "scriptLocation": "INT. WYATT'S BEDROOM — CONTINUOUS",
+      "title": "Photograph and Close",
+      "description": "Wyatt photographs the screen with his phone, then closes the laptop.",
+      "duration": 10,
+      "start": 66,
+      "end": 76,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Wyatt",
+        "charactersPresent": [
+          "Wyatt"
+        ],
+        "emotionalCarryover": "The discovery captured, resolve locked",
+        "physicalCarryover": "Still seated, same wardrobe",
+        "wardrobeCarryover": "Unchanged",
+        "notes": [
+          "New prop: phone",
+          "The laptop closes — end of Wyatt's desk sequence"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image4]",
+          "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+          "type": "character"
+        },
+        {
+          "slot": "[Image3]",
+          "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+          "type": "location"
+        },
+        {
+          "slot": "[Image9]",
+          "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+          "type": "prop"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt photographs then closes the laptop",
+          "description": "Wyatt raises his phone to photograph the screen, then closes the laptop lid.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+              "type": "character"
+            },
+            {
+              "slot": "[Image3]",
+              "assetId": "672a7819-6357-4971-91a0-dd86d8a13104",
+              "type": "location"
+            },
+            {
+              "slot": "[Image9]",
+              "assetId": "b0688a91-d062-46a9-b0b8-4b276d06e1a9",
+              "type": "prop"
+            }
+          ],
+          "prompt_en": "[Image4] [Image3] [Image9]\n\nScene & Mood: A young man raises a phone to photograph his laptop screen, then closes the lid, killing the light. Cold, decisive, the door shutting on a plan.\n\nFrame Map: Cut A (0-5s): chest-up single, [Image4] center-left, phone raised in one hand between his face and the laptop [Image9] screen at frame-right, screen glow on both. Cut B (5-10s): slightly wider waist-up, [Image4] center, his hand pressing the laptop lid down, the screen glow narrowing to a line then out, the room dropping darker. Room in shadow, excluded by tight framing; dark negative space around.\n\nLocation & Blocking: Reproduce the bedroom exactly from [Image3] as ground truth — dim night interior, cluttered desk, laptop glow. Do not restyle. [Image4] seated at the desk. Laptop [Image9] the light source with the network-map node still on screen; phone a small dark rectangle in his hand, consistent. As the lid closes the only remaining light is a faint spill from off-frame.\n\nCross-Frame Rules: Only [Image4] in frame — solo. He holds screen center-left to center, desk the anchor. Eyeline to phone then to laptop. Consistent with prior Wyatt screen-side.\n\nMovement: Cut A (0-5s): 0s → phone already half-raised, no wind-up; 1s → he lifts it square to the screen, elbow settling; 2s → thumb taps, a faint capture flash-tick, his eyes flicking down to check the shot; 3-4s → he lowers the phone, glancing once at the image; 5s → jaw set, an uneven blink; hard cut (no fade, no dissolve) to Cut B (5-10s) opening mid-reach so the cut has a reason: 0s → his hand already at the laptop lid; 5-7s → he presses the lid down slow and deliberate, the screen glow thinning across his face; 8s → the lid clicks shut, light dropping, his face falling into shadow; 9s → a single slow exhale, nostril flare on the beat after the click; 10s → he sits back a fraction, still. Dead hands read as fake, showy slam reads as theatrical — the target is between them: the close is slow and final, face nearly still, only breath and the light leaving his eyes. Micro-motion: breath, the light draining off skin, faint phone-screen glow. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image4] waist-up center, hand resting on the now-closed laptop [Image9], face in near-darkness, only a faint edge of light on his cheek. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image3] bedroom, deep night, laptop glow key that extinguishes on the close, warm shadow falloff into black, teal-amber grade pushed cool.\n\nSound Bed: A soft phone shutter tick, the plastic click of the laptop lid closing, the fan hum cutting out, room tone deepening, distant street.\n\nCapture Realism: Thin suspended air between the foreground desk and the black room separates planes. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture even as the light drops, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin and surfaces, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 55mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow pull-back as the light dies, color-negative daylight film rendition with fine 35mm grain, teal-amber grade pushed cool, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 10s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 10,
+          "start": 66,
+          "end": 76,
+          "notes": {
+            "todos": [
+              "Load [Image4] Wyatt",
+              "Load [Image3] bedroom plate",
+              "Load [Image9] laptop (network map still on screen)"
+            ],
+            "watchFor": [
+              "Screen glow must actually extinguish as the lid closes — light motivated",
+              "Phone is a small dark rectangle, no glowing UI mugging",
+              "The close is slow and final, not a slam"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 103,
+      "scriptLocation": "INT. WYATT'S PARENTS' BEDROOM — CONTINUOUS",
+      "title": "Lenses Down",
+      "description": "Wyatt sits on his parents' made bed, takes off his glasses, sets them lenses-down on a framed photo, stands and kills the light.",
+      "duration": 20,
+      "start": 76,
+      "end": 96,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. WYATT'S PARENTS' BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — Wyatt moves to a new room",
+        "charactersPresent": [
+          "Wyatt"
+        ],
+        "emotionalCarryover": "From cold resolve into private grief, contained",
+        "physicalCarryover": "Same wardrobe, glasses on then removed",
+        "wardrobeCarryover": "Glasses removed and set down during scene",
+        "notes": [
+          "New location: parents' bedroom (dusty, made bed)",
+          "Emotional center for Wyatt — the framed photo, the glasses lenses-down"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image4]",
+          "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+          "type": "character"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Wyatt sits, glasses on the photo, kills the light",
+          "description": "Wyatt sits on the parents' bed, removes his glasses and sets them lenses-down on a framed photo, stands and turns off the light.",
+          "references": [
+            {
+              "slot": "[Image4]",
+              "assetId": "5229f57e-437f-47cc-974f-332c961f70e3",
+              "type": "character"
+            }
+          ],
+          "prompt_en": "[Image4]\n\nScene & Mood: A young man lowers himself onto the edge of a neatly made bed in a dusty, unused bedroom, takes off his glasses and sets them lenses-down on a framed photo, then stands and turns off the light. Quiet, private, a grief he will not look at.\n\nFrame Map: Cut A (0-7s): wide-to-medium, [Image4] center, lowering onto the near edge of a made bed, a nightstand at screen-right holding a framed photograph. Cut B (7-14s): tight insert, his hands center-frame folding the glasses and laying them lenses-down on the frame [Image4], the two smiling faces in the photo just visible beneath. Cut C (14-20s): medium wide, [Image4] rising and crossing to a wall switch at screen-left, the room going dark as he flicks it. The room's far corners stay in soft shadow, excluded by the framing; dark negative space above the bed.\n\nLocation & Blocking: Parents' bedroom — a neatly made bed, a fine layer of dust on the dresser, a nightstand with a single framed photograph of two people smiling, one warm lamp as key. [Image4] sits on the near edge of the mattress, feet on the floor, then rises and moves to the light switch. The framed photo and his glasses are the interaction anchors, positions consistent.\n\nCross-Frame Rules: Only [Image4] in frame — solo, no one else, no reflection. He holds screen-center through the sit, moving screen-left only to reach the switch. Eyeline down to the photo, then to the switch. The two people in the photograph are a printed image, not live characters.\n\nMovement: Cut A (0-7s): 0s → already lowering onto the bed, weight settling, no wind-up; 1-3s → he sits, forearms on his knees, shoulders rounding; 4-5s → his gaze drifts to the framed photo, holding on it; 6s → a slow swallow, one uneven blink; hard cut (no fade, no dissolve) to Cut B (7-14s) opening mid-reach: 0s → his hands already rising to his glasses; 7-9s → he folds them, the temple arms clicking; 10-12s → he sets them on the frame lenses-down, fingers releasing slow, deliberately not looking through them at the faces; 13s → a single breath catch, chest hitching a half-beat, nostril flaring; hard cut (no fade, no dissolve) to Cut C (14-20s) opening mid-rise: 0s → he is already standing, straightening; 14-17s → he crosses to the wall switch, one hand rising; 18s → he flicks it, the room dropping to darkness, his silhouette holding; 19-20s → he stands a beat in the dark, then stills. Dead-faced reads as cold, weepy reads as mugging — the target is between them: contained acute grief — brows drawn together and arched up at center, a lower lip that almost trembles and is bitten still, no tears shed, hands doing the talking. Micro-motion: dust motes in the lamp beam, breath, fabric settle. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: The room in near-darkness, [Image4] a still silhouette by the switch at screen-left, the faint shape of the nightstand and glasses-on-frame across the room. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: Parents' bedroom, deep night, one warm lamp as key that extinguishes on the switch, dust in the air, cool shadow falloff, teal-amber grade with a warmer memory cast.\n\nSound Bed: The soft give of the mattress, the tiny click of the glasses folding, the light glass-on-wood set of them on the frame, the hard snap of the switch, the room tone deepening into silence, a distant street.\n\nCapture Realism: Thin suspended dust-laden air between the foreground bed and the far wall separates planes, distant edges softer and desaturated, motes visible in the lamp beam. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, glass, and the photo frame, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 40mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift following him across the room, color-negative daylight film rendition with fine 35mm grain, teal-amber grade with warm memory cast, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 20s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 20,
+          "start": 76,
+          "end": 96,
+          "notes": {
+            "todos": [
+              "Load [Image4] Wyatt (glasses on at start, removed during)",
+              "Framed photo of two smiling people on nightstand — invent, keep consistent"
+            ],
+            "watchFor": [
+              "Glasses set LENSES DOWN on the frame — the key gesture",
+              "Contained grief — no tears shed, brows arched up at center",
+              "Light must actually go dark on the switch flick"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 104,
+      "scriptLocation": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+      "title": "The License She Kept Looking At",
+      "description": "Dixie drags the trash bag to the door, stops, digs out one old driver's license of a younger self, looks at it, drops it back and ties the bag.",
+      "duration": 20,
+      "start": 96,
+      "end": 116,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "INT. DIXIE'S BEDROOM — CONTINUOUS",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — cross-cut back to Dixie",
+        "charactersPresent": [
+          "Dixie"
+        ],
+        "emotionalCarryover": "From cold resolve into private grief, mirror of Wyatt",
+        "physicalCarryover": "Same wardrobe, same bedroom, trash bag from scene 99",
+        "wardrobeCarryover": "Unchanged",
+        "notes": [
+          "Trash bag persists from scene 99",
+          "Emotional center for Dixie — the old license, a younger self",
+          "Mirrors Wyatt's parents'-bedroom grief"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image2]",
+          "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+          "type": "character"
+        },
+        {
+          "slot": "[Image5]",
+          "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie digs out the old license",
+          "description": "Dixie drags the trash bag to the door, stops, digs out an old license of her younger self, looks at it, drops it back and ties the bag.",
+          "references": [
+            {
+              "slot": "[Image2]",
+              "assetId": "bdf8c3e3-cae2-4e14-81a4-42f00a91435a",
+              "type": "character"
+            },
+            {
+              "slot": "[Image5]",
+              "assetId": "f71ab50b-e1dc-4e1d-83cc-c49514f6b829",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image2] [Image5]\n\nScene & Mood: A woman drags a heavy trash bag toward the door, stops, kneels and digs into it, pulling out a single old driver's license, and looks at it a long time. Quiet, private, a goodbye to a former self.\n\nFrame Map: Cut A (0-6s): medium wide, [Image2] center, dragging the black trash bag across the floor toward a door at screen-left. Cut B (6-14s): kneeling waist-up, [Image2] center-left, one hand deep in the open bag, pulling out a small laminated card, her face lowering toward it. Cut C (14-20s): tight insert on the license in her fingers — a younger version of her, different hair, a different name — then her hand dropping it back and cinching the bag tie. Bedroom in soft shadow, excluded by the tight angles; dark negative space at the edges.\n\nLocation & Blocking: Reproduce Dixie's bedroom exactly from [Image5] as ground truth — dim night interior, lived-in, warm practical, a door at screen-left. Do not restyle. [Image2] moves from mid-room toward the door, then kneels by the bag. The black trash bag from earlier is the interaction anchor, same design; the driver's license inside it shows a younger her, consistent.\n\nCross-Frame Rules: Only [Image2] in frame — solo, no one else. She holds screen center to center-left, door the screen-left anchor. Eyeline down into the bag, then to the license. Consistent with prior Dixie screen-side.\n\nMovement: Cut A (0-6s): 0s → already dragging the bag, shoulder into it, no wind-up; 1-3s → she hauls it across the floor, weight in her back, the bag scraping; 4s → she stops short of the door; 5s → a beat, her gaze dropping to the bag; hard cut (no fade, no dissolve) to Cut B (6-14s) opening mid-kneel: 0s → she is already lowering to one knee; 6-8s → she unties or reopens the bag, hand digging through paper; 9-11s → she pulls out the license, drawing it up to her eyeline; 12-13s → a slow measuring stare, jaw tightening, an uneven blink; hard cut (no fade, no dissolve) to Cut C (14-20s) opening on the insert: 0s → the license already in her fingers, her younger face on it; 14-17s → she holds it a long beat, thumb brushing the edge, a breath catch and a single nostril flare; 18s → she drops it back into the bag; 19-20s → she cinches the tie tight, hands stilling. Dead-faced reads as cold, weepy reads as mugging — the target is between them: contained grief mirroring Wyatt — brows drawn together and arched up at center, lower lip almost trembling and held still, no tears, the thumb-brush on the card doing the talking. Micro-motion: breath, hair strand, bag plastic settling. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image2] kneeling center-left, hands cinching the black trash bag tie closed, the license gone back inside, her face lowered. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image5] bedroom, deep night, warm practical key, cool shadow falloff, teal-amber grade.\n\nSound Bed: The heavy scrape of the bag dragged on the floor, the crinkle of plastic and paper as she digs, the small slide of the card, the tight squeak of the bag tie cinching, room tone, distant street.\n\nCapture Realism: Thin suspended air separates the foreground bag from the shadowed room. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, plastic, and the laminated card, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 50mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow push-in on the insert, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 20s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 20,
+          "start": 96,
+          "end": 116,
+          "notes": {
+            "todos": [
+              "Load [Image2] Dixie",
+              "Load [Image5] Dixie bedroom plate",
+              "Trash bag design must match scene 99"
+            ],
+            "watchFor": [
+              "License shows a YOUNGER Dixie, different hair — same face lineage",
+              "Contained grief, mirror of Wyatt scene 103 — no tears",
+              "She drops it BACK in and ties the bag — does not keep it"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scriptNumber": 105,
+      "scriptLocation": "EXT. ALLEYWAY — BEHIND DIXIE'S APARTMENT — NIGHT",
+      "title": "Goodbye to the Calico",
+      "description": "Dixie throws the bag in the dumpster, kneels, feeds a stray calico, meets a rival tom cat, and quietly says goodbye — she is not coming back.",
+      "duration": 52,
+      "start": 116,
+      "end": 168,
+      "sceneType": "present",
+      "mode": "M1",
+      "continuity": {
+        "location": "EXT. ALLEYWAY — BEHIND DIXIE'S APARTMENT — NIGHT",
+        "locationChange": true,
+        "timeContinuity": "CONTINUOUS — Dixie moves outside, night exterior",
+        "charactersPresent": [
+          "Dixie"
+        ],
+        "emotionalCarryover": "Grief and resolve resolving into tender goodbye",
+        "physicalCarryover": "Worn hoodie, natural messy hair, bruise on cheekbone; trash bag carried out",
+        "wardrobeCarryover": "Now in worn hoodie, natural hair down and messy",
+        "notes": [
+          "New location: alleyway exterior, night",
+          "New state: worn hoodie, messy natural hair, BRUISE on cheekbone",
+          "The emotional climax — dialogue with cats",
+          "Ends SMASH CUT TO BLACK; light in her window stays on"
+        ]
+      },
+      "references": [
+        {
+          "slot": "[Image1]",
+          "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+          "type": "character"
+        },
+        {
+          "slot": "[Image6]",
+          "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+          "type": "location"
+        }
+      ],
+      "shots": [
+        {
+          "number": 1,
+          "id": "A",
+          "name": "Dixie dumps the bag and kneels",
+          "description": "Dixie hurls the trash bag into the dumpster, then kneels on the asphalt with a tin of cat food, bruise on her cheek.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image6]\n\nScene & Mood: A woman in a worn hoodie heaves a heavy trash bag up into a dumpster, then lowers herself to kneel on the asphalt with an open tin of cat food. Night-quiet, tender, resigned; a bruise darkening her cheekbone.\n\nFrame Map: Cut A (0-6s): medium wide, [Image1] center, swinging the black trash bag up and into a dumpster at screen-right. Cut B (6-12s): lower medium, [Image1] center-left kneeling on the asphalt, an open dented tin of cat food in one hand, her bruised cheekbone catching the sodium light. The alley depth recedes screen-back; empty dark asphalt fills the foreground negative space, third-floor window with a lit square high in the background.\n\nLocation & Blocking: Reproduce the alleyway exactly from [Image6] as ground truth — night exterior behind an apartment, a dumpster, wet dark asphalt, a single sodium wall light, a lit third-floor window above. Do not restyle. [Image1] stands by the dumpster then kneels center-left on the asphalt. The dumpster is the screen-right anchor; the dented cat-food tin is her hand prop, consistent.\n\nCross-Frame Rules: Only [Image1] in frame this shot — solo, no cats yet. She holds screen center to center-left, dumpster screen-right, window in background. She holds screen-left as the anchor for the whole alley scene. Eyeline up to the dumpster, then down to the asphalt.\n\nMovement: Cut A (0-6s): 0s → bag already swinging up in both hands, no wind-up; 1s → she heaves it over the lip, shoulders and back driving, the bag thudding in; 2-3s → the throw-recoil rocks her back, one hand catching the dumpster rim; 4-5s → she straightens, breath heavy, wiping a palm on the hoodie; hard cut (no fade, no dissolve) to Cut B (6-12s) opening mid-lower: 0s → she is already bending to kneel; 6-8s → she settles onto her knees on the asphalt, the dented tin coming up in one hand; 9s → she works the lid the rest of the way open with a thumb; 10-11s → she goes still, holding the tin low, not setting it down, eyes into the dark under the dumpster; 12s → a slow breath, an uneven blink. Dead hands read as fake, showy heave reads as theatrical — the target is between them: real weight in the throw, then a soft economical kneel, face flat with grief held under it. Micro-motion: breath fog in the cold, hair strands, the bruise catching light as she turns. Realistic effort: a forearm tremor and a heavy exhale after the heave. Alive from frame one, never statue-still.\n\nDialogue: None—Silent shot.\n\nLast Frame: [Image1] kneeling center-left on the asphalt, the open dented tin held low in one hand, bruised cheek lit by sodium, eyes into the dark under the dumpster at screen-right. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image6] alleyway, deep night, single sodium wall light warm-amber key, cool blue shadow, wet asphalt, lit third-floor window in background, teal-amber grade.\n\nSound Bed: The heavy thud of the bag landing in the dumpster, her heavy breath, the soft scrape of knees on grit, the tin lid working open, distant city hum, a far-off car.\n\nCapture Realism: Thin suspended night air and faint breath fog separate the foreground from the receding alley, distant window softer and desaturated. Damp matte asphalt muting light without a single specular hotspot. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; the bruise a soft matte discoloration, not glossy; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, wet asphalt, and metal, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 40mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift down as she kneels, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 12s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 12,
+          "start": 116,
+          "end": 128,
+          "notes": {
+            "todos": [
+              "Load [Image1] Dixie alleyway (hoodie, messy hair, bruise)",
+              "Load [Image6] alley set night plate"
+            ],
+            "watchFor": [
+              "Bruise on cheekbone visible, matte not glossy",
+              "Worn hoodie and natural messy hair — state change from bedroom",
+              "Lit third-floor window in background — must stay on",
+              "No cats in this shot yet"
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "id": "B",
+          "name": "The calico comes, Dixie talks",
+          "description": "A thin calico steps out; Dixie tells it she's leaving on a business trip and sets the tin down; the calico eats.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image6]\n\nScene & Mood: A woman kneeling on alley asphalt coaxes a thin stray calico out from under a dumpster, talking low, then sets a tin of food down and watches it eat. Tender, quiet, an ache under an easy voice.\n\nFrame Map: Cut A (0-8s): low medium, [Image1] center-left kneeling, a thin calico cat stepping out from screen-right under the dumpster and stopping just short of her knee. Cut B (8-16s): slightly tighter two-shot low to the asphalt, [Image1] chest-up screen-left, the calico screen-right at the set-down tin, eating. Alley recedes behind; lit window high background; empty asphalt foreground negative space.\n\nLocation & Blocking: Reproduce the alleyway exactly from [Image6] as ground truth — night behind the apartment, dumpster screen-right, sodium wall light, wet asphalt, lit third-floor window. Do not restyle. [Image1] kneels center-left holding the dented tin. The thin calico enters from under the dumpster screen-right, stops short, then approaches the tin once it is set down.\n\nCross-Frame Rules: [Image1] holds screen-left; the calico holds screen-right — no swap, no center crossing. Only Dixie and the calico in frame this shot; no tom cat yet, no other person. Eyeline from Dixie down to the cat. She keeps her screen-left anchor consistent across the scene.\n\nMovement: Cut A (0-8s): 0s → she is already kneeling, tin held low, eyes into the dark; 1-3s → the calico eases out from under the dumpster, slow, low to the ground, and stops just short of her knee; 4s → Dixie does not set the food down, holding it, coaxing with her voice; 5-6s → she delivers the first line, a soft near-still jaw, breath fogging; 7s → an asymmetric blink triggered on the stressed syllable of her line; hard cut (no fade, no dissolve) to Cut B (8-16s) opening mid-sentence: 0s → she is already lowering the tin; 8-10s → she sets it down on the asphalt, the calico stepping in to eat; 11-13s → she delivers the business-trip line, watching it, a faint asymmetrical lip curl of rueful warmth; 14-15s → she rests her weight back on her heels; 16s → a slow breath, one nostril flare. Dead-faced reads as cold, cutesy pet-voice mugging reads as theatrical — the target is between them: an easy low murmur to the cat with grief held just beneath it, hands slow and warm. Micro-motion: breath fog, hair strands, the cat's ear twitch and tail flick. Alive from frame one, never statue-still.\n\nDialogue: [Image1], a low warm murmur from a nearly still jaw, unhurried, breath fogging in the cold: \"Hey, mama. Come on. I don't have all night.\" then after the set-down, softer, quieter: \"Listen to me. I'm going away for a bit. A business trip.\"\n\nLast Frame: [Image1] chest-up screen-left resting back on her heels, the calico screen-right eating from the set-down tin, bruised cheek lit by sodium. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image6] alleyway, deep night, sodium wall light warm-amber key, cool blue shadow, wet asphalt, lit third-floor window background, teal-amber grade.\n\nSound Bed: A soft ceramic-on-asphalt set of the tin, the small wet sounds of the cat eating, distant city hum, a far dog, faint breath. No music.\n\nCapture Realism: Thin suspended night air and breath fog separate the planes, the background window softer and desaturated. Damp matte asphalt muting light without a specular hotspot. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; the bruise soft matte; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, fur, and wet asphalt, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 55mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow push-in, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 16s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 16,
+          "start": 128,
+          "end": 144,
+          "notes": {
+            "todos": [
+              "Load [Image1] Dixie alleyway",
+              "Load [Image6] alley set night plate",
+              "Thin calico cat — consistent design across shots"
+            ],
+            "watchFor": [
+              "Dixie holds the food, does NOT set it down until Cut B — script beat",
+              "Lip-sync to the two spoken lines, audio-face coupling on stressed syllables",
+              "Dixie screen-left, calico screen-right — no swap"
+            ]
+          }
+        },
+        {
+          "number": 3,
+          "id": "C",
+          "name": "The tom arrives, she gives her blessing",
+          "description": "Dixie strokes the calico; an orange tom appears and waits; Dixie asks who he is, the calico steps back and the tom eats beside her, and Dixie quietly gives her blessing.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image6]\n\nScene & Mood: A woman strokes the calico's back and gives it advice; a big orange tom steps into the light and waits his turn; her hand stops, and she quietly reads the situation and gives her blessing. Tender, wry, an aching goodbye disguised as small talk.\n\nFrame Map: Cut A (0-8s): low medium, [Image1] chest-up screen-left, hand on the calico's back screen-right at the tin, a big orange tom entering from screen-right deep background and sitting at a distance. Cut B (8-16s): tighter, [Image1] screen-left, her hand frozen mid-stroke, the tom now closer screen-right, the calico stepping back and the tom moving to the tin. Alley recedes behind; lit window high background; foreground asphalt negative space.\n\nLocation & Blocking: Reproduce the alleyway exactly from [Image6] as ground truth — night behind the apartment, dumpster, sodium light, wet asphalt, lit third-floor window. Do not restyle. [Image1] kneels center-left. The calico eats screen-right at the tin. A big orange tom enters from deep screen-right and sits at a distance, then comes to the tin as the calico steps back.\n\nCross-Frame Rules: [Image1] holds screen-left; both cats hold screen-right — no swap, no center crossing. Only Dixie and the two cats in frame; no other person. Eyeline from Dixie to the cats. Screen-left anchor consistent with the whole scene.\n\nMovement: Cut A (0-8s): 0s → her hand already stroking the calico's back, slow passes; 1-3s → she delivers the hunting advice, low and steady, watching it eat; 4-5s → the orange tom steps into the sodium light deep screen-right and sits, still, at a distance; 6s → her stroking hand stops dead on the calico's back — the stop is the beat; 7s → a suspended blink, brows drawing together; hard cut (no fade, no dissolve) to Cut B (8-16s) opening on her stopped hand: 0s → hand frozen mid-stroke; 8-10s → she looks from the tom to the calico, an asymmetric lip curl of rueful understanding, delivering the who's-this line; 11-13s → the calico steps back from the tin and the tom comes to eat beside it; 14-15s → she watches them both, a slow breath, then quietly gives her blessing; 16s → she eases her weight, nostril flare on the exhale. Dead-faced reads as cold, sitcom double-take reads as mugging — the target is between them: the frozen hand carries the whole reaction, face wry and aching, voice low. Micro-motion: breath fog, hair strands, the cats' ears and tails, the tom's slow approach. Alive from frame one, never statue-still.\n\nDialogue: [Image1], low and steady stroking the cat, then a wry near-whisper when the tom appears, breath fogging: \"You've gotta be smart. No fighting the raccoons behind the diner. You've gotta hunt. Really hunt.\" then, hand stopping, quieter and dry: \"...Who's this. You met somebody. He any good?\" then, softest, giving in: \"Okay.\"\n\nLast Frame: [Image1] screen-left watching, the calico stepped back and the orange tom screen-right eating from the tin, her hand lifted off the calico's back. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image6] alleyway, deep night, sodium wall light warm-amber key, cool blue shadow, wet asphalt, lit third-floor window background, teal-amber grade.\n\nSound Bed: The soft wet sounds of eating, a faint low cat murmur, the scuff of the tom's approach, distant city hum, a far siren, faint breath. No music.\n\nCapture Realism: Thin suspended night air and breath fog separate the planes, background window softer and desaturated. Damp matte asphalt muting light without a specular hotspot. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; the bruise soft matte; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly, nothing crushed to black; all specular highlights surgically removed from skin, fur, and wet asphalt, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 55mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow drift, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 16s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 16,
+          "start": 144,
+          "end": 160,
+          "notes": {
+            "todos": [
+              "Load [Image1] Dixie alleyway",
+              "Load [Image6] alley set night plate",
+              "Calico and big orange tom — consistent designs"
+            ],
+            "watchFor": [
+              "The stroking hand STOPS when the tom appears — the key beat",
+              "Calico steps back, tom comes to eat beside it — blocking order",
+              "Lip-sync across the multi-line delivery, audio-face coupling"
+            ]
+          }
+        },
+        {
+          "number": 4,
+          "id": "D",
+          "name": "She stands, she goes",
+          "description": "Dixie takes her hand off the calico, tells it it'll be fine, stands, says she's not coming back, looks up at her lit window, and goes; the light stays on.",
+          "references": [
+            {
+              "slot": "[Image1]",
+              "assetId": "3d93eb62-fd62-4bac-be47-039f4ede691b",
+              "type": "character"
+            },
+            {
+              "slot": "[Image6]",
+              "assetId": "6d88759a-38bc-43cc-90be-778d0e9947c9",
+              "type": "location"
+            }
+          ],
+          "prompt_en": "[Image1] [Image6]\n\nScene & Mood: A woman lifts her hand off the calico, stands, tells it it'll be fine, says she isn't coming back, looks up at her own lit window, and walks away into the dark. Tender, final, a goodbye she keeps light so it doesn't break her.\n\nFrame Map: Cut A (0-4s): low medium, [Image1] center-left rising from her knees, the two cats eating screen-right, her lit third-floor window high in the background. Cut B (4-8s): wider, [Image1] center standing, looking up screen-right toward the lit window, then turning and walking away from camera down the alley into the dark; the lit window holds. Foreground asphalt negative space; alley depth receding.\n\nLocation & Blocking: Reproduce the alleyway exactly from [Image6] as ground truth — night behind the apartment, dumpster, sodium light, wet asphalt, lit third-floor window that stays on. Do not restyle. [Image1] rises center-left and moves to center, then walks away down the alley. The two cats keep eating screen-right; the window is the background anchor and remains lit.\n\nCross-Frame Rules: [Image1] holds screen-left rising, moving to center as she stands and departs; both cats hold screen-right eating, no swap. Only Dixie and the two cats in frame; no other person. Eyeline down to the cat, then up to the window, then away down the alley.\n\nMovement: Cut A (0-4s): 0s → her hand already lifting off the calico's back; 1-2s → she delivers the reassurance, soft, then rises from her knees, weight through her thighs; 3s → she straightens, brushing her palms on the hoodie; an uneven blink; hard cut (no fade, no dissolve) to Cut B (4-8s) opening on the stand: 0s → she is already upright; 4-5s → she says she is not coming back, quiet and flat, breath fogging; 6s → her gaze lifts to the lit third-floor window, holding a beat, a breath catch and nostril flare; 7s → she turns; 8s → she walks away from camera down the alley into the dark, the cats still eating, the window still lit. Dead-faced reads as cold, tearful collapse reads as mugging — the target is between them: contained grief kept deliberately light, the goodbye said to a cat because it cannot be said to anyone, the walk-away steady and unhurried. Micro-motion: breath fog, hoodie fabric, hair, the cats' movement, the steady lit window. Alive from frame one, never statue-still.\n\nDialogue: [Image1], softest of all, giving the goodbye to the cat because there is no one else to give it to, quiet and even, breath fogging: \"Okay. You're gonna be fine.\" then, standing, flat and final: \"I'm not coming back.\"\n\nLast Frame: The alley receding, [Image1] a small figure walking away into the dark, the two cats eating screen-right, the lit third-floor window still glowing high in the background. No on-screen text, subtitles, sign fonts, or rendered text appear in the shot.\n\nWorld Plate: [Image6] alleyway, deep night, sodium wall light warm-amber key, cool blue shadow, wet asphalt, lit third-floor window that stays on, teal-amber grade.\n\nSound Bed: The soft rise of her from the asphalt, the small sounds of the cats eating, her unhurried footsteps receding on wet grit, distant city hum, a far car, faint breath. No music.\n\nCapture Realism: Thin suspended night air and breath fog separate the receding planes, the far window and alley end softer and desaturated. Damp matte asphalt muting light without a specular hotspot. Per-zone specular kill on skin — zero shine on forehead, nose bridge, cheekbones, temples, chin; the bruise soft matte; real peach fuzz at jaw and hairline; soft fine even pore texture, warmth preserved, never plastic. Contrast curve: shadows lifted gently holding texture, highlights rolled off softly so the lit window never clips, nothing crushed to black; all specular highlights surgically removed from skin, fur, and wet asphalt, every pixel matte and diffuse; low-contrast, slightly desaturated, warmth preserved.\n\nCamera Capture: wide-latitude cinema capture, vintage 40mm 2x anamorphic character at a wide aperture — oval bokeh, soft frame-edge falloff — light diffusion bloom softening highlights, handheld with natural operator breath and one slow pull-back as she departs, color-negative daylight film rendition with fine 35mm grain, teal-amber grade, shallow depth of field, 24fps 180° shutter, 9:16 vertical, 8s. avoid jitter, avoid flicker, avoid identity drift, avoid extra people, avoid phantom feet or limbs, avoid fade or dissolve, avoid haze, avoid fisheye.",
+          "duration": 8,
+          "start": 160,
+          "end": 168,
+          "notes": {
+            "todos": [
+              "Load [Image1] Dixie alleyway",
+              "Load [Image6] alley set night plate",
+              "Two cats keep eating in the last frame"
+            ],
+            "watchFor": [
+              "The lit third-floor window STAYS ON in the last frame — script beat before SMASH CUT TO BLACK",
+              "She walks AWAY from camera into the dark, unhurried",
+              "Contained grief kept light — no tearful collapse"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "rawLength": 84529
+}

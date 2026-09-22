@@ -1,11 +1,30 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import {
+  AssetInfoPopoverComponent,
+  AssetInfo,
+} from '@shared/components/asset-info-popover/asset-info-popover.component';
+import { SourceThumbnailAssetPipe } from '@app/core/pipes';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SessionStore } from '@app/core/stores/session.store';
-import { ShotBuilderService, ShotBuilderResult } from '@app/services/shot-builder.service';
+import {
+  ShotBuilderService,
+  ShotBuilderResult,
+  ElementEntity,
+} from '@app/services/shot-builder.service';
+import { FilesApiService } from '@app/services/files-api.service';
 
 type ChatMessage = {
   id: string;
@@ -16,7 +35,16 @@ type ChatMessage = {
 
 @Component({
   selector: 'app-proncer',
-  imports: [CommonModule, FormsModule, ButtonModule, SectionHeaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    SectionHeaderComponent,
+    TooltipModule,
+    DialogModule,
+    AssetInfoPopoverComponent,
+    SourceThumbnailAssetPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-lg border border-ink-700 bg-ink-900/30 px-6 py-6">
@@ -43,40 +71,6 @@ type ChatMessage = {
             placeholder="Paste or edit the prompt to refine..."
             [disabled]="loading()"
           ></textarea>
-
-          <!-- User instructions -->
-          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-            Instructions for Claude
-          </label>
-          <textarea
-            rows="2"
-            class="w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg"
-            [(ngModel)]="userInstructions"
-            placeholder="e.g. Make it more cinematic, add camera angles..."
-            [disabled]="loading()"
-          ></textarea>
-
-          <!-- Action buttons -->
-          <div class="flex items-center justify-between">
-            <p-button
-              label="Optimize"
-              icon="pi pi-arrow-right"
-              severity="primary"
-              size="small"
-              (onClick)="optimize()"
-              [disabled]="!canOptimize()"
-              [loading]="loading()"
-            />
-            <p-button
-              label="Apply"
-              icon="pi pi-check"
-              severity="success"
-              size="small"
-              [text]="true"
-              (onClick)="applyOptimized()"
-              [disabled]="!optimizedPrompt()"
-            />
-          </div>
 
           <!-- Chat messages -->
           @if (chatMessages().length > 0) {
@@ -133,8 +127,106 @@ type ChatMessage = {
               {{ error() }}
             </div>
           }
+
+          <!-- Uploaded reference files (compact chips) -->
+          @if (referenceFiles().length > 0) {
+            <div class="flex flex-wrap gap-1.5">
+              @for (file of referenceFiles(); track file.id; let i = $index) {
+                <div
+                  class="group flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-800 px-2 py-0.5 cursor-pointer hover:border-primary-500/40 transition-colors"
+                  (click)="openAssetInfo($event, file)"
+                  (keydown.enter)="openAssetInfo($event, file)"
+                >
+                  @if (file.thumbnailUrl) {
+                    <img
+                      [src]="file.id | sourceThumbnailAsset"
+                      class="h-5 w-5 rounded object-cover"
+                      [alt]="file.name"
+                    />
+                  } @else {
+                    <span class="text-[10px]">{{ file.type.includes('video') ? '🎬' : '📄' }}</span>
+                  }
+                  <span class="max-w-[100px] truncate text-[10px] text-fg-muted">{{
+                    file.name
+                  }}</span>
+                  <button
+                    class="text-fg-muted hover:text-red-400 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    (click)="removeReferenceFile(i); $event.stopPropagation()"
+                  >
+                    ×
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (uploadingFiles()) {
+            <p class="text-[10px] text-primary-400">Uploading...</p>
+          }
+
+          <!-- User instructions -->
+          <label class="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            Instructions for Claude
+          </label>
+          <textarea
+            rows="2"
+            class="w-full rounded-lg border border-ink-700 bg-ink-900 p-2 text-[13px] text-fg"
+            [(ngModel)]="userInstructions"
+            placeholder="e.g. Make it more cinematic, add camera angles..."
+            [disabled]="loading()"
+          ></textarea>
+
+          <!-- Action buttons + reference upload (always at the end) -->
+          <div class="flex items-center gap-2">
+            <input
+              #refFileInput
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              class="hidden"
+              (change)="onFilesSelected($event)"
+            />
+            <p-button
+              icon="pi pi-paperclip"
+              severity="secondary"
+              size="small"
+              [text]="true"
+              (onClick)="refFileInput.click()"
+              [disabled]="loading()"
+              pTooltip="Attach reference images or videos"
+              tooltipPosition="top"
+            />
+            <p-button
+              label="Optimize"
+              icon="pi pi-arrow-right"
+              severity="primary"
+              size="small"
+              (onClick)="optimize()"
+              [disabled]="!canOptimize()"
+              [loading]="loading()"
+            />
+            <div class="flex-1"></div>
+            <p-button
+              label="Apply"
+              icon="pi pi-check"
+              severity="success"
+              size="small"
+              [text]="true"
+              (onClick)="applyOptimized()"
+              [disabled]="!optimizedPrompt()"
+            />
+          </div>
         </div>
       }
+
+      <!-- Asset metadata popover (reference chips) -->
+      <app-asset-info-popover
+        #assetInfoPopover
+        useLabel="Add to Prompt"
+        removeLabel="Remove"
+        (use)="addAssetToPrompt($event)"
+        (remove)="removeAssetFromReferences($event)"
+      />
     </section>
   `,
 })
@@ -142,12 +234,26 @@ export class ProncerComponent {
   private readonly studio = inject(StudioStore);
   private readonly sessionStore = inject(SessionStore);
   private readonly shotBuilderService = inject(ShotBuilderService);
+  private readonly filesApi = inject(FilesApiService);
+
+  /** Resolved element registry from the StudioStore — enables reference discipline. */
+  protected readonly elementRegistry = computed(
+    () => this.studio.elementRegistry() as ElementEntity[] | undefined,
+  );
 
   protected readonly expanded = signal(false);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
   protected readonly userInstructions = signal('');
+
+  /** Reference files (images/videos) uploaded by the user for visual analysis. */
+  protected readonly referenceFiles = signal<
+    { id: string; name: string; type: string; thumbnailUrl?: string }[]
+  >([]);
+  protected readonly uploadingFiles = signal(false);
+
+  @ViewChild('assetInfoPopover') protected readonly assetInfoPopover!: AssetInfoPopoverComponent;
 
   /** The prompt being edited — synced with StudioStore.rawDescription. */
   protected readonly editablePrompt = signal('');
@@ -191,6 +297,8 @@ export class ProncerComponent {
     const sceneId = this.studio.sceneId();
     const userName = this.sessionStore.user()?.handle || '';
 
+    const refFileIds = this.referenceFiles().map((f) => f.id);
+
     this.shotBuilderService
       .optimizePrompt({
         projectId: projectId || '',
@@ -198,6 +306,8 @@ export class ProncerComponent {
         currentPrompt: prompt,
         userInstructions: instructions,
         userName,
+        elementRegistry: this.elementRegistry(),
+        referenceFiles: refFileIds.length > 0 ? refFileIds : undefined,
       })
       .subscribe({
         next: (result) => {
@@ -243,5 +353,109 @@ export class ProncerComponent {
         timestamp: Date.now(),
       },
     ]);
+  }
+
+  // ── Reference file upload ──────────────────────────────────────────
+
+  protected onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input?.files ? Array.from(input.files) : [];
+    if (files.length === 0) return;
+    this.uploadFiles(files);
+    input.value = '';
+  }
+
+  protected onFilesDropped(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const files = event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : [];
+    if (files.length === 0) return;
+    this.uploadFiles(files);
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  protected removeReferenceFile(index: number): void {
+    this.referenceFiles.update((files) => files.filter((_, i) => i !== index));
+  }
+
+  protected openAssetInfo(event: Event, file: { id: string; name: string; type: string }): void {
+    const kind = file.type.startsWith('image/')
+      ? 'image'
+      : file.type.startsWith('video/')
+        ? 'video'
+        : file.type.startsWith('audio/')
+          ? 'audio'
+          : 'image';
+    this.assetInfoPopover.open(event, {
+      id: file.id,
+      name: file.name,
+      kind,
+    });
+  }
+
+  /** Add the asset to the Prompt Builder's used assets (replicates
+   *  character-assets onPickFreeAsset logic). */
+  protected addAssetToPrompt(asset: AssetInfo): void {
+    const alreadyUsed = this.studio.usedAssets().some((a) => a.fileId === asset.id);
+    if (alreadyUsed) {
+      this.studio.unuseAsset(asset.id);
+      return;
+    }
+    this.studio.useAsset({
+      fileId: asset.id,
+      characterId: asset.id,
+      name: asset.name,
+      filename: asset.name,
+      kind: (asset.kind as 'image' | 'video' | 'audio' | 'mixed') || 'image',
+      slot: asset.slot || this.studio.chapterAssetSlots().get(asset.id) || undefined,
+    });
+  }
+
+  /** Remove the asset from the reference files list. */
+  protected removeAssetFromReferences(asset: AssetInfo): void {
+    this.referenceFiles.update((files) => files.filter((f) => f.id !== asset.id));
+    this.assetInfoPopover.close();
+  }
+
+  private uploadFiles(files: File[]): void {
+    this.uploadingFiles.set(true);
+    let pending = files.length;
+
+    for (const file of files) {
+      const category: 'images' | 'videos' | 'temp' = file.type.startsWith('image/')
+        ? 'images'
+        : file.type.startsWith('video/')
+          ? 'videos'
+          : 'temp';
+
+      this.filesApi.upload({ file, category, storage: 'persistent' }).subscribe({
+        next: (res) => {
+          if (!res.error && res.data) {
+            this.referenceFiles.update((current) => [
+              ...current,
+              {
+                id: res.data!.id,
+                name: file.name,
+                type: file.type,
+                thumbnailUrl: file.type.startsWith('image/')
+                  ? this.filesApi.serveUrl(res.data!.id)
+                  : undefined,
+              },
+            ]);
+          }
+        },
+        error: () => {
+          /* skip failed uploads */
+        },
+        complete: () => {
+          pending--;
+          if (pending <= 0) this.uploadingFiles.set(false);
+        },
+      });
+    }
   }
 }

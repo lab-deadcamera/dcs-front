@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environment/environment';
-import { catchError, finalize, map, of, throwError } from 'rxjs';
+import { catchError, finalize, map, Observable, of, switchMap, throwError, timer } from 'rxjs';
 import {
   AspectRatio,
   DirectorNotes,
@@ -14,6 +14,11 @@ import {
   ShotNotes,
 } from '@app/core/interfaces';
 import { CONSOLE } from '@app/shared/utils';
+
+/** Poll interval (ms) for the async generate-shots task. */
+const GENERATE_SHOTS_POLL_INTERVAL_MS = 5000;
+/** Hard bound on how long the UI keeps polling before giving up. */
+const GENERATE_SHOTS_POLL_TIMEOUT_MS = 45 * 60 * 1000;
 
 /** A generated shot returned by the Claude shot builder. */
 export interface ShotBuilderShot {
@@ -33,6 +38,8 @@ export interface ShotBuilderShot {
   end?: number;
   /** Duration in seconds. */
   duration?: number;
+  /** Number of internal cuts within the shot (0 = single continuous take). */
+  cuts?: number;
   /** Per-shot notes (ingredients/warnings) from the SLIM response. */
   notes?: ShotNotes;
 }
@@ -105,11 +112,55 @@ export interface SceneContext {
   assets?: Array<{ id?: string; filename: string; mimeType: string }>;
 }
 
+/** A single shot to refine (scene script number + shot id within the scene). */
+export interface ShotRefineTarget {
+  sceneNumber: number;
+  shotId: string;
+}
+
+/** One message from the conversational thread, sent as bounded coherence
+ *  context on refine (last few turns) — never the full history. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 /** Result from the proncer endpoint. */
 export interface OptimizePromptResult {
   optimizedPrompt: string;
   suggestions: string[];
   changesMade: string[];
+  rawText: string;
+}
+
+/** The user's resolution for one visual element before generation
+ *  (wire format matches the backend's ElementDecision). */
+export interface ElementDecision {
+  type: 'define_with_reference' | 'define_with_text' | 'invent_free' | 'invent_restricted' | 'abstract';
+  description?: string;
+}
+
+/** One visual element extracted by analyze-elements and resolved in the
+ *  elicitation UI (wire format matches the backend's ElementEntity).
+ *  definition_status comes from the analysis ("defined" | "asset_orphan" |
+ *  "undefined"); "pending" only exists while undecided in the UI, and once
+ *  decided it becomes "defined" | "invented" | "abstracted". */
+export interface ElementEntity {
+  entity_id: string;
+  category: string;
+  mentioned_as: string;
+  source_text?: string;
+  scene_number: number;
+  definition_status: 'defined' | 'asset_orphan' | 'undefined' | 'pending' | 'invented' | 'abstracted';
+  linked_asset_id?: string;
+  consistency_group?: string;
+  user_decision?: ElementDecision;
+}
+
+/** Parsed response from the analyze-elements endpoint. */
+export interface ElementRegistryResult {
+  element_registry: ElementEntity[];
+  summary: string;
   rawText: string;
 }
 
@@ -136,6 +187,9 @@ export class ShotBuilderService {
     userName?: string;
     sceneContext?: SceneContext;
     generateZh?: boolean;
+    useV2?: boolean;
+    /** Closed-world mode: resolved element registry from the elicitation UI. */
+    elementRegistry?: ElementEntity[];
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -177,18 +231,34 @@ export class ShotBuilderService {
       };
     }
 
+    // Closed-world mode: forward the resolved element registry so the backend
+    // appends closed-world rules to the shot-builder system prompt.
+    if (request.elementRegistry && request.elementRegistry.length > 0) {
+      body['element_registry'] = request.elementRegistry;
+    }
+
+    const url = request.useV2
+      ? `${environment.API_URL}/studio/text/claude/generate-shots-v2`
+      : `${environment.API_URL}/studio/text/claude/generate-shots`;
+
     return this.http
       .post<{
         success: boolean;
         data?: { taskId: string; model: string; status: string; text?: string };
         message?: string;
-      }>(`${environment.API_URL}/studio/text/claude/generate-shots`, body)
+      }>(url, body)
       .pipe(
-        map((response) => {
+        switchMap((response) => {
           if (!response.success || !response.data) {
             throw new Error(response.message || 'Failed to generate shots');
           }
-          return this.parseShotsResponse(response.data);
+          const data = response.data;
+          // The backend answers immediately with a taskId in "processing" and
+          // produces the breakdown in the background, so poll until it is done.
+          if (data.status !== 'processing') {
+            return of(this.parseShotsResponse(data));
+          }
+          return this.pollShotsStatus(data.taskId);
         }),
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not generate shot list';
@@ -216,6 +286,12 @@ export class ShotBuilderService {
     userName?: string;
     generateZh?: boolean;
     sceneContext?: SceneContext;
+    /** Refine ONLY these shots (scene script number + shot id). */
+    targets?: ShotRefineTarget[];
+    /** Last few conversation turns for thread coherence (bounded). */
+    recentContext?: ChatTurn[];
+    /** Closed-world mode: resolved element registry from the elicitation UI. */
+    elementRegistry?: ElementEntity[];
   }) {
     if (!request.projectId) {
       return of({ shots: [], scenes: [], rawText: '' } as ShotBuilderResult).pipe((source$) => {
@@ -253,6 +329,13 @@ export class ShotBuilderService {
       skill_id: request.skillID || '',
       user_name: request.userName || '',
       generate_zh: request.generateZh !== false,
+      ...(request.targets && request.targets.length > 0 ? { targets: request.targets } : {}),
+      ...(request.recentContext && request.recentContext.length > 0
+        ? { recent_context: request.recentContext }
+        : {}),
+      ...(request.elementRegistry && request.elementRegistry.length > 0
+        ? { element_registry: request.elementRegistry }
+        : {}),
     };
 
     // Include scene context if provided (same shape as generate()).
@@ -272,14 +355,101 @@ export class ShotBuilderService {
         message?: string;
       }>(`${environment.API_URL}/studio/text/claude/refine-shots`, body)
       .pipe(
-        map((response) => {
+        switchMap((response) => {
           if (!response.success || !response.data) {
             throw new Error(response.message || 'Failed to refine shots');
           }
-          return this.parseShotsResponse(response.data);
+          const data = response.data;
+          // The backend answers immediately with a taskId in "processing" and
+          // produces the refinement in the background, so poll until it is done.
+          if (data.status !== 'processing') {
+            return of(this.parseShotsResponse(data));
+          }
+          return this.pollShotsStatus(data.taskId);
         }),
         catchError((err) => {
           const message = err?.error?.message || err?.message || 'Could not refine shot list';
+          this.error.set(message);
+          return throwError(() => new Error(message));
+        }),
+        finalize(() => this.loading.set(false)),
+      );
+  }
+
+  /**
+   * Run the pre-generation element analysis (elicitation): Claude extracts the
+   * visual entities mentioned in the script and classifies each as "defined",
+   * "asset_orphan" or "undefined" so the user can resolve them in the UI
+   * before generate-shots. Async like generate(): polls until done.
+   */
+  analyzeElements(request: {
+    projectId: string;
+    projectName?: string;
+    sceneId: string;
+    prompt: string;
+    model?: string;
+    userName?: string;
+    sceneContext?: SceneContext;
+  }) {
+    if (!request.projectId) {
+      return of({ element_registry: [], summary: '', rawText: '' } as ElementRegistryResult).pipe(
+        (source$) => {
+          this.error.set('Select a project before analyzing elements');
+          return source$;
+        },
+      );
+    }
+
+    if (!request.prompt.trim()) {
+      return of({ element_registry: [], summary: '', rawText: '' } as ElementRegistryResult).pipe(
+        (source$) => {
+          this.error.set('Write a prompt before analyzing elements');
+          return source$;
+        },
+      );
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const body: Record<string, unknown> = {
+      scene_id: request.sceneId,
+      project_id: request.projectId,
+      project_name: request.projectName || '',
+      model: 'claude-shot-builder',
+      api_model: request.model || 'claude-opus-4-8',
+      prompt: request.prompt,
+      system_prompt: '',
+      skill_id: '',
+      user_name: request.userName || '',
+    };
+
+    // Include scene context if provided so Claude can auto-link reference
+    // assets (linked_asset_id) the same way generate-shots does.
+    if (request.sceneContext) {
+      body['scene_context'] = {
+        description: request.sceneContext.description,
+        characters: request.sceneContext.characters,
+        presets: request.sceneContext.presets,
+        assets: request.sceneContext.assets,
+      };
+    }
+
+    return this.http
+      .post<{
+        success: boolean;
+        data?: { taskId: string; model: string; status: string };
+        message?: string;
+      }>(`${environment.API_URL}/studio/text/claude/analyze-elements`, body)
+      .pipe(
+        switchMap((response) => {
+          if (!response.success || !response.data?.taskId) {
+            throw new Error(response.message || 'Failed to start element analysis');
+          }
+          return this.pollAnalyzeElementsStatus(response.data.taskId);
+        }),
+        catchError((err) => {
+          const message = err?.error?.message || err?.message || 'Could not analyze elements';
           this.error.set(message);
           return throwError(() => new Error(message));
         }),
@@ -299,6 +469,8 @@ export class ShotBuilderService {
     userName?: string;
     shotContext?: { shotName?: string; shotDescription?: string };
     sceneContext?: SceneContext;
+    elementRegistry?: ElementEntity[];
+    referenceFiles?: string[];
   }) {
     if (!request.sceneId || !request.projectId) {
       return of({
@@ -348,6 +520,17 @@ export class ShotBuilderService {
         presets: request.sceneContext.presets,
         assets: request.sceneContext.assets,
       };
+    }
+
+    // Closed-world mode: forward the resolved element registry so the Proncer
+    // respects reference discipline (no appearance descriptions for image-linked elements).
+    if (request.elementRegistry && request.elementRegistry.length > 0) {
+      body['element_registry'] = request.elementRegistry;
+    }
+
+    // Reference files (images/videos) for visual analysis.
+    if (request.referenceFiles && request.referenceFiles.length > 0) {
+      body['reference_files'] = request.referenceFiles;
     }
 
     return this.http
@@ -507,6 +690,116 @@ export class ShotBuilderService {
 
   // ── Private helpers ───────────────────────────────────────────────
 
+  /**
+   * Poll the async generate-shots task until it reaches a terminal state:
+   * "succeeded" parses the clean JSON, "failed" surfaces the backend error.
+   * Bounded by GENERATE_SHOTS_POLL_TIMEOUT_MS so a dead task cannot leave the
+   * UI loading forever.
+   */
+  private pollAnalyzeElementsStatus(taskId: string): Observable<ElementRegistryResult> {
+    const deadline = Date.now() + GENERATE_SHOTS_POLL_TIMEOUT_MS;
+
+    const pollOnce = (): Observable<ElementRegistryResult> =>
+      this.http
+        .get<{
+          success: boolean;
+          data?: {
+            taskId: string;
+            model: string;
+            status: string;
+            text?: string;
+            error?: string;
+          };
+          message?: string;
+        }>(`${environment.API_URL}/studio/text/claude/analyze-elements/status/${taskId}`)
+        .pipe(
+          switchMap((response) => {
+            if (!response.success || !response.data) {
+              throw new Error(response.message || 'Failed to check element analysis status');
+            }
+            const data = response.data;
+            if (data.status === 'succeeded') {
+              return of(this.parseElementRegistryResponse(data));
+            }
+            if (data.status === 'failed') {
+              throw new Error(data.error || 'Element analysis failed');
+            }
+            if (Date.now() >= deadline) {
+              throw new Error('Element analysis timed out');
+            }
+            return timer(GENERATE_SHOTS_POLL_INTERVAL_MS).pipe(switchMap(() => pollOnce()));
+          }),
+        );
+
+    return pollOnce();
+  }
+
+  private parseElementRegistryResponse(data: {
+    taskId: string;
+    model: string;
+    status: string;
+    text?: string;
+  }): ElementRegistryResult {
+    const decoded = this.decodeText(data.text || '');
+    if (!decoded) {
+      return { element_registry: [], summary: '', rawText: '' };
+    }
+
+    // Defensive: extract only the outermost JSON object in case Claude
+    // included text before or after the JSON.
+    const raw = this.forceExtractJSON(decoded);
+    const sanitized = this.sanitizeForJson(raw);
+    const parsed = JSON.parse(sanitized);
+
+    if (!Array.isArray(parsed.element_registry)) {
+      throw new Error('Element analysis returned an invalid registry');
+    }
+
+    return {
+      element_registry: parsed.element_registry as ElementEntity[],
+      summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+      rawText: raw,
+    };
+  }
+
+  private pollShotsStatus(taskId: string): Observable<ShotBuilderResult> {
+    const deadline = Date.now() + GENERATE_SHOTS_POLL_TIMEOUT_MS;
+
+    const pollOnce = (): Observable<ShotBuilderResult> =>
+      this.http
+        .get<{
+          success: boolean;
+          data?: {
+            taskId: string;
+            model: string;
+            status: string;
+            text?: string;
+            error?: string;
+          };
+          message?: string;
+        }>(`${environment.API_URL}/studio/text/claude/generate-shots/status/${taskId}`)
+        .pipe(
+          switchMap((response) => {
+            if (!response.success || !response.data) {
+              throw new Error(response.message || 'Failed to check generation status');
+            }
+            const data = response.data;
+            if (data.status === 'succeeded') {
+              return of(this.parseShotsResponse(data));
+            }
+            if (data.status === 'failed') {
+              throw new Error(data.error || 'Shot generation failed');
+            }
+            if (Date.now() >= deadline) {
+              throw new Error('Shot generation timed out');
+            }
+            return timer(GENERATE_SHOTS_POLL_INTERVAL_MS).pipe(switchMap(() => pollOnce()));
+          }),
+        );
+
+    return pollOnce();
+  }
+
   private parseShotsResponse(data: {
     taskId: string;
     model: string;
@@ -564,6 +857,7 @@ export class ShotBuilderService {
                 duration: shot.duration,
                 start: shot.start,
                 end: shot.end,
+                cuts: shot.cuts != null ? normalizeCuts(shot.cuts) : inferCutsFromPrompt(shot.prompt?.en),
                 notes: shot.notes as ShotNotes | undefined,
               }) as ShotBuilderShot,
           ),
@@ -595,6 +889,7 @@ export class ShotBuilderService {
           description: normalizeSeedanceSlots(s.prompt?.en) || s.prompt?.zh || '',
           references: s.references as Reference[] | undefined,
           prompt_en: s.prompt?.en ? normalizeSeedanceSlots(s.prompt.en) : undefined,
+          cuts: s.cuts != null ? normalizeCuts(s.cuts) : inferCutsFromPrompt(s.prompt?.en),
           duration: s.duration,
         }));
         // Wrap legacy shots in a single scene
@@ -806,9 +1101,32 @@ export function normalizeSeedanceSlots(text: string | undefined | null): string 
  *
  * The backend SLIM response does not carry dramatic beats
  * (HOOK/FRICTION/SPIKE/BUTTON), so the time-budget strip is colored by scene
- * type instead — reusing the same palette as the panel's timeBudgetBar:
- * present → teal, flashback → amber, fantasy/dream → violet.
+ * instead — every shot of a scene shares the scene's accent color, so groups
+ * are visible at a glance on the timeline strip and in the beat tags.
  */
+/** Normalize a raw `cuts` value (LLM/backend) to a safe non-negative integer.
+ *  The backend emits the LLM JSON untouched, so `cuts` can arrive as a string,
+ *  negative, or fractional value — `'|'.repeat()` in the timeline strip would
+ *  throw a RangeError on any of those. */
+function normalizeCuts(value: unknown): number {
+  if (typeof value === 'string' && value.trim() !== '') value = Number(value);
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.max(0, Math.round(value));
+}
+
+/** Infer the number of internal cuts from the prompt text when the `cuts` field
+ *  is missing from the shot JSON. Looks for explicit cut markers ("Cut A", etc.)
+ *  or fallback phrases like "hard cut to" / "hard cut between". */
+function inferCutsFromPrompt(prompt: string | undefined): number {
+  if (!prompt) return 0;
+  // Match explicit cut markers: "Cut A", "Cut B", "Cut 1", "Segment 2", etc.
+  const explicit = prompt.match(/\b(?:Cut|Segment)\s+[A-Z0-9]+/gi);
+  if (explicit && explicit.length >= 2) return explicit.length - 1;
+  // Fallback: count "hard cut" transitions
+  const hardCuts = prompt.match(/\bhard\s+cut\b/gi);
+  return hardCuts ? hardCuts.length : 0;
+}
+
 export function shotBuilderResultToSequence(
   result: ShotBuilderResult,
   fallbackAspectRatio: AspectRatio = '9:16',
@@ -826,12 +1144,21 @@ export function shotBuilderResultToSequence(
   }
   if (flat.length === 0) return null;
 
-  const sceneColor = (type: string): string =>
-    type === 'flashback'
-      ? '#f59e0b'
-      : type === 'fantasy' || type === 'dream'
-        ? '#8b5cf6'
-        : '#14b8a6';
+  // Distinct scenes share one color across all their shots. Colors come from a
+  // fixed accent palette (same family as the example-real shotlist design), so
+  // adjacent scenes read as visually separated groups on the timeline strip.
+  const SCENE_PALETTE = ['#fcee0a', '#00e0ff', '#ff6b1a', '#ff1a8c', '#a6ff00', '#ff003c'];
+  const sceneColors = new Map<number, string>();
+  let sceneColorIdx = 0;
+  const sceneColorFor = (num: number): string => {
+    let color = sceneColors.get(num);
+    if (!color) {
+      color = SCENE_PALETTE[sceneColorIdx % SCENE_PALETTE.length];
+      sceneColors.set(num, color);
+      sceneColorIdx++;
+    }
+    return color;
+  };
 
   const totalDuration =
     result.duration ||
@@ -879,7 +1206,7 @@ export function shotBuilderResultToSequence(
   // Build the strip segments; fall back to a running cursor when the backend
   // did not include cumulative start/end timestamps.
   let cursor = 0;
-  const segments: FlowSegment[] = flat.map(({ shot, sceneType }) => {
+  const segments: FlowSegment[] = flat.map(({ shot, scriptNumber }) => {
     const id = idFor.get(shot) as string;
     const start = shot.start ?? cursor;
     const end = shot.end ?? start + Math.max(1, shot.duration || 0);
@@ -891,7 +1218,8 @@ export function shotBuilderResultToSequence(
       start,
       end,
       intensity: 0.5,
-      color: sceneColor(sceneType),
+      color: sceneColorFor(scriptNumber),
+      cuts: normalizeCuts(shot.cuts),
     };
   });
 
@@ -906,6 +1234,7 @@ export function shotBuilderResultToSequence(
       duration: shot.duration || 0,
       start,
       end,
+      cuts: normalizeCuts(shot.cuts),
       camera: { lens: '', framing: '', movement: '', fps: 24, shutter: '180°', aspectRatio },
       composition: {},
       blocking: {},
@@ -947,8 +1276,8 @@ export function shotBuilderResultToSequence(
     aspectRatio,
     references: [...refMap.values()],
     sequenceFlow: {
-      title: 'Presupuesto de tiempo',
-      subtitle: 'La temperatura sube con el conflicto',
+      title: 'TIME_BUDGET',
+      subtitle: '',
       duration: totalDuration,
       metric: 'dramaticIntensity',
       scale: { start: 'Frío', middle: 'Caliente', end: 'Vacío' },

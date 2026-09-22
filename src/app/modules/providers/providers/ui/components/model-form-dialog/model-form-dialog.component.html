@@ -150,6 +150,112 @@
       />
     </div>
 
+    <!-- Generation limits (video models only) -->
+    @if (isVideoModel()) {
+      <div class="border-t pt-2" style="border-color: var(--border-color)">
+        <p class="text-[12px] font-bold uppercase tracking-[0.12em] text-fg-muted">
+          {{ 'PROVIDERS.MODEL_DIALOG.LIMITS_TITLE' | translate }}
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <!-- Disabled for now: min/max videos per generation has no real
+               backend functionality yet. Kept for future use.
+          <div class="flex flex-col gap-1">
+            <label for="model-min-videos" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.MIN_VIDEOS' | translate }}
+            </label>
+            <p-inputNumber
+              inputId="model-min-videos"
+              formControlName="min_videos"
+              [min]="0"
+              [useGrouping]="false"
+              inputStyleClass="w-full"
+              data-testid="model-min-videos-input"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="model-max-videos" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.MAX_VIDEOS' | translate }}
+            </label>
+            <p-inputNumber
+              inputId="model-max-videos"
+              formControlName="max_videos"
+              [min]="0"
+              [useGrouping]="false"
+              inputStyleClass="w-full"
+              data-testid="model-max-videos-input"
+            />
+          </div>
+          -->
+
+          <div class="flex flex-col gap-1">
+            <label for="model-min-duration" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.MIN_DURATION' | translate }}
+            </label>
+            <div class="flex items-center gap-2">
+              <p-inputNumber
+                inputId="model-min-duration"
+                formControlName="min_duration"
+                [min]="0"
+                [useGrouping]="false"
+                inputStyleClass="w-full"
+                suffix="s"
+                data-testid="model-min-duration-input"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="model-max-duration" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.MAX_DURATION' | translate }}
+            </label>
+            <div class="flex items-center gap-2">
+              <p-inputNumber
+                inputId="model-max-duration"
+                formControlName="max_duration"
+                [min]="0"
+                [useGrouping]="false"
+                inputStyleClass="w-full"
+                suffix="s"
+                data-testid="model-max-duration-input"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="model-aspect-ratios" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.ASPECT_RATIOS' | translate }}
+            </label>
+            <p-multiselect
+              inputId="model-aspect-ratios"
+              formControlName="aspect_ratios"
+              [options]="aspectRatioOptions"
+              [appendTo]="'body'"
+              [showToggleAll]="true"
+              data-testid="model-aspect-ratios-select"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="model-resolutions" class="text-[12px] font-bold uppercase tracking-[0.12em]">
+              {{ 'PROVIDERS.FIELDS.RESOLUTIONS' | translate }}
+            </label>
+            <p-multiselect
+              inputId="model-resolutions"
+              formControlName="resolutions"
+              [options]="resolutionOptions"
+              [appendTo]="'body'"
+              [showToggleAll]="true"
+              data-testid="model-resolutions-select"
+            />
+          </div>
+        </div>
+        <p class="mt-2 text-[10px] italic text-fg-muted">
+          {{ 'PROVIDERS.FIELDS.LIMITS_HINT' | translate }}
+        </p>
+      </div>
+    }
+
     <!-- More options toggle -->
     <div class="border-t pt-2" style="border-color: var(--border-color)">
       <button

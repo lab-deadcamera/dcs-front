@@ -12,7 +12,7 @@
       <ui-toggle-group
         labelKey="STUDIO.OUTPUT.ASPECT_RATIO"
         variant="accent"
-        [options]="aspectOptions"
+        [options]="aspectOptions()"
         [value]="studio.output().aspectRatio"
         (valueChange)="onAspect($event)"
       />
@@ -20,8 +20,8 @@
       <ui-toggle-group
         labelKey="STUDIO.OUTPUT.RESOLUTION"
         variant="accent"
-        [options]="resolutionOptions"
-        [value]="studio.output().resolution === '1080p' ? null : studio.output().resolution"
+        [options]="resolutionOptions()"
+        [value]="studio.output().resolution"
         (valueChange)="onResolution($event)"
       />
       <p class="-mt-3 text-[10px] italic text-fg-muted">
@@ -37,11 +37,11 @@
         </p>
         <ui-range-slider
           ariaLabelKey="STUDIO.OUTPUT.ARIA_DURATION"
-          [min]="4"
-          [max]="15"
+          [min]="minDuration()"
+          [max]="maxDuration()"
           [step]="1"
           unit="s"
-          [ticks]="[4, 8, 12, 15]"
+          [ticks]="durationTicks()"
           [value]="studio.output().durationSeconds"
           (valueChange)="onDuration($event)"
         />
@@ -65,7 +65,7 @@
             {{ 'STUDIO.OUTPUT.BATCH_COUNT' | translate }}
           </p>
           <p class="text-[10px] italic text-fg-muted">
-            {{ 'STUDIO.OUTPUT.BATCH_COUNT_HINT' | translate }}
+            {{ 'STUDIO.OUTPUT.BATCH_COUNT_HINT' | translate: { max: maxBatch() } }}
           </p>
         </div>
         <div
@@ -76,7 +76,7 @@
           <button
             type="button"
             class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-            [disabled]="studio.output().batchCount <= minBatch || true"
+            [disabled]="studio.output().batchCount <= minBatch() || true"
             [attr.aria-label]="'STUDIO.OUTPUT.BATCH_DEC' | translate"
             data-testid="batch-count-dec"
             (click)="onBatchCount(-1)"
@@ -92,7 +92,7 @@
           <button
             type="button"
             class="px-3 py-1 font-mono text-[14px] leading-none text-fg-strong transition-colors hover:text-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-            [disabled]="studio.output().batchCount >= maxBatch || true"
+            [disabled]="studio.output().batchCount >= maxBatch() || true"
             [attr.aria-label]="'STUDIO.OUTPUT.BATCH_INC' | translate"
             data-testid="batch-count-inc"
             (click)="onBatchCount(1)"

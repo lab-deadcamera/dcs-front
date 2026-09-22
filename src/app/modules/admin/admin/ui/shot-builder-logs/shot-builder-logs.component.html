@@ -1,6 +1,8 @@
 <section class="px-6 py-6">
   <div class="mb-6">
-    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.SB_LOGS.TITLE' | translate }}</h1>
+    <h1 class="text-[18px] font-bold uppercase tracking-[0.12em]">
+      {{ 'ADMIN.SB_LOGS.TITLE' | translate }}
+    </h1>
     <p class="mt-1 text-[12px] text-fg-muted">
       {{ 'ADMIN.SB_LOGS.SUBTITLE' | translate }}
     </p>
@@ -9,7 +11,9 @@
   <!-- Filters -->
   <div class="mb-4 flex flex-wrap items-end gap-3">
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.SB_LOGS.FILTER_PROJECT' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'ADMIN.SB_LOGS.FILTER_PROJECT' | translate
+      }}</label>
       <p-select
         [options]="projectOptions()"
         [ngModel]="filters().projectId"
@@ -24,7 +28,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.SB_LOGS.FILTER_USER' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'ADMIN.SB_LOGS.FILTER_USER' | translate
+      }}</label>
       <p-select
         [options]="userOptions()"
         [ngModel]="filters().userId"
@@ -39,7 +45,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.SB_LOGS.FILTER_FROM' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'ADMIN.SB_LOGS.FILTER_FROM' | translate
+      }}</label>
       <input
         pInputText
         type="date"
@@ -49,7 +57,9 @@
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{ 'ADMIN.SB_LOGS.FILTER_TO' | translate }}</label>
+      <label class="text-[10px] font-bold uppercase tracking-[0.12em]">{{
+        'ADMIN.SB_LOGS.FILTER_TO' | translate
+      }}</label>
       <input
         pInputText
         type="date"
@@ -58,13 +68,24 @@
         class="w-36"
       />
     </div>
-    <p-button [label]="'ADMIN.SB_LOGS.SEARCH' | translate" icon="pi pi-search" (onClick)="search()" />
-    <p-button [label]="'ADMIN.SB_LOGS.CLEAR' | translate" severity="secondary" [text]="true" (onClick)="clearFilters()" />
+    <p-button
+      [label]="'ADMIN.SB_LOGS.SEARCH' | translate"
+      icon="pi pi-search"
+      (onClick)="search()"
+    />
+    <p-button
+      [label]="'ADMIN.SB_LOGS.CLEAR' | translate"
+      severity="secondary"
+      [text]="true"
+      (onClick)="clearFilters()"
+    />
   </div>
 
   <!-- Loading -->
   @if (loading()) {
-    <p class="py-8 text-center text-[13px] italic text-fg-muted">{{ 'ADMIN.SB_LOGS.LOADING' | translate }}</p>
+    <p class="py-8 text-center text-[13px] italic text-fg-muted">
+      {{ 'ADMIN.SB_LOGS.LOADING' | translate }}
+    </p>
   }
 
   <!-- Table -->
@@ -83,7 +104,9 @@
             <th class="px-3 py-2 font-medium">{{ 'ADMIN.SB_LOGS.COL_DURATION' | translate }}</th>
             <th class="px-3 py-2 font-medium">{{ 'ADMIN.SB_LOGS.COL_STATUS' | translate }}</th>
             <th class="px-3 py-2 font-medium">{{ 'ADMIN.SB_LOGS.COL_ERROR' | translate }}</th>
-            <th class="w-20 px-3 py-2 font-medium">{{ 'ADMIN.SB_LOGS.COL_ACTIONS' | translate }}</th>
+            <th class="w-20 px-3 py-2 font-medium">
+              {{ 'ADMIN.SB_LOGS.COL_ACTIONS' | translate }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -111,7 +134,12 @@
               <td class="px-3 py-2 font-mono">{{ formatDuration(log.duration_ms) }}</td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-flex items-center rounded-full bg-red-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-red-400"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                  [class]="
+                    log.status === 'succeeded'
+                      ? 'bg-green-900 text-green-400'
+                      : 'bg-red-900 text-red-400'
+                  "
                 >
                   {{ log.status }}
                 </span>
@@ -177,58 +205,84 @@
       <!-- Summary -->
       <div class="grid grid-cols-3 gap-3">
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.USER' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.USER' | translate
+          }}</span>
           <span>{{ d.user_name || (d.user_id ?? '—') }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.EMAIL' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.EMAIL' | translate
+          }}</span>
           <span>{{ d.user_email || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.PROJECT' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.PROJECT' | translate
+          }}</span>
           <span>{{ d.project_name || d.project_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.SCENE_CHAPTER' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.SCENE_CHAPTER' | translate
+          }}</span>
           <span class="font-mono">{{ d.scene_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.API_MODEL' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.API_MODEL' | translate
+          }}</span>
           <span class="font-mono">{{ d.api_model || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.KEY_MODEL' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.KEY_MODEL' | translate
+          }}</span>
           <span class="font-mono">{{ d.key_model || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.SKILL' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.SKILL' | translate
+          }}</span>
           <span>{{ d.skill_name || d.skill_id || '—' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.ATTEMPTS' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.ATTEMPTS' | translate
+          }}</span>
           <span>{{ d.attempts }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.TOKENS' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.TOKENS' | translate
+          }}</span>
           <span>{{ formatTokens(d) }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.DURATION' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.DURATION' | translate
+          }}</span>
           <span>{{ formatDuration(d.duration_ms) }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.CREATED' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.CREATED' | translate
+          }}</span>
           <span>{{ d.created_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
         </div>
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.STATUS' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.STATUS' | translate
+          }}</span>
           <span class="text-red-400">{{ d.status }}</span>
         </div>
       </div>
 
       @if (d.error_message) {
         <div>
-          <span class="block font-bold uppercase text-red-400">{{ 'ADMIN.SB_LOGS.ERROR' | translate }}</span>
+          <span class="block font-bold uppercase text-red-400">{{
+            'ADMIN.SB_LOGS.ERROR' | translate
+          }}</span>
           <pre
             class="mt-1 whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] text-red-400"
             >{{ d.error_message }}</pre
@@ -238,7 +292,9 @@
 
       <!-- Request payload (raw body incl. scene_context) -->
       <div>
-        <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.REQUEST_PAYLOAD' | translate }}</span>
+        <span class="block font-bold uppercase text-fg-muted">{{
+          'ADMIN.SB_LOGS.REQUEST_PAYLOAD' | translate
+        }}</span>
         <pre
           class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg"
           >{{ formatJson(d.request_payload) }}</pre
@@ -247,7 +303,9 @@
 
       <!-- Composed system prompt -->
       <div>
-        <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.SYSTEM_PROMPT' | translate }}</span>
+        <span class="block font-bold uppercase text-fg-muted">{{
+          'ADMIN.SB_LOGS.SYSTEM_PROMPT' | translate
+        }}</span>
         <pre
           class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg"
           >{{ d.system_prompt }}</pre
@@ -256,7 +314,9 @@
 
       <!-- Composed user prompt (original script + scene context) -->
       <div>
-        <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.PROMPT_FINAL' | translate }}</span>
+        <span class="block font-bold uppercase text-fg-muted">{{
+          'ADMIN.SB_LOGS.PROMPT_FINAL' | translate
+        }}</span>
         <pre
           class="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[11px] leading-relaxed text-fg"
           >{{ d.prompt }}</pre
@@ -266,12 +326,16 @@
       <!-- Attempts -->
       @if (detailsAttempts().length > 0) {
         <div>
-          <span class="block font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.CLAUDE_ATTEMPTS' | translate }}</span>
+          <span class="block font-bold uppercase text-fg-muted">{{
+            'ADMIN.SB_LOGS.CLAUDE_ATTEMPTS' | translate
+          }}</span>
           <div class="mt-1 flex flex-col gap-3">
             @for (a of detailsAttempts(); track a.id; let i = $index) {
               <div class="rounded border p-3" style="border-color: var(--border-color)">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-[12px] font-bold">{{ 'ADMIN.SB_LOGS.ATTEMPT' | translate: { n: i + 1 } }}</span>
+                  <span class="text-[12px] font-bold">{{
+                    'ADMIN.SB_LOGS.ATTEMPT' | translate: { n: i + 1 }
+                  }}</span>
                   <span
                     class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                     [class.bg-green-900]="a.valid"
@@ -279,7 +343,11 @@
                     [class.bg-red-900]="!a.valid"
                     [class.text-red-400]="!a.valid"
                   >
-                    {{ a.valid ? ('ADMIN.SB_LOGS.VALID' | translate) : ('ADMIN.SB_LOGS.INVALID' | translate) }}
+                    {{
+                      a.valid
+                        ? ('ADMIN.SB_LOGS.VALID' | translate)
+                        : ('ADMIN.SB_LOGS.INVALID' | translate)
+                    }}
                   </span>
                   <span class="ml-auto font-mono text-[10px] text-fg-muted">
                     in {{ a.input_tokens.toLocaleString() }} · out
@@ -293,14 +361,18 @@
                 }
 
                 <div class="mt-2">
-                  <span class="text-[10px] font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.PROMPT_SENT' | translate }}</span>
+                  <span class="text-[10px] font-bold uppercase text-fg-muted">{{
+                    'ADMIN.SB_LOGS.PROMPT_SENT' | translate
+                  }}</span>
                   <pre
                     class="mt-0.5 max-h-48 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[10px] leading-relaxed text-fg"
                     >{{ a.prompt }}</pre
                   >
                 </div>
                 <div class="mt-2">
-                  <span class="text-[10px] font-bold uppercase text-fg-muted">{{ 'ADMIN.SB_LOGS.RAW_RESPONSE' | translate }}</span>
+                  <span class="text-[10px] font-bold uppercase text-fg-muted">{{
+                    'ADMIN.SB_LOGS.RAW_RESPONSE' | translate
+                  }}</span>
                   <pre
                     class="mt-0.5 max-h-64 overflow-auto whitespace-pre-wrap rounded border border-ink-700 bg-ink-900 p-2 font-mono text-[10px] leading-relaxed text-fg"
                     >{{ formatJson(a.response) }}</pre

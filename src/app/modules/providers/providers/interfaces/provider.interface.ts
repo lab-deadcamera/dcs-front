@@ -1,4 +1,5 @@
 import { ResponseBase } from '@app/core/interfaces';
+import { ModelConfig } from '@app/core/interfaces/models.interface';
 
 export interface Provider {
   id: string;
@@ -22,6 +23,8 @@ export interface Model {
   default_asset_group_id?: string;
   project_name?: string;
   project_number?: string;
+  /** Per-model limits (min/max videos per generation, min/max duration). */
+  config?: ModelConfig;
   active: boolean;
   favorite: boolean;
   provider_name: string;
@@ -60,6 +63,7 @@ export interface CreateModelRequest {
   default_asset_group_id?: string;
   project_name?: string;
   project_number?: string;
+  config?: ModelConfig;
   active?: boolean;
 }
 
@@ -74,5 +78,6 @@ export interface UpdateModelRequest {
   default_asset_group_id?: string;
   project_name?: string;
   project_number?: string;
+  config?: ModelConfig;
   active?: boolean;
 }

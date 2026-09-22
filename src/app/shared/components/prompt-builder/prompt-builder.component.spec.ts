@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Injectable, WritableSignal, signal } from '@angular/core';
+import { Injectable, WritableSignal, computed, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { describe, beforeEach, it, expect, vi, Mock } from 'vitest';
@@ -19,14 +19,35 @@ class StudioStoreStub {
   private readonly _canGenerate = signal<boolean>(true);
   private readonly _first = signal<unknown>(null);
   private readonly _last = signal<unknown>(null);
+  private readonly _skipNextTokenPrune = signal(false);
+  private readonly _projectId = signal<string>('');
+  private readonly _sceneId = signal<string>('');
+  private readonly _chapterAssetSlots = signal<Map<string, string>>(new Map());
+  private readonly _chapterCharacterData = signal<unknown[]>([]);
+  private readonly _chapterCharacterIds = signal<Set<string>>(new Set());
+  private readonly _freeAssets = signal<unknown[]>([]);
 
   readonly usedAssets = this._used.asReadonly();
   readonly rawDescription = this._raw.asReadonly();
+  readonly rawLength = computed(() => this._raw().length);
   readonly canGenerate = this._canGenerate.asReadonly();
   readonly firstFrame = this._first.asReadonly();
   readonly lastFrame = this._last.asReadonly();
+  readonly skipNextTokenPrune = this._skipNextTokenPrune.asReadonly();
+  readonly projectId = this._projectId.asReadonly();
+  readonly sceneId = this._sceneId.asReadonly();
+  readonly chapterAssetSlots = this._chapterAssetSlots.asReadonly();
+  readonly chapterCharacterData = this._chapterCharacterData.asReadonly();
+  readonly chapterCharacterIds = this._chapterCharacterIds.asReadonly();
+  readonly freeAssets = this._freeAssets.asReadonly();
 
   readonly setRawDescription = vi.fn((v: string) => this._raw.set(v));
+
+  clearSkipTokenPrune(): void {
+    this._skipNextTokenPrune.set(false);
+  }
+  readonly unuseAsset = vi.fn();
+  readonly replaceUsedAsset = vi.fn();
 
   // Test-only helpers (not part of real StudioStore API).
   setUsedAssets(list: UsedAsset[]): void {
@@ -37,6 +58,9 @@ class StudioStoreStub {
   }
   setRawFromStore(v: string): void {
     this._raw.set(v);
+  }
+  setSkipTokenPrune(v: boolean): void {
+    this._skipNextTokenPrune.set(v);
   }
 }
 
@@ -491,6 +515,27 @@ describe('PromptBuilderComponent', () => {
       // still match (stripHtml of '' vs 'typed in editor'). The skipStoreSync
       // flag guards the very next effect tick.
       expect(editorContent()).toBe(before);
+    });
+
+    it('clears the translation cache, translatedText and sourceLang when rawDescription changes externally (take switch)', () => {
+      const internals = component as unknown as {
+        translationCache: Map<string, string>;
+        translatedText: WritableSignal<string | null>;
+        sourceLang: WritableSignal<'en' | 'es' | 'zh' | ''>;
+      };
+      // Simulate a finished translation that is still cached per language.
+      internals.translationCache.set('es', 'traducción vieja del take anterior');
+      internals.translationCache.set('zh', 'traducción vieja 2');
+      internals.translatedText.set('traducción vieja del take anterior');
+      internals.sourceLang.set('en');
+
+      // Take switch — the store is rewritten directly (bypasses onTextChange).
+      studio.setRawFromStore('prompt del nuevo take');
+      fixture.detectChanges();
+
+      expect(internals.translationCache.size).toBe(0);
+      expect(internals.translatedText()).toBeNull();
+      expect(internals.sourceLang()).toBe('');
     });
   });
 

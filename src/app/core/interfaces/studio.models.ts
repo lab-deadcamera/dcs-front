@@ -7,7 +7,7 @@
  */
 
 export type AspectRatio = '16:9' | '9:16' | '21:9' | '1:1';
-export type Resolution = '480p' | '720p' | '1080p';
+export type Resolution = '480p' | '720p' | '1080p' | '1440p' | '2k' | '4k';
 export type Engine = 'fast' | 'pro';
 
 /**

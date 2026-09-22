@@ -17,7 +17,11 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Reference, Shot } from '@app/core/interfaces';
 import { StudioStore } from '@app/core/stores/studio.store';
 import { SourceAssetPipe, SourceThumbnailAssetPipe } from '@app/core/pipes';
-import { ResolvedRefInfo, resolveReferenceInfo, resolveReferenceInfoBySlot } from '@app/shared/utils';
+import {
+  ResolvedRefInfo,
+  resolveReferenceInfo,
+  resolveReferenceInfoBySlot,
+} from '@app/shared/utils';
 import { AssetViewerComponent } from '@shared/components/asset-viewer/asset-viewer.component';
 
 export interface BeatInfo {
@@ -108,6 +112,13 @@ export function beatInfoFromSegments(
           >
         </div>
 
+        @if ((shot().cuts ?? 0) > 0) {
+          <div class="grow">
+            <span class="k">{{ 'STUDIO.SHOT_BUILDER.CUTS' | translate }}</span>
+            <span class="v"><b>{{ shot().cuts }}</b></span>
+          </div>
+        }
+
         @if (shot().camera) {
           @if (shot().camera.framing) {
             <div class="grow">
@@ -152,6 +163,20 @@ export function beatInfoFromSegments(
           </div>
         }
 
+        @let watchFor = shot().notes.watchFor;
+        @if (watchFor && watchFor.length > 0) {
+          <div class="grow">
+            <span class="k">{{ 'STUDIO.SEQUENCE.WATCH_FOR' | translate }}</span>
+            <span class="v">
+              <ul class="warning-list">
+                @for (w of watchFor; track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            </span>
+          </div>
+        }
+
         @let todos = shot().notes.todos;
         @if (todos && todos.length > 0) {
           <div class="grow">
@@ -181,8 +206,9 @@ export function beatInfoFromSegments(
                       class="cut ref-chip-button"
                       (click)="openRefInfo($event, ref)"
                       [title]="'Ver metadata del asset'"
-                      ><em>{{ ref.slot }}</em> {{ ref.type }}</button
                     >
+                      <em>{{ ref.slot }}</em> {{ ref.type }}
+                    </button>
                     @if (refInfo) {
                       <button
                         type="button"
@@ -190,7 +216,9 @@ export function beatInfoFromSegments(
                         (click)="onRefAssign($event, ref)"
                         [pTooltip]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
                         tooltipPosition="top"
-                        [attr.aria-label]="'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate"
+                        [attr.aria-label]="
+                          'STUDIO.SHOT_BUILDER.CHANGE_ASSIGNED_RESOURCE' | translate
+                        "
                       >
                         <i class="pi pi-refresh" aria-hidden="true"></i>
                       </button>
@@ -233,7 +261,11 @@ export function beatInfoFromSegments(
             (change)="onApprovedChange($event)"
           />
           <span class="approval-text" [class.approved]="approved()">
-            {{ approved() ? ('STUDIO.SEQUENCE.APPROVED' | translate) : ('STUDIO.SEQUENCE.MARK_APPROVED' | translate) }}
+            {{
+              approved()
+                ? ('STUDIO.SEQUENCE.APPROVED' | translate)
+                : ('STUDIO.SEQUENCE.MARK_APPROVED' | translate)
+            }}
           </span>
         </label>
       </div>
@@ -244,7 +276,11 @@ export function beatInfoFromSegments(
           <span class="pl">{{ 'STUDIO.SEQUENCE.PRE_PROMPT' | translate }}</span>
 
           @if (shot().prompt.zh) {
-            <div class="toggle" role="group" [attr.aria-label]="'STUDIO.SEQUENCE.PROMPT_LANG_ARIA' | translate">
+            <div
+              class="toggle"
+              role="group"
+              [attr.aria-label]="'STUDIO.SEQUENCE.PROMPT_LANG_ARIA' | translate"
+            >
               <button
                 class="toggle-btn"
                 [class.on]="lang() === 'en'"
@@ -280,7 +316,11 @@ export function beatInfoFromSegments(
             (click)="copyPrompt()"
             [attr.aria-label]="'STUDIO.SEQUENCE.COPY_PROMPT_ARIA' | translate"
           >
-            {{ copied() ? ('STUDIO.SEQUENCE.COPIED' | translate) : ('STUDIO.SEQUENCE.COPY' | translate) }}
+            {{
+              copied()
+                ? ('STUDIO.SEQUENCE.COPIED' | translate)
+                : ('STUDIO.SEQUENCE.COPY' | translate)
+            }}
           </button>
         </div>
         @if (editing()) {
@@ -294,7 +334,9 @@ export function beatInfoFromSegments(
             [attr.aria-label]="'STUDIO.SEQUENCE.EDIT_PROMPT_ARIA' | translate"
           ></textarea>
           <div class="edit-actions">
-            <button class="done-btn" (click)="doneEditing()">{{ 'COMMON.DONE' | translate }}</button>
+            <button class="done-btn" (click)="doneEditing()">
+              {{ 'COMMON.DONE' | translate }}
+            </button>
           </div>
         } @else {
           <pre
@@ -918,7 +960,7 @@ export class ShotCardPreviewComponent {
   readonly langChange = output<'en' | 'zh'>();
   /** Emitted when the user clicks "+" on an unresolved ref to assign a resource
    *  to its slot — the viewer forwards it to the shared resolver popover. */
-  readonly refAssign = output<{ event: Event; ref: Reference }>();
+  readonly refAssign = output<{ event: Event; ref: Reference; shotId: string }>();
 
   private readonly studio = inject(StudioStore);
   private readonly i18n = inject(TranslateService);
@@ -930,7 +972,9 @@ export class ShotCardPreviewComponent {
   @ViewChild('refInfoPopover') protected readonly refInfoPopover!: Popover;
 
   /** File shown in the full-screen viewer (same component as Files / shot builder). */
-  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(null);
+  protected readonly viewerFile = signal<{ id: string; filename: string; mimeType: string } | null>(
+    null,
+  );
   /** Whether the full-screen viewer dialog is open. */
   protected readonly viewerVisible = signal(false);
 
@@ -1000,7 +1044,8 @@ export class ShotCardPreviewComponent {
    *  which opens the shared resolver's assign popover). */
   protected onRefAssign(event: Event, ref: Reference): void {
     event.stopPropagation();
-    this.refAssign.emit({ event, ref });
+    this.refAssign.emit({ event, ref, shotId: this.shot().id });
+    console.log({ ref, shotId: this.shot().id });
   }
 
   readonly lang = signal<'en' | 'zh'>('en');
