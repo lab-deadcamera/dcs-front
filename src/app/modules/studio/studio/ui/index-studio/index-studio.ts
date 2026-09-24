@@ -1298,21 +1298,30 @@ export class IndexStudio implements OnInit {
     // project → episode → scene → shot before the studio activates.
     this.studio.resetStudio();
 
-    // Default the studio to the Dreamina-Seedance-2-0-Gallery model so the
-    // user can start generating without picking one first. It stays selected
-    // (surviving breadcrumb navigation, see StudioStore.resetStudio) until the
-    // user changes it via the model picker. Fall back to the account favorite
-    // if that model isn't available for this account.
+    // Try to restore the last selected model from localStorage first.
+    // Fall back to: 1) account favorite, 2) Dreamina-Seedance-2-0-Gallery, 3) first available model.
     this.modelService.getAllModels('video').subscribe((res) => {
-      const preferred = res.data?.find(
-        (m) => normalizeModelName(m.name) === normalizeModelName(DEFAULT_MODEL_NAME),
-      );
-      if (preferred) {
-        this.studio.model = preferred;
-        return;
-      }
+      const models = res.data ?? [];
+      const restored = this.studio.restoreLastModel(models);
+      if (restored) return;
+
       this.modelService.getFavorite().subscribe((fav) => {
-        if (!fav.error && fav.data) this.studio.model = fav.data;
+        if (!fav.error && fav.data) {
+          this.studio.model = fav.data;
+          return;
+        }
+
+        const preferred = models.find(
+          (m) => normalizeModelName(m.name) === normalizeModelName(DEFAULT_MODEL_NAME),
+        );
+        if (preferred) {
+          this.studio.model = preferred;
+          return;
+        }
+
+        if (models.length > 0) {
+          this.studio.model = models[0];
+        }
       });
     });
     this.loadProjects();

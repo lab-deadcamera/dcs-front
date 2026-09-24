@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { APP_VERSION } from '@environment/build-version';
 
 /**
  * Footer strip:
@@ -16,7 +17,7 @@ import { TranslatePipe } from '@ngx-translate/core';
       <p>
         {{ 'HEADER.BRAND.SEEDANCE_STUDIO' | translate }}
         <span class="mx-1 text-primary-500">//</span>
-        {{ 'STUDIO.FOOTER.VERSION' | translate }}
+        v{{ appVersion }}
         <span class="mx-1 text-fg-faint">·</span>
         {{ 'STUDIO.FOOTER.LIBRARY' | translate }}
       </p>
@@ -28,4 +29,6 @@ import { TranslatePipe } from '@ngx-translate/core';
     </footer>
   `,
 })
-export class FooterComponent {}
+export class FooterComponent {
+  readonly appVersion = APP_VERSION;
+}
