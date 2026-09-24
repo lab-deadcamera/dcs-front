@@ -4,6 +4,7 @@ import { SkillBrief } from '@app/core/interfaces/studio.models';
 import { PresetsService } from './presets.service';
 import { Take } from '../interfaces/session.models';
 import { ProjectsApiService } from '@modules/projects/projects/services';
+import { ModelConfig, ModelData } from '@core/interfaces';
 import {
   AspectRatio,
   CinematographyConfig,
@@ -17,13 +18,14 @@ import {
   UsedAsset,
   UsedAssetKind,
 } from '../interfaces/studio.models';
-import { ModelConfig, ModelData } from '../interfaces';
 import { collectSlotTokensInOrder } from '../utils/slot-reindex';
 
 function clamp(n: number, min: number, max: number): number {
   if (Number.isNaN(n)) return min;
   return Math.max(min, Math.min(max, n));
 }
+
+const STUDIO_MODEL_KEY = 'dcs-studio-model-id';
 
 // ─── Preset-into-section injection helpers ─────────────────────────
 
@@ -230,8 +232,17 @@ export class StudioStore {
 
   // ── Model ────────────────────────────────────────────────────────
 
+  private readonly _savedModelId = signal<string | null>(null);
   private readonly _modelCode = signal<ModelData | null>(null);
   readonly modelCode = this._modelCode.asReadonly();
+
+  constructor() {
+    try {
+      this._savedModelId.set(localStorage.getItem(STUDIO_MODEL_KEY));
+    } catch {
+      /* ignore */
+    }
+  }
 
   /** Per-model generation limits from the selected model's config. */
   readonly modelConfig = computed<ModelConfig | undefined>(() => this._modelCode()?.config);
@@ -604,7 +615,32 @@ export class StudioStore {
 
   set model(value: ModelData | null) {
     this._modelCode.set(value);
+    if (value?.id) {
+      try {
+        localStorage.setItem(STUDIO_MODEL_KEY, value.id);
+      } catch {
+        /* ignore */
+      }
+    } else if (value === null) {
+      try {
+        localStorage.removeItem(STUDIO_MODEL_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
     this.clampOutputToModelLimits();
+  }
+
+  /** Restore the last selected model from localStorage using the provided models list. */
+  restoreLastModel(models: ModelData[]): boolean {
+    const savedId = this._savedModelId();
+    if (!savedId) return false;
+    const model = models.find((m) => m.id === savedId);
+    if (model) {
+      this.model = model;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -648,10 +684,18 @@ export class StudioStore {
     this._output.update((o) => {
       const merged = { ...o, ...patch };
       if (patch.batchCount !== undefined) {
-        merged.batchCount = clamp(Math.round(patch.batchCount), this.minBatchCount(), this.maxBatchCount());
+        merged.batchCount = clamp(
+          Math.round(patch.batchCount),
+          this.minBatchCount(),
+          this.maxBatchCount(),
+        );
       }
       if (patch.durationSeconds !== undefined) {
-        merged.durationSeconds = clamp(merged.durationSeconds, this.minDuration(), this.maxDuration());
+        merged.durationSeconds = clamp(
+          merged.durationSeconds,
+          this.minDuration(),
+          this.maxDuration(),
+        );
       }
       if (patch.aspectRatio !== undefined) {
         merged.aspectRatio = this.nearestAllowed(
