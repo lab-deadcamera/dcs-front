@@ -6,6 +6,7 @@ import {
   Output,
   ViewChild,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -170,6 +171,32 @@ export class IndexCharacters implements OnInit {
    * `onAssetCreated` only refetches for the new asset, not the whole list.
    */
   protected readonly previewMap = signal<Record<string, PreviewInfo>>({});
+
+  /** Asset ids with a preview fetch currently in flight (non-reactive guard
+   *  so the preview effect below doesn't duplicate pending requests). */
+  private readonly previewInFlight = new Set<string>();
+
+  constructor() {
+    // Every asset that reaches the grid needs its linked-file ids (they drive
+    // the <img> mosaic). Items arrive through several paths — initial load,
+    // "Load 50 more" (next server pages) and search results — none of which
+    // used to fetch previews beyond page 1, leaving later cards as blank
+    // tiles. Watch the loaded items and fetch previews only for the ones
+    // still missing an entry; ids already in the map are refreshed through
+    // fetchPreviewFor() by the create/edit flows.
+    effect(() => {
+      const missing = this.characters
+        .items()
+        .filter(
+          (i) =>
+            !this.previewMap()[i.character.id] && !this.previewInFlight.has(i.character.id),
+        );
+      if (missing.length > 0) {
+        for (const i of missing) this.previewInFlight.add(i.character.id);
+        this.loadPreviews(missing.map((i) => toCharacter(i.character)));
+      }
+    });
+  }
 
   /** Max thumbnails rendered in the card preview mosaic. */
   protected readonly PREVIEW_GRID_MAX = 4;
@@ -398,12 +425,7 @@ export class IndexCharacters implements OnInit {
   }
 
   protected loadAssets(): void {
-    this.characters.load().subscribe((res) => {
-      if (!res.error && res.data) {
-        const chars = res.data.items.map((c: any) => toCharacter(c.character));
-        this.loadPreviews(chars);
-      }
-    });
+    this.characters.load().subscribe();
   }
 
   /**
@@ -415,7 +437,11 @@ export class IndexCharacters implements OnInit {
     from(items)
       .pipe(mergeMap((c) => this.characters.listFiles(c.id).pipe(map((r) => ({ c, r }))), 3))
       .subscribe(({ c, r }) => {
-        if (!r.error && r.data && r.data.length > 0) {
+        this.previewInFlight.delete(c.id);
+        if (!r.error && r.data) {
+          // Always record an entry — even for file-less assets — so the
+          // preview effect above treats them as resolved instead of
+          // re-fetching them on every previewMap update.
           this.previewMap.update((m) => ({
             ...m,
             [c.id]: {
@@ -431,7 +457,7 @@ export class IndexCharacters implements OnInit {
   /** Refresh the preview entry for a single asset (used after create). */
   private fetchPreviewFor(characterId: string): void {
     this.characters.listFiles(characterId).subscribe((r) => {
-      if (!r.error && r.data && r.data.length > 0) {
+      if (!r.error && r.data) {
         this.previewMap.update((m) => ({
           ...m,
           [characterId]: {
