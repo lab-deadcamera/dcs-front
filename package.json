@@ -1,9 +1,9 @@
 {
   "name": "dcs-videos",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --configuration dev",
+    "start": "ng serve --configuration production",
     "prestart": "npm run validate:i18n && npm run generate:build-version",
     "generate:build-version": "node scripts/generate-build-version.mjs",
     "validate:i18n": "node scripts/validate-i18n.mjs",
