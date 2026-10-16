@@ -71,6 +71,15 @@ export interface ProjectWithChapters {
   chapters: ChapterWithScenes[];
 }
 
+/** Paginated wrapper for GET /projects/list-all?page=&limit=. */
+export interface ProjectListResponse {
+  projects: Project[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 export interface ChapterWithScenes {
   chapter: Chapter;
   scenes: SceneWithShots[];
