@@ -119,7 +119,7 @@ export class ShotBuilderLogsComponent implements OnInit {
 
     // Projects (admin endpoint — includes inactive)
     this.http
-      .get<{ success: boolean; data?: Array<{ id: string; name: string }> }>(
+      .get<{ success: boolean; data?: { projects?: Array<{ id: string; name: string }> } }>(
         `${environment.API_URL}/projects/list-all`,
       )
       .pipe(
@@ -127,8 +127,8 @@ export class ShotBuilderLogsComponent implements OnInit {
         catchError(() => [{ error: true, data: undefined }]),
       )
       .subscribe((res) => {
-        if (!res.error && res.data) {
-          this.projectOptions.set(res.data.map((p) => ({ label: p.name, value: p.id })));
+        if (!res.error && res.data?.projects) {
+          this.projectOptions.set(res.data.projects.map((p) => ({ label: p.name, value: p.id })));
         }
       });
   }

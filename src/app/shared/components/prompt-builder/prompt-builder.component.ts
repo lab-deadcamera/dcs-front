@@ -16,6 +16,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Editor, EditorModule } from 'primeng/editor';
 import { Popover } from 'primeng/popover';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
 import { SectionHeaderComponent } from '@shared/components/section-header/section-header.component';
 import { SourceAssetPipe } from '@app/core/pipes/source-asset.pipe';
 import { SourceThumbnailAssetPipe } from '@app/core/pipes/source-thumbnail-asset.pipe';
@@ -57,6 +59,8 @@ import { SelectModule } from 'primeng/select';
     Tooltip,
     SelectModule,
     SelectButtonModule,
+    DialogModule,
+    ButtonModule,
     AssetInfoPopoverComponent,
   ],
   styles: [
@@ -256,6 +260,24 @@ export class PromptBuilderComponent implements OnInit {
   protected readonly translatedText = signal<string | null>(null);
 
   protected languageNotSupported = signal<boolean>(false);
+
+  /**
+   * Seedance 2.5 + video reference: the API forces 'ratio: adaptive' (the
+   * output inherits the reference video's aspect ratio). Warn the user once
+   * before generating; the dismissal persists in localStorage.
+   */
+  protected readonly adaptiveDialogVisible = signal(false);
+  protected readonly adaptiveDontShowAgain = signal(false);
+
+  private readonly adaptiveDismissedKey = 'seedance25_adaptive_ratio_dismissed';
+
+  private needsAdaptiveWarning(): boolean {
+    if (this.videoAssets().length === 0) return false;
+    const model = (this.studio.modelCode()?.name ?? '').toLowerCase();
+    if (!model.includes('2-5')) return false;
+    if (typeof localStorage === 'undefined') return true;
+    return localStorage.getItem(this.adaptiveDismissedKey) !== 'true';
+  }
 
   /** Selected target language for the translate button. */
   protected readonly translateLang = signal<'en' | 'es' | 'zh'>('en');
@@ -470,7 +492,26 @@ export class PromptBuilderComponent implements OnInit {
 
   protected onGenerate(): void {
     if (!this.studio.canGenerate()) return;
+    if (this.needsAdaptiveWarning()) {
+      this.adaptiveDialogVisible.set(true);
+      return;
+    }
     this.generate.emit();
+  }
+
+  /** Confirm the adaptive warning and fire the generation. */
+  protected confirmAdaptiveGenerate(): void {
+    if (this.adaptiveDontShowAgain() && typeof localStorage !== 'undefined') {
+      localStorage.setItem(this.adaptiveDismissedKey, 'true');
+    }
+    this.adaptiveDialogVisible.set(false);
+    this.generate.emit();
+  }
+
+  /** Close the adaptive warning without generating. */
+  protected cancelAdaptive(): void {
+    this.adaptiveDialogVisible.set(false);
+    this.adaptiveDontShowAgain.set(false);
   }
 
   protected onPreview(): void {

@@ -13,6 +13,7 @@ import {
   CreateShotRequest,
   CreateTakeRequest,
   Project,
+  ProjectListResponse,
   ProjectWithChapters,
   Scene,
   Shot,
@@ -79,12 +80,28 @@ export class ProjectsApiService {
     );
   }
 
-  /** Admin endpoint: lists all projects including inactive ones. */
-  listProjectsAdmin(): Observable<{ error: boolean; msg: string; data?: Project[] }> {
-    return this.http.get<ResponseBase<Project[]>>(`${this.apiUrl}/projects/list-all`).pipe(
-      map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-      catchError(httpErrorHandler<Project[]>),
-    );
+  /**
+   * Admin endpoint: lists all projects including inactive ones.
+   * Without page/limit the backend returns every project in one page;
+   * with them the result is paginated.
+   */
+  listProjectsAdmin(
+    page?: number,
+    limit?: number,
+  ): Observable<{ error: boolean; msg: string; data?: ProjectListResponse }> {
+    let params = {};
+    if (page) (params as Record<string, string>)['page'] = String(page);
+    if (limit) (params as Record<string, string>)['limit'] = String(limit);
+
+    return this.http
+      .get<ResponseBase<ProjectListResponse>>(
+        `${this.apiUrl}/projects/list-all`,
+        { params },
+      )
+      .pipe(
+        map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
+        catchError(httpErrorHandler<ProjectListResponse>),
+      );
   }
 
   deleteProject(id: string): Observable<{ error: boolean; msg: string }> {

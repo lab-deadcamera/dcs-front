@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { Project } from '@modules/projects/projects/interfaces';
 import { ProjectsApiService } from '@modules/projects/projects/services';
 
@@ -18,6 +19,7 @@ import { ProjectsApiService } from '@modules/projects/projects/services';
     ToastModule,
     TooltipModule,
     ConfirmDialogModule,
+    PaginatorModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
@@ -123,6 +125,15 @@ import { ProjectsApiService } from '@modules/projects/projects/services';
             </tbody>
           </table>
         </div>
+
+        <p-paginator
+          [totalRecords]="totalRecords()"
+          [rows]="limit()"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [first]="page() * limit()"
+          (onPageChange)="onPageChange($event)"
+          class="mt-3"
+        />
       }
     </section>
   `,
@@ -136,20 +147,40 @@ export class AdminProjectManagementComponent implements OnInit {
   protected readonly projects = signal<Project[]>([]);
   protected readonly loading = signal(false);
 
+  // ── Pagination (PrimeNG p-paginator, 0-based page) ─────────────
+
+  protected readonly page = signal(0);
+  protected readonly limit = signal(20);
+  protected readonly totalRecords = signal(0);
+
   ngOnInit(): void {
     this.loadProjects();
   }
 
   private loadProjects(): void {
     this.loading.set(true);
-    this.api.listProjectsAdmin().subscribe((res) => {
+    this.api.listProjectsAdmin(this.page() + 1, this.limit()).subscribe((res) => {
       this.loading.set(false);
-      if (res.error) {
+      if (res.error || !res.data) {
         this.toast.add({ severity: 'error', summary: this.i18n.instant('COMMON.ERROR'), detail: res.msg });
         return;
       }
-      this.projects.set(res.data ?? []);
+      this.projects.set(res.data.projects ?? []);
+      this.totalRecords.set(res.data.total);
     });
+  }
+
+  /** `p-paginator` page change — handles both page navigation and rows-per-page. */
+  protected onPageChange(ev: PaginatorState): void {
+    const rows = ev.rows ?? 20;
+    // Rows-per-page change resets the pagination (PrimeNG keeps [first] as-is).
+    if (rows !== this.limit()) {
+      this.limit.set(rows);
+      this.page.set(0);
+    } else {
+      this.page.set(ev.page ?? 0);
+    }
+    this.loadProjects();
   }
 
   protected openCreateDialog(): void {
