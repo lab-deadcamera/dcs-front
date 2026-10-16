@@ -18,6 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 
 import { GenerationLogsService, ModelService } from '@app/services';
 import {
@@ -69,6 +70,7 @@ const AI_RATIOS: RatioOption[] = [
     DialogModule,
     TooltipModule,
     ToastModule,
+    PaginatorModule,
     SourceThumbnailAssetPipe,
     AssetInfoPopoverComponent,
   ],
@@ -108,6 +110,12 @@ export class ExternalGalleriesComponent implements OnInit {
   protected readonly assets = signal<GalleryAsset[]>([]);
   protected readonly loadingModels = signal(false);
   protected readonly loadingAssets = signal(false);
+
+  // ── Pagination (PrimeNG p-paginator, 0-based page) ─────────────
+
+  protected readonly page = signal(0);
+  protected readonly limit = signal(20);
+  protected readonly totalRecords = signal(0);
 
   // ── Retry / fix ──────────────────────────────────────────────────
 
@@ -171,6 +179,7 @@ export class ExternalGalleriesComponent implements OnInit {
 
   protected onModelChange(modelId: string): void {
     this.selectedModelId.set(modelId);
+    this.page.set(0);
     if (modelId) this.loadAssets(modelId);
   }
 
@@ -178,7 +187,7 @@ export class ExternalGalleriesComponent implements OnInit {
     this.loadingAssets.set(true);
     this.assets.set([]);
     this.genLogs
-      .getGalleryAssets(modelId)
+      .getGalleryAssets(modelId, this.page() + 1, this.limit())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
         this.loadingAssets.set(false);
@@ -191,8 +200,22 @@ export class ExternalGalleriesComponent implements OnInit {
           });
           return;
         }
-        this.assets.set(res.data);
+        this.assets.set(res.data.assets || []);
+        this.totalRecords.set(res.data.total);
       });
+  }
+
+  /** `p-paginator` page change — handles both page navigation and rows-per-page. */
+  protected onPageChange(ev: PaginatorState): void {
+    const rows = ev.rows ?? 20;
+    // Rows-per-page change resets the pagination (PrimeNG keeps [first] as-is).
+    if (rows !== this.limit()) {
+      this.limit.set(rows);
+      this.page.set(0);
+    } else {
+      this.page.set(ev.page ?? 0);
+    }
+    this.loadAssets(this.selectedModelId());
   }
 
   /** Total counts for the selected model (header summary chips). */

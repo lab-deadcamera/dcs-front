@@ -203,6 +203,15 @@
         </tbody>
       </table>
     </div>
+
+    <p-paginator
+      [totalRecords]="totalRecords()"
+      [rows]="limit()"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [first]="page() * limit()"
+      (onPageChange)="onPageChange($event)"
+      class="mt-3"
+    />
   }
 </section>
 

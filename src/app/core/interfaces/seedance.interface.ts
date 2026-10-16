@@ -160,6 +160,15 @@ export interface GalleryAsset extends ModelAssetSync {
   characters: GalleryCharacter[];
 }
 
+/** Paginated wrapper for GET /studio/gallery/models/:modelId/assets. */
+export interface GalleryAssetListResponse {
+  assets: GalleryAsset[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 /** Resultado del retry/reparación de un sync fallido. */
 export interface FixAssetResult {
   file_id: string;
