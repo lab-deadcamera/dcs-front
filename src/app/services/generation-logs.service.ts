@@ -5,7 +5,7 @@ import { environment } from '@environment/environment';
 import { httpErrorHandler } from '@shared/utils';
 import {
   FixAssetResult,
-  GalleryAsset,
+  GalleryAssetListResponse,
   GalleryModel,
   GenerationLogEntry,
   GenerationLogListResponse,
@@ -180,16 +180,26 @@ export class GenerationLogsService {
 
   /**
    * Sync records for a model, enriched with the internal gallery match
-   * (file name/mime + characters). GET /studio/gallery/models/:modelId/assets
+   * (file name/mime + characters), paginated.
+   * GET /studio/gallery/models/:modelId/assets?page=&limit=
    */
   getGalleryAssets(
     modelId: string,
-  ): Observable<{ error: boolean; msg: string; data?: GalleryAsset[] }> {
+    page?: number,
+    limit?: number,
+  ): Observable<{ error: boolean; msg: string; data?: GalleryAssetListResponse }> {
+    let params = {};
+    if (page) (params as Record<string, string>)['page'] = String(page);
+    if (limit) (params as Record<string, string>)['limit'] = String(limit);
+
     return this.http
-      .get<ResponseBase<GalleryAsset[]>>(`${this.apiUrl}/gallery/models/${modelId}/assets`)
+      .get<ResponseBase<GalleryAssetListResponse>>(
+        `${this.apiUrl}/gallery/models/${modelId}/assets`,
+        { params },
+      )
       .pipe(
         map((r) => ({ error: !r.success, msg: r.message, data: r.data })),
-        catchError(httpErrorHandler<GalleryAsset[]>),
+        catchError(httpErrorHandler<GalleryAssetListResponse>),
       );
   }
 
