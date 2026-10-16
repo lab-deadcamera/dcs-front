@@ -450,3 +450,44 @@
     }
   </p-popover>
 </section>
+
+<!-- Seedance 2.5 + video reference: 'ratio: adaptive' warning -->
+<p-dialog
+  [visible]="adaptiveDialogVisible()"
+  (visibleChange)="cancelAdaptive()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '30rem', maxWidth: '95vw' }"
+  [header]="'STUDIO.PROMPT.ADAPTIVE_RATIO_TITLE' | translate"
+>
+  <div class="flex flex-col gap-3">
+    <p class="m-0 text-[12px] leading-relaxed text-fg-muted">
+      {{ 'STUDIO.PROMPT.ADAPTIVE_RATIO_BODY' | translate }}
+    </p>
+    <label class="flex cursor-pointer items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-fg-muted">
+      <input
+        type="checkbox"
+        class="accent-primary-500"
+        [ngModel]="adaptiveDontShowAgain()"
+        (ngModelChange)="adaptiveDontShowAgain.set($event)"
+      />
+      {{ 'STUDIO.PROMPT.ADAPTIVE_RATIO_DONT_SHOW' | translate }}
+    </label>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        severity="secondary"
+        [text]="true"
+        [label]="'STUDIO.PROMPT.ADAPTIVE_RATIO_CANCEL' | translate"
+        (onClick)="cancelAdaptive()"
+      />
+      <p-button
+        icon="pi pi-sparkles"
+        [label]="'STUDIO.PROMPT.ADAPTIVE_RATIO_CONTINUE' | translate"
+        (onClick)="confirmAdaptiveGenerate()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

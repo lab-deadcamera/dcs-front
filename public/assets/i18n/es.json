@@ -179,6 +179,11 @@
     "PROMPT": {
       "TITLE": "Constructor de Prompt",
       "HINT": "Describe la escena · el estilo cinematográfico se inyecta automáticamente",
+      "ADAPTIVE_RATIO_TITLE": "Video de referencia detectado — el aspect ratio pasa a ser adaptativo",
+      "ADAPTIVE_RATIO_BODY": "Con Dreamina Seedance 2.5, al enviar un video de referencia la API obliga 'ratio: adaptive': el video generado hereda el aspect ratio del video de referencia, no el elegido en Formato de Salida. La resolución (480p/720p/1080p) sigue aplicando, pero el costo se estima según el área de píxeles resultante — un ratio heredado distinto de 9:16/16:9 puede cambiar el precio final.",
+      "ADAPTIVE_RATIO_DONT_SHOW": "No volver a mostrar",
+      "ADAPTIVE_RATIO_CONTINUE": "Generar de todos modos",
+      "ADAPTIVE_RATIO_CANCEL": "Cancelar",
       "PLACEHOLDER": "Describe la escena. Sé específico: sujeto, acción, setting, atmósfera. El lenguaje cinematográfico se inyecta automáticamente desde tus selecciones.",
       "COMPILED": "Prompt Compilado",
       "CHARS": "{{n}} caracteres",

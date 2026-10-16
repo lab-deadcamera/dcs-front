@@ -1683,10 +1683,18 @@ export class IndexStudio implements OnInit {
     }
 
     const takeIndex = this.studio.takes().length + 1;
+    // Seedance 2.5 rejects a fixed ratio when a reference video is sent
+    // (video extension task → "ratio must be adaptive"); default to
+    // "adaptive" so the backend cannot fail the generation.
+    const modelName = (this.studio.modelCode()?.name ?? '').toLowerCase();
+    const isSeedance25 = modelName.includes('2-5');
+    const hasVideoRef = refs.some((r) => r.kind === 'video');
+    const effectiveRatio = isSeedance25 && hasVideoRef ? 'adaptive' : output.aspectRatio;
+
     return {
       model: this.studio.modelCode()?.name ?? '',
       content,
-      ratio: output.aspectRatio,
+      ratio: effectiveRatio,
       duration: output.durationSeconds,
       camerafixed: false,
       seed: '',
